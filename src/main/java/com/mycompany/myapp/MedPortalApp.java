@@ -101,5 +101,6 @@ public class MedPortalApp {
             contextPath,
             env.getActiveProfiles().length == 0 ? env.getDefaultProfiles() : env.getActiveProfiles()
         );
+
     }
 }

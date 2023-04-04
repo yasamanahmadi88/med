@@ -11,6 +11,10 @@ import { Account } from 'app/core/auth/account.model';
 import { UserManagementService } from '../service/user-management.service';
 import { User } from '../user-management.model';
 import { UserManagementDeleteDialogComponent } from '../delete/user-management-delete-dialog.component';
+import { faKey, faTrash, faEye, faPencil } from '@fortawesome/free-solid-svg-icons';
+import {ChangePasswordDialogComponent} from "../change-password-dialog/change-password-dialog.component";
+import {ToastrService} from "ngx-toastr";
+import {TranslateService} from "@ngx-translate/core";
 
 @Component({
   selector: 'jhi-user-mgmt',
@@ -25,13 +29,19 @@ export class UserManagementComponent implements OnInit {
   page!: number;
   predicate!: string;
   ascending!: boolean;
+  faKey = faKey;
+  faTrash = faTrash;
+  faEye = faEye;
+  faPencil = faPencil;
 
   constructor(
     private userService: UserManagementService,
     private accountService: AccountService,
     private activatedRoute: ActivatedRoute,
     private router: Router,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    private toastr: ToastrService,
+    private translateService: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -107,5 +117,17 @@ export class UserManagementComponent implements OnInit {
   private onSuccess(users: User[] | null, headers: HttpHeaders): void {
     this.totalItems = Number(headers.get('X-Total-Count'));
     this.users = users;
+  }
+
+  changePassword(user: User): void {
+    const modalRef = this.modalService.open(ChangePasswordDialogComponent, { size: 'lg', backdrop: 'static' });
+    modalRef.componentInstance.user = user;
+    modalRef.componentInstance.result.subscribe((result:any) => {
+      if(result === "success"){
+        this.toastr.success(this.translateService.instant("reset.change.success"));
+      }else if("error"){
+        this.toastr.error(this.translateService.instant("reset.change.error"));
+      }
+    });
   }
 }

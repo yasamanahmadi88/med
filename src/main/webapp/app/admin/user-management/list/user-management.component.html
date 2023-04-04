@@ -78,24 +78,26 @@
           <td>{{ user.lastModifiedDate | date: 'dd/MM/yy HH:mm' }}</td>
           <td class="text-end">
             <div class="btn-group">
-              <button type="submit" [routerLink]="['./', user.login, 'view']" class="btn btn-info btn-sm">
-                <fa-icon icon="eye"></fa-icon>
-                <span class="d-none d-md-inline" jhiTranslate="entity.action.view">View</span>
+              <button type="submit" class="btn btn-sm" style="background:#c5a800" title="Change Password" (click)="changePassword(user)">
+                <fa-icon [icon]="faKey" style="color:white"></fa-icon>
               </button>
 
-              <button type="submit" [routerLink]="['./', user.login, 'edit']" queryParamsHandling="merge" class="btn btn-primary btn-sm">
-                <fa-icon icon="pencil-alt"></fa-icon>
-                <span class="d-none d-md-inline" jhiTranslate="entity.action.edit">Edit</span>
+              <button type="submit" [routerLink]="['./', user.login, 'view']" class="btn btn-info btn-sm" title="View">
+                <fa-icon [icon]="faEye" style="color:white"></fa-icon>
+              </button>
+
+              <button type="submit" [routerLink]="['./', user.login, 'edit']" queryParamsHandling="merge" class="btn btn-primary btn-sm" title="Edit">
+                <fa-icon [icon]="faPencil" style="color:white"></fa-icon>
               </button>
 
               <button
                 type="button"
+                title="Delete"
                 (click)="deleteUser(user)"
                 class="btn btn-danger btn-sm"
                 [disabled]="!currentAccount || currentAccount.login === user.login"
               >
-                <fa-icon icon="times"></fa-icon>
-                <span class="d-none d-md-inline" jhiTranslate="entity.action.delete">Delete</span>
+                <fa-icon [icon]="faTrash"></fa-icon>
               </button>
             </div>
           </td>

@@ -32,7 +32,7 @@ spring:
       indent-output: true
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:oracle:thin:@//172.16.251.170:1521/IXPDB
+    url: jdbc:oracle:thin:@//172.18.50.50:1521/IXPDB
     username: medportal
     password: 'pass#1401'
     hikari:

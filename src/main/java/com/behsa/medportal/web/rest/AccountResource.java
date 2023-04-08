@@ -11,7 +11,7 @@ import com.behsa.medportal.service.dto.UserDTO;
 import com.behsa.medportal.web.rest.errors.EmailAlreadyUsedException;
 import com.behsa.medportal.web.rest.errors.InvalidPasswordException;
 import com.behsa.medportal.web.rest.errors.LoginAlreadyUsedException;
-import com.mycompany.myapp.web.rest.errors.*;
+import com.behsa.medportal.web.rest.errors.*;
 import com.behsa.medportal.web.rest.vm.KeyAndPasswordVM;
 import com.behsa.medportal.web.rest.vm.ManagedUserVM;
 import java.util.*;

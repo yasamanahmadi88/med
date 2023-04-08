@@ -1,14 +1,14 @@
 /*
-package com.mycompany.myapp.service;
+package com.behsa.medportal.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import com.mycompany.myapp.IntegrationTest;
-import com.mycompany.myapp.config.Constants;
-import com.mycompany.myapp.domain.User;
-import com.mycompany.myapp.repository.UserRepository;
-import com.mycompany.myapp.service.dto.AdminUserDTO;
+import com.behsa.medportal.IntegrationTest;
+import com.behsa.medportal.config.Constants;
+import com.behsa.medportal.domain.User;
+import com.behsa.medportal.repository.UserRepository;
+import com.behsa.medportal.service.dto.AdminUserDTO;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;

@@ -18,9 +18,13 @@ public class Authority implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    @Id
+    @NotNull
+    @Column
+    private Long id;
+
     @NotNull
     @Size(max = 50)
-    @Id
     @Column(length = 50)
     private String name;
 
@@ -52,6 +56,7 @@ public class Authority implements Serializable {
     @Override
     public String toString() {
         return "Authority{" +
+            "id=" + id +
             "name='" + name + '\'' +
             "}";
     }

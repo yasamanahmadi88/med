@@ -21,6 +21,8 @@ public class MedAuthorityDTO implements Serializable {
 
     private Long parentId;
 
+    private String parentDisplayName;
+
     public Long getId() {
         return id;
     }
@@ -51,6 +53,15 @@ public class MedAuthorityDTO implements Serializable {
 
     public void setParentId(Long parentId) {
         this.parentId = parentId;
+    }
+
+    public String getParentDisplayName() {
+        return parentDisplayName;
+    }
+
+    public MedAuthorityDTO setParentDisplayName(String parentDisplayName) {
+        this.parentDisplayName = parentDisplayName;
+        return this;
     }
 
     @Override

@@ -32,8 +32,9 @@ public class MedAuthorityEntity implements Serializable {
     @Column(name = "display_name", length = 500)
     private String displayName;
 
-    @Column(name = "parent_id")
-    private Long parentId;
+    @ManyToOne
+    @JoinColumn(name = "parent_id", referencedColumnName = "ID")
+    private MedAuthorityEntity parent;
 
     @OneToMany(mappedBy = "medAuthority")
     @JsonIgnoreProperties(value = { "medAuthority", "resource" }, allowSetters = true)
@@ -80,17 +81,13 @@ public class MedAuthorityEntity implements Serializable {
         this.displayName = displayName;
     }
 
-    public Long getParentId() {
-        return this.parentId;
+    public MedAuthorityEntity getParent() {
+        return parent;
     }
 
-    public MedAuthorityEntity parentId(Long parentId) {
-        this.setParentId(parentId);
+    public MedAuthorityEntity setParent(MedAuthorityEntity parent) {
+        this.parent = parent;
         return this;
-    }
-
-    public void setParentId(Long parentId) {
-        this.parentId = parentId;
     }
 
     public Set<ResourceAuthorityEntity> getResourceAuthorities() {
@@ -150,7 +147,7 @@ public class MedAuthorityEntity implements Serializable {
             "id=" + getId() +
             ", name='" + getName() + "'" +
             ", displayName='" + getDisplayName() + "'" +
-            ", parentId=" + getParentId() +
+            ", parent=" + getParent() +
             "}";
     }
 }

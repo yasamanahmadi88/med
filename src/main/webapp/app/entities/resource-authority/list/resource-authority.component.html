@@ -69,12 +69,12 @@
           <td>{{ resourceAuthority.verb }}</td>
           <td>
             <div *ngIf="resourceAuthority.medAuthority">
-              <a [routerLink]="['/med-authority', resourceAuthority.medAuthority.id, 'view']">{{ resourceAuthority.medAuthority.id }}</a>
+              <a [routerLink]="['/med-authority', resourceAuthority.medAuthority.id, 'view']">{{ resourceAuthority.medAuthority.displayName }}</a>
             </div>
           </td>
           <td>
             <div *ngIf="resourceAuthority.resource">
-              <a [routerLink]="['/resource', resourceAuthority.resource.id, 'view']">{{ resourceAuthority.resource.id }}</a>
+              <a [routerLink]="['/resource', resourceAuthority.resource.id, 'view']">{{ resourceAuthority.resource.displayName }}</a>
             </div>
           </td>
           <td class="text-end">

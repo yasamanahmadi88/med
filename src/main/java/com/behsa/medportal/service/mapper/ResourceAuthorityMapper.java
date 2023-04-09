@@ -13,8 +13,7 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring")
 public interface ResourceAuthorityMapper extends EntityMapper<ResourceAuthorityDTO, ResourceAuthorityEntity> {
-    @Mapping(target = "medAuthority", source = "medAuthority", qualifiedByName = "medAuthorityId")
-    //@Mapping(target = "resource", source = "resource", qualifiedByName = "resourceId")
+
     ResourceAuthorityDTO toDto(ResourceAuthorityEntity s);
 
     @Named("medAuthorityId")

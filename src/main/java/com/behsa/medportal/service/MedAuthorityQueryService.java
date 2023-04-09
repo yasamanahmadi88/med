@@ -97,7 +97,8 @@ public class MedAuthorityQueryService extends QueryService<MedAuthorityEntity> {
                 specification = specification.and(buildStringSpecification(criteria.getDisplayName(), MedAuthorityEntity_.displayName));
             }
             if (criteria.getParentId() != null) {
-                specification = specification.and(buildRangeSpecification(criteria.getParentId(), MedAuthorityEntity_.parentId));
+                specification = specification.and(buildSpecification(criteria.getParentId(),
+                    root -> root.join(MedAuthorityEntity_.parent, JoinType.LEFT).get(MedAuthorityEntity_.id)));
             }
             if (criteria.getResourceAuthoritiesId() != null) {
                 specification =

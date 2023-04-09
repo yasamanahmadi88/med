@@ -5,9 +5,13 @@ import com.behsa.medportal.domain.User;
 import com.behsa.medportal.repository.UserRepository;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import com.behsa.medportal.service.ResourceAuthorityQueryService;
+import com.behsa.medportal.service.dto.ResourceAuthorityDTO;
 import org.hibernate.validator.internal.constraintvalidators.hv.EmailValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,11 +30,14 @@ public class DomainUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
-    public DomainUserDetailsService(UserRepository userRepository) {
+    private final ResourceAuthorityQueryService resourceAuthorityQueryService;
+
+    public DomainUserDetailsService(UserRepository userRepository, ResourceAuthorityQueryService resourceAuthorityQueryService) {
         this.userRepository = userRepository;
+        this.resourceAuthorityQueryService = resourceAuthorityQueryService;
     }
 
-    @Override
+    /*@Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(final String login) {
         log.debug("Authenticating {}", login);
@@ -60,5 +67,57 @@ public class DomainUserDetailsService implements UserDetailsService {
             .map(SimpleGrantedAuthority::new)
             .collect(Collectors.toList());
         return new org.springframework.security.core.userdetails.User(user.getLogin(), user.getPassword(), grantedAuthorities);
+    }*/
+
+    @Override
+    @Transactional
+    public UserDetails loadUserByUsername(final String login) {
+        log.debug("Authenticating {}", login);
+
+        if (new EmailValidator().isValid(login, null)) {
+            return userRepository
+                .findOneWithAuthoritiesByEmailIgnoreCase(login)
+                .map(user -> createSpringSecurityUser(login, user))
+                .orElseThrow(() -> new UsernameNotFoundException("User with email " + login + " was not found in the database"));
+        }
+
+        String lowercaseLogin = login.toLowerCase(Locale.ENGLISH);
+        return userRepository
+            .findOneWithAuthoritiesByLogin(lowercaseLogin)
+            .map(user -> createSpringSecurityUser(lowercaseLogin, user))
+            .orElseThrow(() -> new UsernameNotFoundException("User " + lowercaseLogin + " was not found in the database"));
+    }
+
+    private UserDetails createSpringSecurityUser(String lowercaseLogin, User user) {
+        if (!user.isActivated()) {
+            throw new UserNotActivatedException("User " + lowercaseLogin + " was not activated");
+        }
+        List<GrantedAuthority> grantedAuthorities = user
+            .getAuthorities()
+            .stream()
+            .map(authority -> new SimpleGrantedAuthority(authority.getName()))
+            .collect(Collectors.toList());
+
+        List<String> ids = new ArrayList<>();
+        grantedAuthorities.forEach(
+            grantedAuthority -> {
+                ids.add(grantedAuthority.getAuthority());
+            }
+        );
+
+        List<ResourceAuthorityDTO> resources = resourceAuthorityQueryService.findByAuthorities(ids, Pageable.unpaged()).getContent();
+
+        return new PortalUser(
+            user.getLogin(),
+            user.getPassword(),
+            user.isActivated(),
+            true,
+            true,
+            true,
+            grantedAuthorities,
+            user.getPartyId() + "",
+            resources,
+            user
+        );
     }
 }

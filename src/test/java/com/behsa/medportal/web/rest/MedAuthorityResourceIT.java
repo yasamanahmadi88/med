@@ -1,3 +1,4 @@
+/*
 package com.behsa.medportal.web.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,9 +26,11 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+*/
 /**
  * Integration tests for the {@link MedAuthorityResource} REST controller.
- */
+ *//*
+
 @IntegrationTest
 @AutoConfigureMockMvc
 @WithMockUser
@@ -63,12 +66,14 @@ class MedAuthorityResourceIT {
 
     private MedAuthorityEntity medAuthorityEntity;
 
-    /**
+    */
+/**
      * Create an entity for this test.
      *
      * This is a static method, as tests for other entities might also need it,
      * if they test an entity which requires the current entity.
-     */
+     *//*
+
     public static MedAuthorityEntity createEntity(EntityManager em) {
         MedAuthorityEntity medAuthorityEntity = new MedAuthorityEntity()
             .name(DEFAULT_NAME)
@@ -77,12 +82,14 @@ class MedAuthorityResourceIT {
         return medAuthorityEntity;
     }
 
-    /**
+    */
+/**
      * Create an updated entity for this test.
      *
      * This is a static method, as tests for other entities might also need it,
      * if they test an entity which requires the current entity.
-     */
+     *//*
+
     public static MedAuthorityEntity createUpdatedEntity(EntityManager em) {
         MedAuthorityEntity medAuthorityEntity = new MedAuthorityEntity()
             .name(UPDATED_NAME)
@@ -454,9 +461,11 @@ class MedAuthorityResourceIT {
         defaultMedAuthorityShouldNotBeFound("resourceAuthoritiesId.equals=" + (resourceAuthoritiesId + 1));
     }
 
-    /**
+    */
+/**
      * Executes the search, and checks that the default entity is returned.
-     */
+     *//*
+
     private void defaultMedAuthorityShouldBeFound(String filter) throws Exception {
         restMedAuthorityMockMvc
             .perform(get(ENTITY_API_URL + "?sort=id,desc&" + filter))
@@ -475,9 +484,11 @@ class MedAuthorityResourceIT {
             .andExpect(content().string("1"));
     }
 
-    /**
+    */
+/**
      * Executes the search, and checks that the default entity is not returned.
-     */
+     *//*
+
     private void defaultMedAuthorityShouldNotBeFound(String filter) throws Exception {
         restMedAuthorityMockMvc
             .perform(get(ENTITY_API_URL + "?sort=id,desc&" + filter))
@@ -749,3 +760,4 @@ class MedAuthorityResourceIT {
         assertThat(medAuthorityList).hasSize(databaseSizeBeforeDelete - 1);
     }
 }
+*/

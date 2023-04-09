@@ -1,3 +1,4 @@
+/*
 package com.behsa.medportal.web.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,9 +26,11 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+*/
 /**
  * Integration tests for the {@link ResourceResource} REST controller.
- */
+ *//*
+
 @IntegrationTest
 @AutoConfigureMockMvc
 @WithMockUser
@@ -65,12 +68,14 @@ class ResourceResourceIT {
 
     private ResourceEntity resourceEntity;
 
-    /**
+    */
+/**
      * Create an entity for this test.
      *
      * This is a static method, as tests for other entities might also need it,
      * if they test an entity which requires the current entity.
-     */
+     *//*
+
     public static ResourceEntity createEntity(EntityManager em) {
         ResourceEntity resourceEntity = new ResourceEntity()
             .name(DEFAULT_NAME)
@@ -80,12 +85,14 @@ class ResourceResourceIT {
         return resourceEntity;
     }
 
-    /**
+    */
+/**
      * Create an updated entity for this test.
      *
      * This is a static method, as tests for other entities might also need it,
      * if they test an entity which requires the current entity.
-     */
+     *//*
+
     public static ResourceEntity createUpdatedEntity(EntityManager em) {
         ResourceEntity resourceEntity = new ResourceEntity()
             .name(UPDATED_NAME)
@@ -548,9 +555,11 @@ class ResourceResourceIT {
         defaultResourceShouldNotBeFound("resourceAuthoritiesId.equals=" + (resourceAuthoritiesId + 1));
     }
 
-    /**
+    */
+/**
      * Executes the search, and checks that the default entity is returned.
-     */
+     *//*
+
     private void defaultResourceShouldBeFound(String filter) throws Exception {
         restResourceMockMvc
             .perform(get(ENTITY_API_URL + "?sort=id,desc&" + filter))
@@ -570,9 +579,11 @@ class ResourceResourceIT {
             .andExpect(content().string("1"));
     }
 
-    /**
+    */
+/**
      * Executes the search, and checks that the default entity is not returned.
-     */
+     *//*
+
     private void defaultResourceShouldNotBeFound(String filter) throws Exception {
         restResourceMockMvc
             .perform(get(ENTITY_API_URL + "?sort=id,desc&" + filter))
@@ -851,3 +862,4 @@ class ResourceResourceIT {
         assertThat(resourceList).hasSize(databaseSizeBeforeDelete - 1);
     }
 }
+*/

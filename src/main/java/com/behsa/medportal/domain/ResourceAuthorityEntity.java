@@ -1,6 +1,10 @@
 package com.behsa.medportal.domain;
 
+import com.behsa.medportal.domain.enumeration.Verb;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
+
 import java.io.Serializable;
 import javax.persistence.*;
 import javax.validation.constraints.*;
@@ -22,9 +26,9 @@ public class ResourceAuthorityEntity implements Serializable {
     private Long id;
 
     @NotNull
-    @Size(max = 255)
-    @Column(name = "verb", length = 255, nullable = false)
-    private String verb;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "verb", nullable = false)
+    private Verb verb;
 
     @ManyToOne(optional = false)
     @NotNull
@@ -53,16 +57,16 @@ public class ResourceAuthorityEntity implements Serializable {
         this.id = id;
     }
 
-    public String getVerb() {
+    public Verb getVerb() {
         return this.verb;
     }
 
-    public ResourceAuthorityEntity verb(String verb) {
+    public ResourceAuthorityEntity verb(Verb verb) {
         this.setVerb(verb);
         return this;
     }
 
-    public void setVerb(String verb) {
+    public void setVerb(Verb verb) {
         this.verb = verb;
     }
 

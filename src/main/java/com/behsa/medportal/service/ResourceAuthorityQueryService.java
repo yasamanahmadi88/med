@@ -2,10 +2,13 @@ package com.behsa.medportal.service;
 
 import com.behsa.medportal.domain.*; // for static metamodels
 import com.behsa.medportal.domain.ResourceAuthorityEntity;
+import com.behsa.medportal.repository.MedAuthorityRepository;
 import com.behsa.medportal.repository.ResourceAuthorityRepository;
 import com.behsa.medportal.service.criteria.ResourceAuthorityCriteria;
 import com.behsa.medportal.service.dto.ResourceAuthorityDTO;
 import com.behsa.medportal.service.mapper.ResourceAuthorityMapper;
+
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.criteria.JoinType;
 import org.slf4j.Logger;
@@ -33,12 +36,18 @@ public class ResourceAuthorityQueryService extends QueryService<ResourceAuthorit
 
     private final ResourceAuthorityMapper resourceAuthorityMapper;
 
+    private final MedAuthorityRepository medAuthorityRepository;
+
+    private final MedAuthorityService medAuthorityService;
+
     public ResourceAuthorityQueryService(
         ResourceAuthorityRepository resourceAuthorityRepository,
-        ResourceAuthorityMapper resourceAuthorityMapper
-    ) {
+        ResourceAuthorityMapper resourceAuthorityMapper,
+        MedAuthorityRepository medAuthorityRepository, MedAuthorityService medAuthorityService) {
         this.resourceAuthorityRepository = resourceAuthorityRepository;
         this.resourceAuthorityMapper = resourceAuthorityMapper;
+        this.medAuthorityRepository = medAuthorityRepository;
+        this.medAuthorityService = medAuthorityService;
     }
 
     /**
@@ -64,6 +73,27 @@ public class ResourceAuthorityQueryService extends QueryService<ResourceAuthorit
         log.debug("find by criteria : {}, page: {}", criteria, page);
         final Specification<ResourceAuthorityEntity> specification = createSpecification(criteria);
         return resourceAuthorityRepository.findAll(specification, page).map(resourceAuthorityMapper::toDto);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ResourceAuthorityDTO> findByAuthorities(List<String> authorities, Pageable page) {
+        log.debug("find by criteria : {}, page: {}", authorities, page);
+        List<Long> authIds = new ArrayList<>();
+        List<MedAuthorityEntity> authorityList = medAuthorityRepository.findByNameIn(authorities);
+        authorityList.forEach(
+            authority -> {
+                authIds.add(authority.getId());
+            }
+        );
+        Page<ResourceAuthorityDTO> temp = resourceAuthorityRepository
+            .findByMedAuthority_IdIn(authIds, page)
+            .map(resourceAuthorityMapper::toDto);
+        temp.forEach(
+            x -> {
+                x.setMedAuthority(medAuthorityService.findOne(x.getMedAuthority().getId()).get());
+            }
+        );
+        return temp;
     }
 
     /**
@@ -94,7 +124,7 @@ public class ResourceAuthorityQueryService extends QueryService<ResourceAuthorit
                 specification = specification.and(buildRangeSpecification(criteria.getId(), ResourceAuthorityEntity_.id));
             }
             if (criteria.getVerb() != null) {
-                specification = specification.and(buildStringSpecification(criteria.getVerb(), ResourceAuthorityEntity_.verb));
+                specification = specification.and(buildSpecification(criteria.getVerb(), ResourceAuthorityEntity_.verb));
             }
             if (criteria.getMedAuthorityId() != null) {
                 specification =

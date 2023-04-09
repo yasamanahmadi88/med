@@ -2,7 +2,6 @@
   "MedPortalApp": {
     "Verb": {
       "null": "",
-      "NO_GRANT": "NO_GRANT",
       "VIEW": "VIEW",
       "CREATE": "CREATE",
       "EDIT": "EDIT",

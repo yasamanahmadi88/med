@@ -1,5 +1,7 @@
 package com.behsa.medportal.service.dto;
 
+import com.behsa.medportal.domain.enumeration.Verb;
+
 import java.io.Serializable;
 import java.util.Objects;
 import javax.validation.constraints.*;
@@ -13,8 +15,7 @@ public class ResourceAuthorityDTO implements Serializable {
     private Long id;
 
     @NotNull
-    @Size(max = 255)
-    private String verb;
+    private Verb verb;
 
     private MedAuthorityDTO medAuthority;
 
@@ -28,11 +29,11 @@ public class ResourceAuthorityDTO implements Serializable {
         this.id = id;
     }
 
-    public String getVerb() {
+    public Verb getVerb() {
         return verb;
     }
 
-    public void setVerb(String verb) {
+    public void setVerb(Verb verb) {
         this.verb = verb;
     }
 

@@ -6,6 +6,7 @@ import com.behsa.medportal.domain.User;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.validation.constraints.*;
@@ -51,6 +52,10 @@ public class AdminUserDTO implements Serializable {
     private Instant lastModifiedDate;
 
     private Set<String> authorities;
+
+    private String partyId;
+
+    private List<ResourceAuthorityDTO> resourceAuthorities;
 
     public AdminUserDTO() {
         // Empty constructor needed for Jackson.
@@ -174,6 +179,24 @@ public class AdminUserDTO implements Serializable {
 
     public void setAuthorities(Set<String> authorities) {
         this.authorities = authorities;
+    }
+
+    public String getPartyId() {
+        return partyId;
+    }
+
+    public AdminUserDTO setPartyId(String partyId) {
+        this.partyId = partyId;
+        return this;
+    }
+
+    public List<ResourceAuthorityDTO> getResourceAuthorities() {
+        return resourceAuthorities;
+    }
+
+    public AdminUserDTO setResourceAuthorities(List<ResourceAuthorityDTO> resourceAuthorities) {
+        this.resourceAuthorities = resourceAuthorities;
+        return this;
     }
 
     // prettier-ignore

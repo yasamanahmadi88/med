@@ -80,6 +80,10 @@ public class User extends AbstractAuditingEntity<Long> implements Serializable {
     @Column(name = "reset_date")
     private Instant resetDate = null;
 
+    @Size(max = 250)
+    @Column(name = "PARTY_ID", length = 250)
+    private String partyId;
+
     @JsonIgnore
     @ManyToMany
     @JoinTable(
@@ -185,6 +189,15 @@ public class User extends AbstractAuditingEntity<Long> implements Serializable {
 
     public void setLangKey(String langKey) {
         this.langKey = langKey;
+    }
+
+    public String getPartyId() {
+        return partyId;
+    }
+
+    public User setPartyId(String partyId) {
+        this.partyId = partyId;
+        return this;
     }
 
     public Set<Authority> getAuthorities() {

@@ -2,6 +2,8 @@ package com.behsa.medportal.service.criteria;
 
 import java.io.Serializable;
 import java.util.Objects;
+
+import com.behsa.medportal.domain.enumeration.Verb;
 import org.springdoc.api.annotations.ParameterObject;
 import tech.jhipster.service.Criteria;
 import tech.jhipster.service.filter.*;
@@ -21,9 +23,23 @@ public class ResourceAuthorityCriteria implements Serializable, Criteria {
 
     private static final long serialVersionUID = 1L;
 
+    public static class VerbFilter extends Filter<Verb> {
+
+        public VerbFilter() {}
+
+        public VerbFilter(VerbFilter filter) {
+            super(filter);
+        }
+
+        @Override
+        public VerbFilter copy() {
+            return new VerbFilter(this);
+        }
+    }
+
     private LongFilter id;
 
-    private StringFilter verb;
+    private VerbFilter verb;
 
     private LongFilter medAuthorityId;
 
@@ -61,18 +77,18 @@ public class ResourceAuthorityCriteria implements Serializable, Criteria {
         this.id = id;
     }
 
-    public StringFilter getVerb() {
+    public VerbFilter getVerb() {
         return verb;
     }
 
-    public StringFilter verb() {
+    public VerbFilter verb() {
         if (verb == null) {
-            verb = new StringFilter();
+            verb = new VerbFilter();
         }
         return verb;
     }
 
-    public void setVerb(StringFilter verb) {
+    public void setVerb(VerbFilter verb) {
         this.verb = verb;
     }
 

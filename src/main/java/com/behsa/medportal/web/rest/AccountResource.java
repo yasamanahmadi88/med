@@ -104,10 +104,18 @@ public class AccountResource {
      */
     @GetMapping("/account")
     public AdminUserDTO getAccount() {
-        return userService
+        /*return userService
+            .getUserWithAuthorities()
+            .map(AdminUserDTO::new)
+            .orElseThrow(() -> new AccountResourceException("User could not be found"));*/
+
+        AdminUserDTO userDto = userService
             .getUserWithAuthorities()
             .map(AdminUserDTO::new)
             .orElseThrow(() -> new AccountResourceException("User could not be found"));
+        userDto.setPartyId(SecurityUtils.getCurrentUser().get().getPartyId());
+        userDto.setResourceAuthorities(SecurityUtils.getCurrentUser().get().getResourceAuthorities());
+        return userDto;
     }
 
     /**

@@ -97,4 +97,27 @@ public final class SecurityUtils {
     private static Stream<String> getAuthorities(Authentication authentication) {
         return authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority);
     }
+
+    public static UserDetails getCurrentUser(Authentication authentication) {
+        if (authentication == null) {
+            return null;
+        } else if (authentication.getPrincipal() instanceof UserDetails) {
+            return (UserDetails) authentication.getPrincipal();
+        }
+        return null;
+    }
+
+    public static Optional<PortalUser> getCurrentUser() {
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        return Optional
+            .ofNullable(securityContext.getAuthentication())
+            .map(
+                authentication -> {
+                    if (authentication.getPrincipal() instanceof PortalUser) {
+                        return (PortalUser) authentication.getPrincipal();
+                    }
+                    return null;
+                }
+            );
+    }
 }

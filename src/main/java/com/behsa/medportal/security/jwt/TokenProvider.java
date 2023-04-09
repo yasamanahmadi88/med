@@ -1,6 +1,9 @@
 package com.behsa.medportal.security.jwt;
 
 import com.behsa.medportal.management.SecurityMetersService;
+import com.behsa.medportal.security.PortalUser;
+import com.behsa.medportal.service.ResourceAuthorityQueryService;
+import com.behsa.medportal.service.dto.ResourceAuthorityDTO;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -11,6 +14,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -26,6 +30,7 @@ public class TokenProvider {
     private final Logger log = LoggerFactory.getLogger(TokenProvider.class);
 
     private static final String AUTHORITIES_KEY = "auth";
+    private static final String PARTY_ID_KEY = "PartyId";
 
     private static final String INVALID_JWT_TOKEN = "Invalid JWT token.";
 
@@ -34,12 +39,17 @@ public class TokenProvider {
     private final JwtParser jwtParser;
 
     private final long tokenValidityInMilliseconds;
+    private final ResourceAuthorityQueryService resourceAuthorityQueryService;
 
     private final long tokenValidityInMillisecondsForRememberMe;
 
     private final SecurityMetersService securityMetersService;
 
-    public TokenProvider(JHipsterProperties jHipsterProperties, SecurityMetersService securityMetersService) {
+    public TokenProvider(JHipsterProperties jHipsterProperties, SecurityMetersService securityMetersService,
+                         ResourceAuthorityQueryService resourceAuthorityQueryService) {
+
+        this.resourceAuthorityQueryService = resourceAuthorityQueryService;
+
         byte[] keyBytes;
         String secret = jHipsterProperties.getSecurity().getAuthentication().getJwt().getBase64Secret();
         if (!ObjectUtils.isEmpty(secret)) {
@@ -73,10 +83,15 @@ public class TokenProvider {
             validity = new Date(now + this.tokenValidityInMilliseconds);
         }
 
+        PortalUser myUser = (PortalUser) authentication.getPrincipal();
+        Map<String, Object> claims = new HashMap<String, Object>();
+        claims.put(PARTY_ID_KEY, myUser.getPartyId());
+
         return Jwts
             .builder()
             .setSubject(authentication.getName())
             .claim(AUTHORITIES_KEY, authorities)
+            .addClaims(claims)
             .signWith(key, SignatureAlgorithm.HS512)
             .setExpiration(validity)
             .compact();
@@ -91,7 +106,19 @@ public class TokenProvider {
             .map(SimpleGrantedAuthority::new)
             .collect(Collectors.toList());
 
-        User principal = new User(claims.getSubject(), "", authorities);
+        List<ResourceAuthorityDTO> resourceAuthorities = fetchResourceAuthorities(authorities);
+        PortalUser principal = new PortalUser(
+            claims.getSubject(),
+            "",
+            true,
+            true,
+            true,
+            true,
+            authorities,
+            ((String) claims.get(PARTY_ID_KEY)),
+            resourceAuthorities,
+            null
+        );
 
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
@@ -122,5 +149,15 @@ public class TokenProvider {
         }
 
         return false;
+    }
+
+    private List<ResourceAuthorityDTO> fetchResourceAuthorities(Collection<? extends GrantedAuthority> authorities) {
+        List<String> ids = new ArrayList<>();
+        authorities.forEach(
+            grantedAuthority -> {
+                ids.add(grantedAuthority.getAuthority());
+            }
+        );
+        return resourceAuthorityQueryService.findByAuthorities(ids, Pageable.unpaged()).getContent();
     }
 }

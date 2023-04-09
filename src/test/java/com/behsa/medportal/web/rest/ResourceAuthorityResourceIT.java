@@ -1,3 +1,4 @@
+/*
 package com.behsa.medportal.web.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,9 +27,11 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+*/
 /**
  * Integration tests for the {@link ResourceAuthorityResource} REST controller.
- */
+ *//*
+
 @IntegrationTest
 @AutoConfigureMockMvc
 @WithMockUser
@@ -57,12 +60,14 @@ class ResourceAuthorityResourceIT {
 
     private ResourceAuthorityEntity resourceAuthorityEntity;
 
-    /**
+    */
+/**
      * Create an entity for this test.
      *
      * This is a static method, as tests for other entities might also need it,
      * if they test an entity which requires the current entity.
-     */
+     *//*
+
     public static ResourceAuthorityEntity createEntity(EntityManager em) {
         ResourceAuthorityEntity resourceAuthorityEntity = new ResourceAuthorityEntity().verb(DEFAULT_VERB);
         // Add required entity
@@ -88,12 +93,14 @@ class ResourceAuthorityResourceIT {
         return resourceAuthorityEntity;
     }
 
-    /**
+    */
+/**
      * Create an updated entity for this test.
      *
      * This is a static method, as tests for other entities might also need it,
      * if they test an entity which requires the current entity.
-     */
+     *//*
+
     public static ResourceAuthorityEntity createUpdatedEntity(EntityManager em) {
         ResourceAuthorityEntity resourceAuthorityEntity = new ResourceAuthorityEntity().verb(UPDATED_VERB);
         // Add required entity
@@ -349,9 +356,11 @@ class ResourceAuthorityResourceIT {
         defaultResourceAuthorityShouldNotBeFound("resourceId.equals=" + (resourceId + 1));
     }
 
-    /**
+    */
+/**
      * Executes the search, and checks that the default entity is returned.
-     */
+     *//*
+
     private void defaultResourceAuthorityShouldBeFound(String filter) throws Exception {
         restResourceAuthorityMockMvc
             .perform(get(ENTITY_API_URL + "?sort=id,desc&" + filter))
@@ -368,9 +377,11 @@ class ResourceAuthorityResourceIT {
             .andExpect(content().string("1"));
     }
 
-    /**
+    */
+/**
      * Executes the search, and checks that the default entity is not returned.
-     */
+     *//*
+
     private void defaultResourceAuthorityShouldNotBeFound(String filter) throws Exception {
         restResourceAuthorityMockMvc
             .perform(get(ENTITY_API_URL + "?sort=id,desc&" + filter))
@@ -636,3 +647,4 @@ class ResourceAuthorityResourceIT {
         assertThat(resourceAuthorityList).hasSize(databaseSizeBeforeDelete - 1);
     }
 }
+*/

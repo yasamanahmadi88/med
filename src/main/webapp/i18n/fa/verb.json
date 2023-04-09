@@ -1,0 +1,12 @@
+{
+  "MedPortalApp": {
+    "Verb": {
+      "null": "",
+      "NO_GRANT": "بدون مجوز",
+      "VIEW": "مشاهده",
+      "CREATE": "ایجاد",
+      "EDIT": "ویرایش",
+      "DELETE": "حذف"
+    }
+  }
+}

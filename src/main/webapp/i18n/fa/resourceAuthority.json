@@ -1,0 +1,26 @@
+{
+  "medPortalApp": {
+    "resourceAuthority": {
+      "home": {
+        "title": "مجوز منابع",
+        "refreshListLabel": "به روز رسانی",
+        "createLabel": "ایجاد مجوز منبع جدید",
+        "createOrEditLabel": "مجوز منابع",
+        "notFound": "موردی یافت نشد"
+      },
+      "created": "مورد جدید {{ param }} ایجاد شد",
+      "updated": "مورد {{ param }} به روز شد",
+      "deleted": "مورد {{ param }} حذف گردید",
+      "delete": {
+        "question": "ایا از حذف {{ id }} مطمئن هستید؟"
+      },
+      "detail": {
+        "title": "دسترسی منابع"
+      },
+      "id": "شناسه",
+      "verb": "فعل",
+      "medAuthority": "مجوز",
+      "resource": "منبع"
+    }
+  }
+}

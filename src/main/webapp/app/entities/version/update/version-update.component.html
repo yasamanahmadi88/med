@@ -1,0 +1,115 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <form name="editForm" role="form" novalidate (ngSubmit)="save()" [formGroup]="editForm">
+      <h2 id="jhi-version-heading" data-cy="VersionCreateUpdateHeading" jhiTranslate="medPortalApp.version.home.createOrEditLabel">
+        Create or edit a Version
+      </h2>
+
+      <div>
+        <jhi-alert-error></jhi-alert-error>
+
+        <div class="row mb-3" *ngIf="editForm.controls.id.value !== null">
+          <label class="form-label" jhiTranslate="global.field.id" for="field_id">ID</label>
+          <input type="number" class="form-control" name="id" id="field_id" data-cy="id" formControlName="id" [readonly]="true" />
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.version.tableName" for="field_tableName">Table Name</label>
+          <input type="text" class="form-control" name="tableName" id="field_tableName" data-cy="tableName" formControlName="tableName" />
+          <div *ngIf="editForm.get('tableName')!.invalid && (editForm.get('tableName')!.dirty || editForm.get('tableName')!.touched)">
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('tableName')?.errors?.required"
+              jhiTranslate="entity.validation.required"
+            >
+              This field is required.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('tableName')?.errors?.maxlength"
+              jhiTranslate="entity.validation.maxlength"
+              [translateValues]="{ max: 100 }"
+            >
+              This field cannot be longer than 100 characters.
+            </small>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.version.moduleName" for="field_moduleName">Module Name</label>
+          <input
+            type="text"
+            class="form-control"
+            name="moduleName"
+            id="field_moduleName"
+            data-cy="moduleName"
+            formControlName="moduleName"
+          />
+          <div *ngIf="editForm.get('moduleName')!.invalid && (editForm.get('moduleName')!.dirty || editForm.get('moduleName')!.touched)">
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('moduleName')?.errors?.required"
+              jhiTranslate="entity.validation.required"
+            >
+              This field is required.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('moduleName')?.errors?.maxlength"
+              jhiTranslate="entity.validation.maxlength"
+              [translateValues]="{ max: 50 }"
+            >
+              This field cannot be longer than 50 characters.
+            </small>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.version.tableVersion" for="field_tableVersion">Table Version</label>
+          <input
+            type="number"
+            class="form-control"
+            name="tableVersion"
+            id="field_tableVersion"
+            data-cy="tableVersion"
+            formControlName="tableVersion"
+          />
+          <div
+            *ngIf="editForm.get('tableVersion')!.invalid && (editForm.get('tableVersion')!.dirty || editForm.get('tableVersion')!.touched)"
+          >
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('tableVersion')?.errors?.required"
+              jhiTranslate="entity.validation.required"
+            >
+              This field is required.
+            </small>
+            <small
+              class="form-text text-danger"
+              [hidden]="!editForm.get('tableVersion')?.errors?.number"
+              jhiTranslate="entity.validation.number"
+            >
+              This field should be a number.
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <button type="button" id="cancel-save" data-cy="entityCreateCancelButton" class="btn btn-secondary" (click)="previousState()">
+          <fa-icon icon="ban"></fa-icon>&nbsp;<span jhiTranslate="entity.action.cancel">Cancel</span>
+        </button>
+
+        <button
+          type="submit"
+          id="save-entity"
+          data-cy="entityCreateSaveButton"
+          [disabled]="editForm.invalid || isSaving"
+          class="btn btn-primary"
+        >
+          <fa-icon icon="save"></fa-icon>&nbsp;<span jhiTranslate="entity.action.save">Save</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

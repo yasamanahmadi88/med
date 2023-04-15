@@ -33,5 +33,7 @@
       "relationshipValidateRules": "required"
     }
   ],
-  "service": "serviceImpl"
+  "service": "serviceImpl",
+  "skipClient": true,
+  "skipServer": true
 }

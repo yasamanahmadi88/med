@@ -10,6 +10,12 @@
         "medAuthority": "Authority",
         "resource": "Resource",
         "resourceAuthority": "Resource Authority",
+        "module": "Module",
+        "config": "Config",
+        "instance": "Instance",
+        "version": "Version",
+        "product": "Product",
+        "flow": "Flow",
         "jhipster-needle-menu-add-entry": "JHipster will add additional entities here (do not translate!)"
       },
       "account": {

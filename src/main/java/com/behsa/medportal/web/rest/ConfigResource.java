@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -61,6 +62,7 @@ public class ConfigResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/configs")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<ConfigDTO> createConfig(@Valid @RequestBody ConfigDTO configDTO) throws URISyntaxException {
         log.debug("REST request to save Config : {}", configDTO);
         if (configDTO.getId() != null) {
@@ -84,6 +86,7 @@ public class ConfigResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/configs/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<ConfigDTO> updateConfig(
         @PathVariable(value = "id", required = false) final Long id,
         @Valid @RequestBody ConfigDTO configDTO
@@ -119,6 +122,7 @@ public class ConfigResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/configs/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    @Secured(ENTITY_NAME)
     public ResponseEntity<ConfigDTO> partialUpdateConfig(
         @PathVariable(value = "id", required = false) final Long id,
         @NotNull @RequestBody ConfigDTO configDTO
@@ -151,6 +155,7 @@ public class ConfigResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of configs in body.
      */
     @GetMapping("/configs")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<List<ConfigDTO>> getAllConfigs(
         ConfigCriteria criteria,
         @org.springdoc.api.annotations.ParameterObject Pageable pageable
@@ -168,6 +173,7 @@ public class ConfigResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
      */
     @GetMapping("/configs/count")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<Long> countConfigs(ConfigCriteria criteria) {
         log.debug("REST request to count Configs by criteria: {}", criteria);
         return ResponseEntity.ok().body(configQueryService.countByCriteria(criteria));
@@ -180,6 +186,7 @@ public class ConfigResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the configDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/configs/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<ConfigDTO> getConfig(@PathVariable Long id) {
         log.debug("REST request to get Config : {}", id);
         Optional<ConfigDTO> configDTO = configService.findOne(id);
@@ -193,6 +200,7 @@ public class ConfigResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/configs/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<Void> deleteConfig(@PathVariable Long id) {
         log.debug("REST request to delete Config : {}", id);
         configService.delete(id);

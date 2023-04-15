@@ -20,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -64,6 +65,7 @@ public class ResourceAuthorityResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/resource-authorities")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<ResourceAuthorityDTO> createResourceAuthority(@Valid @RequestBody ResourceAuthorityDTO resourceAuthorityDTO)
         throws URISyntaxException {
         log.debug("REST request to save ResourceAuthority : {}", resourceAuthorityDTO);
@@ -88,6 +90,7 @@ public class ResourceAuthorityResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/resource-authorities/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<ResourceAuthorityDTO> updateResourceAuthority(
         @PathVariable(value = "id", required = false) final Long id,
         @Valid @RequestBody ResourceAuthorityDTO resourceAuthorityDTO
@@ -123,6 +126,7 @@ public class ResourceAuthorityResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/resource-authorities/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    @Secured(ENTITY_NAME)
     public ResponseEntity<ResourceAuthorityDTO> partialUpdateResourceAuthority(
         @PathVariable(value = "id", required = false) final Long id,
         @NotNull @RequestBody ResourceAuthorityDTO resourceAuthorityDTO
@@ -155,6 +159,7 @@ public class ResourceAuthorityResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of resourceAuthorities in body.
      */
     @GetMapping("/resource-authorities")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<List<ResourceAuthorityDTO>> getAllResourceAuthorities(
         ResourceAuthorityCriteria criteria,
         @org.springdoc.api.annotations.ParameterObject Pageable pageable
@@ -172,6 +177,7 @@ public class ResourceAuthorityResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
      */
     @GetMapping("/resource-authorities/count")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<Long> countResourceAuthorities(ResourceAuthorityCriteria criteria) {
         log.debug("REST request to count ResourceAuthorities by criteria: {}", criteria);
         return ResponseEntity.ok().body(resourceAuthorityQueryService.countByCriteria(criteria));
@@ -184,6 +190,7 @@ public class ResourceAuthorityResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the resourceAuthorityDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/resource-authorities/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<ResourceAuthorityDTO> getResourceAuthority(@PathVariable Long id) {
         log.debug("REST request to get ResourceAuthority : {}", id);
         Optional<ResourceAuthorityDTO> resourceAuthorityDTO = resourceAuthorityService.findOne(id);
@@ -197,6 +204,7 @@ public class ResourceAuthorityResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/resource-authorities/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<Void> deleteResourceAuthority(@PathVariable Long id) {
         log.debug("REST request to delete ResourceAuthority : {}", id);
         resourceAuthorityService.delete(id);

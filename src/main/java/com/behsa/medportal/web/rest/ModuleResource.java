@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -61,6 +62,7 @@ public class ModuleResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/modules")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<ModuleDTO> createModule(@Valid @RequestBody ModuleDTO moduleDTO) throws URISyntaxException {
         log.debug("REST request to save Module : {}", moduleDTO);
         if (moduleDTO.getId() != null) {
@@ -84,6 +86,7 @@ public class ModuleResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/modules/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<ModuleDTO> updateModule(
         @PathVariable(value = "id", required = false) final Long id,
         @Valid @RequestBody ModuleDTO moduleDTO
@@ -119,6 +122,7 @@ public class ModuleResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/modules/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    @Secured(ENTITY_NAME)
     public ResponseEntity<ModuleDTO> partialUpdateModule(
         @PathVariable(value = "id", required = false) final Long id,
         @NotNull @RequestBody ModuleDTO moduleDTO
@@ -151,6 +155,7 @@ public class ModuleResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of modules in body.
      */
     @GetMapping("/modules")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<List<ModuleDTO>> getAllModules(
         ModuleCriteria criteria,
         @org.springdoc.api.annotations.ParameterObject Pageable pageable
@@ -168,6 +173,7 @@ public class ModuleResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
      */
     @GetMapping("/modules/count")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<Long> countModules(ModuleCriteria criteria) {
         log.debug("REST request to count Modules by criteria: {}", criteria);
         return ResponseEntity.ok().body(moduleQueryService.countByCriteria(criteria));
@@ -180,6 +186,7 @@ public class ModuleResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the moduleDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/modules/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<ModuleDTO> getModule(@PathVariable Long id) {
         log.debug("REST request to get Module : {}", id);
         Optional<ModuleDTO> moduleDTO = moduleService.findOne(id);
@@ -193,6 +200,7 @@ public class ModuleResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/modules/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<Void> deleteModule(@PathVariable Long id) {
         log.debug("REST request to delete Module : {}", id);
         moduleService.delete(id);

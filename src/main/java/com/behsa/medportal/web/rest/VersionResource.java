@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -61,6 +62,7 @@ public class VersionResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/versions")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<VersionDTO> createVersion(@Valid @RequestBody VersionDTO versionDTO) throws URISyntaxException {
         log.debug("REST request to save Version : {}", versionDTO);
         if (versionDTO.getId() != null) {
@@ -84,6 +86,7 @@ public class VersionResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/versions/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<VersionDTO> updateVersion(
         @PathVariable(value = "id", required = false) final Long id,
         @Valid @RequestBody VersionDTO versionDTO
@@ -119,6 +122,7 @@ public class VersionResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/versions/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    @Secured(ENTITY_NAME)
     public ResponseEntity<VersionDTO> partialUpdateVersion(
         @PathVariable(value = "id", required = false) final Long id,
         @NotNull @RequestBody VersionDTO versionDTO
@@ -151,6 +155,7 @@ public class VersionResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of versions in body.
      */
     @GetMapping("/versions")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<List<VersionDTO>> getAllVersions(
         VersionCriteria criteria,
         @org.springdoc.api.annotations.ParameterObject Pageable pageable
@@ -168,6 +173,7 @@ public class VersionResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
      */
     @GetMapping("/versions/count")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<Long> countVersions(VersionCriteria criteria) {
         log.debug("REST request to count Versions by criteria: {}", criteria);
         return ResponseEntity.ok().body(versionQueryService.countByCriteria(criteria));
@@ -180,6 +186,7 @@ public class VersionResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the versionDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/versions/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<VersionDTO> getVersion(@PathVariable Long id) {
         log.debug("REST request to get Version : {}", id);
         Optional<VersionDTO> versionDTO = versionService.findOne(id);
@@ -193,6 +200,7 @@ public class VersionResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/versions/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<Void> deleteVersion(@PathVariable Long id) {
         log.debug("REST request to delete Version : {}", id);
         versionService.delete(id);

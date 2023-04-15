@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -61,6 +62,7 @@ public class ProductResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/products")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<ProductDTO> createProduct(@Valid @RequestBody ProductDTO productDTO) throws URISyntaxException {
         log.debug("REST request to save Product : {}", productDTO);
         if (productDTO.getId() != null) {
@@ -84,6 +86,7 @@ public class ProductResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/products/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<ProductDTO> updateProduct(
         @PathVariable(value = "id", required = false) final Long id,
         @Valid @RequestBody ProductDTO productDTO
@@ -119,6 +122,7 @@ public class ProductResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/products/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    @Secured(ENTITY_NAME)
     public ResponseEntity<ProductDTO> partialUpdateProduct(
         @PathVariable(value = "id", required = false) final Long id,
         @NotNull @RequestBody ProductDTO productDTO
@@ -151,6 +155,7 @@ public class ProductResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of products in body.
      */
     @GetMapping("/products")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<List<ProductDTO>> getAllProducts(
         ProductCriteria criteria,
         @org.springdoc.api.annotations.ParameterObject Pageable pageable
@@ -168,6 +173,7 @@ public class ProductResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
      */
     @GetMapping("/products/count")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<Long> countProducts(ProductCriteria criteria) {
         log.debug("REST request to count Products by criteria: {}", criteria);
         return ResponseEntity.ok().body(productQueryService.countByCriteria(criteria));
@@ -180,6 +186,7 @@ public class ProductResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the productDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/products/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<ProductDTO> getProduct(@PathVariable Long id) {
         log.debug("REST request to get Product : {}", id);
         Optional<ProductDTO> productDTO = productService.findOne(id);
@@ -193,6 +200,7 @@ public class ProductResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/products/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         log.debug("REST request to delete Product : {}", id);
         productService.delete(id);

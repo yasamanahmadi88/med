@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -65,6 +66,7 @@ public class InstanceResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/instances")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<InstanceDTO> createInstance(@Valid @RequestBody InstanceDTO instanceDTO) throws URISyntaxException {
         log.debug("REST request to save Instance : {}", instanceDTO);
         if (instanceDTO.getId() != null) {
@@ -88,6 +90,7 @@ public class InstanceResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/instances/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<InstanceDTO> updateInstance(
         @PathVariable(value = "id", required = false) final Long id,
         @Valid @RequestBody InstanceDTO instanceDTO
@@ -123,6 +126,7 @@ public class InstanceResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/instances/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    @Secured(ENTITY_NAME)
     public ResponseEntity<InstanceDTO> partialUpdateInstance(
         @PathVariable(value = "id", required = false) final Long id,
         @NotNull @RequestBody InstanceDTO instanceDTO
@@ -155,6 +159,7 @@ public class InstanceResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of instances in body.
      */
     @GetMapping("/instances")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<List<InstanceDTO>> getAllInstances(
         InstanceCriteria criteria,
         @org.springdoc.api.annotations.ParameterObject Pageable pageable
@@ -172,6 +177,7 @@ public class InstanceResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
      */
     @GetMapping("/instances/count")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<Long> countInstances(InstanceCriteria criteria) {
         log.debug("REST request to count Instances by criteria: {}", criteria);
         return ResponseEntity.ok().body(instanceQueryService.countByCriteria(criteria));
@@ -184,6 +190,7 @@ public class InstanceResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the instanceDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/instances/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<InstanceDTO> getInstance(@PathVariable Long id) {
         log.debug("REST request to get Instance : {}", id);
         Optional<InstanceDTO> instanceDTO = instanceService.findOne(id);
@@ -197,6 +204,7 @@ public class InstanceResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/instances/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<Void> deleteInstance(@PathVariable Long id) {
         log.debug("REST request to delete Instance : {}", id);
         instanceService.delete(id);

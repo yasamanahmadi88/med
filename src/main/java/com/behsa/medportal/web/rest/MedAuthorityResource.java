@@ -20,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -64,6 +65,7 @@ public class MedAuthorityResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/med-authorities")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<MedAuthorityDTO> createMedAuthority(@Valid @RequestBody MedAuthorityDTO medAuthorityDTO)
         throws URISyntaxException {
         log.debug("REST request to save MedAuthority : {}", medAuthorityDTO);
@@ -88,6 +90,7 @@ public class MedAuthorityResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/med-authorities/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<MedAuthorityDTO> updateMedAuthority(
         @PathVariable(value = "id", required = false) final Long id,
         @Valid @RequestBody MedAuthorityDTO medAuthorityDTO
@@ -123,6 +126,7 @@ public class MedAuthorityResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/med-authorities/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    @Secured(ENTITY_NAME)
     public ResponseEntity<MedAuthorityDTO> partialUpdateMedAuthority(
         @PathVariable(value = "id", required = false) final Long id,
         @NotNull @RequestBody MedAuthorityDTO medAuthorityDTO
@@ -155,6 +159,7 @@ public class MedAuthorityResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of medAuthorities in body.
      */
     @GetMapping("/med-authorities")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<List<MedAuthorityDTO>> getAllMedAuthorities(
         MedAuthorityCriteria criteria,
         @org.springdoc.api.annotations.ParameterObject Pageable pageable
@@ -172,6 +177,7 @@ public class MedAuthorityResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
      */
     @GetMapping("/med-authorities/count")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<Long> countMedAuthorities(MedAuthorityCriteria criteria) {
         log.debug("REST request to count MedAuthorities by criteria: {}", criteria);
         return ResponseEntity.ok().body(medAuthorityQueryService.countByCriteria(criteria));
@@ -184,6 +190,7 @@ public class MedAuthorityResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the medAuthorityDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/med-authorities/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<MedAuthorityDTO> getMedAuthority(@PathVariable Long id) {
         log.debug("REST request to get MedAuthority : {}", id);
         Optional<MedAuthorityDTO> medAuthorityDTO = medAuthorityService.findOne(id);
@@ -197,6 +204,7 @@ public class MedAuthorityResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/med-authorities/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<Void> deleteMedAuthority(@PathVariable Long id) {
         log.debug("REST request to delete MedAuthority : {}", id);
         medAuthorityService.delete(id);

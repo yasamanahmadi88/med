@@ -65,6 +65,7 @@ public class ResourceResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/resources")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<ResourceDTO> createResource(@Valid @RequestBody ResourceDTO resourceDTO) throws URISyntaxException {
         log.debug("REST request to save Resource : {}", resourceDTO);
         if (resourceDTO.getId() != null) {
@@ -88,6 +89,7 @@ public class ResourceResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/resources/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<ResourceDTO> updateResource(
         @PathVariable(value = "id", required = false) final Long id,
         @Valid @RequestBody ResourceDTO resourceDTO
@@ -123,6 +125,7 @@ public class ResourceResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/resources/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    @Secured(ENTITY_NAME)
     public ResponseEntity<ResourceDTO> partialUpdateResource(
         @PathVariable(value = "id", required = false) final Long id,
         @NotNull @RequestBody ResourceDTO resourceDTO
@@ -155,6 +158,7 @@ public class ResourceResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of resources in body.
      */
     @GetMapping("/resources")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<List<ResourceDTO>> getAllResources(
         ResourceCriteria criteria,
         @org.springdoc.api.annotations.ParameterObject Pageable pageable
@@ -172,6 +176,7 @@ public class ResourceResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
      */
     @GetMapping("/resources/count")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<Long> countResources(ResourceCriteria criteria) {
         log.debug("REST request to count Resources by criteria: {}", criteria);
         return ResponseEntity.ok().body(resourceQueryService.countByCriteria(criteria));
@@ -184,6 +189,7 @@ public class ResourceResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the resourceDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/resources/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<ResourceDTO> getResource(@PathVariable Long id) {
         log.debug("REST request to get Resource : {}", id);
         Optional<ResourceDTO> resourceDTO = resourceService.findOne(id);
@@ -197,6 +203,7 @@ public class ResourceResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/resources/{id}")
+    @Secured(ENTITY_NAME)
     public ResponseEntity<Void> deleteResource(@PathVariable Long id) {
         log.debug("REST request to delete Resource : {}", id);
         resourceService.delete(id);

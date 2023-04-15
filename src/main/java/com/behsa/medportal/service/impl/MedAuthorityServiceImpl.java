@@ -35,6 +35,8 @@ public class MedAuthorityServiceImpl implements MedAuthorityService {
     public MedAuthorityDTO save(MedAuthorityDTO medAuthorityDTO) {
         log.debug("Request to save MedAuthority : {}", medAuthorityDTO);
         MedAuthorityEntity medAuthorityEntity = medAuthorityMapper.toEntity(medAuthorityDTO);
+        if (medAuthorityEntity.getParent().getId() == null)
+            medAuthorityEntity.setParent(null);
         medAuthorityEntity = medAuthorityRepository.save(medAuthorityEntity);
         return medAuthorityMapper.toDto(medAuthorityEntity);
     }
@@ -43,6 +45,8 @@ public class MedAuthorityServiceImpl implements MedAuthorityService {
     public MedAuthorityDTO update(MedAuthorityDTO medAuthorityDTO) {
         log.debug("Request to update MedAuthority : {}", medAuthorityDTO);
         MedAuthorityEntity medAuthorityEntity = medAuthorityMapper.toEntity(medAuthorityDTO);
+        if (medAuthorityEntity.getParent().getId() == null)
+            medAuthorityEntity.setParent(null);
         medAuthorityEntity = medAuthorityRepository.save(medAuthorityEntity);
         return medAuthorityMapper.toDto(medAuthorityEntity);
     }

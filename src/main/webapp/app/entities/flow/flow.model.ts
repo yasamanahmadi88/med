@@ -5,7 +5,7 @@ export interface IFlow {
   flowName?: string | null;
   flowDesc?: string | null;
   flow?: string | null;
-  product?: Pick<IProduct, 'id'> | null;
+  product?: IProduct | null;
 }
 
 export type NewFlow = Omit<IFlow, 'id'> & { id: null };

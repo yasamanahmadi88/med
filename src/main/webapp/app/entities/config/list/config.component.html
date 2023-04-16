@@ -24,8 +24,6 @@
 
   <jhi-alert></jhi-alert>
 
-  <jhi-filter [filters]="filters"></jhi-filter>
-
   <div class="alert alert-warning" id="no-result" *ngIf="configs?.length === 0">
     <span jhiTranslate="medPortalApp.config.home.notFound">No Configs found</span>
   </div>
@@ -34,12 +32,6 @@
     <table class="table table-striped" aria-describedby="page-heading">
       <thead>
         <tr jhiSort [(predicate)]="predicate" [(ascending)]="ascending" (sortChange)="navigateToWithComponentValues()">
-          <th scope="col" jhiSortBy="id">
-            <div class="d-flex">
-              <span jhiTranslate="global.field.id">ID</span>
-              <fa-icon class="p-1" icon="sort"></fa-icon>
-            </div>
-          </th>
           <th scope="col" jhiSortBy="property">
             <div class="d-flex">
               <span jhiTranslate="medPortalApp.config.property">Property</span>
@@ -69,15 +61,12 @@
       </thead>
       <tbody>
         <tr *ngFor="let config of configs; trackBy: trackId" data-cy="entityTable">
-          <td>
-            <a [routerLink]="['/config', config.id, 'view']">{{ config.id }}</a>
-          </td>
           <td>{{ config.property }}</td>
           <td>{{ config.pValue }}</td>
           <td>{{ config.commentDesc }}</td>
           <td>
             <div *ngIf="config.module">
-              <a [routerLink]="['/module', config.module.id, 'view']">{{ config.module.id }}</a>
+              <a [routerLink]="['/module', config.module.id, 'view']">{{ config.module.moduleName }}</a>
             </div>
           </td>
           <td class="text-end">

@@ -8,11 +8,6 @@
       <div>
         <jhi-alert-error></jhi-alert-error>
 
-        <div class="row mb-3" *ngIf="editForm.controls.id.value !== null">
-          <label class="form-label" jhiTranslate="global.field.id" for="field_id">ID</label>
-          <input type="number" class="form-control" name="id" id="field_id" data-cy="id" formControlName="id" [readonly]="true" />
-        </div>
-
         <div class="row mb-3">
           <label class="form-label" jhiTranslate="medPortalApp.flow.flowName" for="field_flowName">Flow Name</label>
           <input type="text" class="form-control" name="flowName" id="field_flowName" data-cy="flowName" formControlName="flowName" />
@@ -78,7 +73,7 @@
             [compareWith]="compareProduct"
           >
             <option *ngIf="editForm.get(['product'])!.value == null" [ngValue]="null" selected></option>
-            <option [ngValue]="productOption" *ngFor="let productOption of productsSharedCollection">{{ productOption.id }}</option>
+            <option [ngValue]="productOption" *ngFor="let productOption of productsSharedCollection">{{ productOption.productName }}</option>
           </select>
         </div>
         <div *ngIf="editForm.get(['product'])!.invalid && (editForm.get(['product'])!.dirty || editForm.get(['product'])!.touched)">

@@ -5,7 +5,7 @@ export interface IConfig {
   property?: string | null;
   pValue?: string | null;
   commentDesc?: string | null;
-  module?: Pick<IModule, 'id'> | null;
+  module?: IModule | null;
 }
 
 export type NewConfig = Omit<IConfig, 'id'> & { id: null };

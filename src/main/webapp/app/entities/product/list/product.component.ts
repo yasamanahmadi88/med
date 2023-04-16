@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpHeaders } from '@angular/common/http';
+import {HttpHeaders, HttpResponse} from '@angular/common/http';
 import { ActivatedRoute, Data, ParamMap, Router } from '@angular/router';
 import { combineLatest, filter, Observable, switchMap, tap } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -11,6 +11,7 @@ import { ASC, DESC, SORT, ITEM_DELETED_EVENT, DEFAULT_SORT_DATA } from 'app/conf
 import { EntityArrayResponseType, ProductService } from '../service/product.service';
 import { ProductDeleteDialogComponent } from '../delete/product-delete-dialog.component';
 import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/filter.model';
+import { faRandom, faTrash, faEye, faPencil } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'jhi-product',
@@ -19,6 +20,14 @@ import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/
 export class ProductComponent implements OnInit {
   products?: IProduct[];
   isLoading = false;
+
+  faRandom = faRandom;
+  faTrash = faTrash;
+  faEye = faEye;
+  faPencil = faPencil;
+
+  searchText!: string ;
+  reverse = false;
 
   predicate = 'id';
   ascending = true;
@@ -60,11 +69,23 @@ export class ProductComponent implements OnInit {
   }
 
   load(): void {
-    this.loadFromBackendWithRouteInformations().subscribe({
-      next: (res: EntityArrayResponseType) => {
-        this.onResponseSuccess(res);
-      },
-    });
+    if (this.searchText) {
+      this.productService
+        .search({
+          page: this.page - 1,
+          size: this.itemsPerPage,
+          searchText: this.searchText,
+          sort: this.sort(),
+        })
+        .subscribe((res: HttpResponse<IProduct[]> | any) => this.onResponseSuccess(res));
+      return;
+    } else {
+      this.loadFromBackendWithRouteInformations().subscribe({
+        next: (res: EntityArrayResponseType) => {
+          this.onResponseSuccess(res);
+        },
+      });
+    }
   }
 
   navigateToWithComponentValues(): void {
@@ -148,5 +169,27 @@ export class ProductComponent implements OnInit {
     } else {
       return [predicate + ',' + ascendingQueryParam];
     }
+  }
+
+  search(query: any): any {
+    if (!query) {
+      return this.clearSearch();
+    }
+    this.page = 0;
+    this.searchText = query;
+    this.load();
+  }
+
+  clearSearch(): void {
+    this.searchText = '';
+    this.load();
+  }
+
+  sort(): any {
+    const result = [this.predicate + ',' + (this.reverse ? 'asc' : 'desc')];
+    if (this.predicate !== 'id') {
+      result.push('id');
+    }
+    return result;
   }
 }

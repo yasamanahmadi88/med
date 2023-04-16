@@ -209,4 +209,12 @@ public class ProductResource {
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
             .build();
     }
+
+    @GetMapping("/products/search")
+    @Secured(ENTITY_NAME)
+    public ResponseEntity<List<ProductDTO>> searchProducts(String searchText, Pageable pageable) {
+        Page<ProductDTO> page = productQueryService.searchByText(searchText, pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
 }

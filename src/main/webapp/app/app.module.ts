@@ -27,6 +27,7 @@ import { PageRibbonComponent } from './layouts/profiles/page-ribbon.component';
 import { ActiveMenuDirective } from './layouts/navbar/active-menu.directive';
 import { ErrorComponent } from './layouts/error/error.component';
 import {ToastrModule} from "ngx-toastr";
+import { SimpleTextDialogComponent } from './layouts/simple-text-dialog/simple-text-dialog.component';
 
 @NgModule({
   imports: [
@@ -58,7 +59,7 @@ import {ToastrModule} from "ngx-toastr";
     FindLanguageFromKeyPipe,
     httpInterceptorProviders,
   ],
-  declarations: [MainComponent, NavbarComponent, ErrorComponent, PageRibbonComponent, ActiveMenuDirective, FooterComponent],
+  declarations: [MainComponent, NavbarComponent, ErrorComponent, PageRibbonComponent, ActiveMenuDirective, FooterComponent, SimpleTextDialogComponent],
   bootstrap: [MainComponent],
 })
 export class AppModule {

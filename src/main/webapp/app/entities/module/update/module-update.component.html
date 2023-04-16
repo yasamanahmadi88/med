@@ -8,11 +8,6 @@
       <div>
         <jhi-alert-error></jhi-alert-error>
 
-        <div class="row mb-3" *ngIf="editForm.controls.id.value !== null">
-          <label class="form-label" jhiTranslate="global.field.id" for="field_id">ID</label>
-          <input type="number" class="form-control" name="id" id="field_id" data-cy="id" formControlName="id" [readonly]="true" />
-        </div>
-
         <div class="row mb-3">
           <label class="form-label" jhiTranslate="medPortalApp.module.moduleName" for="field_moduleName">Module Name</label>
           <input
@@ -38,6 +33,13 @@
               [translateValues]="{ max: 50 }"
             >
               This field cannot be longer than 50 characters.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('moduleName')?.errors?.pattern"
+              jhiTranslate="entity.validation.smallLettersAndDashOnly"
+            >
+              This field can only contain small letters and dashes ( - ).
             </small>
           </div>
         </div>
@@ -75,6 +77,13 @@
               [translateValues]="{ max: 4 }"
             >
               This field cannot be longer than 4 characters.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('defaultPort')?.errors?.pattern"
+              jhiTranslate="entity.validation.numbersOnly"
+            >
+              This field can only contain numbers.
             </small>
           </div>
         </div>
@@ -117,48 +126,28 @@
             >
               This field cannot be longer than 5 characters.
             </small>
-          </div>
-        </div>
-
-        <div class="row mb-3">
-          <label class="form-label" jhiTranslate="medPortalApp.module.status" for="field_status">Status</label>
-          <input type="number" class="form-control" name="status" id="field_status" data-cy="status" formControlName="status" />
-          <div *ngIf="editForm.get('status')!.invalid && (editForm.get('status')!.dirty || editForm.get('status')!.touched)">
-            <small class="form-text text-danger" *ngIf="editForm.get('status')?.errors?.required" jhiTranslate="entity.validation.required">
-              This field is required.
-            </small>
             <small
               class="form-text text-danger"
-              *ngIf="editForm.get('status')?.errors?.min"
-              jhiTranslate="entity.validation.min"
-              [translateValues]="{ min: 0 }"
+              *ngIf="editForm.get('redisKeyPrefix')?.errors?.pattern"
+              jhiTranslate="entity.validation.capitalLettersOnly"
             >
-              This field should be at least 0.
-            </small>
-            <small
-              class="form-text text-danger"
-              *ngIf="editForm.get('status')?.errors?.max"
-              jhiTranslate="entity.validation.max"
-              [translateValues]="{ max: 1 }"
-            >
-              This field cannot be more than 1.
-            </small>
-            <small class="form-text text-danger" [hidden]="!editForm.get('status')?.errors?.number" jhiTranslate="entity.validation.number">
-              This field should be a number.
+              This field can only contain capital letters.
             </small>
           </div>
         </div>
 
         <div class="row mb-3">
           <label class="form-label" jhiTranslate="medPortalApp.module.loggingMode" for="field_loggingMode">Logging Mode</label>
-          <input
-            type="text"
+          <select
             class="form-control"
-            name="loggingMode"
             id="field_loggingMode"
+            name="loggingMode"
             data-cy="loggingMode"
             formControlName="loggingMode"
-          />
+          >
+            <option *ngIf="editForm.get(['loggingMode'])!.value == null" [ngValue]="null" selected></option>
+            <option [ngValue]="modesOption" *ngFor="let modesOption of loggingModes">{{ modesOption }}</option>
+          </select>
           <div *ngIf="editForm.get('loggingMode')!.invalid && (editForm.get('loggingMode')!.dirty || editForm.get('loggingMode')!.touched)">
             <small
               class="form-text text-danger"
@@ -172,14 +161,15 @@
 
         <div class="row mb-3">
           <label class="form-label" jhiTranslate="medPortalApp.module.loggingFilter" for="field_loggingFilter">Logging Filter</label>
-          <input
-            type="text"
+          <textarea
+            type="textarea"
             class="form-control"
             name="loggingFilter"
             id="field_loggingFilter"
             data-cy="loggingFilter"
             formControlName="loggingFilter"
-          />
+            rows="7"
+          ></textarea>
           <div
             *ngIf="
               editForm.get('loggingFilter')!.invalid && (editForm.get('loggingFilter')!.dirty || editForm.get('loggingFilter')!.touched)
@@ -195,6 +185,21 @@
             </small>
           </div>
         </div>
+
+
+        <div class="form-check pb-5">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="field_status"
+            name="status"
+            formControlName="status"
+            (change)="checkboxChange($event)"
+          />
+          <span jhiTranslate="medPortalApp.module.active">Active</span>
+        </div>
+
+
       </div>
 
       <div>

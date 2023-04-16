@@ -11,7 +11,7 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring")
 public interface ConfigMapper extends EntityMapper<ConfigDTO, ConfigEntity> {
-    @Mapping(target = "module", source = "module", qualifiedByName = "moduleId")
+
     ConfigDTO toDto(ConfigEntity s);
 
     @Named("moduleId")

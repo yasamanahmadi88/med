@@ -16,8 +16,8 @@ public class ConfigEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
+    @GeneratedValue(generator = "AUTR_SEQ_GENERATOR")
+    @SequenceGenerator(name = "AUTR_SEQ_GENERATOR", sequenceName = "CONFIGS_SEQ", allocationSize = 0)
     @Column(name = "config_key")
     private Long id;
 

@@ -1,19 +1,19 @@
 {
   "home": {
-    "title": "خوش آمدید, Java Hipster!",
+    "title": "Mediation Portal",
     "subtitle": "این صفحه اصلی شماست",
     "logged": {
       "message": "شما وارد شدید با کاربر \"{{username}}\"."
     },
-    "question": "اگر سوالی دارید؟ در مورد JHipster:",
+    "question": "اگر سوالی دارید؟ در مورد :",
     "link": {
-      "homepage": "JHipster صفحه اصلی",
-      "stackoverflow": "JHipster در Stack Overflow",
-      "bugtracker": "JHipster bug tracker",
-      "chat": "JHipster public chat room",
-      "follow": "دنبال کنید @jhipster در Twitter"
+      "homepage": " صفحه اصلی",
+      "stackoverflow": " در Stack Overflow",
+      "bugtracker": " bug tracker",
+      "chat": " public chat room",
+      "follow": "دنبال کنید @ در Twitter"
     },
-    "like": "اگر JHipster را دوست دارید، فراموش نکنید بهش ستاره بدید در",
+    "like": "اگر  را دوست دارید، فراموش نکنید بهش ستاره بدید در",
     "github": "GitHub"
   }
 }

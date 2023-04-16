@@ -11,6 +11,8 @@ import { ASC, DESC, SORT, ITEM_DELETED_EVENT, DEFAULT_SORT_DATA } from 'app/conf
 import { EntityArrayResponseType, ModuleService } from '../service/module.service';
 import { ModuleDeleteDialogComponent } from '../delete/module-delete-dialog.component';
 import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/filter.model';
+import {SimpleTextDialogService} from "../../../layouts/simple-text-dialog/simple-text-dialog.service";
+import { faCog, faTrash, faEye, faPencil } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'jhi-module',
@@ -19,6 +21,11 @@ import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/
 export class ModuleComponent implements OnInit {
   modules?: IModule[];
   isLoading = false;
+
+  faCog = faCog;
+  faTrash = faTrash;
+  faEye = faEye;
+  faPencil = faPencil;
 
   predicate = 'id';
   ascending = true;
@@ -32,7 +39,8 @@ export class ModuleComponent implements OnInit {
     protected moduleService: ModuleService,
     protected activatedRoute: ActivatedRoute,
     public router: Router,
-    protected modalService: NgbModal
+    protected modalService: NgbModal,
+    protected simpleTextDialogService: SimpleTextDialogService
   ) {}
 
   trackId = (_index: number, item: IModule): number => this.moduleService.getModuleIdentifier(item);
@@ -148,5 +156,9 @@ export class ModuleComponent implements OnInit {
     } else {
       return [predicate + ',' + ascendingQueryParam];
     }
+  }
+
+  showLoggingFilterDialog(loggingFilter: any){
+    this.simpleTextDialogService.open(loggingFilter);
   }
 }

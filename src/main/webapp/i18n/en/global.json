@@ -102,6 +102,7 @@
       "addimage": "Add image",
       "back": "Back",
       "cancel": "Cancel",
+      "close": "Close",
       "delete": "Delete",
       "edit": "Edit",
       "open": "Open",
@@ -127,7 +128,10 @@
       "pattern": "This field should follow pattern for {{ pattern }}.",
       "number": "This field should be a number.",
       "datetimelocal": "This field should be a date and time.",
-      "patternLogin": "This field can only contain letters, digits and e-mail addresses."
+      "patternLogin": "This field can only contain letters, digits and e-mail addresses.",
+      "smallLettersAndDashOnly": "This field can only contain small letters and dashes ( - ).",
+      "capitalLettersOnly": "This field can only contain capital letters.",
+      "numbersOnly": "This field can only contain numbers."
     },
     "filters": {
       "set": "Following filters are set",

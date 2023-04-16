@@ -44,16 +44,16 @@ export class ModuleFormService {
         }
       ),
       moduleName: new FormControl(moduleRawValue.moduleName, {
-        validators: [Validators.required, Validators.maxLength(50)],
+        validators: [Validators.required, Validators.maxLength(50), Validators.pattern("[a-z\-]+")],
       }),
       defaultPort: new FormControl(moduleRawValue.defaultPort, {
-        validators: [Validators.required, Validators.minLength(4), Validators.maxLength(4)],
+        validators: [Validators.required, Validators.minLength(4), Validators.maxLength(4), Validators.pattern("[0-9]+")],
       }),
       redisKeyPrefix: new FormControl(moduleRawValue.redisKeyPrefix, {
-        validators: [Validators.required, Validators.minLength(5), Validators.maxLength(5)],
+        validators: [Validators.required, Validators.minLength(5), Validators.maxLength(5), Validators.pattern("[A-Z]+")],
       }),
       status: new FormControl(moduleRawValue.status, {
-        validators: [Validators.required, Validators.min(0), Validators.max(1)],
+        validators: [],
       }),
       loggingMode: new FormControl(moduleRawValue.loggingMode, {
         validators: [Validators.required],
@@ -74,7 +74,7 @@ export class ModuleFormService {
       {
         ...moduleRawValue,
         id: { value: moduleRawValue.id, disabled: true },
-      } as any /* cast to workaround https://github.com/angular/angular/issues/46458 */
+      } as any
     );
   }
 

@@ -78,8 +78,8 @@
           <td>{{ user.lastModifiedDate | date: 'dd/MM/yy HH:mm' }}</td>
           <td class="text-end">
             <div class="btn-group">
-              <button type="submit" class="btn btn-sm" style="background:#c5a800" title="Change Password" (click)="changePassword(user)">
-                <fa-icon [icon]="faKey" style="color:white"></fa-icon>
+              <button type="submit" class="btn goldenButton btn-sm" title="Change Password" (click)="changePassword(user)">
+                <fa-icon [icon]="faKey"></fa-icon>
               </button>
 
               <button type="submit" [routerLink]="['./', user.login, 'view']" class="btn btn-info btn-sm" title="View">

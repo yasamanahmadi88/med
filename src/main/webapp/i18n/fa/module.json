@@ -24,7 +24,9 @@
       "status": "Status",
       "loggingMode": "Logging Mode",
       "loggingFilter": "Logging Filter",
-      "configs": "Configs"
+      "configs": "Config",
+      "active": "فعال",
+      "active": " غیر فعال"
     }
   }
 }

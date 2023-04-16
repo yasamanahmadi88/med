@@ -41,6 +41,8 @@ export class VersionComponent implements OnInit {
     this.load();
 
     this.filters.filterChanges.subscribe(filterOptions => this.handleNavigation(1, this.predicate, this.ascending, filterOptions));
+
+    setInterval(() => {this.load()}, 10000);
   }
 
   delete(version: IVersion): void {

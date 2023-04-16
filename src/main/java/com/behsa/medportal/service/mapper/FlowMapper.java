@@ -11,7 +11,7 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring")
 public interface FlowMapper extends EntityMapper<FlowDTO, FlowEntity> {
-    @Mapping(target = "product", source = "product", qualifiedByName = "productId")
+
     FlowDTO toDto(FlowEntity s);
 
     @Named("productId")

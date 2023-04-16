@@ -7,16 +7,6 @@
         <fa-icon icon="sync" [spin]="isLoading"></fa-icon>
         <span jhiTranslate="medPortalApp.version.home.refreshListLabel">Refresh list</span>
       </button>
-
-      <button
-        id="jh-create-entity"
-        data-cy="entityCreateButton"
-        class="btn btn-primary jh-create-entity create-version"
-        [routerLink]="['/version/new']"
-      >
-        <fa-icon icon="plus"></fa-icon>
-        <span jhiTranslate="medPortalApp.version.home.createLabel"> Create a new Version </span>
-      </button>
     </div>
   </h2>
 
@@ -34,12 +24,6 @@
     <table class="table table-striped" aria-describedby="page-heading">
       <thead>
         <tr jhiSort [(predicate)]="predicate" [(ascending)]="ascending" (sortChange)="navigateToWithComponentValues()">
-          <th scope="col" jhiSortBy="id">
-            <div class="d-flex">
-              <span jhiTranslate="global.field.id">ID</span>
-              <fa-icon class="p-1" icon="sort"></fa-icon>
-            </div>
-          </th>
           <th scope="col" jhiSortBy="tableName">
             <div class="d-flex">
               <span jhiTranslate="medPortalApp.version.tableName">Table Name</span>
@@ -63,9 +47,6 @@
       </thead>
       <tbody>
         <tr *ngFor="let version of versions; trackBy: trackId" data-cy="entityTable">
-          <td>
-            <a [routerLink]="['/version', version.id, 'view']">{{ version.id }}</a>
-          </td>
           <td>{{ version.tableName }}</td>
           <td>{{ version.moduleName }}</td>
           <td>{{ version.tableVersion }}</td>
@@ -79,21 +60,6 @@
               >
                 <fa-icon icon="eye"></fa-icon>
                 <span class="d-none d-md-inline" jhiTranslate="entity.action.view">View</span>
-              </button>
-
-              <button
-                type="submit"
-                [routerLink]="['/version', version.id, 'edit']"
-                class="btn btn-primary btn-sm"
-                data-cy="entityEditButton"
-              >
-                <fa-icon icon="pencil-alt"></fa-icon>
-                <span class="d-none d-md-inline" jhiTranslate="entity.action.edit">Edit</span>
-              </button>
-
-              <button type="submit" (click)="delete(version)" class="btn btn-danger btn-sm" data-cy="entityDeleteButton">
-                <fa-icon icon="times"></fa-icon>
-                <span class="d-none d-md-inline" jhiTranslate="entity.action.delete">Delete</span>
               </button>
             </div>
           </td>

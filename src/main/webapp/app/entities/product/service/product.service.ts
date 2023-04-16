@@ -43,6 +43,11 @@ export class ProductService {
     return this.http.delete(`${this.resourceUrl}/${id}`, { observe: 'response' });
   }
 
+  search(req?: any): Observable<EntityArrayResponseType> {
+    const options = createRequestOption(req);
+    return this.http.get<IProduct[]>(this.resourceUrl + "/search", { params: options, observe: 'response' });
+  }
+
   getProductIdentifier(product: Pick<IProduct, 'id'>): number {
     return product.id;
   }

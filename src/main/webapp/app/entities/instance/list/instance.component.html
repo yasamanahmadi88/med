@@ -7,16 +7,6 @@
         <fa-icon icon="sync" [spin]="isLoading"></fa-icon>
         <span jhiTranslate="medPortalApp.instance.home.refreshListLabel">Refresh list</span>
       </button>
-
-      <button
-        id="jh-create-entity"
-        data-cy="entityCreateButton"
-        class="btn btn-primary jh-create-entity create-instance"
-        [routerLink]="['/instance/new']"
-      >
-        <fa-icon icon="plus"></fa-icon>
-        <span jhiTranslate="medPortalApp.instance.home.createLabel"> Create a new Instance </span>
-      </button>
     </div>
   </h2>
 
@@ -34,12 +24,6 @@
     <table class="table table-striped" aria-describedby="page-heading">
       <thead>
         <tr jhiSort [(predicate)]="predicate" [(ascending)]="ascending" (sortChange)="navigateToWithComponentValues()">
-          <th scope="col" jhiSortBy="id">
-            <div class="d-flex">
-              <span jhiTranslate="global.field.id">ID</span>
-              <fa-icon class="p-1" icon="sort"></fa-icon>
-            </div>
-          </th>
           <th scope="col" jhiSortBy="moduleName">
             <div class="d-flex">
               <span jhiTranslate="medPortalApp.instance.moduleName">Module Name</span>
@@ -94,20 +78,16 @@
               <fa-icon class="p-1" icon="sort"></fa-icon>
             </div>
           </th>
-          <th scope="col" jhiSortBy="processedStatistics">
+          <th scope="col">
             <div class="d-flex">
               <span jhiTranslate="medPortalApp.instance.processedStatistics">Processed Statistics</span>
-              <fa-icon class="p-1" icon="sort"></fa-icon>
             </div>
           </th>
           <th scope="col"></th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let instance of instances; trackBy: trackId" data-cy="entityTable">
-          <td>
-            <a [routerLink]="['/instance', instance.id, 'view']">{{ instance.id }}</a>
-          </td>
+        <tr *ngFor="let instance of instances; trackBy: trackId" data-cy="entityTable" [ngClass]="instance.moduleStatus != 'OK'? 'table-danger': ''">
           <td>{{ instance.moduleName }}</td>
           <td>{{ instance.ip }}</td>
           <td>{{ instance.port }}</td>
@@ -128,21 +108,6 @@
               >
                 <fa-icon icon="eye"></fa-icon>
                 <span class="d-none d-md-inline" jhiTranslate="entity.action.view">View</span>
-              </button>
-
-              <button
-                type="submit"
-                [routerLink]="['/instance', instance.id, 'edit']"
-                class="btn btn-primary btn-sm"
-                data-cy="entityEditButton"
-              >
-                <fa-icon icon="pencil-alt"></fa-icon>
-                <span class="d-none d-md-inline" jhiTranslate="entity.action.edit">Edit</span>
-              </button>
-
-              <button type="submit" (click)="delete(instance)" class="btn btn-danger btn-sm" data-cy="entityDeleteButton">
-                <fa-icon icon="times"></fa-icon>
-                <span class="d-none d-md-inline" jhiTranslate="entity.action.delete">Delete</span>
               </button>
             </div>
           </td>

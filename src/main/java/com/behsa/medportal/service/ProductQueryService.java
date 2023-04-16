@@ -7,6 +7,8 @@ import com.behsa.medportal.service.dto.ProductDTO;
 import com.behsa.medportal.service.mapper.ProductMapper;
 import java.util.List;
 import javax.persistence.criteria.JoinType;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -106,5 +108,12 @@ public class ProductQueryService extends QueryService<ProductEntity> {
             }
         }
         return specification;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductDTO> searchByText(String text, Pageable page) {
+        log.debug("find by text : {}, page: {}", text, page);
+        Long numberValue = StringUtils.isNumeric(text) ? Long.parseLong(text) : 0;
+        return productRepository.findAllByProductDescContainingIgnoreCaseOrProductNameContainingIgnoreCase(text,text,page).map(productMapper::toDto);
     }
 }

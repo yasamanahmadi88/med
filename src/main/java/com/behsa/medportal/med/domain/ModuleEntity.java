@@ -18,8 +18,8 @@ public class ModuleEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
+    @GeneratedValue(generator = "AUTR_SEQ_GENERATOR")
+    @SequenceGenerator(name = "AUTR_SEQ_GENERATOR", sequenceName = "MODULES_SEQ", allocationSize = 0)
     @Column(name = "module_key")
     private Long id;
 

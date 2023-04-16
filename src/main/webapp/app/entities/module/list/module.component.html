@@ -34,12 +34,6 @@
     <table class="table table-striped" aria-describedby="page-heading">
       <thead>
         <tr jhiSort [(predicate)]="predicate" [(ascending)]="ascending" (sortChange)="navigateToWithComponentValues()">
-          <th scope="col" jhiSortBy="id">
-            <div class="d-flex">
-              <span jhiTranslate="global.field.id">ID</span>
-              <fa-icon class="p-1" icon="sort"></fa-icon>
-            </div>
-          </th>
           <th scope="col" jhiSortBy="moduleName">
             <div class="d-flex">
               <span jhiTranslate="medPortalApp.module.moduleName">Module Name</span>
@@ -81,25 +75,27 @@
       </thead>
       <tbody>
         <tr *ngFor="let module of modules; trackBy: trackId" data-cy="entityTable">
-          <td>
-            <a [routerLink]="['/module', module.id, 'view']">{{ module.id }}</a>
-          </td>
           <td>{{ module.moduleName }}</td>
           <td>{{ module.defaultPort }}</td>
           <td>{{ module.redisKeyPrefix }}</td>
-          <td>{{ module.status }}</td>
+          <td *ngIf="module.status == 0" jhiTranslate="medPortalApp.module.active">Active</td>
+          <td *ngIf="module.status == 1" jhiTranslate="medPortalApp.module.notActive">Not active</td>
           <td>{{ module.loggingMode }}</td>
-          <td>{{ module.loggingFilter }}</td>
+          <td>
+            <button type="submit"  class="btn btn-sm" (click)="showLoggingFilterDialog(module.loggingFilter)">
+              <fa-icon icon="eye"></fa-icon>
+            </button>
+          </td>
           <td class="text-end">
             <div class="btn-group">
               <button
                 type="submit"
                 [routerLink]="['/config']"
                 [queryParams]="{ 'filter[moduleId.in]': module.id }"
-                class="btn btn-info btn-sm"
+                class="btn goldenButton btn-sm"
                 data-cy="filterOtherEntityButton"
               >
-                <fa-icon icon="eye"></fa-icon>
+                <fa-icon [icon]="faCog"></fa-icon>
                 <span
                   class="d-none d-md-inline"
                   jhiTranslate="entity.action.show"
@@ -107,19 +103,17 @@
                   >Show Config</span
                 >
               </button>
-              <button type="submit" [routerLink]="['/module', module.id, 'view']" class="btn btn-info btn-sm" data-cy="entityDetailsButton">
-                <fa-icon icon="eye"></fa-icon>
-                <span class="d-none d-md-inline" jhiTranslate="entity.action.view">View</span>
+
+              <button type="submit" [routerLink]="['./', module.id, 'view']" class="btn btn-info btn-sm" title="View">
+                <fa-icon [icon]="faEye" style="color:white"></fa-icon>
               </button>
 
-              <button type="submit" [routerLink]="['/module', module.id, 'edit']" class="btn btn-primary btn-sm" data-cy="entityEditButton">
-                <fa-icon icon="pencil-alt"></fa-icon>
-                <span class="d-none d-md-inline" jhiTranslate="entity.action.edit">Edit</span>
+              <button type="submit" [routerLink]="['./', module.id, 'edit']" queryParamsHandling="merge" class="btn btn-primary btn-sm" title="Edit">
+                <fa-icon [icon]="faPencil" style="color:white"></fa-icon>
               </button>
 
               <button type="submit" (click)="delete(module)" class="btn btn-danger btn-sm" data-cy="entityDeleteButton">
-                <fa-icon icon="times"></fa-icon>
-                <span class="d-none d-md-inline" jhiTranslate="entity.action.delete">Delete</span>
+                <fa-icon [icon]="faTrash"></fa-icon>
               </button>
             </div>
           </td>

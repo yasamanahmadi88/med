@@ -4,11 +4,13 @@ import com.behsa.medportal.med.domain.FlowEntity;
 import com.behsa.medportal.med.repository.FlowRepository;
 import com.behsa.medportal.service.FlowQueryService;
 import com.behsa.medportal.service.FlowService;
+import com.behsa.medportal.service.LoggerService;
 import com.behsa.medportal.service.criteria.FlowCriteria;
 import com.behsa.medportal.service.dto.FlowDTO;
 import com.behsa.medportal.web.rest.errors.BadRequestAlertException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,10 +50,13 @@ public class FlowResource {
 
     private final FlowQueryService flowQueryService;
 
-    public FlowResource(FlowService flowService, FlowRepository flowRepository, FlowQueryService flowQueryService) {
+    private final LoggerService loggerService;
+
+    public FlowResource(FlowService flowService, FlowRepository flowRepository, FlowQueryService flowQueryService, LoggerService loggerService) {
         this.flowService = flowService;
         this.flowRepository = flowRepository;
         this.flowQueryService = flowQueryService;
+        this.loggerService = loggerService;
     }
 
     /**
@@ -69,6 +74,7 @@ public class FlowResource {
             throw new BadRequestAlertException("A new flow cannot already have an ID", ENTITY_NAME, "idexists");
         }
         FlowDTO result = flowService.save(flowDTO);
+        loggerService.log( ENTITY_NAME+"_CREATE",new HashMap<>());
         return ResponseEntity
             .created(new URI("/api/flows/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
@@ -104,6 +110,7 @@ public class FlowResource {
         }
 
         FlowDTO result = flowService.update(flowDTO);
+        loggerService.log( ENTITY_NAME+"_UPDATE",new HashMap<>());
         return ResponseEntity
             .ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, flowDTO.getId().toString()))
@@ -140,7 +147,7 @@ public class FlowResource {
         }
 
         Optional<FlowDTO> result = flowService.partialUpdate(flowDTO);
-
+        loggerService.log( ENTITY_NAME+"_UPDATE",new HashMap<>());
         return ResponseUtil.wrapOrNotFound(
             result,
             HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, flowDTO.getId().toString())
@@ -204,6 +211,7 @@ public class FlowResource {
     public ResponseEntity<Void> deleteFlow(@PathVariable Long id) {
         log.debug("REST request to delete Flow : {}", id);
         flowService.delete(id);
+        loggerService.log( ENTITY_NAME+"_DELETE",new HashMap<>());
         return ResponseEntity
             .noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))

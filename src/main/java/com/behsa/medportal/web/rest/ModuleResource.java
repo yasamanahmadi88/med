@@ -2,6 +2,7 @@ package com.behsa.medportal.web.rest;
 
 import com.behsa.medportal.med.domain.ModuleEntity;
 import com.behsa.medportal.med.repository.ModuleRepository;
+import com.behsa.medportal.service.LoggerService;
 import com.behsa.medportal.service.ModuleQueryService;
 import com.behsa.medportal.service.ModuleService;
 import com.behsa.medportal.service.criteria.ModuleCriteria;
@@ -9,6 +10,7 @@ import com.behsa.medportal.service.dto.ModuleDTO;
 import com.behsa.medportal.web.rest.errors.BadRequestAlertException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,10 +50,13 @@ public class ModuleResource {
 
     private final ModuleQueryService moduleQueryService;
 
-    public ModuleResource(ModuleService moduleService, ModuleRepository moduleRepository, ModuleQueryService moduleQueryService) {
+    private final LoggerService loggerService;
+
+    public ModuleResource(ModuleService moduleService, ModuleRepository moduleRepository, ModuleQueryService moduleQueryService, LoggerService loggerService) {
         this.moduleService = moduleService;
         this.moduleRepository = moduleRepository;
         this.moduleQueryService = moduleQueryService;
+        this.loggerService = loggerService;
     }
 
     /**
@@ -69,6 +74,7 @@ public class ModuleResource {
             throw new BadRequestAlertException("A new module cannot already have an ID", ENTITY_NAME, "idexists");
         }
         ModuleDTO result = moduleService.save(moduleDTO);
+        loggerService.log( ENTITY_NAME+"_CREATE",new HashMap<>());
         return ResponseEntity
             .created(new URI("/api/modules/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))

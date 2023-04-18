@@ -2,6 +2,7 @@ package com.behsa.medportal.web.rest;
 
 import com.behsa.medportal.med.domain.ProductEntity;
 import com.behsa.medportal.med.repository.ProductRepository;
+import com.behsa.medportal.service.LoggerService;
 import com.behsa.medportal.service.ProductQueryService;
 import com.behsa.medportal.service.ProductService;
 import com.behsa.medportal.service.criteria.ProductCriteria;
@@ -9,6 +10,7 @@ import com.behsa.medportal.service.dto.ProductDTO;
 import com.behsa.medportal.web.rest.errors.BadRequestAlertException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,10 +50,13 @@ public class ProductResource {
 
     private final ProductQueryService productQueryService;
 
-    public ProductResource(ProductService productService, ProductRepository productRepository, ProductQueryService productQueryService) {
+    private final LoggerService loggerService;
+
+    public ProductResource(ProductService productService, ProductRepository productRepository, ProductQueryService productQueryService, LoggerService loggerService) {
         this.productService = productService;
         this.productRepository = productRepository;
         this.productQueryService = productQueryService;
+        this.loggerService = loggerService;
     }
 
     /**
@@ -69,6 +74,7 @@ public class ProductResource {
             throw new BadRequestAlertException("A new product cannot already have an ID", ENTITY_NAME, "idexists");
         }
         ProductDTO result = productService.save(productDTO);
+        loggerService.log( ENTITY_NAME+"_CREATE",new HashMap<>());
         return ResponseEntity
             .created(new URI("/api/products/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
@@ -104,6 +110,7 @@ public class ProductResource {
         }
 
         ProductDTO result = productService.update(productDTO);
+        loggerService.log( ENTITY_NAME+"_UPDATE",new HashMap<>());
         return ResponseEntity
             .ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, productDTO.getId().toString()))
@@ -140,7 +147,7 @@ public class ProductResource {
         }
 
         Optional<ProductDTO> result = productService.partialUpdate(productDTO);
-
+        loggerService.log( ENTITY_NAME+"_UPDATE",new HashMap<>());
         return ResponseUtil.wrapOrNotFound(
             result,
             HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, productDTO.getId().toString())
@@ -204,6 +211,7 @@ public class ProductResource {
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         log.debug("REST request to delete Product : {}", id);
         productService.delete(id);
+        loggerService.log( ENTITY_NAME+"_DELETE",new HashMap<>());
         return ResponseEntity
             .noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))

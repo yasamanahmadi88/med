@@ -4,11 +4,13 @@ import com.behsa.medportal.med.domain.ConfigEntity;
 import com.behsa.medportal.med.repository.ConfigRepository;
 import com.behsa.medportal.service.ConfigQueryService;
 import com.behsa.medportal.service.ConfigService;
+import com.behsa.medportal.service.LoggerService;
 import com.behsa.medportal.service.criteria.ConfigCriteria;
 import com.behsa.medportal.service.dto.ConfigDTO;
 import com.behsa.medportal.web.rest.errors.BadRequestAlertException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,10 +50,13 @@ public class ConfigResource {
 
     private final ConfigQueryService configQueryService;
 
-    public ConfigResource(ConfigService configService, ConfigRepository configRepository, ConfigQueryService configQueryService) {
+    private final LoggerService loggerService;
+
+    public ConfigResource(ConfigService configService, ConfigRepository configRepository, ConfigQueryService configQueryService, LoggerService loggerService) {
         this.configService = configService;
         this.configRepository = configRepository;
         this.configQueryService = configQueryService;
+        this.loggerService = loggerService;
     }
 
     /**
@@ -69,6 +74,7 @@ public class ConfigResource {
             throw new BadRequestAlertException("A new config cannot already have an ID", ENTITY_NAME, "idexists");
         }
         ConfigDTO result = configService.save(configDTO);
+        loggerService.log( ENTITY_NAME+"_CREATE",new HashMap<>());
         return ResponseEntity
             .created(new URI("/api/configs/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
@@ -104,6 +110,7 @@ public class ConfigResource {
         }
 
         ConfigDTO result = configService.update(configDTO);
+        loggerService.log( ENTITY_NAME+"_UPDATE",new HashMap<>());
         return ResponseEntity
             .ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, configDTO.getId().toString()))
@@ -140,7 +147,7 @@ public class ConfigResource {
         }
 
         Optional<ConfigDTO> result = configService.partialUpdate(configDTO);
-
+        loggerService.log( ENTITY_NAME+"_UPDATE",new HashMap<>());
         return ResponseUtil.wrapOrNotFound(
             result,
             HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, configDTO.getId().toString())
@@ -204,6 +211,7 @@ public class ConfigResource {
     public ResponseEntity<Void> deleteConfig(@PathVariable Long id) {
         log.debug("REST request to delete Config : {}", id);
         configService.delete(id);
+        loggerService.log( ENTITY_NAME+"_DELETE",new HashMap<>());
         return ResponseEntity
             .noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))

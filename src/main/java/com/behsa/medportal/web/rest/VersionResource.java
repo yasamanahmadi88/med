@@ -2,6 +2,7 @@ package com.behsa.medportal.web.rest;
 
 import com.behsa.medportal.med.domain.VersionEntity;
 import com.behsa.medportal.med.repository.VersionRepository;
+import com.behsa.medportal.service.LoggerService;
 import com.behsa.medportal.service.VersionQueryService;
 import com.behsa.medportal.service.VersionService;
 import com.behsa.medportal.service.criteria.VersionCriteria;
@@ -9,6 +10,7 @@ import com.behsa.medportal.service.dto.VersionDTO;
 import com.behsa.medportal.web.rest.errors.BadRequestAlertException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,10 +50,13 @@ public class VersionResource {
 
     private final VersionQueryService versionQueryService;
 
-    public VersionResource(VersionService versionService, VersionRepository versionRepository, VersionQueryService versionQueryService) {
+    private final LoggerService loggerService;
+
+    public VersionResource(VersionService versionService, VersionRepository versionRepository, VersionQueryService versionQueryService, LoggerService loggerService) {
         this.versionService = versionService;
         this.versionRepository = versionRepository;
         this.versionQueryService = versionQueryService;
+        this.loggerService = loggerService;
     }
 
     /**
@@ -69,6 +74,7 @@ public class VersionResource {
             throw new BadRequestAlertException("A new version cannot already have an ID", ENTITY_NAME, "idexists");
         }
         VersionDTO result = versionService.save(versionDTO);
+        loggerService.log( ENTITY_NAME+"_CREATE",new HashMap<>());
         return ResponseEntity
             .created(new URI("/api/versions/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
@@ -104,6 +110,7 @@ public class VersionResource {
         }
 
         VersionDTO result = versionService.update(versionDTO);
+        loggerService.log( ENTITY_NAME+"_UPDATE",new HashMap<>());
         return ResponseEntity
             .ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, versionDTO.getId().toString()))
@@ -140,7 +147,7 @@ public class VersionResource {
         }
 
         Optional<VersionDTO> result = versionService.partialUpdate(versionDTO);
-
+        loggerService.log( ENTITY_NAME+"_UPDATE",new HashMap<>());
         return ResponseUtil.wrapOrNotFound(
             result,
             HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, versionDTO.getId().toString())
@@ -204,6 +211,7 @@ public class VersionResource {
     public ResponseEntity<Void> deleteVersion(@PathVariable Long id) {
         log.debug("REST request to delete Version : {}", id);
         versionService.delete(id);
+        loggerService.log( ENTITY_NAME+"_DELETE",new HashMap<>());
         return ResponseEntity
             .noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))

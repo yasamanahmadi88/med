@@ -28,6 +28,7 @@ import { ActiveMenuDirective } from './layouts/navbar/active-menu.directive';
 import { ErrorComponent } from './layouts/error/error.component';
 import {ToastrModule} from "ngx-toastr";
 import { SimpleTextDialogComponent } from './layouts/simple-text-dialog/simple-text-dialog.component';
+import { BpmnComponent } from './entities/bpmn/bpmn.component';
 
 @NgModule({
   imports: [
@@ -59,7 +60,7 @@ import { SimpleTextDialogComponent } from './layouts/simple-text-dialog/simple-t
     FindLanguageFromKeyPipe,
     httpInterceptorProviders,
   ],
-  declarations: [MainComponent, NavbarComponent, ErrorComponent, PageRibbonComponent, ActiveMenuDirective, FooterComponent, SimpleTextDialogComponent],
+  declarations: [MainComponent, NavbarComponent, ErrorComponent, PageRibbonComponent, ActiveMenuDirective, FooterComponent, SimpleTextDialogComponent, BpmnComponent],
   bootstrap: [MainComponent],
 })
 export class AppModule {

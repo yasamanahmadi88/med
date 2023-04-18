@@ -1,6 +1,6 @@
 import { Component, OnInit, RendererFactory2, Renderer2 } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { Router, ActivatedRouteSnapshot, NavigationEnd } from '@angular/router';
+import {Router, ActivatedRouteSnapshot, NavigationEnd, NavigationStart} from '@angular/router';
 import { TranslateService, LangChangeEvent } from '@ngx-translate/core';
 import dayjs from 'dayjs/esm';
 
@@ -13,6 +13,7 @@ import { FindLanguageFromKeyPipe } from 'app/shared/language/find-language-from-
 })
 export class MainComponent implements OnInit {
   private renderer: Renderer2;
+  fullScreen:any = false;
 
   constructor(
     private accountService: AccountService,
@@ -42,6 +43,15 @@ export class MainComponent implements OnInit {
 
       this.updatePageDirection();
     });
+
+
+    this.router.events.subscribe(value => {
+      if (value instanceof NavigationStart){
+        if(value.url.includes("/bpmn")){
+          this.fullScreen = true;
+        }
+      }
+    })
   }
 
   private getPageTitle(routeSnapshot: ActivatedRouteSnapshot): string {

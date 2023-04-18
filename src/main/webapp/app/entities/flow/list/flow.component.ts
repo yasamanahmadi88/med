@@ -149,4 +149,8 @@ export class FlowComponent implements OnInit {
       return [predicate + ',' + ascendingQueryParam];
     }
   }
+
+  openBPMNPage(flowId: any){
+    this.router.navigate(['/bpmn', {flowId: flowId}]);
+  }
 }

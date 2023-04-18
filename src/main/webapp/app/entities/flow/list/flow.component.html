@@ -44,15 +44,15 @@
               <fa-icon class="p-1" icon="sort"></fa-icon>
             </div>
           </th>
-          <th scope="col" jhiSortBy="flow">
-            <div class="d-flex">
-              <span jhiTranslate="medPortalApp.flow.flow">Flow</span>
-              <fa-icon class="p-1" icon="sort"></fa-icon>
-            </div>
-          </th>
           <th scope="col" jhiSortBy="product.id">
             <div class="d-flex">
               <span jhiTranslate="medPortalApp.flow.product">Product</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="flow">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.flow.flow">Flow</span>
               <fa-icon class="p-1" icon="sort"></fa-icon>
             </div>
           </th>
@@ -63,11 +63,15 @@
         <tr *ngFor="let flow of flows; trackBy: trackId" data-cy="entityTable">
           <td>{{ flow.flowName }}</td>
           <td>{{ flow.flowDesc }}</td>
-          <td>{{ flow.flow }}</td>
           <td>
             <div *ngIf="flow.product">
               <a [routerLink]="['/product', flow.product.id, 'view']">{{ flow.product.productName }}</a>
             </div>
+          </td>
+          <td>
+            <button type="submit"  class="btn btn-sm" (click)="openBPMNPage(flow.id)">
+            <fa-icon icon="eye"></fa-icon>
+            </button>
           </td>
           <td class="text-end">
             <div class="btn-group">

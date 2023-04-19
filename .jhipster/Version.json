@@ -29,5 +29,7 @@
   "pagination": "pagination",
   "readOnly": false,
   "relationships": [],
-  "service": "serviceImpl"
+  "service": "serviceImpl",
+  "skipClient": true,
+  "skipServer": true
 }

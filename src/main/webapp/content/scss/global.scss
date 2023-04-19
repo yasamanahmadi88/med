@@ -248,7 +248,7 @@ angular-cli removes postcss-rtl processed inline css, processed rules must be ad
   color:#fff
 }
 
-.goldenButton:hover{
+.goldenButton:hover, .goldenButton:focus{
   background: #ad9401;
   border-color: #ad9401;
   color:#fff

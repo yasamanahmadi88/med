@@ -16,6 +16,7 @@
         "version": "Version",
         "product": "Product",
         "flow": "Flow",
+        "customAuditEvent": "لاگ ممیزی",
         "jhipster-needle-menu-add-entry": "JHipster will add additional entities here (do not translate!)"
       },
       "account": {

@@ -15,6 +15,7 @@ export class AccountService {
   private userIdentity: Account | null = null;
   private authenticationState = new ReplaySubject<Account | null>(1);
   private accountCache$?: Observable<Account> | null;
+  private _loggedInUser?: Account | null;
 
   constructor(
     private translateService: TranslateService,
@@ -52,6 +53,7 @@ export class AccountService {
       this.accountCache$ = this.fetch().pipe(
         tap((account: Account) => {
           this.authenticate(account);
+          this._loggedInUser = account;
 
           // After retrieve the account info, the language will be changed to
           // the user's preferred language configured in the account setting
@@ -88,5 +90,13 @@ export class AccountService {
       this.stateStorageService.clearUrl();
       this.router.navigateByUrl(previousUrl);
     }
+  }
+
+  get loggedInUser(): Account | null | undefined {
+    return this._loggedInUser as Account;
+  }
+
+  set loggedInUser(value: Account | null | undefined) {
+    this._loggedInUser = value;
   }
 }

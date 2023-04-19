@@ -171,13 +171,25 @@
             <li>
               <a
                 class="dropdown-item"
+                routerLink="custom-audit-event"
+                routerLinkActive="active"
+                [routerLinkActiveOptions]="{ exact: true }"
+                (click)="collapseNavbar()"
+              >
+                <fa-icon [icon]="faHistory" [fixedWidth]="true"></fa-icon>
+                <span jhiTranslate="global.menu.entities.customAuditEvent">Audit Event</span>
+              </a>
+            </li>
+            <li>
+              <a
+                class="dropdown-item"
                 routerLink="med-authority"
                 routerLinkActive="active"
                 [routerLinkActiveOptions]="{ exact: true }"
                 (click)="collapseNavbar()"
               >
                 <fa-icon icon="asterisk" [fixedWidth]="true"></fa-icon>
-                <span jhiTranslate="global.menu.entities.medAuthority">Med Authority</span>
+                <span jhiTranslate="global.menu.entities.medAuthority">Authority</span>
               </a>
             </li>
             <li>

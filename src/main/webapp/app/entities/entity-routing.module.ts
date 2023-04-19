@@ -49,6 +49,11 @@ import { RouterModule } from '@angular/router';
         data: { pageTitle: 'medPortalApp.flow.home.title' },
         loadChildren: () => import('./flow/flow.module').then(m => m.FlowModule),
       },
+      {
+        path: 'custom-audit-event',
+        data: { pageTitle: 'medPortalApp.customAuditEvent.home.title' },
+        loadChildren: () => import('./custom-audit-event/custom-audit-event.module').then(m => m.CustomAuditEventModule),
+      },
       /* jhipster-needle-add-entity-route - JHipster will add entity modules routes here */
     ]),
   ],

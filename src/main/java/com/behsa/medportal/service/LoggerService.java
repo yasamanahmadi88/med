@@ -2,7 +2,6 @@ package com.behsa.medportal.service;
 
 import com.behsa.medportal.domain.CustomAuditEventEntity;
 import com.behsa.medportal.repository.CustomAuditEventRepository;
-import com.behsa.medportal.security.CustomAuditEventConverter;
 import com.behsa.medportal.security.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +55,7 @@ public class LoggerService implements AuditEventRepository {
     @Override
     public List<AuditEvent> find(String principal, Instant after, String type) {
         Iterable<CustomAuditEventEntity> persistentAuditEvents =
-            customAuditEventRepository.findByPrincipalAndAuditEventDateAfterAndAuditEventType(principal, after, type);
+            customAuditEventRepository.findByPrincipalAndEventDateAfterAndEventType(principal, after, type);
         return auditEventConverter.convertToAuditEvent(persistentAuditEvents);
     }
     /**
@@ -64,7 +63,7 @@ public class LoggerService implements AuditEventRepository {
      */
 
     public Page<AuditEvent> findByDates(LocalDateTime fromDate, LocalDateTime toDate, Pageable pageable) {
-        return customAuditEventRepository.findAllByAuditEventDateBetween(fromDate, toDate, pageable)
+        return customAuditEventRepository.findAllByEventDateBetween(fromDate, toDate, pageable)
             .map(auditEventConverter::convertToAuditEvent);
     }
     @Transactional(readOnly = true)
@@ -82,8 +81,8 @@ public class LoggerService implements AuditEventRepository {
 
             CustomAuditEventEntity persistentAuditEvent = new CustomAuditEventEntity();
             persistentAuditEvent.setPrincipal(event.getPrincipal());
-            persistentAuditEvent.setAuditEventType(event.getType());
-            persistentAuditEvent.setAuditEventDate(LocalDateTime.ofInstant(event.getTimestamp(), ZoneId.systemDefault()));
+            persistentAuditEvent.setEventType(event.getType());
+            persistentAuditEvent.setEventDate(LocalDateTime.ofInstant(event.getTimestamp(), ZoneId.systemDefault()));
             Map<String, String> eventData = auditEventConverter.convertDataToStrings(event.getData());
             persistentAuditEvent.setData(truncate(eventData));
             customAuditEventRepository.save(persistentAuditEvent);

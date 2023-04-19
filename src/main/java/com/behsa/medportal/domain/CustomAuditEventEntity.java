@@ -29,10 +29,10 @@ public class CustomAuditEventEntity implements Serializable {
     private String principal;
 
     @Column(name = "event_date")
-    private LocalDateTime auditEventDate;
+    private LocalDateTime eventDate;
 
     @Column(name = "event_type")
-    private String auditEventType;
+    private String eventType;
 
     @ElementCollection
     @MapKeyColumn(name = "name")
@@ -56,20 +56,20 @@ public class CustomAuditEventEntity implements Serializable {
         this.principal = principal;
     }
 
-    public LocalDateTime getAuditEventDate() {
-        return auditEventDate;
+    public LocalDateTime getEventDate() {
+        return eventDate;
     }
 
-    public void setAuditEventDate(LocalDateTime auditEventDate) {
-        this.auditEventDate = auditEventDate;
+    public void setEventDate(LocalDateTime auditEventDate) {
+        this.eventDate = auditEventDate;
     }
 
-    public String getAuditEventType() {
-        return auditEventType;
+    public String getEventType() {
+        return eventType;
     }
 
-    public void setAuditEventType(String auditEventType) {
-        this.auditEventType = auditEventType;
+    public void setEventType(String auditEventType) {
+        this.eventType = auditEventType;
     }
 
     public Map<String, String> getData() {
@@ -100,8 +100,8 @@ public class CustomAuditEventEntity implements Serializable {
     public String toString() {
         return "PersistentAuditEvent{" +
             "principal='" + principal + '\'' +
-            ", auditEventDate=" + auditEventDate +
-            ", auditEventType='" + auditEventType + '\'' +
+            ", auditEventDate=" + eventDate +
+            ", auditEventType='" + eventType + '\'' +
             '}';
     }
 }

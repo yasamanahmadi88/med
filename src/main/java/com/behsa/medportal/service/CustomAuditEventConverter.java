@@ -1,4 +1,4 @@
-package com.behsa.medportal.security;
+package com.behsa.medportal.service;
 
 import com.behsa.medportal.domain.CustomAuditEventEntity;
 import org.springframework.boot.actuate.audit.AuditEvent;
@@ -41,8 +41,8 @@ public class CustomAuditEventConverter {
             return null;
         }
         Clock clock = Clock.fixed(Instant.EPOCH, ZoneId.of("Asia/Tehran"));
-        return new AuditEvent(persistentAuditEvent.getAuditEventDate().atZone(clock.getZone()).toInstant(), persistentAuditEvent.getPrincipal(),
-            persistentAuditEvent.getAuditEventType(), convertDataToObjects(persistentAuditEvent.getData()));
+        return new AuditEvent(persistentAuditEvent.getEventDate().atZone(clock.getZone()).toInstant(), persistentAuditEvent.getPrincipal(),
+            persistentAuditEvent.getEventType(), convertDataToObjects(persistentAuditEvent.getData()));
     }
 
     /**

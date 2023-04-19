@@ -13,6 +13,7 @@
         data-cy="entityCreateButton"
         class="btn btn-primary jh-create-entity create-module"
         [routerLink]="['/module/new']"
+        *jhiHasPermission="['module','create'];op 'OR'"
       >
         <fa-icon icon="plus"></fa-icon>
         <span jhiTranslate="medPortalApp.module.home.createLabel"> Create a new Module </span>
@@ -108,11 +109,11 @@
                 <fa-icon [icon]="faEye" style="color:white"></fa-icon>
               </button>
 
-              <button type="submit" [routerLink]="['./', module.id, 'edit']" queryParamsHandling="merge" class="btn btn-primary btn-sm" title="Edit">
+              <button type="submit" [routerLink]="['./', module.id, 'edit']" queryParamsHandling="merge" class="btn btn-primary btn-sm" title="Edit" *jhiHasPermission="['module','edit'];op 'OR'">
                 <fa-icon [icon]="faPencil" style="color:white"></fa-icon>
               </button>
 
-              <button type="submit" (click)="delete(module)" class="btn btn-danger btn-sm" data-cy="entityDeleteButton">
+              <button type="submit" (click)="delete(module)" class="btn btn-danger btn-sm" data-cy="entityDeleteButton" *jhiHasPermission="['module','delete'];op 'OR'">
                 <fa-icon [icon]="faTrash"></fa-icon>
               </button>
             </div>

@@ -13,6 +13,7 @@
         data-cy="entityCreateButton"
         class="btn btn-primary jh-create-entity create-flow"
         [routerLink]="['/flow/new']"
+        *jhiHasPermission="['flow','create'];op 'OR'"
       >
         <fa-icon icon="plus"></fa-icon>
         <span jhiTranslate="medPortalApp.flow.home.createLabel"> Create a new Flow </span>
@@ -80,12 +81,12 @@
                 <span class="d-none d-md-inline" jhiTranslate="entity.action.view">View</span>
               </button>
 
-              <button type="submit" [routerLink]="['/flow', flow.id, 'edit']" class="btn btn-primary btn-sm" data-cy="entityEditButton">
+              <button type="submit" [routerLink]="['/flow', flow.id, 'edit']" class="btn btn-primary btn-sm" data-cy="entityEditButton" *jhiHasPermission="['flow','edit'];op 'OR'">
                 <fa-icon icon="pencil-alt"></fa-icon>
                 <span class="d-none d-md-inline" jhiTranslate="entity.action.edit">Edit</span>
               </button>
 
-              <button type="submit" (click)="delete(flow)" class="btn btn-danger btn-sm" data-cy="entityDeleteButton">
+              <button type="submit" (click)="delete(flow)" class="btn btn-danger btn-sm" data-cy="entityDeleteButton" *jhiHasPermission="['flow','delete'];op 'OR'">
                 <fa-icon icon="times"></fa-icon>
                 <span class="d-none d-md-inline" jhiTranslate="entity.action.delete">Delete</span>
               </button>

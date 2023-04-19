@@ -13,6 +13,7 @@
         data-cy="entityCreateButton"
         class="btn btn-primary jh-create-entity create-product"
         [routerLink]="['/product/new']"
+        *jhiHasPermission="['product','create'];op 'OR'"
       >
         <fa-icon icon="plus"></fa-icon>
         <span jhiTranslate="medPortalApp.product.home.createLabel"> Create a new Product </span>
@@ -99,11 +100,12 @@
                 [routerLink]="['/product', product.id, 'edit']"
                 class="btn btn-primary btn-sm"
                 data-cy="entityEditButton"
+                *jhiHasPermission="['product','edit'];op 'OR'"
               >
                 <fa-icon [icon]="faPencil" style="color:white"></fa-icon>
               </button>
 
-              <button type="submit" (click)="delete(product)" class="btn btn-danger btn-sm" data-cy="entityDeleteButton">
+              <button type="submit" (click)="delete(product)" class="btn btn-danger btn-sm" data-cy="entityDeleteButton" *jhiHasPermission="['product','delete'];op 'OR'">
                 <fa-icon [icon]="faTrash" style="color:white"></fa-icon>
               </button>
             </div>

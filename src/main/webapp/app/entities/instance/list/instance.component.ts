@@ -28,6 +28,8 @@ export class InstanceComponent implements OnInit {
   totalItems = 0;
   page = 1;
 
+  intervalId: any;
+
   constructor(
     protected instanceService: InstanceService,
     protected activatedRoute: ActivatedRoute,
@@ -42,7 +44,11 @@ export class InstanceComponent implements OnInit {
 
     this.filters.filterChanges.subscribe(filterOptions => this.handleNavigation(1, this.predicate, this.ascending, filterOptions));
 
-    setInterval(() => {this.load()}, 10000);
+    this.intervalId = setInterval(() => {this.load()}, 10000);
+  }
+
+  ngOnDestroy(): void {
+    clearInterval(this.intervalId);
   }
 
   delete(instance: IInstance): void {

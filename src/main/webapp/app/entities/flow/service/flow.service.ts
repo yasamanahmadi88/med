@@ -51,6 +51,10 @@ export class FlowService {
     return o1 && o2 ? this.getFlowIdentifier(o1) === this.getFlowIdentifier(o2) : o1 === o2;
   }
 
+  saveFlow(xml: string): Observable<HttpResponse<any>> {
+    return this.http.post(`${this.resourceUrl}/save`, xml,{ observe: 'response' });
+  }
+
   addFlowToCollectionIfMissing<Type extends Pick<IFlow, 'id'>>(
     flowCollection: Type[],
     ...flowsToCheck: (Type | null | undefined)[]

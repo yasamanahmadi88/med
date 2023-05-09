@@ -47,9 +47,7 @@ export class MainComponent implements OnInit {
 
     this.router.events.subscribe(value => {
       if (value instanceof NavigationStart){
-        if(value.url.includes("/bpmn")){
-          this.fullScreen = true;
-        }
+        this.fullScreen = value.url.includes("/bpmn");
       }
     })
   }

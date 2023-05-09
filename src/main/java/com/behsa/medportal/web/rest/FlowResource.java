@@ -10,12 +10,13 @@ import com.behsa.medportal.service.dto.FlowDTO;
 import com.behsa.medportal.web.rest.errors.BadRequestAlertException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.net.http.HttpClient;
+import java.net.http.HttpResponse;
+import java.util.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+
+import org.aspectj.apache.bcel.classfile.annotation.NameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -216,5 +217,19 @@ public class FlowResource {
             .noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
             .build();
+    }
+
+    @PostMapping("/flows/save")
+    @Secured(ENTITY_NAME)
+    public ResponseEntity<Map> saveFlow(@RequestBody String flow) throws URISyntaxException {
+
+        //TODO send e.data to api provided by mediation team
+
+        Map<String, String> map = new HashMap<>();
+        map.put("mediationStatus", "success"); //TODO response received from mediation
+
+        return ResponseEntity
+            .ok()
+            .body(map);
     }
 }

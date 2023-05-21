@@ -25,6 +25,8 @@
 
   <jhi-alert></jhi-alert>
 
+  <jhi-filter [filters]="filters"></jhi-filter>
+
   <div class="alert alert-warning" id="no-result" *ngIf="configs?.length === 0">
     <span jhiTranslate="medPortalApp.config.home.notFound">No Configs found</span>
   </div>

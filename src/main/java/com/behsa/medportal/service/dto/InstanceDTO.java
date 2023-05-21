@@ -20,10 +20,6 @@ public class InstanceDTO implements Serializable {
     private String moduleName;
 
     @NotNull
-    @Size(max = 50)
-    private String ip;
-
-    @NotNull
     @Size(max = 10)
     private String port;
 
@@ -44,6 +40,10 @@ public class InstanceDTO implements Serializable {
 
     private String processedStatistics;
 
+    @NotNull
+    @Size(max = 50)
+    private String hostName;
+
     public Long getId() {
         return id;
     }
@@ -58,14 +58,6 @@ public class InstanceDTO implements Serializable {
 
     public void setModuleName(String moduleName) {
         this.moduleName = moduleName;
-    }
-
-    public String getIp() {
-        return ip;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
     }
 
     public String getPort() {
@@ -132,6 +124,14 @@ public class InstanceDTO implements Serializable {
         this.processedStatistics = processedStatistics;
     }
 
+    public String getHostName() {
+        return hostName;
+    }
+
+    public void setHostName(String hostName) {
+        this.hostName = hostName;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -159,7 +159,6 @@ public class InstanceDTO implements Serializable {
         return "InstanceDTO{" +
             "id=" + getId() +
             ", moduleName='" + getModuleName() + "'" +
-            ", ip='" + getIp() + "'" +
             ", port='" + getPort() + "'" +
             ", moduleStatus='" + getModuleStatus() + "'" +
             ", lastUpdateDate='" + getLastUpdateDate() + "'" +
@@ -168,6 +167,7 @@ public class InstanceDTO implements Serializable {
             ", totalProcessedWork=" + getTotalProcessedWork() +
             ", totalProcessedTask=" + getTotalProcessedTask() +
             ", processedStatistics='" + getProcessedStatistics() + "'" +
+            ", hostName='" + getHostName() + "'" +
             "}";
     }
 }

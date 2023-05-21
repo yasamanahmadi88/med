@@ -9,7 +9,7 @@ import javax.validation.constraints.*;
  * A InstanceEntity.
  */
 @Entity
-@Table(name = "tbl_instances")
+@Table(name = "TBL_INSTANCES")
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class InstanceEntity implements Serializable {
 
@@ -18,18 +18,13 @@ public class InstanceEntity implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
-    @Column(name = "instance_key")
+    @Column(name = "INSTANCE_KEY")
     private Long id;
 
     @NotNull
     @Size(max = 50)
     @Column(name = "module_name", length = 50, nullable = false)
     private String moduleName;
-
-    @NotNull
-    @Size(max = 50)
-    @Column(name = "ip", length = 50, nullable = false)
-    private String ip;
 
     @NotNull
     @Size(max = 10)
@@ -60,6 +55,11 @@ public class InstanceEntity implements Serializable {
     @Column(name = "processed_statistics")
     private String processedStatistics;
 
+    @NotNull
+    @Size(max = 50)
+    @Column(name = "host_name", length = 50, nullable = false)
+    private String hostName;
+
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
     public Long getId() {
@@ -86,19 +86,6 @@ public class InstanceEntity implements Serializable {
 
     public void setModuleName(String moduleName) {
         this.moduleName = moduleName;
-    }
-
-    public String getIp() {
-        return this.ip;
-    }
-
-    public InstanceEntity ip(String ip) {
-        this.setIp(ip);
-        return this;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
     }
 
     public String getPort() {
@@ -205,6 +192,19 @@ public class InstanceEntity implements Serializable {
         this.processedStatistics = processedStatistics;
     }
 
+    public String getHostName() {
+        return this.hostName;
+    }
+
+    public InstanceEntity hostName(String hostName) {
+        this.setHostName(hostName);
+        return this;
+    }
+
+    public void setHostName(String hostName) {
+        this.hostName = hostName;
+    }
+
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
@@ -230,7 +230,6 @@ public class InstanceEntity implements Serializable {
         return "InstanceEntity{" +
             "id=" + getId() +
             ", moduleName='" + getModuleName() + "'" +
-            ", ip='" + getIp() + "'" +
             ", port='" + getPort() + "'" +
             ", moduleStatus='" + getModuleStatus() + "'" +
             ", lastUpdateDate='" + getLastUpdateDate() + "'" +
@@ -239,6 +238,7 @@ public class InstanceEntity implements Serializable {
             ", totalProcessedWork=" + getTotalProcessedWork() +
             ", totalProcessedTask=" + getTotalProcessedTask() +
             ", processedStatistics='" + getProcessedStatistics() + "'" +
+            ", hostName='" + getHostName() + "'" +
             "}";
     }
 }

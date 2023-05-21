@@ -13,7 +13,7 @@ entity Config{
     commentDesc String maxlength(200)
 }
 
-entity Instance{
+/*entity Instance{
     moduleName String required maxlength(50),
     ip String required maxlength(50),
     port String required maxlength(10),
@@ -24,6 +24,19 @@ entity Instance{
     totalProcessedWork Long,
     totalProcessedTask Long,
     processedStatistics String
+}*/
+
+entity Instance{
+    moduleName String required maxlength(50),
+    port String required maxlength(10),
+    moduleStatus String required maxlength(50),
+    lastUpdateDate LocalDate required,
+    threadPoolQueueSize Long,
+    moduleStartTime Long,
+    totalProcessedWork Long,
+    totalProcessedTask Long,
+    processedStatistics String,
+    hostName String required maxlength(50)
 }
 
 entity Version{

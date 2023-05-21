@@ -12,12 +12,6 @@
       "fieldValidateRulesMaxlength": "50"
     },
     {
-      "fieldName": "ip",
-      "fieldType": "String",
-      "fieldValidateRules": ["required", "maxlength"],
-      "fieldValidateRulesMaxlength": "50"
-    },
-    {
       "fieldName": "port",
       "fieldType": "String",
       "fieldValidateRules": ["required", "maxlength"],
@@ -53,6 +47,12 @@
     {
       "fieldName": "processedStatistics",
       "fieldType": "String"
+    },
+    {
+      "fieldName": "hostName",
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "maxlength"],
+      "fieldValidateRulesMaxlength": "50"
     }
   ],
   "fluentMethods": true,
@@ -61,7 +61,5 @@
   "pagination": "pagination",
   "readOnly": false,
   "relationships": [],
-  "service": "serviceImpl",
-  "skipClient": true,
-  "skipServer": true
+  "service": "serviceImpl"
 }

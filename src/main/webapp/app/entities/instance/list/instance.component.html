@@ -30,9 +30,9 @@
               <fa-icon class="p-1" icon="sort"></fa-icon>
             </div>
           </th>
-          <th scope="col" jhiSortBy="ip">
+          <th scope="col" jhiSortBy="hostName">
             <div class="d-flex">
-              <span jhiTranslate="medPortalApp.instance.ip">Ip</span>
+              <span jhiTranslate="medPortalApp.instance.hostName">Host Name</span>
               <fa-icon class="p-1" icon="sort"></fa-icon>
             </div>
           </th>
@@ -89,7 +89,7 @@
       <tbody>
         <tr *ngFor="let instance of instances; trackBy: trackId" data-cy="entityTable" [ngClass]="instance.moduleStatus != 'OK'? 'table-danger': ''">
           <td>{{ instance.moduleName }}</td>
-          <td>{{ instance.ip }}</td>
+          <td>{{ instance.hostName }}</td>
           <td>{{ instance.port }}</td>
           <td>{{ instance.moduleStatus }}</td>
           <td>{{ instance.lastUpdateDate | formatMediumDate }}</td>
@@ -97,7 +97,11 @@
           <td>{{ instance.moduleStartTime }}</td>
           <td>{{ instance.totalProcessedWork }}</td>
           <td>{{ instance.totalProcessedTask }}</td>
-          <td>{{ instance.processedStatistics }}</td>
+          <td>
+            <button type="submit"  class="btn btn-sm" (click)="showLoggingFilterDialog(instance.processedStatistics)">
+              <fa-icon icon="eye"></fa-icon>
+            </button>
+          </td>
           <td class="text-end">
             <div class="btn-group">
               <button

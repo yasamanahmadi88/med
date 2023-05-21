@@ -84,7 +84,7 @@ export class ConfigUpdateComponent implements OnInit {
 
   protected loadRelationshipsOptions(): void {
     this.moduleService
-      .query()
+      .query({size: 1000})
       .pipe(map((res: HttpResponse<IModule[]>) => res.body ?? []))
       .pipe(map((modules: IModule[]) => this.moduleService.addModuleToCollectionIfMissing<IModule>(modules, this.config?.module)))
       .subscribe((modules: IModule[]) => (this.modulesSharedCollection = modules));

@@ -19,7 +19,6 @@ type InstanceFormDefaults = Pick<NewInstance, 'id'>;
 type InstanceFormGroupContent = {
   id: FormControl<IInstance['id'] | NewInstance['id']>;
   moduleName: FormControl<IInstance['moduleName']>;
-  ip: FormControl<IInstance['ip']>;
   port: FormControl<IInstance['port']>;
   moduleStatus: FormControl<IInstance['moduleStatus']>;
   lastUpdateDate: FormControl<IInstance['lastUpdateDate']>;
@@ -28,6 +27,7 @@ type InstanceFormGroupContent = {
   totalProcessedWork: FormControl<IInstance['totalProcessedWork']>;
   totalProcessedTask: FormControl<IInstance['totalProcessedTask']>;
   processedStatistics: FormControl<IInstance['processedStatistics']>;
+  hostName: FormControl<IInstance['hostName']>;
 };
 
 export type InstanceFormGroup = FormGroup<InstanceFormGroupContent>;
@@ -50,9 +50,6 @@ export class InstanceFormService {
       moduleName: new FormControl(instanceRawValue.moduleName, {
         validators: [Validators.required, Validators.maxLength(50)],
       }),
-      ip: new FormControl(instanceRawValue.ip, {
-        validators: [Validators.required, Validators.maxLength(50)],
-      }),
       port: new FormControl(instanceRawValue.port, {
         validators: [Validators.required, Validators.maxLength(10)],
       }),
@@ -67,6 +64,9 @@ export class InstanceFormService {
       totalProcessedWork: new FormControl(instanceRawValue.totalProcessedWork),
       totalProcessedTask: new FormControl(instanceRawValue.totalProcessedTask),
       processedStatistics: new FormControl(instanceRawValue.processedStatistics),
+      hostName: new FormControl(instanceRawValue.hostName, {
+        validators: [Validators.required, Validators.maxLength(50)],
+      }),
     });
   }
 

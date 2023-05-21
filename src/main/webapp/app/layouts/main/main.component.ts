@@ -14,6 +14,7 @@ import { FindLanguageFromKeyPipe } from 'app/shared/language/find-language-from-
 export class MainComponent implements OnInit {
   private renderer: Renderer2;
   fullScreen:any = false;
+  isLoginPage:any = false;
 
   constructor(
     private accountService: AccountService,
@@ -46,9 +47,12 @@ export class MainComponent implements OnInit {
 
 
     this.router.events.subscribe(value => {
-      if (value instanceof NavigationStart){
+      if (value instanceof NavigationStart)
         this.fullScreen = value.url.includes("/bpmn");
-      }
+
+      if (value instanceof NavigationStart)
+        this.isLoginPage = value.url.includes("/login");
+
     })
   }
 

@@ -11,6 +11,7 @@ import { ASC, DESC, SORT, ITEM_DELETED_EVENT, DEFAULT_SORT_DATA } from 'app/conf
 import { EntityArrayResponseType, InstanceService } from '../service/instance.service';
 import { InstanceDeleteDialogComponent } from '../delete/instance-delete-dialog.component';
 import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/filter.model';
+import {SimpleTextDialogService} from "../../../layouts/simple-text-dialog/simple-text-dialog.service";
 
 @Component({
   selector: 'jhi-instance',
@@ -34,7 +35,8 @@ export class InstanceComponent implements OnInit {
     protected instanceService: InstanceService,
     protected activatedRoute: ActivatedRoute,
     public router: Router,
-    protected modalService: NgbModal
+    protected modalService: NgbModal,
+    private simpleTextDialogService: SimpleTextDialogService
   ) {}
 
   trackId = (_index: number, item: IInstance): number => this.instanceService.getInstanceIdentifier(item);
@@ -156,5 +158,9 @@ export class InstanceComponent implements OnInit {
     } else {
       return [predicate + ',' + ascendingQueryParam];
     }
+  }
+
+  showLoggingFilterDialog(loggingFilter: any){
+    this.simpleTextDialogService.open(loggingFilter);
   }
 }

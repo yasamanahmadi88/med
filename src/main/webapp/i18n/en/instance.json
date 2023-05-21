@@ -19,7 +19,6 @@
       },
       "id": "ID",
       "moduleName": "Module Name",
-      "ip": "Ip",
       "port": "Port",
       "moduleStatus": "Module Status",
       "lastUpdateDate": "Last Update Date",
@@ -27,7 +26,8 @@
       "moduleStartTime": "Module Start Time",
       "totalProcessedWork": "Total Processed Work",
       "totalProcessedTask": "Total Processed Task",
-      "processedStatistics": "Processed Statistics"
+      "processedStatistics": "Processed Statistics",
+      "hostName": "Host Name"
     }
   }
 }

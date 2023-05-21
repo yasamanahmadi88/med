@@ -3,7 +3,6 @@ import dayjs from 'dayjs/esm';
 export interface IInstance {
   id: number;
   moduleName?: string | null;
-  ip?: string | null;
   port?: string | null;
   moduleStatus?: string | null;
   lastUpdateDate?: dayjs.Dayjs | null;
@@ -12,6 +11,7 @@ export interface IInstance {
   totalProcessedWork?: number | null;
   totalProcessedTask?: number | null;
   processedStatistics?: string | null;
+  hostName?: string | null;
 }
 
 export type NewInstance = Omit<IInstance, 'id'> & { id: null };

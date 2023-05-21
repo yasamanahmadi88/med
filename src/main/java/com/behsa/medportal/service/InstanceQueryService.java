@@ -92,9 +92,6 @@ public class InstanceQueryService extends QueryService<InstanceEntity> {
             if (criteria.getModuleName() != null) {
                 specification = specification.and(buildStringSpecification(criteria.getModuleName(), InstanceEntity_.moduleName));
             }
-            if (criteria.getIp() != null) {
-                specification = specification.and(buildStringSpecification(criteria.getIp(), InstanceEntity_.ip));
-            }
             if (criteria.getPort() != null) {
                 specification = specification.and(buildStringSpecification(criteria.getPort(), InstanceEntity_.port));
             }
@@ -122,6 +119,9 @@ public class InstanceQueryService extends QueryService<InstanceEntity> {
             if (criteria.getProcessedStatistics() != null) {
                 specification =
                     specification.and(buildStringSpecification(criteria.getProcessedStatistics(), InstanceEntity_.processedStatistics));
+            }
+            if (criteria.getHostName() != null) {
+                specification = specification.and(buildStringSpecification(criteria.getHostName(), InstanceEntity_.hostName));
             }
         }
         return specification;

@@ -21,7 +21,6 @@ describe('Instance Form Service', () => {
           expect.objectContaining({
             id: expect.any(Object),
             moduleName: expect.any(Object),
-            ip: expect.any(Object),
             port: expect.any(Object),
             moduleStatus: expect.any(Object),
             lastUpdateDate: expect.any(Object),
@@ -30,6 +29,7 @@ describe('Instance Form Service', () => {
             totalProcessedWork: expect.any(Object),
             totalProcessedTask: expect.any(Object),
             processedStatistics: expect.any(Object),
+            hostName: expect.any(Object),
           })
         );
       });
@@ -41,7 +41,6 @@ describe('Instance Form Service', () => {
           expect.objectContaining({
             id: expect.any(Object),
             moduleName: expect.any(Object),
-            ip: expect.any(Object),
             port: expect.any(Object),
             moduleStatus: expect.any(Object),
             lastUpdateDate: expect.any(Object),
@@ -50,6 +49,7 @@ describe('Instance Form Service', () => {
             totalProcessedWork: expect.any(Object),
             totalProcessedTask: expect.any(Object),
             processedStatistics: expect.any(Object),
+            hostName: expect.any(Object),
           })
         );
       });

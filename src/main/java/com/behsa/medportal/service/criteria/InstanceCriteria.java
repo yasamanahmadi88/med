@@ -27,8 +27,6 @@ public class InstanceCriteria implements Serializable, Criteria {
 
     private StringFilter moduleName;
 
-    private StringFilter ip;
-
     private StringFilter port;
 
     private StringFilter moduleStatus;
@@ -45,6 +43,8 @@ public class InstanceCriteria implements Serializable, Criteria {
 
     private StringFilter processedStatistics;
 
+    private StringFilter hostName;
+
     private Boolean distinct;
 
     public InstanceCriteria() {}
@@ -52,7 +52,6 @@ public class InstanceCriteria implements Serializable, Criteria {
     public InstanceCriteria(InstanceCriteria other) {
         this.id = other.id == null ? null : other.id.copy();
         this.moduleName = other.moduleName == null ? null : other.moduleName.copy();
-        this.ip = other.ip == null ? null : other.ip.copy();
         this.port = other.port == null ? null : other.port.copy();
         this.moduleStatus = other.moduleStatus == null ? null : other.moduleStatus.copy();
         this.lastUpdateDate = other.lastUpdateDate == null ? null : other.lastUpdateDate.copy();
@@ -61,6 +60,7 @@ public class InstanceCriteria implements Serializable, Criteria {
         this.totalProcessedWork = other.totalProcessedWork == null ? null : other.totalProcessedWork.copy();
         this.totalProcessedTask = other.totalProcessedTask == null ? null : other.totalProcessedTask.copy();
         this.processedStatistics = other.processedStatistics == null ? null : other.processedStatistics.copy();
+        this.hostName = other.hostName == null ? null : other.hostName.copy();
         this.distinct = other.distinct;
     }
 
@@ -97,21 +97,6 @@ public class InstanceCriteria implements Serializable, Criteria {
 
     public void setModuleName(StringFilter moduleName) {
         this.moduleName = moduleName;
-    }
-
-    public StringFilter getIp() {
-        return ip;
-    }
-
-    public StringFilter ip() {
-        if (ip == null) {
-            ip = new StringFilter();
-        }
-        return ip;
-    }
-
-    public void setIp(StringFilter ip) {
-        this.ip = ip;
     }
 
     public StringFilter getPort() {
@@ -234,6 +219,21 @@ public class InstanceCriteria implements Serializable, Criteria {
         this.processedStatistics = processedStatistics;
     }
 
+    public StringFilter getHostName() {
+        return hostName;
+    }
+
+    public StringFilter hostName() {
+        if (hostName == null) {
+            hostName = new StringFilter();
+        }
+        return hostName;
+    }
+
+    public void setHostName(StringFilter hostName) {
+        this.hostName = hostName;
+    }
+
     public Boolean getDistinct() {
         return distinct;
     }
@@ -254,7 +254,6 @@ public class InstanceCriteria implements Serializable, Criteria {
         return (
             Objects.equals(id, that.id) &&
             Objects.equals(moduleName, that.moduleName) &&
-            Objects.equals(ip, that.ip) &&
             Objects.equals(port, that.port) &&
             Objects.equals(moduleStatus, that.moduleStatus) &&
             Objects.equals(lastUpdateDate, that.lastUpdateDate) &&
@@ -263,6 +262,7 @@ public class InstanceCriteria implements Serializable, Criteria {
             Objects.equals(totalProcessedWork, that.totalProcessedWork) &&
             Objects.equals(totalProcessedTask, that.totalProcessedTask) &&
             Objects.equals(processedStatistics, that.processedStatistics) &&
+            Objects.equals(hostName, that.hostName) &&
             Objects.equals(distinct, that.distinct)
         );
     }
@@ -272,7 +272,6 @@ public class InstanceCriteria implements Serializable, Criteria {
         return Objects.hash(
             id,
             moduleName,
-            ip,
             port,
             moduleStatus,
             lastUpdateDate,
@@ -281,6 +280,7 @@ public class InstanceCriteria implements Serializable, Criteria {
             totalProcessedWork,
             totalProcessedTask,
             processedStatistics,
+            hostName,
             distinct
         );
     }
@@ -291,7 +291,6 @@ public class InstanceCriteria implements Serializable, Criteria {
         return "InstanceCriteria{" +
             (id != null ? "id=" + id + ", " : "") +
             (moduleName != null ? "moduleName=" + moduleName + ", " : "") +
-            (ip != null ? "ip=" + ip + ", " : "") +
             (port != null ? "port=" + port + ", " : "") +
             (moduleStatus != null ? "moduleStatus=" + moduleStatus + ", " : "") +
             (lastUpdateDate != null ? "lastUpdateDate=" + lastUpdateDate + ", " : "") +
@@ -300,6 +299,7 @@ public class InstanceCriteria implements Serializable, Criteria {
             (totalProcessedWork != null ? "totalProcessedWork=" + totalProcessedWork + ", " : "") +
             (totalProcessedTask != null ? "totalProcessedTask=" + totalProcessedTask + ", " : "") +
             (processedStatistics != null ? "processedStatistics=" + processedStatistics + ", " : "") +
+            (hostName != null ? "hostName=" + hostName + ", " : "") +
             (distinct != null ? "distinct=" + distinct + ", " : "") +
             "}";
     }

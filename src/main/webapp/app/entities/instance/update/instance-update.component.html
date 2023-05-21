@@ -43,24 +43,6 @@
         </div>
 
         <div class="row mb-3">
-          <label class="form-label" jhiTranslate="medPortalApp.instance.ip" for="field_ip">Ip</label>
-          <input type="text" class="form-control" name="ip" id="field_ip" data-cy="ip" formControlName="ip" />
-          <div *ngIf="editForm.get('ip')!.invalid && (editForm.get('ip')!.dirty || editForm.get('ip')!.touched)">
-            <small class="form-text text-danger" *ngIf="editForm.get('ip')?.errors?.required" jhiTranslate="entity.validation.required">
-              This field is required.
-            </small>
-            <small
-              class="form-text text-danger"
-              *ngIf="editForm.get('ip')?.errors?.maxlength"
-              jhiTranslate="entity.validation.maxlength"
-              [translateValues]="{ max: 50 }"
-            >
-              This field cannot be longer than 50 characters.
-            </small>
-          </div>
-        </div>
-
-        <div class="row mb-3">
           <label class="form-label" jhiTranslate="medPortalApp.instance.port" for="field_port">Port</label>
           <input type="text" class="form-control" name="port" id="field_port" data-cy="port" formControlName="port" />
           <div *ngIf="editForm.get('port')!.invalid && (editForm.get('port')!.dirty || editForm.get('port')!.touched)">
@@ -209,6 +191,28 @@
             data-cy="processedStatistics"
             formControlName="processedStatistics"
           />
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.instance.hostName" for="field_hostName">Host Name</label>
+          <input type="text" class="form-control" name="hostName" id="field_hostName" data-cy="hostName" formControlName="hostName" />
+          <div *ngIf="editForm.get('hostName')!.invalid && (editForm.get('hostName')!.dirty || editForm.get('hostName')!.touched)">
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('hostName')?.errors?.required"
+              jhiTranslate="entity.validation.required"
+            >
+              This field is required.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('hostName')?.errors?.maxlength"
+              jhiTranslate="entity.validation.maxlength"
+              [translateValues]="{ max: 50 }"
+            >
+              This field cannot be longer than 50 characters.
+            </small>
+          </div>
         </div>
       </div>
 

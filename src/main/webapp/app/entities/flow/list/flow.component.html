@@ -69,9 +69,9 @@
               <a [routerLink]="['/product', flow.product.id, 'view']">{{ flow.product.productName }}</a>
             </div>
           </td>
-          <td>
-            <button type="submit"  class="btn btn-sm" (click)="openBPMNPage(flow.id)" >
-              <img src="../../../../content/images/bpmn-icon.png" style="height: 40px; width: auto">
+          <td style="padding: 0">
+            <button type="submit"  class="btn btn-sm" (click)="openBPMNPage(flow.id)" style="padding: 0">
+              <img src="../../../../content/images/bpmn-icon.png" style="height: 40px; width: auto; padding: 0">
             </button>
           </td>
           <td class="text-end">

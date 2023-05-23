@@ -16,6 +16,8 @@ export type EntityArrayResponseType = HttpResponse<IFlow[]>;
 export class FlowService {
   protected resourceUrl = this.applicationConfigService.getEndpointFor('api/flows');
 
+  public xmlTemp = "";
+
   constructor(protected http: HttpClient, protected applicationConfigService: ApplicationConfigService) {}
 
   create(flow: NewFlow): Observable<EntityResponseType> {

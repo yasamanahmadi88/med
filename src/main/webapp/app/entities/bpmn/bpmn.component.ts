@@ -17,6 +17,7 @@ export class BpmnComponent implements OnInit {
   flow: IFlow | null = null;
   iframe:any;
   bpmnUrl:string = "http://localhost";
+  flowXml : any;
 
   constructor(public route: ActivatedRoute,
               public flowService: FlowService,
@@ -28,12 +29,20 @@ export class BpmnComponent implements OnInit {
   ngOnInit(): void {
 
     this.flowId = this.route.snapshot.paramMap.get('flowId');
-    this.flowService.find(this.flowId).subscribe(res => this.flow = res.body);
+
+    if (this.flowId != "null") {
+      this.flowService.find(this.flowId).subscribe(res => {
+        this.flow = res.body
+        this.flowXml = this.flow?.flow;
+      });
+    } else {
+      this.flowXml = this.flowService.xmlTemp;
+    }
 
     this.iframe = document.getElementById("bpmnFrame");
 
     this.iframe.addEventListener("load", () => {
-      this.iframe.contentWindow.postMessage(this.flow?.flow ,this.bpmnUrl);
+      this.iframe.contentWindow.postMessage(this.flowXml ,this.bpmnUrl);
     });
 
   }
@@ -43,16 +52,15 @@ export class BpmnComponent implements OnInit {
     if (e.origin == this.bpmnUrl) {
 
       if(e.data == "cancel") {
-        this.router.navigate(['/flow']);
+        window.history.back();
       }else{
-        this.flowService.saveFlow(e.data).subscribe(res => {
-          if (res.body.mediationStatus == "success") {
-            this.toastr.success(this.translateService.instant("global.messages.info.saved"));
-          }else{
-            this.toastr.error(this.translateService.instant("error.internalServerError"));
-          }
-      });
-        this.router.navigate(['/flow']);
+        if(this.flow){
+          this.flow.flow = e.data
+          this.flowService.update(this.flow).subscribe();
+        }else {
+          this.flowService.xmlTemp = e.data;
+        }
+        window.history.back();
       }
     }
   }

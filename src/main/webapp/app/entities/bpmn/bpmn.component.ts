@@ -16,52 +16,54 @@ export class BpmnComponent implements OnInit {
   flowId:any;
   flow: IFlow | null = null;
   iframe:any;
-  bpmnUrl:string = "http://localhost";
+  bpmnUrl:string = "*";
   flowXml : any;
 
   constructor(public route: ActivatedRoute,
               public flowService: FlowService,
               public applicationConfigService: ApplicationConfigService,
-              public router: Router,
-              private toastr: ToastrService,
-              private translateService: TranslateService) { }
+              public router: Router) { }
 
   ngOnInit(): void {
 
     this.flowId = this.route.snapshot.paramMap.get('flowId');
 
+    this.iframe = document.getElementById("bpmnFrame");
+
     if (this.flowId != "null") {
       this.flowService.find(this.flowId).subscribe(res => {
         this.flow = res.body
         this.flowXml = this.flow?.flow;
+
+        this.iframe.contentWindow?.postMessage(this.flowXml , "*"); // for when the iframe is already loaded
+
+        this.iframe.addEventListener("load", () => {
+          this.iframe.contentWindow.postMessage(this.flowXml , "*");
+        });
       });
     } else {
       this.flowXml = this.flowService.xmlTemp;
+
+      this.iframe.contentWindow.postMessage(this.flowXml , "*"); // for when the iframe is already loaded
+
+      this.iframe.addEventListener("load", () => {
+        this.iframe.contentWindow.postMessage(this.flowXml , "*");
+      });
     }
-
-    this.iframe = document.getElementById("bpmnFrame");
-
-    this.iframe.addEventListener("load", () => {
-      this.iframe.contentWindow.postMessage(this.flowXml ,this.bpmnUrl);
-    });
-
   }
 
   @HostListener('window:message', ['$event'])
   resieveXmlFromBPMN(e: any): any {
-    if (e.origin == this.bpmnUrl) {
-
-      if(e.data == "cancel") {
-        window.history.back();
-      }else{
-        if(this.flow){
-          this.flow.flow = e.data
-          this.flowService.update(this.flow).subscribe();
-        }else {
-          this.flowService.xmlTemp = e.data;
-        }
-        window.history.back();
+    if (e.data == "cancel") {
+      window.history.back();
+    } else {
+      if (this.flow) {
+        this.flow.flow = e.data
+        this.flowService.update(this.flow).subscribe();
+      } else {
+        this.flowService.xmlTemp = e.data;
       }
+      window.history.back();
     }
   }
 

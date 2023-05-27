@@ -5,7 +5,7 @@
         "title": "Flows",
         "refreshListLabel": "Refresh list",
         "createLabel": "Create a new Flow",
-        "createOrEditLabel": "Create or edit a Flow",
+        "createOrEditLabel": "Edit a Flow",
         "notFound": "No Flows found"
       },
       "created": "A new Flow is created with identifier {{ param }}",

@@ -98,7 +98,7 @@ export class ResourceAuthorityUpdateComponent implements OnInit {
 
   protected loadRelationshipsOptions(): void {
     this.medAuthorityService
-      .query()
+      .query({size: 1000})
       .pipe(map((res: HttpResponse<IMedAuthority[]>) => res.body ?? []))
       .pipe(
         map((medAuthorities: IMedAuthority[]) =>
@@ -108,7 +108,7 @@ export class ResourceAuthorityUpdateComponent implements OnInit {
       .subscribe((medAuthorities: IMedAuthority[]) => (this.medAuthoritiesSharedCollection = medAuthorities));
 
     this.resourceService
-      .query()
+      .query({size: 1000})
       .pipe(map((res: HttpResponse<IResource[]>) => res.body ?? []))
       .pipe(
         map((resources: IResource[]) =>

@@ -24,11 +24,14 @@ export class FlowNewComponent implements OnInit {
   bpmnXml: any;
   isGoingToBPMNPage = false;
 
+  productName: any;
+
   constructor(protected flowService: FlowService,
               protected flowFormService: FlowFormService,
               protected productService: ProductService,
               protected activatedRoute: ActivatedRoute,
-              public router: Router) { }
+              public router: Router,
+              public route: ActivatedRoute) { }
 
   compareProduct = (o1: IProduct | null, o2: IProduct | null): boolean => this.productService.compareProduct(o1, o2);
 
@@ -39,6 +42,15 @@ export class FlowNewComponent implements OnInit {
 
     if(this.flowService.xmlTemp == "") this.openBPMNPage();
     else if(this.flowService.xmlTemp == " ") window.history.back();
+
+    if(this.route.snapshot.queryParams["productId"]) {
+      this.productName = " ";
+      debugger
+      this.productService.find(this.route.snapshot.queryParams["productId"]).subscribe(value => {
+        this.productName = value.body?.productName;
+        this.editForm.patchValue({product:value.body});
+      });
+    }
   }
 
   ngOnDestroy() : void {

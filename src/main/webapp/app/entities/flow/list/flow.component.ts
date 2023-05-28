@@ -29,6 +29,7 @@ export class FlowComponent implements OnInit {
   page = 1;
 
   constructor(
+    public route: ActivatedRoute,
     protected flowService: FlowService,
     protected activatedRoute: ActivatedRoute,
     public router: Router,
@@ -156,6 +157,6 @@ export class FlowComponent implements OnInit {
 
   routeToNewFlow(){
     this.flowService.xmlTemp = "";
-    this.router.navigate(['/flow/new']);
+    this.router.navigate(['/flow/new'],{relativeTo: this.activatedRoute, queryParams: {productId: this.route.snapshot.queryParams["filter[productId.in]"]}} );
   }
 }

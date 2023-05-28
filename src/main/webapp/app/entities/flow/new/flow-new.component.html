@@ -1,9 +1,14 @@
 <div class="d-flex justify-content-center">
   <div class="col-8">
     <form name="editForm" role="form" novalidate (ngSubmit)="save()" [formGroup]="editForm">
-      <h2 id="jhi-flow-heading" data-cy="FlowCreateUpdateHeading" jhiTranslate="medPortalApp.flow.home.createLabel">
-        Create or edit a Flow
-      </h2>
+      <div class="d-flex">
+        <h2 id="jhi-flow-heading" data-cy="FlowCreateUpdateHeading" jhiTranslate="medPortalApp.flow.home.createLabel">
+          Create a Flow
+        </h2>
+        <h2 *ngIf="productName">
+          &nbsp;For {{productName}}
+        </h2>
+      </div>
 
       <div>
         <jhi-alert-error></jhi-alert-error>
@@ -70,28 +75,32 @@
           </div>
         </div>
 
-        <div class="row mb-3" *ngIf="bpmnXml != ''">
-          <label class="form-label" jhiTranslate="medPortalApp.flow.product" for="field_product">Product</label>
-          <select
-            class="form-control"
-            id="field_product"
-            data-cy="product"
-            name="product"
-            formControlName="product"
-            [compareWith]="compareProduct"
-          >
-            <option *ngIf="editForm.get(['product'])!.value == null" [ngValue]="null" selected></option>
-            <option [ngValue]="productOption" *ngFor="let productOption of productsSharedCollection">{{ productOption.productName }}</option>
-          </select>
-        </div>
-        <div *ngIf="editForm.get(['product'])!.invalid && (editForm.get(['product'])!.dirty || editForm.get(['product'])!.touched)">
-          <small
-            class="form-text text-danger"
-            *ngIf="editForm.get(['product'])?.errors?.required"
-            jhiTranslate="entity.validation.required"
-          >
-            This field is required.
-          </small>
+        <div *ngIf="!productName">
+          <div class="row mb-3" *ngIf="bpmnXml != ''">
+            <label class="form-label" jhiTranslate="medPortalApp.flow.product" for="field_product">Product</label>
+            <select
+              class="form-control"
+              id="field_product"
+              data-cy="product"
+              name="product"
+              formControlName="product"
+              [compareWith]="compareProduct"
+            >
+              <option *ngIf="editForm.get(['product'])!.value == null" [ngValue]="null" selected></option>
+              <option [ngValue]="productOption"
+                      *ngFor="let productOption of productsSharedCollection">{{ productOption.productName }}</option>
+            </select>
+          </div>
+          <div
+            *ngIf="editForm.get(['product'])!.invalid && (editForm.get(['product'])!.dirty || editForm.get(['product'])!.touched)">
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get(['product'])?.errors?.required"
+              jhiTranslate="entity.validation.required"
+            >
+              This field is required.
+            </small>
+          </div>
         </div>
 
       </div>

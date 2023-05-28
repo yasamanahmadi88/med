@@ -7,7 +7,7 @@ import {IFlow} from "../flow.model";
 import {finalize, map} from "rxjs/operators";
 import {IProduct} from "../../product/product.model";
 import {ProductService} from "../../product/service/product.service";
-import {Router} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 
 @Component({
   selector: 'jhi-new',
@@ -27,6 +27,7 @@ export class FlowNewComponent implements OnInit {
   constructor(protected flowService: FlowService,
               protected flowFormService: FlowFormService,
               protected productService: ProductService,
+              protected activatedRoute: ActivatedRoute,
               public router: Router) { }
 
   compareProduct = (o1: IProduct | null, o2: IProduct | null): boolean => this.productService.compareProduct(o1, o2);
@@ -34,10 +35,13 @@ export class FlowNewComponent implements OnInit {
   ngOnInit(): void {
     this.loadRelationshipsOptions();
     this.bpmnXml = this.flowService.xmlTemp;
-    this.editForm.patchValue({flow:this.bpmnXml})
+    this.editForm.patchValue({flow:this.bpmnXml});
+
+    if(this.flowService.xmlTemp == "") this.openBPMNPage();
+    else if(this.flowService.xmlTemp == " ") window.history.back();
   }
 
-  ngOnDestroy() : void{
+  ngOnDestroy() : void {
     if(!this.isGoingToBPMNPage)
       this.flowService.xmlTemp = "";
   }
@@ -47,12 +51,11 @@ export class FlowNewComponent implements OnInit {
     const flow = this.flowFormService.getFlow(this.editForm);
     if(flow.id === null)
       this.subscribeToSaveResponse(this.flowService.create(flow));
-
   }
 
-  openBPMNPage(flowId: any){
+  openBPMNPage(){
     this.isGoingToBPMNPage = true;
-    this.router.navigate(['/bpmn', {flowId: flowId}]);
+    this.router.navigate(['/bpmn'], {relativeTo: this.activatedRoute});
   }
 
   protected subscribeToSaveResponse(result: Observable<HttpResponse<IFlow>>): void {

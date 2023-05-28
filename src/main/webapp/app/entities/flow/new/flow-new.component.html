@@ -11,9 +11,9 @@
         <div class="row mb-3">
           <label class="form-label" jhiTranslate="medPortalApp.flow.flow" for="field_flow">Flow</label>
           <div class="d-flex" style="padding: 0">
-            <button class="btn btn-success" style="max-height: 50px; width: 200px; align-self: center;" (click)="openBPMNPage(null)">
+            <button class="btn btn-success" style="max-height: 50px; width: 200px; align-self: center;" (click)="openBPMNPage()">
               <img src="../../../../content/images/bpmn-icon.svg" style="height: 40px; width: auto;">
-              <span jhiTranslate="entity.action.create" style="color: #FFF">create</span>
+              <span jhiTranslate="entity.action.edit" style="color: #FFF">Edit</span>
             </button>
             <textarea [value]="bpmnXml" type="textarea" class="form-control" name="flow" id="field_flow" data-cy="flow" disabled rows="4" style="margin-inline-start: 50px"></textarea>
           </div>

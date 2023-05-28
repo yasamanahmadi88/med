@@ -26,11 +26,11 @@ export class BpmnComponent implements OnInit {
 
   ngOnInit(): void {
 
-    this.flowId = this.route.snapshot.paramMap.get('flowId');
+    this.flowId = this.route.snapshot.queryParams['flowId'];
 
     this.iframe = document.getElementById("bpmnFrame");
 
-    if (this.flowId != "null") {
+    if (this.flowId != undefined) {
       this.flowService.find(this.flowId).subscribe(res => {
         this.flow = res.body
         this.flowXml = this.flow?.flow;
@@ -42,6 +42,7 @@ export class BpmnComponent implements OnInit {
         });
       });
     } else {
+      debugger
       this.flowXml = this.flowService.xmlTemp;
 
       this.iframe.contentWindow.postMessage(this.flowXml , "*"); // for when the iframe is already loaded
@@ -53,9 +54,11 @@ export class BpmnComponent implements OnInit {
   }
 
   @HostListener('window:message', ['$event'])
-  resieveXmlFromBPMN(e: any): any {
+  receiveXmlFromBPMN(e: any): any {
     if (e.data == "cancel") {
       window.history.back();
+      if(this.flowService.xmlTemp == "")
+        this.flowService.xmlTemp = " ";
     } else {
       if (this.flow) {
         this.flow.flow = e.data

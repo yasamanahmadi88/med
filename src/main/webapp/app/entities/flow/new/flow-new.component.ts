@@ -8,6 +8,8 @@ import {finalize, map} from "rxjs/operators";
 import {IProduct} from "../../product/product.model";
 import {ProductService} from "../../product/service/product.service";
 import {ActivatedRoute, Router} from "@angular/router";
+import {ToastrService} from "ngx-toastr";
+import {TranslateService} from "@ngx-translate/core";
 
 @Component({
   selector: 'jhi-new',
@@ -31,7 +33,9 @@ export class FlowNewComponent implements OnInit {
               protected productService: ProductService,
               protected activatedRoute: ActivatedRoute,
               public router: Router,
-              public route: ActivatedRoute) { }
+              public route: ActivatedRoute,
+              private toastr: ToastrService,
+              private translateService: TranslateService) { }
 
   compareProduct = (o1: IProduct | null, o2: IProduct | null): boolean => this.productService.compareProduct(o1, o2);
 
@@ -61,8 +65,16 @@ export class FlowNewComponent implements OnInit {
   save(): void {
     this.isSaving = true;
     const flow = this.flowFormService.getFlow(this.editForm);
-    if(flow.id === null)
-      this.subscribeToSaveResponse(this.flowService.create(flow));
+
+    this.flowService.isFlowNameValid(flow.flowName).subscribe(value => {
+      if(value.body.length > 0){
+        this.toastr.error(this.translateService.instant("medPortalApp.flow.invalidFlowName"));
+        this.isSaving = false;
+      } else {
+        if(flow.id === null)
+          this.subscribeToSaveResponse(this.flowService.create(flow));
+      }
+    });
   }
 
   openBPMNPage(){

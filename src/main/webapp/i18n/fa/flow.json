@@ -21,7 +21,8 @@
       "flowName": "Flow Name",
       "flowDesc": "Flow Desc",
       "flow": "Flow",
-      "product": "Product"
+      "product": "Product",
+      "invalidFlowName": "نام فلو مشابه نام فلوی دیگری می باشد"
     }
   }
 }

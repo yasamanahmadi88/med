@@ -7,16 +7,14 @@ import com.behsa.medportal.service.FlowService;
 import com.behsa.medportal.service.LoggerService;
 import com.behsa.medportal.service.criteria.FlowCriteria;
 import com.behsa.medportal.service.dto.FlowDTO;
+import com.behsa.medportal.service.mapper.FlowMapper;
 import com.behsa.medportal.web.rest.errors.BadRequestAlertException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpResponse;
 import java.util.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import org.aspectj.apache.bcel.classfile.annotation.NameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -53,11 +51,14 @@ public class FlowResource {
 
     private final LoggerService loggerService;
 
-    public FlowResource(FlowService flowService, FlowRepository flowRepository, FlowQueryService flowQueryService, LoggerService loggerService) {
+    private final FlowMapper flowMapper;
+
+    public FlowResource(FlowService flowService, FlowRepository flowRepository, FlowQueryService flowQueryService, LoggerService loggerService, FlowMapper flowMapper) {
         this.flowService = flowService;
         this.flowRepository = flowRepository;
         this.flowQueryService = flowQueryService;
         this.loggerService = loggerService;
+        this.flowMapper = flowMapper;
     }
 
     /**
@@ -231,5 +232,16 @@ public class FlowResource {
         return ResponseEntity
             .ok()
             .body(map);
+    }
+
+    @PostMapping("/flows/isFlowNameValid")
+    @Secured(ENTITY_NAME)
+    public ResponseEntity<List<FlowDTO>> isFlowNameValid(@RequestBody String flowName) throws URISyntaxException {
+
+        List<FlowDTO> flowDTOS = flowMapper.toDto(flowRepository.findAllByFlowNameStartsWith(flowName + "_"));
+
+        return ResponseEntity
+            .ok()
+            .body(flowDTOS);
     }
 }

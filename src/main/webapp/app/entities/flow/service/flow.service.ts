@@ -57,6 +57,10 @@ export class FlowService {
     return this.http.post(`${this.resourceUrl}/save`, xml,{ observe: 'response' });
   }
 
+  isFlowNameValid(flowName: any): Observable<HttpResponse<any>> {
+    return this.http.post(`${this.resourceUrl}/isFlowNameValid`, flowName,{ observe: 'response' });
+  }
+
   addFlowToCollectionIfMissing<Type extends Pick<IFlow, 'id'>>(
     flowCollection: Type[],
     ...flowsToCheck: (Type | null | undefined)[]

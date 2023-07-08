@@ -9,6 +9,8 @@ import { IFlow } from '../flow.model';
 import { FlowService } from '../service/flow.service';
 import { IProduct } from 'app/entities/product/product.model';
 import { ProductService } from 'app/entities/product/service/product.service';
+import {ToastrService} from "ngx-toastr";
+import {TranslateService} from "@ngx-translate/core";
 
 @Component({
   selector: 'jhi-flow-update',
@@ -26,7 +28,9 @@ export class FlowUpdateComponent implements OnInit {
     protected flowService: FlowService,
     protected flowFormService: FlowFormService,
     protected productService: ProductService,
-    protected activatedRoute: ActivatedRoute
+    protected activatedRoute: ActivatedRoute,
+    private toastr: ToastrService,
+    private translateService: TranslateService
   ) {}
 
   compareProduct = (o1: IProduct | null, o2: IProduct | null): boolean => this.productService.compareProduct(o1, o2);
@@ -49,11 +53,21 @@ export class FlowUpdateComponent implements OnInit {
   save(): void {
     this.isSaving = true;
     const flow = this.flowFormService.getFlow(this.editForm);
-    if (flow.id !== null) {
-      this.subscribeToSaveResponse(this.flowService.update(flow));
-    } else {
-      this.subscribeToSaveResponse(this.flowService.create(flow));
-    }
+
+    this.flowService.isFlowNameValid(flow.flowName).subscribe(value => {
+
+      let flows = value.body;
+      if(flows.length > 0 && flows[0].flowName != flow.flowName){
+        this.toastr.error(this.translateService.instant("medPortalApp.flow.invalidFlowName"));
+        this.isSaving = false;
+      } else {
+        if (flow.id !== null) {
+          this.subscribeToSaveResponse(this.flowService.update(flow));
+        } else {
+          this.subscribeToSaveResponse(this.flowService.create(flow));
+        }
+      }
+    });
   }
 
   protected subscribeToSaveResponse(result: Observable<HttpResponse<IFlow>>): void {

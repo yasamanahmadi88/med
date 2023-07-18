@@ -54,8 +54,7 @@ export class FlowUpdateComponent implements OnInit {
     this.isSaving = true;
     const flow = this.flowFormService.getFlow(this.editForm);
 
-    this.flowService.isFlowNameValid(flow.flowName).subscribe(value => {
-
+    this.flowService.isFlowNameValid(flow).subscribe(value => {
       let flows = value.body;
       if(flows.length > 0 && flows[0].flowName != flow.flowName){
         this.toastr.error(this.translateService.instant("medPortalApp.flow.invalidFlowName"));

@@ -1,7 +1,7 @@
 package com.behsa.medportal.web.rest;
 
-import com.behsa.medportal.med.domain.ConfigEntity;
-import com.behsa.medportal.med.repository.ConfigRepository;
+import com.behsa.medportal.domain.ConfigEntity;
+import com.behsa.medportal.repository.ConfigRepository;
 import com.behsa.medportal.service.ConfigQueryService;
 import com.behsa.medportal.service.ConfigService;
 import com.behsa.medportal.service.LoggerService;

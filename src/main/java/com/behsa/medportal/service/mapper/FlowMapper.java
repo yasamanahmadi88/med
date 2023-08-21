@@ -1,7 +1,7 @@
 package com.behsa.medportal.service.mapper;
 
-import com.behsa.medportal.med.domain.FlowEntity;
-import com.behsa.medportal.med.domain.ProductEntity;
+import com.behsa.medportal.domain.FlowEntity;
+import com.behsa.medportal.domain.ProductEntity;
 import com.behsa.medportal.service.dto.FlowDTO;
 import com.behsa.medportal.service.dto.ProductDTO;
 import org.mapstruct.*;

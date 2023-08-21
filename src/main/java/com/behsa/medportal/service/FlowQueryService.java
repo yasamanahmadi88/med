@@ -1,7 +1,7 @@
 package com.behsa.medportal.service;
 
-import com.behsa.medportal.med.domain.*;
-import com.behsa.medportal.med.repository.FlowRepository;
+import com.behsa.medportal.domain.*;
+import com.behsa.medportal.repository.FlowRepository;
 import com.behsa.medportal.service.criteria.FlowCriteria;
 import com.behsa.medportal.service.dto.FlowDTO;
 import com.behsa.medportal.service.mapper.FlowMapper;

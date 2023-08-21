@@ -6,8 +6,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.behsa.medportal.IntegrationTest;
-import com.behsa.medportal.med.domain.VersionEntity;
-import com.behsa.medportal.med.repository.VersionRepository;
+import com.behsa.medportal.domain.VersionEntity;
+import com.behsa.medportal.repository.VersionRepository;
 import com.behsa.medportal.service.dto.VersionDTO;
 import com.behsa.medportal.service.mapper.VersionMapper;
 import java.util.List;

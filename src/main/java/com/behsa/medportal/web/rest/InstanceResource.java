@@ -1,7 +1,7 @@
 package com.behsa.medportal.web.rest;
 
-import com.behsa.medportal.med.domain.InstanceEntity;
-import com.behsa.medportal.med.repository.InstanceRepository;
+import com.behsa.medportal.domain.InstanceEntity;
+import com.behsa.medportal.repository.InstanceRepository;
 import com.behsa.medportal.service.InstanceQueryService;
 import com.behsa.medportal.service.InstanceService;
 import com.behsa.medportal.service.criteria.InstanceCriteria;

@@ -1,6 +1,6 @@
 package com.behsa.medportal.service.mapper;
 
-import com.behsa.medportal.med.domain.VersionEntity;
+import com.behsa.medportal.domain.VersionEntity;
 import com.behsa.medportal.service.dto.VersionDTO;
 import org.mapstruct.*;
 

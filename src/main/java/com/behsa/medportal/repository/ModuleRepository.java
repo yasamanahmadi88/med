@@ -1,6 +1,6 @@
-package com.behsa.medportal.med.repository;
+package com.behsa.medportal.repository;
 
-import com.behsa.medportal.med.domain.ModuleEntity;
+import com.behsa.medportal.domain.ModuleEntity;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.stereotype.Repository;
 

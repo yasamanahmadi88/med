@@ -1,4 +1,4 @@
-package com.behsa.medportal.med.domain;
+package com.behsa.medportal.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.Serializable;

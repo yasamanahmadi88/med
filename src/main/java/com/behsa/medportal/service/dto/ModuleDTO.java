@@ -1,6 +1,6 @@
 package com.behsa.medportal.service.dto;
 
-import com.behsa.medportal.med.domain.ModuleEntity;
+import com.behsa.medportal.domain.ModuleEntity;
 
 import java.io.Serializable;
 import java.util.Objects;

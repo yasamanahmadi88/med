@@ -1,7 +1,6 @@
-package com.behsa.medportal.med.repository;
+package com.behsa.medportal.repository;
 
-import com.behsa.medportal.med.domain.FlowEntity;
-import com.behsa.medportal.med.domain.ProductEntity;
+import com.behsa.medportal.domain.ProductEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
@@ -9,7 +8,6 @@ import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.Set;
 
 /**
  * Spring Data JPA repository for the ProductEntity entity.

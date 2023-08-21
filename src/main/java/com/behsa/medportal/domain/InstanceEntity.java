@@ -1,4 +1,4 @@
-package com.behsa.medportal.med.domain;
+package com.behsa.medportal.domain;
 
 import java.io.Serializable;
 import java.time.LocalDate;

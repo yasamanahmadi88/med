@@ -1,6 +1,6 @@
 package com.behsa.medportal.service.dto;
 
-import com.behsa.medportal.med.domain.InstanceEntity;
+import com.behsa.medportal.domain.InstanceEntity;
 
 import java.io.Serializable;
 import java.time.LocalDate;

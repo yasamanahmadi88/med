@@ -1,7 +1,7 @@
 package com.behsa.medportal.service;
 
-import com.behsa.medportal.med.domain.*;
-import com.behsa.medportal.med.repository.ConfigRepository;
+import com.behsa.medportal.domain.*;
+import com.behsa.medportal.repository.ConfigRepository;
 import com.behsa.medportal.service.criteria.ConfigCriteria;
 import com.behsa.medportal.service.dto.ConfigDTO;
 import com.behsa.medportal.service.mapper.ConfigMapper;

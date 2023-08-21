@@ -1,7 +1,7 @@
 package com.behsa.medportal.service;
 
-import com.behsa.medportal.med.domain.*;
-import com.behsa.medportal.med.repository.ModuleRepository;
+import com.behsa.medportal.domain.*;
+import com.behsa.medportal.repository.ModuleRepository;
 import com.behsa.medportal.service.criteria.ModuleCriteria;
 import com.behsa.medportal.service.dto.ModuleDTO;
 import com.behsa.medportal.service.mapper.ModuleMapper;

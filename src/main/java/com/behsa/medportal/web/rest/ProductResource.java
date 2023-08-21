@@ -1,7 +1,7 @@
 package com.behsa.medportal.web.rest;
 
-import com.behsa.medportal.med.domain.ProductEntity;
-import com.behsa.medportal.med.repository.ProductRepository;
+import com.behsa.medportal.domain.ProductEntity;
+import com.behsa.medportal.repository.ProductRepository;
 import com.behsa.medportal.service.LoggerService;
 import com.behsa.medportal.service.ProductQueryService;
 import com.behsa.medportal.service.ProductService;

@@ -1,7 +1,7 @@
 package com.behsa.medportal.service.impl;
 
-import com.behsa.medportal.med.domain.VersionEntity;
-import com.behsa.medportal.med.repository.VersionRepository;
+import com.behsa.medportal.domain.VersionEntity;
+import com.behsa.medportal.repository.VersionRepository;
 import com.behsa.medportal.service.VersionService;
 import com.behsa.medportal.service.dto.VersionDTO;
 import com.behsa.medportal.service.mapper.VersionMapper;

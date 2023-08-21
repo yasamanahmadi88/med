@@ -3,7 +3,7 @@ package com.behsa.medportal.service.criteria;
 import java.io.Serializable;
 import java.util.Objects;
 
-import com.behsa.medportal.med.domain.InstanceEntity;
+import com.behsa.medportal.domain.InstanceEntity;
 import org.springdoc.api.annotations.ParameterObject;
 import tech.jhipster.service.Criteria;
 import tech.jhipster.service.filter.*;

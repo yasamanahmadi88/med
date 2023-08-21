@@ -1,7 +1,7 @@
 package com.behsa.medportal.web.rest;
 
-import com.behsa.medportal.med.domain.VersionEntity;
-import com.behsa.medportal.med.repository.VersionRepository;
+import com.behsa.medportal.domain.VersionEntity;
+import com.behsa.medportal.repository.VersionRepository;
 import com.behsa.medportal.service.LoggerService;
 import com.behsa.medportal.service.VersionQueryService;
 import com.behsa.medportal.service.VersionService;

@@ -1,7 +1,7 @@
 package com.behsa.medportal.web.rest;
 
-import com.behsa.medportal.med.domain.FlowEntity;
-import com.behsa.medportal.med.repository.FlowRepository;
+import com.behsa.medportal.domain.FlowEntity;
+import com.behsa.medportal.repository.FlowRepository;
 import com.behsa.medportal.service.FlowQueryService;
 import com.behsa.medportal.service.FlowService;
 import com.behsa.medportal.service.LoggerService;

@@ -2,7 +2,6 @@ package com.behsa.medportal.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.behsa.medportal.med.domain.FlowEntity;
 import com.behsa.medportal.web.rest.TestUtil;
 import org.junit.jupiter.api.Test;
 

@@ -1,6 +1,6 @@
 package com.behsa.medportal.service;
 
-import com.behsa.medportal.med.domain.ProductEntity;
+import com.behsa.medportal.domain.ProductEntity;
 import com.behsa.medportal.service.dto.ProductDTO;
 import java.util.Optional;
 import org.springframework.data.domain.Page;

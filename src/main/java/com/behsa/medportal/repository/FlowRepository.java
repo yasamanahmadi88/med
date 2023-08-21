@@ -1,11 +1,9 @@
-package com.behsa.medportal.med.repository;
+package com.behsa.medportal.repository;
 
-import com.behsa.medportal.med.domain.FlowEntity;
+import com.behsa.medportal.domain.FlowEntity;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.stereotype.Repository;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.List;
 
 /**

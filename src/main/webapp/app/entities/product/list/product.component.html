@@ -73,9 +73,20 @@
             <div class="btn-group">
               <button
                 type="submit"
+                [routerLink]="['/flow/new']"
+                [queryParams]="{ 'productId': product.id }"
+                class="btn goldenButton btn-sm"
+                style="margin-inline-end: 10px"
+                data-cy="filterOtherEntityButton">
+                <fa-icon icon="plus"></fa-icon>
+                <span class="d-none d-md-inline" jhiTranslate="medPortalApp.product.addFlow">Add Flow</span>
+              </button>
+              <button
+                type="submit"
                 [routerLink]="['/flow']"
                 [queryParams]="{ 'filter[productId.in]': product.id }"
                 class="btn goldenButton btn-sm"
+                style="margin-inline-end: 10px"
                 data-cy="filterOtherEntityButton"
               >
                 <fa-icon [icon]="faRandom"></fa-icon>

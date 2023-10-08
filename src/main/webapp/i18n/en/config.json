@@ -12,7 +12,7 @@
       "updated": "A Config is updated with identifier {{ param }}",
       "deleted": "A Config is deleted with identifier {{ param }}",
       "delete": {
-        "question": "Are you sure you want to delete Config {{ id }}?"
+        "question": "Are you sure you want to delete Config \" {{ name }} \" ?"
       },
       "detail": {
         "title": "Config"

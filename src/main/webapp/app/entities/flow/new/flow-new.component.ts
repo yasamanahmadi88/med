@@ -49,7 +49,6 @@ export class FlowNewComponent implements OnInit {
 
     if(this.route.snapshot.queryParams["productId"]) {
       this.productName = " ";
-      debugger
       this.productService.find(this.route.snapshot.queryParams["productId"]).subscribe(value => {
         this.productName = value.body?.productName;
         this.editForm.patchValue({product:value.body});

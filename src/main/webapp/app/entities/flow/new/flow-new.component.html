@@ -2,15 +2,16 @@
   <div class="col-8">
     <form name="editForm" role="form" novalidate (ngSubmit)="save()" [formGroup]="editForm">
       <div class="d-flex">
-        <h2 id="jhi-flow-heading" data-cy="FlowCreateUpdateHeading" jhiTranslate="medPortalApp.flow.home.createLabel">
+        <h2 *ngIf="!productName" id="jhi-flow-heading" data-cy="FlowCreateUpdateHeading" jhiTranslate="medPortalApp.flow.home.createLabel">
           Create a Flow
         </h2>
-        <h2 *ngIf="productName">
-          &nbsp;For {{productName}}
-        </h2>
+        <div *ngIf="productName">
+          <span style="font-size: 35px" jhiTranslate="medPortalApp.flow.home.createLabelFor"></span>
+          <span style="font-weight: bold; font-size: 55px; color: teal">{{productName}}</span>
+        </div>
       </div>
 
-      <div>
+      <div style="margin-top: 60px">
         <jhi-alert-error></jhi-alert-error>
 
         <div class="row mb-3">
@@ -44,11 +45,11 @@
             </small>
             <small
               class="form-text text-danger"
-              *ngIf="editForm.get('flowName')?.errors?.maxlength"
-              jhiTranslate="entity.validation.maxlength"
-              [translateValues]="{ max: 6 }"
+              *ngIf="editForm.get('flowName')?.errors?.maxlength || editForm.get('flowName')?.errors?.minlength"
+              jhiTranslate="entity.validation.minmaxlength"
+              [translateValues]="{ length: 6 }"
             >
-              This field cannot be longer than 6 characters.
+              This field must be 6 characters long.
             </small>
           </div>
         </div>

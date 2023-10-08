@@ -1,6 +1,6 @@
 {
   "global": {
-    "title": "MedPortal",
+    "title": "MediationPortal",
     "browsehappy": "شما از مرورگر <strong>قدیمی</strong> استفاده می‌کنید. لطفا <a href=\"http://browsehappy.com/?locale=en\">مرورگر خود را به روز کنید</a>",
     "menu": {
       "home": "خانه",
@@ -133,7 +133,8 @@
       "datetimelocal": "این فیلد باید زمان باشد.",
       "smallLettersAndDashOnly": "این فیلد باید فقط شامل حروف کوچک انگلیسی و کاراکتر ( - ) باشد.",
       "capitalLettersOnly": "این فیلد باید فقط شامل حروف بزرگ انگلیسی باشد.",
-      "numbersOnly": "این فیلد باید فقط شامل اعداد باشد."
+      "numbersOnly": "این فیلد باید فقط شامل اعداد باشد.",
+      "minmaxlength": "این فیلد باید {{ length }} کرکتر باشد"
     },
     "filters": {
       "set": "Following filters are set",

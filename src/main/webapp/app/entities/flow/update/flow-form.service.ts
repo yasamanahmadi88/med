@@ -42,7 +42,7 @@ export class FlowFormService {
         }
       ),
       flowName: new FormControl(flowRawValue.flowName, {
-        validators: [Validators.required, Validators.maxLength(6)],
+        validators: [Validators.required, Validators.maxLength(6), Validators.minLength(6)],
       }),
       flowDesc: new FormControl(flowRawValue.flowDesc, {
         validators: [Validators.required, Validators.maxLength(300)],

@@ -7,8 +7,8 @@
 
   <div class="modal-body">
     <jhi-alert-error></jhi-alert-error>
-    <p id="jhi-delete-flow-heading" jhiTranslate="medPortalApp.flow.delete.question" [translateValues]="{ id: flow.id }">
-      Are you sure you want to delete Flow {{ flow.id }}?
+    <p id="jhi-delete-flow-heading" jhiTranslate="medPortalApp.flow.delete.question" [translateValues]="{ name: flow.flowName }">
+      Are you sure you want to delete Flow {{ flow.flowName }}?
     </p>
   </div>
 

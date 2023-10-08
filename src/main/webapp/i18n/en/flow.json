@@ -5,6 +5,7 @@
         "title": "Flows",
         "refreshListLabel": "Refresh list",
         "createLabel": "Create a new Flow",
+        "createLabelFor": "Create a new Flow For ",
         "createOrEditLabel": "Edit a Flow",
         "notFound": "No Flows found"
       },
@@ -12,7 +13,7 @@
       "updated": "A Flow is updated with identifier {{ param }}",
       "deleted": "A Flow is deleted with identifier {{ param }}",
       "delete": {
-        "question": "Are you sure you want to delete Flow {{ id }}?"
+        "question": "Are you sure you want to delete Flow \" {{ name }} \" ?"
       },
       "detail": {
         "title": "Flow"

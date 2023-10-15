@@ -26,6 +26,7 @@ describe('Module Form Service', () => {
             status: expect.any(Object),
             loggingMode: expect.any(Object),
             loggingFilter: expect.any(Object),
+            dnsName: expect.any(Object),
           })
         );
       });
@@ -42,6 +43,7 @@ describe('Module Form Service', () => {
             status: expect.any(Object),
             loggingMode: expect.any(Object),
             loggingFilter: expect.any(Object),
+            dnsName: expect.any(Object),
           })
         );
       });

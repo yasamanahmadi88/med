@@ -24,6 +24,7 @@ type ModuleFormGroupContent = {
   status: FormControl<IModule['status']>;
   loggingMode: FormControl<IModule['loggingMode']>;
   loggingFilter: FormControl<IModule['loggingFilter']>;
+  dnsName: FormControl<IModule['dnsName']>;
 };
 
 export type ModuleFormGroup = FormGroup<ModuleFormGroupContent>;
@@ -61,6 +62,9 @@ export class ModuleFormService {
       loggingFilter: new FormControl(moduleRawValue.loggingFilter, {
         validators: [Validators.maxLength(500)],
       }),
+      dnsName: new FormControl(moduleRawValue.dnsName, {
+        validators: [Validators.required, Validators.maxLength(100)],
+      }),
     });
   }
 
@@ -74,7 +78,7 @@ export class ModuleFormService {
       {
         ...moduleRawValue,
         id: { value: moduleRawValue.id, disabled: true },
-      } as any
+      } as any /* cast to workaround https://github.com/angular/angular/issues/46458 */
     );
   }
 

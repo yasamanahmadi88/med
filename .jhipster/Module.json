@@ -42,6 +42,12 @@
       "fieldType": "String",
       "fieldValidateRules": ["maxlength"],
       "fieldValidateRulesMaxlength": "500"
+    },
+    {
+      "fieldName": "dnsName",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength", "required"],
+      "fieldValidateRulesMaxlength": "100"
     }
   ],
   "fluentMethods": true,
@@ -57,7 +63,5 @@
       "relationshipType": "one-to-many"
     }
   ],
-  "service": "serviceImpl",
-  "skipClient": true,
-  "skipServer": true
+  "service": "serviceImpl"
 }

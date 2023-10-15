@@ -26,7 +26,8 @@
       "loggingFilter": "Logging Filter",
       "configs": "Config",
       "active": "فعال",
-      "notActive": " غیر فعال"
+      "notActive": " غیر فعال",
+      "dnsName": "DNS Name"
     }
   }
 }

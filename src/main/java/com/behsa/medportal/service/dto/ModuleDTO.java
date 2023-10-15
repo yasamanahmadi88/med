@@ -1,13 +1,11 @@
 package com.behsa.medportal.service.dto;
 
-import com.behsa.medportal.domain.ModuleEntity;
-
 import java.io.Serializable;
 import java.util.Objects;
 import javax.validation.constraints.*;
 
 /**
- * A DTO for the {@link ModuleEntity} entity.
+ * A DTO for the {@link com.behsa.medportal.domain.ModuleEntity} entity.
  */
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class ModuleDTO implements Serializable {
@@ -36,6 +34,10 @@ public class ModuleDTO implements Serializable {
 
     @Size(max = 500)
     private String loggingFilter;
+
+    @NotNull
+    @Size(max = 100)
+    private String dnsName;
 
     public Long getId() {
         return id;
@@ -93,6 +95,14 @@ public class ModuleDTO implements Serializable {
         this.loggingFilter = loggingFilter;
     }
 
+    public String getDnsName() {
+        return dnsName;
+    }
+
+    public void setDnsName(String dnsName) {
+        this.dnsName = dnsName;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -125,6 +135,7 @@ public class ModuleDTO implements Serializable {
             ", status=" + getStatus() +
             ", loggingMode='" + getLoggingMode() + "'" +
             ", loggingFilter='" + getLoggingFilter() + "'" +
+            ", dnsName='" + getDnsName() + "'" +
             "}";
     }
 }

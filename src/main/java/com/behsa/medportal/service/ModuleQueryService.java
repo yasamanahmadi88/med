@@ -1,6 +1,7 @@
 package com.behsa.medportal.service;
 
-import com.behsa.medportal.domain.*;
+import com.behsa.medportal.domain.*; // for static metamodels
+import com.behsa.medportal.domain.ModuleEntity;
 import com.behsa.medportal.repository.ModuleRepository;
 import com.behsa.medportal.service.criteria.ModuleCriteria;
 import com.behsa.medportal.service.dto.ModuleDTO;
@@ -106,6 +107,9 @@ public class ModuleQueryService extends QueryService<ModuleEntity> {
             }
             if (criteria.getLoggingFilter() != null) {
                 specification = specification.and(buildStringSpecification(criteria.getLoggingFilter(), ModuleEntity_.loggingFilter));
+            }
+            if (criteria.getDnsName() != null) {
+                specification = specification.and(buildStringSpecification(criteria.getDnsName(), ModuleEntity_.dnsName));
             }
             if (criteria.getConfigsId() != null) {
                 specification =

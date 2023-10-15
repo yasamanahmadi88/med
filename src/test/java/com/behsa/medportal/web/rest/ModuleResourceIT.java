@@ -9,6 +9,7 @@ import com.behsa.medportal.IntegrationTest;
 import com.behsa.medportal.domain.ConfigEntity;
 import com.behsa.medportal.domain.ModuleEntity;
 import com.behsa.medportal.repository.ModuleRepository;
+import com.behsa.medportal.service.criteria.ModuleCriteria;
 import com.behsa.medportal.service.dto.ModuleDTO;
 import com.behsa.medportal.service.mapper.ModuleMapper;
 import java.util.List;
@@ -51,6 +52,9 @@ class ModuleResourceIT {
     private static final String DEFAULT_LOGGING_FILTER = "AAAAAAAAAA";
     private static final String UPDATED_LOGGING_FILTER = "BBBBBBBBBB";
 
+    private static final String DEFAULT_DNS_NAME = "AAAAAAAAAA";
+    private static final String UPDATED_DNS_NAME = "BBBBBBBBBB";
+
     private static final String ENTITY_API_URL = "/api/modules";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
 
@@ -84,7 +88,8 @@ class ModuleResourceIT {
             .redisKeyPrefix(DEFAULT_REDIS_KEY_PREFIX)
             .status(DEFAULT_STATUS)
             .loggingMode(DEFAULT_LOGGING_MODE)
-            .loggingFilter(DEFAULT_LOGGING_FILTER);
+            .loggingFilter(DEFAULT_LOGGING_FILTER)
+            .dnsName(DEFAULT_DNS_NAME);
         return moduleEntity;
     }
 
@@ -101,7 +106,8 @@ class ModuleResourceIT {
             .redisKeyPrefix(UPDATED_REDIS_KEY_PREFIX)
             .status(UPDATED_STATUS)
             .loggingMode(UPDATED_LOGGING_MODE)
-            .loggingFilter(UPDATED_LOGGING_FILTER);
+            .loggingFilter(UPDATED_LOGGING_FILTER)
+            .dnsName(UPDATED_DNS_NAME);
         return moduleEntity;
     }
 
@@ -130,6 +136,7 @@ class ModuleResourceIT {
         assertThat(testModule.getStatus()).isEqualTo(DEFAULT_STATUS);
         assertThat(testModule.getLoggingMode()).isEqualTo(DEFAULT_LOGGING_MODE);
         assertThat(testModule.getLoggingFilter()).isEqualTo(DEFAULT_LOGGING_FILTER);
+        assertThat(testModule.getDnsName()).isEqualTo(DEFAULT_DNS_NAME);
     }
 
     @Test
@@ -243,6 +250,24 @@ class ModuleResourceIT {
 
     @Test
     @Transactional
+    void checkDnsNameIsRequired() throws Exception {
+        int databaseSizeBeforeTest = moduleRepository.findAll().size();
+        // set the field null
+        moduleEntity.setDnsName(null);
+
+        // Create the Module, which fails.
+        ModuleDTO moduleDTO = moduleMapper.toDto(moduleEntity);
+
+        restModuleMockMvc
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(moduleDTO)))
+            .andExpect(status().isBadRequest());
+
+        List<ModuleEntity> moduleList = moduleRepository.findAll();
+        assertThat(moduleList).hasSize(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
     void getAllModules() throws Exception {
         // Initialize the database
         moduleRepository.saveAndFlush(moduleEntity);
@@ -258,7 +283,8 @@ class ModuleResourceIT {
             .andExpect(jsonPath("$.[*].redisKeyPrefix").value(hasItem(DEFAULT_REDIS_KEY_PREFIX)))
             .andExpect(jsonPath("$.[*].status").value(hasItem(DEFAULT_STATUS.intValue())))
             .andExpect(jsonPath("$.[*].loggingMode").value(hasItem(DEFAULT_LOGGING_MODE)))
-            .andExpect(jsonPath("$.[*].loggingFilter").value(hasItem(DEFAULT_LOGGING_FILTER)));
+            .andExpect(jsonPath("$.[*].loggingFilter").value(hasItem(DEFAULT_LOGGING_FILTER)))
+            .andExpect(jsonPath("$.[*].dnsName").value(hasItem(DEFAULT_DNS_NAME)));
     }
 
     @Test
@@ -278,7 +304,8 @@ class ModuleResourceIT {
             .andExpect(jsonPath("$.redisKeyPrefix").value(DEFAULT_REDIS_KEY_PREFIX))
             .andExpect(jsonPath("$.status").value(DEFAULT_STATUS.intValue()))
             .andExpect(jsonPath("$.loggingMode").value(DEFAULT_LOGGING_MODE))
-            .andExpect(jsonPath("$.loggingFilter").value(DEFAULT_LOGGING_FILTER));
+            .andExpect(jsonPath("$.loggingFilter").value(DEFAULT_LOGGING_FILTER))
+            .andExpect(jsonPath("$.dnsName").value(DEFAULT_DNS_NAME));
     }
 
     @Test
@@ -717,6 +744,71 @@ class ModuleResourceIT {
 
     @Test
     @Transactional
+    void getAllModulesByDnsNameIsEqualToSomething() throws Exception {
+        // Initialize the database
+        moduleRepository.saveAndFlush(moduleEntity);
+
+        // Get all the moduleList where dnsName equals to DEFAULT_DNS_NAME
+        defaultModuleShouldBeFound("dnsName.equals=" + DEFAULT_DNS_NAME);
+
+        // Get all the moduleList where dnsName equals to UPDATED_DNS_NAME
+        defaultModuleShouldNotBeFound("dnsName.equals=" + UPDATED_DNS_NAME);
+    }
+
+    @Test
+    @Transactional
+    void getAllModulesByDnsNameIsInShouldWork() throws Exception {
+        // Initialize the database
+        moduleRepository.saveAndFlush(moduleEntity);
+
+        // Get all the moduleList where dnsName in DEFAULT_DNS_NAME or UPDATED_DNS_NAME
+        defaultModuleShouldBeFound("dnsName.in=" + DEFAULT_DNS_NAME + "," + UPDATED_DNS_NAME);
+
+        // Get all the moduleList where dnsName equals to UPDATED_DNS_NAME
+        defaultModuleShouldNotBeFound("dnsName.in=" + UPDATED_DNS_NAME);
+    }
+
+    @Test
+    @Transactional
+    void getAllModulesByDnsNameIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        moduleRepository.saveAndFlush(moduleEntity);
+
+        // Get all the moduleList where dnsName is not null
+        defaultModuleShouldBeFound("dnsName.specified=true");
+
+        // Get all the moduleList where dnsName is null
+        defaultModuleShouldNotBeFound("dnsName.specified=false");
+    }
+
+    @Test
+    @Transactional
+    void getAllModulesByDnsNameContainsSomething() throws Exception {
+        // Initialize the database
+        moduleRepository.saveAndFlush(moduleEntity);
+
+        // Get all the moduleList where dnsName contains DEFAULT_DNS_NAME
+        defaultModuleShouldBeFound("dnsName.contains=" + DEFAULT_DNS_NAME);
+
+        // Get all the moduleList where dnsName contains UPDATED_DNS_NAME
+        defaultModuleShouldNotBeFound("dnsName.contains=" + UPDATED_DNS_NAME);
+    }
+
+    @Test
+    @Transactional
+    void getAllModulesByDnsNameNotContainsSomething() throws Exception {
+        // Initialize the database
+        moduleRepository.saveAndFlush(moduleEntity);
+
+        // Get all the moduleList where dnsName does not contain DEFAULT_DNS_NAME
+        defaultModuleShouldNotBeFound("dnsName.doesNotContain=" + DEFAULT_DNS_NAME);
+
+        // Get all the moduleList where dnsName does not contain UPDATED_DNS_NAME
+        defaultModuleShouldBeFound("dnsName.doesNotContain=" + UPDATED_DNS_NAME);
+    }
+
+    @Test
+    @Transactional
     void getAllModulesByConfigsIsEqualToSomething() throws Exception {
         ConfigEntity configs;
         if (TestUtil.findAll(em, ConfigEntity.class).isEmpty()) {
@@ -752,7 +844,8 @@ class ModuleResourceIT {
             .andExpect(jsonPath("$.[*].redisKeyPrefix").value(hasItem(DEFAULT_REDIS_KEY_PREFIX)))
             .andExpect(jsonPath("$.[*].status").value(hasItem(DEFAULT_STATUS.intValue())))
             .andExpect(jsonPath("$.[*].loggingMode").value(hasItem(DEFAULT_LOGGING_MODE)))
-            .andExpect(jsonPath("$.[*].loggingFilter").value(hasItem(DEFAULT_LOGGING_FILTER)));
+            .andExpect(jsonPath("$.[*].loggingFilter").value(hasItem(DEFAULT_LOGGING_FILTER)))
+            .andExpect(jsonPath("$.[*].dnsName").value(hasItem(DEFAULT_DNS_NAME)));
 
         // Check, that the count call also returns 1
         restModuleMockMvc
@@ -806,7 +899,8 @@ class ModuleResourceIT {
             .redisKeyPrefix(UPDATED_REDIS_KEY_PREFIX)
             .status(UPDATED_STATUS)
             .loggingMode(UPDATED_LOGGING_MODE)
-            .loggingFilter(UPDATED_LOGGING_FILTER);
+            .loggingFilter(UPDATED_LOGGING_FILTER)
+            .dnsName(UPDATED_DNS_NAME);
         ModuleDTO moduleDTO = moduleMapper.toDto(updatedModuleEntity);
 
         restModuleMockMvc
@@ -827,6 +921,7 @@ class ModuleResourceIT {
         assertThat(testModule.getStatus()).isEqualTo(UPDATED_STATUS);
         assertThat(testModule.getLoggingMode()).isEqualTo(UPDATED_LOGGING_MODE);
         assertThat(testModule.getLoggingFilter()).isEqualTo(UPDATED_LOGGING_FILTER);
+        assertThat(testModule.getDnsName()).isEqualTo(UPDATED_DNS_NAME);
     }
 
     @Test
@@ -926,6 +1021,7 @@ class ModuleResourceIT {
         assertThat(testModule.getStatus()).isEqualTo(DEFAULT_STATUS);
         assertThat(testModule.getLoggingMode()).isEqualTo(UPDATED_LOGGING_MODE);
         assertThat(testModule.getLoggingFilter()).isEqualTo(DEFAULT_LOGGING_FILTER);
+        assertThat(testModule.getDnsName()).isEqualTo(DEFAULT_DNS_NAME);
     }
 
     @Test
@@ -946,7 +1042,8 @@ class ModuleResourceIT {
             .redisKeyPrefix(UPDATED_REDIS_KEY_PREFIX)
             .status(UPDATED_STATUS)
             .loggingMode(UPDATED_LOGGING_MODE)
-            .loggingFilter(UPDATED_LOGGING_FILTER);
+            .loggingFilter(UPDATED_LOGGING_FILTER)
+            .dnsName(UPDATED_DNS_NAME);
 
         restModuleMockMvc
             .perform(
@@ -966,6 +1063,7 @@ class ModuleResourceIT {
         assertThat(testModule.getStatus()).isEqualTo(UPDATED_STATUS);
         assertThat(testModule.getLoggingMode()).isEqualTo(UPDATED_LOGGING_MODE);
         assertThat(testModule.getLoggingFilter()).isEqualTo(UPDATED_LOGGING_FILTER);
+        assertThat(testModule.getDnsName()).isEqualTo(UPDATED_DNS_NAME);
     }
 
     @Test

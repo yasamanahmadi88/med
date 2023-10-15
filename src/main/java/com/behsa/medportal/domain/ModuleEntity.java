@@ -52,6 +52,11 @@ public class ModuleEntity implements Serializable {
     @Column(name = "logging_filter", length = 500)
     private String loggingFilter;
 
+    @NotNull
+    @Size(max = 100)
+    @Column(name = "dns_name", length = 100, nullable = false)
+    private String dnsName;
+
     @OneToMany(mappedBy = "module")
     @JsonIgnoreProperties(value = { "module" }, allowSetters = true)
     private Set<ConfigEntity> configs = new HashSet<>();
@@ -149,6 +154,19 @@ public class ModuleEntity implements Serializable {
         this.loggingFilter = loggingFilter;
     }
 
+    public String getDnsName() {
+        return this.dnsName;
+    }
+
+    public ModuleEntity dnsName(String dnsName) {
+        this.setDnsName(dnsName);
+        return this;
+    }
+
+    public void setDnsName(String dnsName) {
+        this.dnsName = dnsName;
+    }
+
     public Set<ConfigEntity> getConfigs() {
         return this.configs;
     }
@@ -210,6 +228,7 @@ public class ModuleEntity implements Serializable {
             ", status=" + getStatus() +
             ", loggingMode='" + getLoggingMode() + "'" +
             ", loggingFilter='" + getLoggingFilter() + "'" +
+            ", dnsName='" + getDnsName() + "'" +
             "}";
     }
 }

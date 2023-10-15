@@ -1,13 +1,12 @@
 package com.behsa.medportal.service;
 
-import com.behsa.medportal.domain.ModuleEntity;
 import com.behsa.medportal.service.dto.ModuleDTO;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 /**
- * Service Interface for managing {@link ModuleEntity}.
+ * Service Interface for managing {@link com.behsa.medportal.domain.ModuleEntity}.
  */
 public interface ModuleService {
     /**

@@ -6,6 +6,7 @@ export interface IModule {
   status?: boolean| number | null;
   loggingMode?: string | null;
   loggingFilter?: string | null;
+  dnsName?: string | null;
 }
 
 export type NewModule = Omit<IModule, 'id'> & { id: null };

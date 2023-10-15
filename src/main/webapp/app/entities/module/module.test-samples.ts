@@ -7,33 +7,37 @@ export const sampleWithRequiredData: IModule = {
   redisKeyPrefix: 'exper',
   status: 1,
   loggingMode: 'partnerships',
+  dnsName: 'function high-level',
 };
 
 export const sampleWithPartialData: IModule = {
-  id: 31602,
-  moduleName: 'black Markets',
-  defaultPort: 'comp',
-  redisKeyPrefix: 'magen',
-  status: 1,
-  loggingMode: 'generating Pants overriding',
+  id: 20148,
+  moduleName: 'compressing Practical Senior',
+  defaultPort: 'mage',
+  redisKeyPrefix: 'IB pa',
+  status: 0,
+  loggingMode: 'eyeballs indexing tan',
+  dnsName: 'intranet',
 };
 
 export const sampleWithFullData: IModule = {
-  id: 89907,
-  moduleName: 'yellow View',
-  defaultPort: 'Cros',
-  redisKeyPrefix: 'Fresh',
-  status: 1,
-  loggingMode: 'XML',
-  loggingFilter: 'Rubber',
+  id: 1620,
+  moduleName: 'Fresh interactive Baby',
+  defaultPort: 'succ',
+  redisKeyPrefix: 'Small',
+  status: 0,
+  loggingMode: 'Planner Licensed Savings',
+  loggingFilter: 'withdrawal Concrete',
+  dnsName: 'Minnesota',
 };
 
 export const sampleWithNewData: NewModule = {
-  moduleName: 'Music',
-  defaultPort: 'Smal',
-  redisKeyPrefix: 'Ohio ',
-  status: 0,
-  loggingMode: 'withdrawal Concrete',
+  moduleName: 'alarm cohesive',
+  defaultPort: 'Camb',
+  redisKeyPrefix: 'Inter',
+  status: 1,
+  loggingMode: 'North Sleek',
+  dnsName: 'Directives calculating',
   id: null,
 };
 

@@ -2,14 +2,12 @@ package com.behsa.medportal.service.criteria;
 
 import java.io.Serializable;
 import java.util.Objects;
-
-import com.behsa.medportal.domain.ModuleEntity;
 import org.springdoc.api.annotations.ParameterObject;
 import tech.jhipster.service.Criteria;
 import tech.jhipster.service.filter.*;
 
 /**
- * Criteria class for the {@link ModuleEntity} entity. This class is used
+ * Criteria class for the {@link com.behsa.medportal.domain.ModuleEntity} entity. This class is used
  * in {@link com.behsa.medportal.web.rest.ModuleResource} to receive all the possible filtering options from
  * the Http GET request parameters.
  * For example the following could be a valid request:
@@ -37,6 +35,8 @@ public class ModuleCriteria implements Serializable, Criteria {
 
     private StringFilter loggingFilter;
 
+    private StringFilter dnsName;
+
     private LongFilter configsId;
 
     private Boolean distinct;
@@ -51,6 +51,7 @@ public class ModuleCriteria implements Serializable, Criteria {
         this.status = other.status == null ? null : other.status.copy();
         this.loggingMode = other.loggingMode == null ? null : other.loggingMode.copy();
         this.loggingFilter = other.loggingFilter == null ? null : other.loggingFilter.copy();
+        this.dnsName = other.dnsName == null ? null : other.dnsName.copy();
         this.configsId = other.configsId == null ? null : other.configsId.copy();
         this.distinct = other.distinct;
     }
@@ -165,6 +166,21 @@ public class ModuleCriteria implements Serializable, Criteria {
         this.loggingFilter = loggingFilter;
     }
 
+    public StringFilter getDnsName() {
+        return dnsName;
+    }
+
+    public StringFilter dnsName() {
+        if (dnsName == null) {
+            dnsName = new StringFilter();
+        }
+        return dnsName;
+    }
+
+    public void setDnsName(StringFilter dnsName) {
+        this.dnsName = dnsName;
+    }
+
     public LongFilter getConfigsId() {
         return configsId;
     }
@@ -205,6 +221,7 @@ public class ModuleCriteria implements Serializable, Criteria {
             Objects.equals(status, that.status) &&
             Objects.equals(loggingMode, that.loggingMode) &&
             Objects.equals(loggingFilter, that.loggingFilter) &&
+            Objects.equals(dnsName, that.dnsName) &&
             Objects.equals(configsId, that.configsId) &&
             Objects.equals(distinct, that.distinct)
         );
@@ -212,7 +229,7 @@ public class ModuleCriteria implements Serializable, Criteria {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, moduleName, defaultPort, redisKeyPrefix, status, loggingMode, loggingFilter, configsId, distinct);
+        return Objects.hash(id, moduleName, defaultPort, redisKeyPrefix, status, loggingMode, loggingFilter, dnsName, configsId, distinct);
     }
 
     // prettier-ignore
@@ -226,6 +243,7 @@ public class ModuleCriteria implements Serializable, Criteria {
             (status != null ? "status=" + status + ", " : "") +
             (loggingMode != null ? "loggingMode=" + loggingMode + ", " : "") +
             (loggingFilter != null ? "loggingFilter=" + loggingFilter + ", " : "") +
+            (dnsName != null ? "dnsName=" + dnsName + ", " : "") +
             (configsId != null ? "configsId=" + configsId + ", " : "") +
             (distinct != null ? "distinct=" + distinct + ", " : "") +
             "}";

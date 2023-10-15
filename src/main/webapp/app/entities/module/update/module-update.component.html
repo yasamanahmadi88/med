@@ -160,6 +160,28 @@
         </div>
 
         <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.module.dnsName" for="field_dnsName">Dns Name</label>
+          <input type="text" class="form-control" name="dnsName" id="field_dnsName" data-cy="dnsName" formControlName="dnsName" />
+          <div *ngIf="editForm.get('dnsName')!.invalid && (editForm.get('dnsName')!.dirty || editForm.get('dnsName')!.touched)">
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('dnsName')?.errors?.required"
+              jhiTranslate="entity.validation.required"
+            >
+              This field is required.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('dnsName')?.errors?.maxlength"
+              jhiTranslate="entity.validation.maxlength"
+              [translateValues]="{ max: 100 }"
+            >
+              This field cannot be longer than 100 characters.
+            </small>
+          </div>
+        </div>
+
+        <div class="row mb-3">
           <label class="form-label" jhiTranslate="medPortalApp.module.loggingFilter" for="field_loggingFilter">Logging Filter</label>
           <textarea
             type="textarea"

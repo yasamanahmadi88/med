@@ -103,3 +103,8 @@ jhipster:
 # More documentation is available at:
 # https://www.jhipster.tech/common-application-properties/
 # ===================================================================
+
+mediation:
+  bpmn:
+    parser:
+      url: 'http://localhost:6032'

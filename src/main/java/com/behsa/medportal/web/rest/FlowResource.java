@@ -12,18 +12,23 @@ import com.behsa.medportal.web.rest.errors.BadRequestAlertException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
 import tech.jhipster.web.util.PaginationUtil;
@@ -35,6 +40,12 @@ import tech.jhipster.web.util.ResponseUtil;
 @RestController
 @RequestMapping("/api")
 public class FlowResource {
+
+    @Value(value = "${mediation.bpmn.parser.url}")
+    private String bpmnParserUrl;
+
+    @Autowired
+    public RestTemplate restTemplate;
 
     private final Logger log = LoggerFactory.getLogger(FlowResource.class);
 
@@ -70,19 +81,29 @@ public class FlowResource {
      */
     @PostMapping("/flows")
     @Secured(ENTITY_NAME)
-    public ResponseEntity<FlowDTO> createFlow(@Valid @RequestBody FlowDTO flowDTO) throws URISyntaxException {
+    public ResponseEntity<String> createFlow(@Valid @RequestBody FlowDTO flowDTO) throws Exception {
         log.debug("REST request to save Flow : {}", flowDTO);
         if (flowDTO.getId() != null) {
             throw new BadRequestAlertException("A new flow cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        FlowDTO result = flowService.save(flowDTO);
-        loggerService.log( ENTITY_NAME+"_CREATE",new HashMap<>());
-        return ResponseEntity
-            .created(new URI("/api/flows/" + result.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-            .body(result);
+//        FlowDTO result = flowService.save(flowDTO);
+//        loggerService.log( ENTITY_NAME+"_CREATE",new HashMap<>());
+        return sendToBpmnParser(flowDTO, "create", bpmnParserUrl);
+//        return ResponseEntity
+//            .created(new URI("/api/flows/" + result.getId()))
+//            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+//            .body(result);
     }
 
+    public ResponseEntity<String> sendToBpmnParser(FlowDTO flowDTO, String bpmnType, String bpmnParserUrl) throws Exception {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("application/xml"));
+        headers.set("FLOW_NAME", flowDTO.getFlowName());
+        headers.set("FLOW_DESC", flowDTO.getFlowDesc());
+        headers.set("PRODUCT_NAME", flowDTO.getProduct().getProductName());
+        HttpEntity<String> requestEntity = new HttpEntity<>(flowDTO.getFlow(), headers);
+        return restTemplate.postForEntity(bpmnParserUrl + "/" + bpmnType, requestEntity, String.class);
+    }
     /**
      * {@code PUT  /flows/:id} : Updates an existing flow.
      *
@@ -95,10 +116,10 @@ public class FlowResource {
      */
     @PutMapping("/flows/{id}")
     @Secured(ENTITY_NAME)
-    public ResponseEntity<FlowDTO> updateFlow(
+    public ResponseEntity<String> updateFlow(
         @PathVariable(value = "id", required = false) final Long id,
         @Valid @RequestBody FlowDTO flowDTO
-    ) throws URISyntaxException {
+    ) throws Exception {
         log.debug("REST request to update Flow : {}, {}", id, flowDTO);
         if (flowDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
@@ -111,13 +132,16 @@ public class FlowResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        FlowDTO result = flowService.update(flowDTO);
-        loggerService.log( ENTITY_NAME+"_UPDATE",new HashMap<>());
-        return ResponseEntity
-            .ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, flowDTO.getId().toString()))
-            .body(result);
+//        FlowDTO result = flowService.update(flowDTO);
+//        loggerService.log( ENTITY_NAME+"_UPDATE",new HashMap<>());
+//        return ResponseEntity
+//            .ok()
+//            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, flowDTO.getId().toString()))
+//            .body(result);
+        return sendToBpmnParser(flowDTO, "update", bpmnParserUrl);
     }
+
+
 
     /**
      * {@code PATCH  /flows/:id} : Partial updates given fields of an existing flow, field will ignore if it is null
@@ -169,7 +193,6 @@ public class FlowResource {
         FlowCriteria criteria,
         @org.springdoc.api.annotations.ParameterObject Pageable pageable
     ) {
-        log.debug("REST request to get Flows by criteria: {}", criteria);
         Page<FlowDTO> page = flowQueryService.findByCriteria(criteria, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());

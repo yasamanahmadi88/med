@@ -126,3 +126,4 @@ mediation:
   bpmn:
     parser:
       url: 'http://localhost:6032'
+      active: true

@@ -44,6 +44,9 @@ public class FlowResource {
     @Value(value = "${mediation.bpmn.parser.url}")
     private String bpmnParserUrl;
 
+    @Value(value = "${mediation.bpmn.parser.active}")
+    private boolean bpmnParserActive;
+
     @Autowired
     public RestTemplate restTemplate;
 
@@ -81,28 +84,30 @@ public class FlowResource {
      */
     @PostMapping("/flows")
     @Secured(ENTITY_NAME)
-    public ResponseEntity<String> createFlow(@Valid @RequestBody FlowDTO flowDTO) throws Exception {
+    public ResponseEntity<Object> createFlow(@Valid @RequestBody FlowDTO flowDTO) throws Exception {
         log.debug("REST request to save Flow : {}", flowDTO);
         if (flowDTO.getId() != null) {
             throw new BadRequestAlertException("A new flow cannot already have an ID", ENTITY_NAME, "idexists");
         }
-//        FlowDTO result = flowService.save(flowDTO);
-//        loggerService.log( ENTITY_NAME+"_CREATE",new HashMap<>());
-        return sendToBpmnParser(flowDTO, "create", bpmnParserUrl);
-//        return ResponseEntity
-//            .created(new URI("/api/flows/" + result.getId()))
-//            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-//            .body(result);
+        if (bpmnParserActive) {
+            return sendToBpmnParser(flowDTO, "create", bpmnParserUrl);
+        }
+        FlowDTO result = flowService.save(flowDTO);
+        loggerService.log( ENTITY_NAME+"_CREATE",new HashMap<>());
+        return ResponseEntity
+            .created(new URI("/api/flows/" + result.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+            .body(result);
     }
 
-    public ResponseEntity<String> sendToBpmnParser(FlowDTO flowDTO, String bpmnType, String bpmnParserUrl) throws Exception {
+    public ResponseEntity<Object> sendToBpmnParser(FlowDTO flowDTO, String bpmnType, String bpmnParserUrl) throws Exception {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("application/xml"));
         headers.set("FLOW_NAME", flowDTO.getFlowName());
         headers.set("FLOW_DESC", flowDTO.getFlowDesc());
         headers.set("PRODUCT_NAME", flowDTO.getProduct().getProductName());
         HttpEntity<String> requestEntity = new HttpEntity<>(flowDTO.getFlow(), headers);
-        return restTemplate.postForEntity(bpmnParserUrl + "/" + bpmnType, requestEntity, String.class);
+        return restTemplate.postForEntity(bpmnParserUrl + "/" + bpmnType, requestEntity, Object.class);
     }
     /**
      * {@code PUT  /flows/:id} : Updates an existing flow.
@@ -116,7 +121,7 @@ public class FlowResource {
      */
     @PutMapping("/flows/{id}")
     @Secured(ENTITY_NAME)
-    public ResponseEntity<String> updateFlow(
+    public ResponseEntity<Object> updateFlow(
         @PathVariable(value = "id", required = false) final Long id,
         @Valid @RequestBody FlowDTO flowDTO
     ) throws Exception {
@@ -131,13 +136,14 @@ public class FlowResource {
         if (!flowRepository.existsById(id)) {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
-
-//        FlowDTO result = flowService.update(flowDTO);
-//        loggerService.log( ENTITY_NAME+"_UPDATE",new HashMap<>());
-//        return ResponseEntity
-//            .ok()
-//            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, flowDTO.getId().toString()))
-//            .body(result);
+        if (!bpmnParserActive) {
+        FlowDTO result = flowService.update(flowDTO);
+        loggerService.log( ENTITY_NAME+"_UPDATE",new HashMap<>());
+        return ResponseEntity
+            .ok()
+            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, flowDTO.getId().toString()))
+            .body(result);
+        }
         return sendToBpmnParser(flowDTO, "update", bpmnParserUrl);
     }
 

@@ -1,0 +1,27 @@
+{
+  "medPortalApp": {
+    "medAuthority": {
+      "home": {
+        "title": "Authorities",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Authority",
+        "createOrEditLabel": "Create or edit a Authority",
+        "notFound": "No Authorities found"
+      },
+      "created": "A new Authority is created",
+      "updated": "A Authority is updated",
+      "deleted": "A Authority is deleted",
+      "delete": {
+        "question": "Are you sure you want to delete this Authority?"
+      },
+      "detail": {
+        "title": "Authority"
+      },
+      "id": "ID",
+      "name": "Name",
+      "displayName": "Display Name",
+      "parentId": "Parent",
+      "resourceAuthorities": "Resource Authorities"
+    }
+  }
+}

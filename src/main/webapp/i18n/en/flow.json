@@ -1,0 +1,29 @@
+{
+  "medPortalApp": {
+    "flow": {
+      "home": {
+        "title": "Flows",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Flow",
+        "createLabelFor": "Create a new Flow For ",
+        "createOrEditLabel": "Edit a Flow",
+        "notFound": "No Flows found"
+      },
+      "created": "A new Flow is created with identifier {{ param }}",
+      "updated": "A Flow is updated with identifier {{ param }}",
+      "deleted": "A Flow is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Flow \" {{ name }} \" ?"
+      },
+      "detail": {
+        "title": "Flow"
+      },
+      "id": "ID",
+      "flowName": "Flow Name",
+      "flowDesc": "Flow Desc",
+      "flow": "Flow",
+      "product": "Product",
+      "invalidFlowName": "Flow name is like an existing flow name"
+    }
+  }
+}

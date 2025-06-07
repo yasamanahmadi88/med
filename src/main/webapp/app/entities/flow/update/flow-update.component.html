@@ -1,0 +1,107 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <form name="editForm" role="form" novalidate (ngSubmit)="save()" [formGroup]="editForm">
+      <h2 id="jhi-flow-heading" data-cy="FlowCreateUpdateHeading" jhiTranslate="medPortalApp.flow.home.createOrEditLabel">
+        Create or edit a Flow
+      </h2>
+
+      <div>
+        <jhi-alert-error></jhi-alert-error>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.flow.flowName" for="field_flowName">Flow Name</label>
+          <input type="text" class="form-control" name="flowName" id="field_flowName" data-cy="flowName" formControlName="flowName" />
+          <div *ngIf="editForm.get('flowName')!.invalid && (editForm.get('flowName')!.dirty || editForm.get('flowName')!.touched)">
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('flowName')?.errors?.required"
+              jhiTranslate="entity.validation.required"
+            >
+              This field is required.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('flowName')?.errors?.maxlength"
+              jhiTranslate="entity.validation.maxlength"
+              [translateValues]="{ max: 6 }"
+            >
+              This field cannot be longer than 6 characters.
+            </small>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.flow.flowDesc" for="field_flowDesc">Flow Desc</label>
+          <input type="text" class="form-control" name="flowDesc" id="field_flowDesc" data-cy="flowDesc" formControlName="flowDesc" />
+          <div *ngIf="editForm.get('flowDesc')!.invalid && (editForm.get('flowDesc')!.dirty || editForm.get('flowDesc')!.touched)">
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('flowDesc')?.errors?.required"
+              jhiTranslate="entity.validation.required"
+            >
+              This field is required.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('flowDesc')?.errors?.maxlength"
+              jhiTranslate="entity.validation.maxlength"
+              [translateValues]="{ max: 300 }"
+            >
+              This field cannot be longer than 300 characters.
+            </small>
+          </div>
+        </div>
+
+        <!--<div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.flow.flow" for="field_flow">Flow</label>
+          <input type="text" class="form-control" name="flow" id="field_flow" data-cy="flow" formControlName="flow" />
+          <div *ngIf="editForm.get('flow')!.invalid && (editForm.get('flow')!.dirty || editForm.get('flow')!.touched)">
+            <small class="form-text text-danger" *ngIf="editForm.get('flow')?.errors?.required" jhiTranslate="entity.validation.required">
+              This field is required.
+            </small>
+          </div>
+        </div>-->
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.flow.product" for="field_product">Product</label>
+          <select
+            class="form-control"
+            id="field_product"
+            data-cy="product"
+            name="product"
+            formControlName="product"
+            [compareWith]="compareProduct"
+          >
+            <option *ngIf="editForm.get(['product'])!.value == null" [ngValue]="null" selected></option>
+            <option [ngValue]="productOption" *ngFor="let productOption of productsSharedCollection">{{ productOption.productName }}</option>
+          </select>
+        </div>
+        <div *ngIf="editForm.get(['product'])!.invalid && (editForm.get(['product'])!.dirty || editForm.get(['product'])!.touched)">
+          <small
+            class="form-text text-danger"
+            *ngIf="editForm.get(['product'])?.errors?.required"
+            jhiTranslate="entity.validation.required"
+          >
+            This field is required.
+          </small>
+        </div>
+      </div>
+
+      <div>
+        <button type="button" id="cancel-save" data-cy="entityCreateCancelButton" class="btn btn-secondary" (click)="previousState()">
+          <fa-icon icon="ban"></fa-icon>&nbsp;<span jhiTranslate="entity.action.cancel">Cancel</span>
+        </button>
+
+        <button
+          type="submit"
+          id="save-entity"
+          data-cy="entityCreateSaveButton"
+          [disabled]="editForm.invalid || isSaving"
+          class="btn btn-primary"
+        >
+          <fa-icon icon="save"></fa-icon>&nbsp;<span jhiTranslate="entity.action.save">Save</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

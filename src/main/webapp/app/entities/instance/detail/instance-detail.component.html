@@ -1,0 +1,68 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <div *ngIf="instance">
+      <h2 data-cy="instanceDetailsHeading"><span jhiTranslate="medPortalApp.instance.detail.title">Instance</span></h2>
+
+      <hr />
+
+      <jhi-alert-error></jhi-alert-error>
+
+      <jhi-alert></jhi-alert>
+
+      <dl class="row-md jh-entity-details">
+        <dt><span jhiTranslate="global.field.id">ID</span></dt>
+        <dd>
+          <span>{{ instance.id }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.instance.moduleName">Module Name</span></dt>
+        <dd>
+          <span>{{ instance.moduleName }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.instance.port">Port</span></dt>
+        <dd>
+          <span>{{ instance.port }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.instance.moduleStatus">Module Status</span></dt>
+        <dd>
+          <span>{{ instance.moduleStatus }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.instance.lastUpdateDate">Last Update Date</span></dt>
+        <dd>
+          <span>{{ instance.lastUpdateDate | formatMediumDate }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.instance.threadPoolQueueSize">Thread Pool Queue Size</span></dt>
+        <dd>
+          <span>{{ instance.threadPoolQueueSize }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.instance.moduleStartTime">Module Start Time</span></dt>
+        <dd>
+          <span>{{ instance.moduleStartTime }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.instance.totalProcessedWork">Total Processed Work</span></dt>
+        <dd>
+          <span>{{ instance.totalProcessedWork }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.instance.totalProcessedTask">Total Processed Task</span></dt>
+        <dd>
+          <span>{{ instance.totalProcessedTask }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.instance.processedStatistics">Processed Statistics</span></dt>
+        <dd>
+          <span>{{ instance.processedStatistics }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.instance.hostName">Host Name</span></dt>
+        <dd>
+          <span>{{ instance.hostName }}</span>
+        </dd>
+      </dl>
+
+      <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+        <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Back</span>
+      </button>
+
+      <button type="button" [routerLink]="['/instance', instance.id, 'edit']" class="btn btn-primary">
+        <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Edit</span>
+      </button>
+    </div>
+  </div>
+</div>

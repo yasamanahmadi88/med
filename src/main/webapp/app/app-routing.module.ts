@@ -29,10 +29,10 @@ import {BpmnComponent} from "./entities/bpmn/bpmn.component";
           path: 'login',
           loadChildren: () => import('./login/login.module').then(m => m.LoginModule),
         },
-      /*  {
+        {
           path: '',
           loadChildren: () => import(`./entities/entity-routing.module`).then(m => m.EntityRoutingModule),
-        },*/
+        },
         {
           path: 'bpmn',
           component: BpmnComponent

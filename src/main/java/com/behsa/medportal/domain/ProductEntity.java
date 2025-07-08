@@ -11,7 +11,7 @@ import javax.validation.constraints.*;
  * A ProductEntity.
  */
 @Entity
-@Table(name = "tbl_products")
+@Table(name = "MEDIATION.tbl_products")
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class ProductEntity implements Serializable {
 

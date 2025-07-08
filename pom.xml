@@ -367,6 +367,27 @@
             <plugin>
                 <groupId>org.gaul</groupId>
                 <artifactId>modernizer-maven-plugin</artifactId>
+                <version>${modernizer-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>modernizer</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>modernizer</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <javaVersion>${java.version}</javaVersion>
+                </configuration>
+                <dependencies>
+                    <!-- bring plexus-utils onto the plugin classpath -->
+                    <dependency>
+                        <groupId>org.codehaus.plexus</groupId>
+                        <artifactId>plexus-utils</artifactId>
+                        <version>3.5.1</version>
+                    </dependency>
+                </dependencies>
             </plugin>
             <!-- jhipster-needle-maven-add-plugin -->
         </plugins>

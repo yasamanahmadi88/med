@@ -9,7 +9,7 @@ import javax.validation.constraints.*;
  * A ConfigEntity.
  */
 @Entity
-@Table(name = "tbl_configs")
+@Table(name = "MEDIATION.tbl_configs")
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class ConfigEntity implements Serializable {
 

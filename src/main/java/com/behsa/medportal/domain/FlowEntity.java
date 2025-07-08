@@ -9,7 +9,7 @@ import javax.validation.constraints.*;
  * A FlowEntity.
  */
 @Entity
-@Table(name = "TBL_FLOWS")
+@Table(name = "MEDIATION.TBL_FLOWS")
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class FlowEntity implements Serializable {
 

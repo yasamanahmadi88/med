@@ -11,7 +11,7 @@ import javax.validation.constraints.*;
  * A ModuleEntity.
  */
 @Entity
-@Table(name = "tbl_modules")
+@Table(name = "MEDIATION.tbl_modules")
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class ModuleEntity implements Serializable {
 

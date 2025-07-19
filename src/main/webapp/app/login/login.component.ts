@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 
 import { LoginService } from 'app/login/login.service';
 import { AccountService } from 'app/core/auth/account.service';
+import { CaptchaComponent } from 'angular-captcha';
+import { LocalStorageService } from 'ngx-webstorage';
 
 @Component({
   selector: 'jhi-login',
@@ -11,7 +13,9 @@ import { AccountService } from 'app/core/auth/account.service';
 })
 export class LoginComponent implements OnInit, AfterViewInit {
   @ViewChild('username', { static: false })
+  @ViewChild(CaptchaComponent, { static: true }) captchaComponent?: CaptchaComponent;
   username!: ElementRef;
+  backUrl = '';
 
   authenticationError = false;
 
@@ -19,12 +23,22 @@ export class LoginComponent implements OnInit, AfterViewInit {
     username: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     password: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     rememberMe: new FormControl(false, { nonNullable: true, validators: [Validators.required] }),
+    userCaptchaInput: new FormControl(''),
+    userEnteredCaptchaCode: new FormControl(),
+    captchaId: new FormControl(),
   });
 
-  constructor(private accountService: AccountService, private loginService: LoginService, private router: Router) {}
+  constructor(
+    private localStorageService: LocalStorageService,
+    private accountService: AccountService, private loginService: LoginService, private router: Router) {
+    this.backUrl = this.localStorageService.retrieve('backendUrl');
+  }
 
   ngOnInit(): void {
     // if already authenticated then navigate to home page
+    if (this.captchaComponent) {
+      this.captchaComponent.captchaEndpoint = this.backUrl + '/captcha-endpoint';
+    }
     this.accountService.identity().subscribe(() => {
       if (this.accountService.isAuthenticated()) {
         this.router.navigate(['']);

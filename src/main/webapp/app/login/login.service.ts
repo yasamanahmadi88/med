@@ -12,6 +12,7 @@ export class LoginService {
   constructor(private accountService: AccountService, private authServerProvider: AuthServerProvider) {}
 
   login(credentials: Login): Observable<Account | null> {
+    debugger
     return this.authServerProvider.login(credentials).pipe(mergeMap(() => this.accountService.identity(true)));
   }
 

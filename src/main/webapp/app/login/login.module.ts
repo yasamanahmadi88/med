@@ -7,7 +7,7 @@ import { LoginComponent } from './login.component';
 import { BotDetectCaptchaModule } from 'angular-captcha';
 
 @NgModule({
+  declarations:[LoginComponent],
   imports: [SharedModule, RouterModule.forChild([LOGIN_ROUTE]), BotDetectCaptchaModule],
-  declarations: [LoginComponent],
 })
 export class LoginModule {}

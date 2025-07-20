@@ -35,10 +35,29 @@
             />
           </div>
 
-          <div class="form-group fadeIn second d-flex">
-            <div class="input-group formsData">
-              <botdetect-captcha class="input-group-append"
-                                 captchaStyleName="yourFirstCaptchaStyle"></botdetect-captcha>
+          <div class="d-flex justify-content-center align-items-center">
+            <div class="form-group fadeIn third captchaInput">
+              <input
+                [placeholder]="''"
+                autocomplete="off"
+                [value]="''"
+                #userCaptchaInput
+                type="text"
+                id="userCaptchaInput"
+                name="userCaptchaInput"
+                formControlName="userCaptchaInput"
+                [maxLength]="6"
+                maxlength="6"
+                class="col-11"
+                (keydown)="loginWithEnterKey($event)"
+              />
+            </div>
+
+            <div class="form-group fadeIn second d-flex">
+              <div class="input-group formsData">
+                <botdetect-captcha class="input-group-append"
+                                   captchaStyleName="yourFirstCaptchaStyle"></botdetect-captcha>
+              </div>
             </div>
           </div>
 

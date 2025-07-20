@@ -12,11 +12,10 @@ import { LocalStorageService } from 'ngx-webstorage';
   templateUrl: './login.component.html',
 })
 export class LoginComponent implements OnInit, AfterViewInit {
-  @ViewChild('username', { static: false })
-  @ViewChild(CaptchaComponent, { static: true }) captchaComponent?: CaptchaComponent;
-  username!: ElementRef;
-  backUrl = '';
+  @ViewChild('username', { static: false }) username!: ElementRef;
+  @ViewChild(CaptchaComponent) captchaComponent?: CaptchaComponent;
 
+  backUrl = '';
   authenticationError = false;
 
   loginForm = new FormGroup({
@@ -30,15 +29,18 @@ export class LoginComponent implements OnInit, AfterViewInit {
 
   constructor(
     private localStorageService: LocalStorageService,
-    private accountService: AccountService, private loginService: LoginService, private router: Router) {
+    private accountService: AccountService,
+    private loginService: LoginService,
+    private router: Router
+  ) {
     this.backUrl = this.localStorageService.retrieve('backendUrl');
   }
 
   ngOnInit(): void {
-    // if already authenticated then navigate to home page
     if (this.captchaComponent) {
       this.captchaComponent.captchaEndpoint = this.backUrl + '/captcha-endpoint';
     }
+
     this.accountService.identity().subscribe(() => {
       if (this.accountService.isAuthenticated()) {
         this.router.navigate(['']);
@@ -55,11 +57,16 @@ export class LoginComponent implements OnInit, AfterViewInit {
       next: () => {
         this.authenticationError = false;
         if (!this.router.getCurrentNavigation()) {
-          // There were no routing during login (eg from navigationToStoredUrl)
           this.router.navigate(['']);
         }
       },
       error: () => (this.authenticationError = true),
     });
   }
+  loginWithEnterKey(e: KeyboardEvent): void {
+    if (e.key === 'Enter') {
+      this.login();
+    }
+  }
+
 }

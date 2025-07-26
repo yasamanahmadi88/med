@@ -109,3 +109,15 @@ mediation:
     parser:
       url: 'http://localhost:6032'
       active: false
+
+# ===================================================================
+# Captcha Configuration for Development
+# ===================================================================
+
+captcha:
+  # Enable captcha in development
+  enabled: true
+  # Allow bypass in development for testing (set to true to skip captcha validation)
+  dev-bypass: true
+  # For testing, you can use a dummy secret key
+  secret-key: test-secret-key

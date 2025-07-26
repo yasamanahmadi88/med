@@ -127,3 +127,15 @@ mediation:
     parser:
       url: 'http://localhost:6032'
       active: false
+
+# ===================================================================
+# Captcha Configuration for Production
+# ===================================================================
+
+captcha:
+  # Enable captcha in production
+  enabled: true
+  # Disable bypass in production for security
+  dev-bypass: false
+  # Set your production secret key (change this in production!)
+  secret-key: ${CAPTCHA_SECRET_KEY:your-production-secret-key-here}

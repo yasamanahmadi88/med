@@ -61,7 +61,7 @@
                   class="form-control"
                   (keydown)="loginWithEnterKey($event)"
                   [disabled]="isLoading"
-                  style="font-size: 0.9rem; font-weight: 400; width: 200px; text-transform: uppercase; letter-spacing: 2px; padding: 0.5rem 0.75rem;"
+                  style="border-radius: 8px;font-size: 0.9rem; font-weight: 400; width: 200px; text-transform: uppercase; letter-spacing: 2px; padding: 0.5rem 0.75rem;"
                 />
               </div>
 
@@ -75,16 +75,16 @@
 
               <div class="form-group fadeIn second d-flex">
                 <div class="input-group formsData">
-                  <div class="captcha-container" style="position: relative;">
-                    <img 
-                      *ngIf="captchaImageUrl && !isLoading" 
-                      [src]="captchaImageUrl" 
-                      alt="Captcha" 
+                  <div class="captcha-container d-flex" style="height: 40px;position: relative;">
+                    <img
+                      *ngIf="captchaImageUrl && !isLoading"
+                      [src]="captchaImageUrl"
+                      alt="Captcha"
                       class="captcha-image"
-                      style="height: 60px; border: 2px solid #dee2e6; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                      style="border: 2px solid #dee2e6; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
                     />
-                    <div 
-                      *ngIf="isLoading" 
+                    <div
+                      *ngIf="isLoading"
                       class="d-flex align-items-center justify-content-center"
                       style="height: 60px; width: 200px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;"
                     >
@@ -93,12 +93,12 @@
                       </div>
                       <span class="ms-2 text-muted small">Loading...</span>
                     </div>
-                    <button 
-                      type="button" 
-                      class="btn btn-outline-primary ms-2" 
+                    <button
+                      type="button"
+                      class="btn btn-outline-primary ms-2"
                       (click)="reloadCaptcha()"
                       title="Refresh Captcha"
-                      style="height: 60px; width: 60px; border-radius: 8px; border: 2px solid #dee2e6; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                      style="width: 60px; border-radius: 8px; border: 2px solid #dee2e6; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
                       [disabled]="isLoading"
                     >
                       <span *ngIf="!isLoading" style="font-size: 18px;">↻</span>
@@ -132,7 +132,7 @@
             </label>
           </div>
 
-          <button type="submit" class="btn btn-primary" jhiTranslate="login.form.button" data-cy="submit" 
+          <button type="submit" class="btn btn-primary" jhiTranslate="login.form.button" data-cy="submit"
                   [disabled]="loginForm.invalid || isLoading">
             <span *ngIf="!isLoading">Sign in</span>
             <span *ngIf="isLoading">

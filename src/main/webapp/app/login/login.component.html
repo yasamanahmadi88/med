@@ -86,7 +86,7 @@
                     <div
                       *ngIf="isLoading"
                       class="d-flex align-items-center justify-content-center"
-                      style="height: 60px; width: 200px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;"
+                      style="width: 200px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;"
                     >
                       <div class="spinner-border spinner-border-sm text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
@@ -98,7 +98,7 @@
                       class="btn btn-outline-primary ms-2"
                       (click)="reloadCaptcha()"
                       title="Refresh Captcha"
-                      style="width: 60px; border-radius: 8px; border: 2px solid #dee2e6; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                      style="border-radius: 8px; border: 2px solid #dee2e6; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
                       [disabled]="isLoading"
                     >
                       <span *ngIf="!isLoading" style="font-size: 18px;">↻</span>

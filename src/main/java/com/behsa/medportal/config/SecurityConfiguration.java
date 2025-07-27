@@ -93,7 +93,7 @@ public class SecurityConfiguration {
             .and()
                 .permissionsPolicy().policy("camera=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), sync-xhr=()")
             .and()
-                .frameOptions().deny() // Prevent clickjacking
+                .frameOptions().sameOrigin() // Allow same-origin frames for BPMN iframe
         .and()
             .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // No session is stored on the server

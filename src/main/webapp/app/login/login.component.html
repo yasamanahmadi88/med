@@ -1,8 +1,12 @@
 <div style="padding: 0 25%">
   <style>
     @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
     }
   </style>
   <div style="background: #FFF; padding: 50px 0; border-radius: 20px">
@@ -86,7 +90,7 @@
                     <div
                       *ngIf="isLoading"
                       class="d-flex align-items-center justify-content-center"
-                      style="height: 60px; width: 200px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;"
+                      style="width: 200px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa;"
                     >
                       <div class="spinner-border spinner-border-sm text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
@@ -98,7 +102,7 @@
                       class="btn btn-outline-primary ms-2"
                       (click)="reloadCaptcha()"
                       title="Refresh Captcha"
-                      style="width: 60px; border-radius: 8px; border: 2px solid #dee2e6; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                      style="border-radius: 8px; border: 2px solid #dee2e6; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
                       [disabled]="isLoading"
                     >
                       <span *ngIf="!isLoading" style="font-size: 18px;">↻</span>
@@ -110,7 +114,8 @@
                 </div>
               </div>
             </div>
-            <div class="text-danger small mt-2" *ngIf="loginForm.get('userCaptchaInput')?.invalid && loginForm.get('userCaptchaInput')?.touched">
+            <div class="text-danger small mt-2"
+                 *ngIf="loginForm.get('userCaptchaInput')?.invalid && loginForm.get('userCaptchaInput')?.touched">
               <span style="color: #dc3545; margin-right: 4px;">⚠</span>
               Please enter the captcha code
             </div>
@@ -127,7 +132,7 @@
           <div class="form-check mb-3">
             <label class="form-check-label" for="rememberMe">
               <input class="form-check-input" type="checkbox" name="rememberMe" id="rememberMe"
-                     formControlName="rememberMe"/>
+                     formControlName="rememberMe" />
               <span jhiTranslate="login.form.rememberme">Remember me</span>
             </label>
           </div>

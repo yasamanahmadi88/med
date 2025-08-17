@@ -17,7 +17,7 @@ public class FlowEntity implements Serializable {
 
     @Id
     @GeneratedValue(generator = "AUTR_SEQ_GENERATOR")
-    @SequenceGenerator(name = "AUTR_SEQ_GENERATOR", sequenceName = "FLOWS_SEQ", allocationSize = 0)
+    @SequenceGenerator(name = "AUTR_SEQ_GENERATOR", sequenceName = "MEDIATION.FLOWS_SEQ", allocationSize = 0)
     @Column(name = "flow_key")
     private Long id;
 

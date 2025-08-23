@@ -119,5 +119,4 @@ captcha:
   enabled: true
   # Allow bypass in development for testing (set to true to skip captcha validation)
   dev-bypass: true
-  # For testing, you can use a dummy secret key
-  secret-key: test-secret-key
+

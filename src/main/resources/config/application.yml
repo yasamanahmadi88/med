@@ -205,11 +205,7 @@ jhipster:
 
 captcha:
   # Provider: turnstile, recaptcha, hcaptcha
-  provider: turnstile
-  # Secret key for captcha provider (set this in environment-specific configs)
-  secret-key: ${CAPTCHA_SECRET_KEY:}
-  # Verify URL for the captcha provider
-  verify-url: https://challenges.cloudflare.com/turnstile/v0/siteverify
+  provider: local
   # Enable/disable captcha globally
   enabled: true
   # Allow bypass in development

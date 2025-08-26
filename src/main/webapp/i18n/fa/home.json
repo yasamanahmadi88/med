@@ -1,6 +1,6 @@
 {
   "home": {
-    "title": "Eventa Portal",
+    "title": "Real Time Aggregator Portal",
     "subtitle": "این صفحه اصلی شماست",
     "logged": {
       "message": "شما وارد شدید با کاربر \"{{username}}\"."

@@ -137,5 +137,3 @@ captcha:
   enabled: true
   # Disable bypass in production for security
   dev-bypass: false
-  # Set your production secret key (change this in production!)
-  secret-key: ${CAPTCHA_SECRET_KEY:your-production-secret-key-here}

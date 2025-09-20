@@ -54,7 +54,7 @@ entity Product{
 entity Flow{
     flowName String required maxlength(6),
     flowDesc String required maxlength(300),
-    flow String required
+    flow String requiredf
 }
 
 relationship OneToMany{

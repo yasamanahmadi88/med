@@ -33,6 +33,9 @@ import tech.jhipster.web.util.ResponseUtil;
 
 @RestController
 @RequestMapping("/api")
+
+//TODO COMMENT SECURED
+
 public class LogResource {
 
     private final Logger log = LoggerFactory.getLogger(LogResource.class);

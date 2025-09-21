@@ -7,7 +7,7 @@
       "reference": "Reference",
       "moduleSource": "Module Source",
       "moduleDestination":"Module Destination",
-      "properties": "Properties",
+      "properties": "P roperties",
       "reqMessage":"Request Message",
       "resMessage": "Response Message",
       "error":"Error",

@@ -1,0 +1,49 @@
+<div class="d-flex justify-content-center" *jhiHasPermission="['log','view']">
+  <div class="col-8">
+    <div *ngIf="log">
+      <h2 data-cy="logDetailsHeading"><span jhiTranslate="medPortalApp.reportLogs.detail.title">log</span></h2>
+
+      <hr />
+
+      <jhi-alert-error></jhi-alert-error>
+
+      <jhi-alert></jhi-alert>
+
+      <dl class="row-md jh-entity-details">
+        <dt><span jhiTranslate="medPortalApp.reportLogs.msgType">msgType</span></dt>
+          <dd><span>{{ log.msgType }}</span></dd>
+        <dt><span jhiTranslate="medPortalApp.reportLogs.correlationId">correlationId</span></dt>
+          <dd><span>{{ log.correlationId }}</span></dd>
+        <dt><span jhiTranslate="medPortalApp.reportLogs.referenceType">referenceType</span></dt>
+          <dd><span>{{ log.referenceType }}</span></dd>
+          <dt><span jhiTranslate="medPortalApp.reportLogs.reference">reference</span></dt>
+          <dd><span>{{ log.reference }}</span></dd>
+          <dt><span jhiTranslate="medPortalApp.reportLogs.moduleSource">moduleSource</span></dt>
+          <dd><span>{{ log.moduleSource }}</span></dd>
+          <dt><span jhiTranslate="medPortalApp.reportLogs.moduleDestination">moduleDestination</span></dt>
+          <dd><span>{{ log.moduleDestination }}</span></dd>
+          <dt><span jhiTranslate="medPortalApp.reportLogs.properties">properties</span></dt>
+          <dd><span>{{ log.properties }}</span></dd>
+          <dt><span jhiTranslate="medPortalApp.reportLogs.reqMessage">reqMessage</span></dt>
+          <dd><span>{{ log.reqMessage }}</span></dd>
+          <dt><span jhiTranslate="medPortalApp.reportLogs.resMessage">resMessage</span></dt>
+          <dd><span>{{ log.resMessage }}</span></dd>
+          <dt><span jhiTranslate="medPortalApp.reportLogs.error">error</span></dt>
+          <dd><span>{{ log.error }}</span></dd>
+          <dt><span jhiTranslate="medPortalApp.reportLogs.errorDetails">errorDetails</span></dt>
+          <dd><span>{{ log.errorDetails }}</span></dd>
+          <dt><span jhiTranslate="medPortalApp.reportLogs.initialDate">initialDate</span></dt>
+          <dd><span>{{ log.initialDate }}</span></dd>
+          <dt><span jhiTranslate="medPortalApp.reportLogs.createDate">createDate</span></dt>
+          <dd><span>{{ log.createDate }}</span></dd>
+          <dt><span jhiTranslate="medPortalApp.reportLogs.logType">logType</span></dt>
+         <dd><span>{{ log.logType }}</span></dd>
+      </dl>
+
+      <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+        <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Back</span>
+      </button>
+
+    </div>
+  </div>
+</div>

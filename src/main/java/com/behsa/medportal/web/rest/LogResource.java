@@ -156,7 +156,7 @@ public class LogResource {
      * ordered by CREATE_DATE desc, paged.
      */
     @GetMapping("/logs/summary")
-    //@Secured(ENTITY_NAME)
+    @Secured(ENTITY_NAME)
     public ResponseEntity<List<LogListRowDTO>> getLogsSummary(@org.springdoc.api.annotations.ParameterObject Pageable pageable) {
         log.debug("REST request to get Logs summary page");
         Page<LogListRowDTO> page = logService.findSummary(pageable);

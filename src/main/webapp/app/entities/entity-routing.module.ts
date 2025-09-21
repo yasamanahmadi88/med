@@ -50,6 +50,11 @@ import { RouterModule } from '@angular/router';
         loadChildren: () => import('./flow/flow.module').then(m => m.FlowModule),
       },
       {
+        path: 'reportLogs',
+        data: { pageTitle: 'medPortalApp.flow.home.title' },
+        loadChildren: () => import('./logs/logs.module').then(m => m.LogsModule),
+      },
+      {
         path: 'custom-audit-event',
         data: { pageTitle: 'medPortalApp.customAuditEvent.home.title' },
         loadChildren: () => import('./custom-audit-event/custom-audit-event.module').then(m => m.CustomAuditEventModule),

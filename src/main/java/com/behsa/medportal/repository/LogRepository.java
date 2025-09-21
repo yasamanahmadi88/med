@@ -18,6 +18,7 @@ public interface LogRepository extends JpaRepository<LogEntity, Long>, JpaSpecif
     @Query(
         value =
             "select new com.behsa.medportal.service.dto.LogListRowDTO(" +
+                "  l.id," +
                 "  l.msgType, " +
                 "  l.correlationId, " +
                 "  l.referenceType, " +

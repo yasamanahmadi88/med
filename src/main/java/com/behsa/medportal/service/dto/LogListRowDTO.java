@@ -11,6 +11,9 @@ import javax.validation.constraints.*;
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class LogListRowDTO implements Serializable {
 
+
+    private Long id;
+
     @Size(max = 100)
     private String msgType;
 
@@ -52,23 +55,8 @@ public class LogListRowDTO implements Serializable {
     /** No-args constructor (useful for Jackson, etc.). */
     public LogListRowDTO() {}
 
-    /** Keeps JPQL constructor projection compatible. */
-    public LogListRowDTO(
-        String msgType,
-        String correlationId,
-        String referenceType,
-        String reference,
-        String moduleSource,
-        String moduleDestination,
-        String properties,
-        String reqMessage,
-        String resMessage,
-        String error,
-        String errorDetails,
-        LocalDateTime initialDate,
-        LocalDateTime createDate,
-        String logType
-    ) {
+    public LogListRowDTO(Long id, String msgType, String correlationId, String referenceType, String reference, String moduleSource, String moduleDestination, String properties, String reqMessage, String resMessage, String error, String errorDetails, LocalDateTime initialDate, LocalDateTime createDate, String logType) {
+        this.id = id;
         this.msgType = msgType;
         this.correlationId = correlationId;
         this.referenceType = referenceType;
@@ -85,7 +73,20 @@ public class LogListRowDTO implements Serializable {
         this.logType = logType;
     }
 
+
+
+    /** Keeps JPQL constructor projection compatible. */
+
+
     // --- getters/setters ---
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getMsgType() { return msgType; }
     public void setMsgType(String msgType) { this.msgType = msgType; }
@@ -136,7 +137,8 @@ public class LogListRowDTO implements Serializable {
         if (this == o) return true;
         if (!(o instanceof LogListRowDTO)) return false;
         LogListRowDTO that = (LogListRowDTO) o;
-        return Objects.equals(msgType, that.msgType)
+        return Objects.equals(id, that.id)
+            && Objects.equals(msgType, that.msgType)
             && Objects.equals(correlationId, that.correlationId)
             && Objects.equals(referenceType, that.referenceType)
             && Objects.equals(reference, that.reference)
@@ -155,30 +157,32 @@ public class LogListRowDTO implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(
-            msgType, correlationId, referenceType, reference,
+            id, msgType, correlationId, referenceType, reference,
             moduleSource, moduleDestination, properties, reqMessage, resMessage,
             error, errorDetails, initialDate, createDate, logType
         );
     }
 
     // prettier-ignore
+
     @Override
     public String toString() {
         return "LogListRowDTO{" +
-            "msgType='" + getMsgType() + '\'' +
-            ", correlationId='" + getCorrelationId() + '\'' +
-            ", referenceType='" + getReferenceType() + '\'' +
-            ", reference='" + getReference() + '\'' +
-            ", moduleSource='" + getModuleSource() + '\'' +
-            ", moduleDestination='" + getModuleDestination() + '\'' +
-            ", properties=" + (getProperties() != null ? "[CLOB]" : null) +
-            ", reqMessage=" + (getReqMessage() != null ? "[CLOB]" : null) +
-            ", resMessage=" + (getResMessage() != null ? "[CLOB]" : null) +
-            ", error='" + getError() + '\'' +
-            ", errorDetails='" + getErrorDetails() + '\'' +
-            ", initialDate=" + getInitialDate() +
-            ", createDate=" + getCreateDate() +
-            ", logType='" + getLogType() + '\'' +
+            "id=" + id +
+            ", msgType='" + msgType + '\'' +
+            ", correlationId='" + correlationId + '\'' +
+            ", referenceType='" + referenceType + '\'' +
+            ", reference='" + reference + '\'' +
+            ", moduleSource='" + moduleSource + '\'' +
+            ", moduleDestination='" + moduleDestination + '\'' +
+            ", properties='" + properties + '\'' +
+            ", reqMessage='" + reqMessage + '\'' +
+            ", resMessage='" + resMessage + '\'' +
+            ", error='" + error + '\'' +
+            ", errorDetails='" + errorDetails + '\'' +
+            ", initialDate=" + initialDate +
+            ", createDate=" + createDate +
+            ", logType='" + logType + '\'' +
             '}';
     }
 }

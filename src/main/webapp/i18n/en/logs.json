@@ -1,5 +1,8 @@
 {
   "logs": {
+    "home": {
+      "notFound": "no log found"
+    },
     "title": "Logs",
     "nbloggers": "There are {{ total }} loggers.",
     "filter": "Filter",

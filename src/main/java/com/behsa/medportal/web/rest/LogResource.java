@@ -8,6 +8,7 @@ import com.behsa.medportal.service.LoggerService;
 import com.behsa.medportal.service.criteria.LogCriteria;
 import com.behsa.medportal.service.dto.LogDTO;
 import com.behsa.medportal.service.dto.LogListRowDTO;
+import com.behsa.medportal.service.dto.ProductDTO;
 import com.behsa.medportal.web.rest.errors.BadRequestAlertException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -160,6 +161,18 @@ public class LogResource {
     public ResponseEntity<List<LogListRowDTO>> getLogsSummary(@org.springdoc.api.annotations.ParameterObject Pageable pageable) {
         log.debug("REST request to get Logs summary page");
         Page<LogListRowDTO> page = logService.findSummary(pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    @GetMapping("/logs/search")
+    @Secured(ENTITY_NAME)
+    public ResponseEntity<List<LogDTO>> searchLogsByCorrelationId(
+        @RequestParam String correlationId,
+        @org.springdoc.api.annotations.ParameterObject Pageable pageable
+    ) {
+        log.debug("REST request to search Logs by correlationId: {}", correlationId);
+        Page<LogDTO> page = logQueryService.searchByCorrelationId(correlationId, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }

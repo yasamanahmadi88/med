@@ -4,12 +4,14 @@ import com.behsa.medportal.domain.LogEntity;
 import com.behsa.medportal.repository.LogRepository;
 import com.behsa.medportal.service.criteria.LogCriteria;
 import com.behsa.medportal.service.dto.LogDTO;
+import com.behsa.medportal.service.dto.ProductDTO;
 import com.behsa.medportal.service.mapper.LogMapper;
 import java.time.LocalDateTime;
 import java.util.List;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Path;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -137,5 +139,11 @@ public class LogQueryService {
 
             return predicate;
         };
+    }
+
+    public Page<LogDTO> searchByCorrelationId(String correlationId, Pageable pageable) {
+        log.debug("Search logs by correlationId: {}", correlationId);
+        return logRepository.findAllByCorrelationIdContainingIgnoreCase(correlationId, pageable)
+            .map(logMapper::toDto);
     }
 }

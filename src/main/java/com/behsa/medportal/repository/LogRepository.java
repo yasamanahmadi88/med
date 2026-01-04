@@ -5,6 +5,7 @@ import com.behsa.medportal.service.dto.LogListRowDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -39,4 +40,8 @@ public interface LogRepository extends JpaRepository<LogEntity, Long>, JpaSpecif
         countQuery = "select count(l) from LogEntity l"
     )
     Page<LogListRowDTO> findSummary(Pageable pageable);
+
+    @Query("select l from LogEntity l where lower(l.correlationId) like lower(concat('%', :correlationId, '%'))")
+    Page<LogEntity> findAllByCorrelationIdContainingIgnoreCase(@Param("correlationId") String correlationId, Pageable pageable);
+
 }

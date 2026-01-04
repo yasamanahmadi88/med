@@ -13,6 +13,7 @@ export type EntityArrayResponseType = HttpResponse<IReportLogs[]>;
 export class LogReportService {
   protected resourceUrl = this.applicationConfigService.getEndpointFor('api/logs');
   protected resourceReportUrl = this.applicationConfigService.getEndpointFor('api/logs/summary');
+  protected resourceReportSearchUrl = this.applicationConfigService.getEndpointFor('api/logs/search');
 
 
   constructor(protected http: HttpClient, protected applicationConfigService: ApplicationConfigService) {}
@@ -32,7 +33,7 @@ export class LogReportService {
   }
   search(req?: any): Observable<EntityArrayResponseType> {
     const options = createRequestOption(req);
-    return this.http.get<IReportLogs[]>(this.resourceUrl + "/search", { params: options, observe: 'response' });
+    return this.http.get<IReportLogs[]>(this.resourceReportSearchUrl, { params: options, observe: 'response' });
   }
   getLogIdentifier(log: Pick<IReportLogs, 'id'>): number {
     return <number>log.id;

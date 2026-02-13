@@ -1,11 +1,7 @@
 package com.behsa.medportal.security;
 
-import com.behsa.medportal.domain.Authority;
 import com.behsa.medportal.domain.User;
 import com.behsa.medportal.repository.UserRepository;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import com.behsa.medportal.service.ResourceAuthorityQueryService;
 import com.behsa.medportal.service.dto.ResourceAuthorityDTO;
 import org.hibernate.validator.internal.constraintvalidators.hv.EmailValidator;
@@ -19,6 +15,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
 /**
  * Authenticate a user from the database.
@@ -90,7 +91,8 @@ public class DomainUserDetailsService implements UserDetailsService {
 
     private UserDetails createSpringSecurityUser(String lowercaseLogin, User user) {
         if (!user.isActivated()) {
-            throw new UserNotActivatedException("User " + lowercaseLogin + " was not activated");
+            return null;
+//            throw new UserNotActivatedException("User " + lowercaseLogin + " was not activated");
         }
         List<GrantedAuthority> grantedAuthorities = user
             .getAuthorities()

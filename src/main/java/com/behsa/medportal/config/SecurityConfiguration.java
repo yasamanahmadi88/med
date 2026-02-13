@@ -94,29 +94,29 @@ public class SecurityConfiguration {
             .authorizeRequests()
             .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
             .antMatchers("/app/**/*.{js,html}").permitAll()
-            .antMatchers("/i18n/**").permitAll()
+            .antMatchers("/i18n/**").authenticated()
             .antMatchers("/content/**").permitAll()
+            .antMatchers("/content/bpmnjs/**").authenticated()
             .antMatchers("/swagger-ui/**").hasAuthority(AuthoritiesConstants.ADMIN)
             .antMatchers("/test/**").permitAll()
             // public auth & captcha endpoints
             .antMatchers(HttpMethod.POST, "/api/authenticate").permitAll()
             .antMatchers(HttpMethod.POST, "/api/register", "/api/activate",
-                "/api/account/reset-password/init",
-                "/api/account/reset-password/finish").permitAll()
+                "/api/account/reset-password/init").permitAll()
+            .antMatchers(HttpMethod.POST, "/api/account/reset-password/finish").authenticated()
             .antMatchers(HttpMethod.POST, "/api/captcha-endpoint", "/api/captcha-validate").permitAll()
             .antMatchers(HttpMethod.GET,  "/api/captcha.png").permitAll()
             // admin & other APIs
             .antMatchers("/api/admin/**").hasAuthority(AuthoritiesConstants.ADMIN)
             .antMatchers("/api/**").authenticated()
             .antMatchers("/management/health", "/management/health/**").hasAuthority(AuthoritiesConstants.ADMIN)
-            .antMatchers("/management/info").permitAll()
+            .antMatchers("/management/info").authenticated()
             .antMatchers("/management/prometheus",
                 "/management/threaddump",
                 "/management/jhimetrics").denyAll()
             .antMatchers("/management/**").hasAuthority(AuthoritiesConstants.ADMIN)
             .and()
-            .httpBasic()
-            .and()
+            //.httpBasic().and()
             .apply(new JWTConfigurer(tokenProvider));
 
         return http.build();

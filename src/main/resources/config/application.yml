@@ -210,3 +210,16 @@ captcha:
   enabled: true
   # Allow bypass in development
   dev-bypass: false
+
+
+bucket4j:
+  get:
+    bucket-size: 1000
+    token-per-minute: 100
+  post:
+    bucket-size: 2000
+    token-per-minute: 200
+
+user-session:
+  expire:
+    per-minute: 30

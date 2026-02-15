@@ -8,15 +8,13 @@ import com.behsa.medportal.service.UserService;
 import com.behsa.medportal.service.dto.AdminUserDTO;
 import com.behsa.medportal.service.dto.PasswordChangeDTO;
 import com.behsa.medportal.service.dto.UserDTO;
+import com.behsa.medportal.vaidators.PasswordValidator;
+import com.behsa.medportal.vaidators.dto.PasswordValidationDto;
 import com.behsa.medportal.web.rest.errors.EmailAlreadyUsedException;
 import com.behsa.medportal.web.rest.errors.InvalidPasswordException;
 import com.behsa.medportal.web.rest.errors.LoginAlreadyUsedException;
-import com.behsa.medportal.web.rest.errors.*;
 import com.behsa.medportal.web.rest.vm.KeyAndPasswordVM;
 import com.behsa.medportal.web.rest.vm.ManagedUserVM;
-import java.util.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +22,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * REST controller for managing the current user's account.
@@ -39,6 +42,7 @@ public class AccountResource {
         }
     }
 
+    private final PasswordValidator passwordValidator = new PasswordValidator();
     private final Logger log = LoggerFactory.getLogger(AccountResource.class);
 
     private final String ENTITY_NAME = "userManagement";
@@ -59,19 +63,28 @@ public class AccountResource {
      * {@code POST  /register} : register the user.
      *
      * @param managedUserVM the managed user View Model.
-     * @throws InvalidPasswordException {@code 400 (Bad Request)} if the password is incorrect.
+     * @throws InvalidPasswordException  {@code 400 (Bad Request)} if the password is incorrect.
      * @throws EmailAlreadyUsedException {@code 400 (Bad Request)} if the email is already used.
      * @throws LoginAlreadyUsedException {@code 400 (Bad Request)} if the login is already used.
      */
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public void registerAccount(@Valid @RequestBody ManagedUserVM managedUserVM) {
-        if (isPasswordLengthInvalid(managedUserVM.getPassword())) {
-            throw new InvalidPasswordException();
+
+        PasswordValidationDto passwordValidationDto = passwordValidator.isValid(managedUserVM.getPassword());
+        if (!passwordValidationDto.isValid()) {
+            throw new InvalidPasswordException(passwordValidationDto.getValidationException());
         }
         User user = userService.registerUser(managedUserVM, managedUserVM.getPassword());
         mailService.sendActivationEmail(user);
     }
+    @PostMapping("/password/validate")
+    public PasswordValidationDto validatePassword(@RequestBody Map<String, String> request) {
+        String password = request.get("password");
+        return passwordValidator.isValid(password);
+    }
+
+
 
     /**
      * {@code GET  /activate} : activate the registered user.
@@ -126,7 +139,7 @@ public class AccountResource {
      *
      * @param userDTO the current user information.
      * @throws EmailAlreadyUsedException {@code 400 (Bad Request)} if the email is already used.
-     * @throws RuntimeException {@code 500 (Internal Server Error)} if the user login wasn't found.
+     * @throws RuntimeException          {@code 500 (Internal Server Error)} if the user login wasn't found.
      */
     @PostMapping("/account")
     public void saveAccount(@Valid @RequestBody AdminUserDTO userDTO) {
@@ -158,8 +171,13 @@ public class AccountResource {
      */
     @PostMapping(path = "/account/change-password")
     public void changePassword(@RequestBody PasswordChangeDTO passwordChangeDto) {
-        if (isPasswordLengthInvalid(passwordChangeDto.getNewPassword())) {
-            throw new InvalidPasswordException();
+//        if (isPasswordLengthInvalid(passwordChangeDto.getNewPassword())) {
+//            throw new InvalidPasswordException();
+//        }
+        PasswordValidationDto passwordValidationDto = passwordValidator.isValid(passwordChangeDto.getNewPassword());
+
+        if (!passwordValidationDto.isValid()) {
+            throw new InvalidPasswordException(passwordValidationDto.getValidationException());
         }
         userService.changePassword(passwordChangeDto.getCurrentPassword(), passwordChangeDto.getNewPassword());
     }
@@ -186,7 +204,7 @@ public class AccountResource {
      *
      * @param keyAndPassword the generated key and the new password.
      * @throws InvalidPasswordException {@code 400 (Bad Request)} if the password is incorrect.
-     * @throws RuntimeException {@code 500 (Internal Server Error)} if the password could not be reset.
+     * @throws RuntimeException         {@code 500 (Internal Server Error)} if the password could not be reset.
      */
     @PostMapping(path = "/account/reset-password/finish")
     @Secured(ENTITY_NAME)
@@ -205,8 +223,9 @@ public class AccountResource {
     private static boolean isPasswordLengthInvalid(String password) {
         return (
             StringUtils.isEmpty(password) ||
-            password.length() < ManagedUserVM.PASSWORD_MIN_LENGTH ||
-            password.length() > ManagedUserVM.PASSWORD_MAX_LENGTH
+                password.length() < ManagedUserVM.PASSWORD_MIN_LENGTH ||
+                password.length() > ManagedUserVM.PASSWORD_MAX_LENGTH
         );
     }
+
 }

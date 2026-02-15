@@ -73,56 +73,93 @@ export class LoginComponent implements OnInit, AfterViewInit {
   }
 
   login(): void {
-    if (this.loginForm.valid && !this.isLoading) {
-      const formValue = this.loginForm.getRawValue();
-      
-      // Clear previous errors
-      this.authenticationError = false;
-      this.captchaError = false;
-      this.isLoading = true;
-      
-      // First validate the captcha
-      this.validateCaptcha(formValue.userCaptchaInput || '').then(isValid => {
-        if (isValid) {
-          // Create login credentials with captcha token
-          const credentials = {
-            username: formValue.username,
-            password: formValue.password,
-            rememberMe: formValue.rememberMe,
-            captchaToken: formValue.userCaptchaInput || ''
-          };
-
-          this.loginService.login(credentials).subscribe({
-            next: () => {
-              this.authenticationError = false;
-              this.captchaError = false;
-              this.isLoading = false;
-              if (!this.router.getCurrentNavigation()) {
-                this.router.navigate(['']);
-              }
-            },
-            error: (error) => {
-              this.isLoading = false;
-              this.authenticationError = true;
-              // Check if it's a captcha error
-              if (error.status === 400 && error.error?.message?.includes('captcha')) {
-                this.captchaError = true;
-                this.showCaptchaError('Captcha verification failed. Please try again.');
-                this.loadCaptcha(); // Reload captcha on error
-              } else {
-                this.showAuthenticationError('Invalid username or password. Please check your credentials.');
-              }
-            },
-          });
-        } else {
-          this.isLoading = false;
-          this.captchaError = true;
-          this.showCaptchaError('Incorrect captcha code. Please try again.');
-          this.loadCaptcha(); // Reload captcha on validation failure
-        }
-      });
+    if (this.loginForm.invalid || this.isLoading) {
+      return;
     }
+
+    const formValue = this.loginForm.getRawValue();
+
+    this.authenticationError = false;
+    this.captchaError = false;
+    this.isLoading = true;
+
+    const credentials = {
+      username: formValue.username,
+      password: formValue.password,
+      rememberMe: formValue.rememberMe,
+      captchaToken: formValue.userCaptchaInput || ''
+    };
+
+    this.loginService.login(credentials).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.router.navigate(['']);
+      },
+      error: error => {
+        this.isLoading = false;
+
+        if (error.status === 400 && error.error?.message?.toLowerCase().includes('captcha')) {
+          this.captchaError = true;
+          this.loadCaptcha(); // حتماً کپچای جدید
+        } else {
+          this.authenticationError = true;
+        }
+      },
+    });
   }
+
+
+  // login(): void {
+  //   if (this.loginForm.valid && !this.isLoading) {
+  //     const formValue = this.loginForm.getRawValue();
+  //
+  //     // Clear previous errors
+  //     this.authenticationError = false;
+  //     this.captchaError = false;
+  //     this.isLoading = true;
+  //
+  //     // First validate the captcha
+  //     this.validateCaptcha(formValue.userCaptchaInput || '').then(isValid => {
+  //       if (isValid) {
+  //         // Create login credentials with captcha token
+  //         const credentials = {
+  //           username: formValue.username,
+  //           password: formValue.password,
+  //           rememberMe: formValue.rememberMe,
+  //           captchaToken: formValue.userCaptchaInput || ''
+  //         };
+  //
+  //         this.loginService.login(credentials).subscribe({
+  //           next: () => {
+  //             this.authenticationError = false;
+  //             this.captchaError = false;
+  //             this.isLoading = false;
+  //             if (!this.router.getCurrentNavigation()) {
+  //               this.router.navigate(['']);
+  //             }
+  //           },
+  //           error: (error) => {
+  //             this.isLoading = false;
+  //             this.authenticationError = true;
+  //             // Check if it's a captcha error
+  //             if (error.status === 400 && error.error?.message?.includes('captcha')) {
+  //               this.captchaError = true;
+  //               this.showCaptchaError('Captcha verification failed. Please try again.');
+  //               this.loadCaptcha(); // Reload captcha on error
+  //             } else {
+  //               this.showAuthenticationError('Invalid username or password. Please check your credentials.');
+  //             }
+  //           },
+  //         });
+  //       } else {
+  //         this.isLoading = false;
+  //         this.captchaError = true;
+  //         this.showCaptchaError('Incorrect captcha code. Please try again.');
+  //         this.loadCaptcha(); // Reload captcha on validation failure
+  //       }
+  //     });
+  //   }
+  // }
 
   validateCaptcha(userInput: string): Promise<boolean> {
     return new Promise((resolve) => {

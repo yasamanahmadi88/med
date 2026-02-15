@@ -168,11 +168,11 @@ public class LogResource {
     @GetMapping("/logs/search")
     @Secured(ENTITY_NAME)
     public ResponseEntity<List<LogDTO>> searchLogsByCorrelationId(
-        @RequestParam String correlationId,
+        @RequestParam String searchText,
         @org.springdoc.api.annotations.ParameterObject Pageable pageable
     ) {
-        log.debug("REST request to search Logs by correlationId: {}", correlationId);
-        Page<LogDTO> page = logQueryService.searchByCorrelationId(correlationId, pageable);
+        log.debug("REST request to search Logs by correlationId: {}", searchText);
+        Page<LogDTO> page = logQueryService.searchByCorrelationId(searchText, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }

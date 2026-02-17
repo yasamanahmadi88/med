@@ -19,7 +19,7 @@ public class ProductEntity implements Serializable {
 
     @Id
     @GeneratedValue(generator = "AUTR_SEQ_GENERATOR")
-    @SequenceGenerator(name = "AUTR_SEQ_GENERATOR", sequenceName = "PRODUCTS_SEQ", allocationSize = 0)
+    @SequenceGenerator(name = "AUTR_SEQ_GENERATOR", sequenceName = "MEDIATION.PRODUCTS_SEQ", allocationSize = 0)
     @Column(name = "product_key")
     private Long id;
 

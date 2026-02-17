@@ -1,6 +1,6 @@
 {
   "global": {
-    "title": "Real Time Aggregator Portal",
+    "title": "File Mediator Portal",
     "browsehappy": "You are using an <strong>outdated</strong> browser. Please <a href=\"http://browsehappy.com/?locale=en\">upgrade your browser</a> to improve your experience.",
     "menu": {
       "home": "Home",
@@ -74,14 +74,22 @@
       "validate": {
         "newpassword": {
           "required": "Your password is required.",
-          "minlength": "Your password is required to be at least 4 characters.",
-          "maxlength": "Your password cannot be longer than 50 characters.",
-          "strength": "Password strength:"
+          "minlength": "Your password is required to be at least 8 characters.",
+          "maxlength": "Your password cannot be longer than 64 characters.",
+          "strength": "Password strength:",
+          "emptyPassword": "Password cannot be empty",
+          "passwordSmallerThanMinLength": "Password must be at least 8 characters long",
+          "passwordGraterThanMaxLength": "Password cannot be longer than 64 characters",
+          "passwordMustContainAtLeastOneUppercaseLetter" : "Password must contain at least one uppercase letter",
+          "passwordMustContainAtLeastOneLowercaseLetter" : "Password must contain at least one lowercase letter",
+          "passwordMustContainAtLeastOneDigit" : "Password must contain at least one digit",
+          "passwordMustContainAtLeastOneSpecialCharacter" : "Password must contain at least one special character (e.g., !@#$%^&*)",
+          "passwordIsTooCommonAndInsecure" : "Password is too common and insecure"
         },
         "confirmpassword": {
           "required": "Your confirmation password is required.",
-          "minlength": "Your confirmation password is required to be at least 4 characters.",
-          "maxlength": "Your confirmation password cannot be longer than 50 characters."
+          "minlength": "Your confirmation password is required to be at least 8 characters.",
+          "maxlength": "Your confirmation password cannot be longer than 64 characters."
         },
         "email": {
           "required": "Your email is required.",

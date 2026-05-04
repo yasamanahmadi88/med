@@ -9,6 +9,8 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -34,4 +36,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findOneWithAuthoritiesByEmailIgnoreCase(String email);
 
     Page<User> findAllByIdNotNullAndActivatedIsTrue(Pageable pageable);
+    @Query(value = "SELECT A.NAME FROM JHI_USER_AUTHORITY UA, JHI_AUTHORITY A, JHI_USER U  WHERE U.LOGIN = :loginName AND UA.USER_ID = U.ID AND UA.AUTHORITY_ID = A.ID", nativeQuery = true)
+    List<String> findAllAuthoritiesByLoginName(@Param("loginName") String loginName);
+
 }

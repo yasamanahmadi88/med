@@ -1,6 +1,7 @@
 package com.behsa.medportal.config;
 
 import com.behsa.medportal.security.AuthoritiesConstants;
+import com.behsa.medportal.security.SecurityCache;
 import com.behsa.medportal.security.jwt.JWTConfigurer;
 import com.behsa.medportal.security.jwt.TokenProvider;
 import org.springframework.context.annotation.Bean;
@@ -31,17 +32,19 @@ public class SecurityConfiguration {
     private final TokenProvider tokenProvider;
     private final CorsFilter corsFilter;
     private final SecurityProblemSupport problemSupport;
+    private final SecurityCache securityCache;
 
     public SecurityConfiguration(
         TokenProvider tokenProvider,
         CorsFilter corsFilter,
         JHipsterProperties jHipsterProperties,
-        SecurityProblemSupport problemSupport
+        SecurityProblemSupport problemSupport, SecurityCache securityCache
     ) {
         this.tokenProvider = tokenProvider;
         this.corsFilter = corsFilter;
         this.problemSupport = problemSupport;
         this.jHipsterProperties = jHipsterProperties;
+        this.securityCache = securityCache;
     }
 
     @Bean
@@ -117,7 +120,7 @@ public class SecurityConfiguration {
             .antMatchers("/management/**").hasAuthority(AuthoritiesConstants.ADMIN)
             .and()
             //.httpBasic().and()
-            .apply(new JWTConfigurer(tokenProvider));
+            .apply(new JWTConfigurer(tokenProvider,securityCache));
 
         return http.build();
     }

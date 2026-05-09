@@ -41,7 +41,7 @@ public class JWTFilter extends GenericFilterBean {
         if (
             !httpServletRequest.getRequestURI().endsWith("api/cp-eyrtyertye") &&
                 !httpServletRequest.getRequestURI().endsWith("api/authenticate") &&
-                !httpServletRequest.getRequestURI().endsWith("management/info") &&
+               // !httpServletRequest.getRequestURI().endsWith("management/info") &&
                 !httpServletRequest.getRequestURI().endsWith("/captcha-endpoint") &&
                 !httpServletRequest.getRequestURI().endsWith("api/captcha-validate") &&
                 !httpServletRequest.getRequestURI().endsWith("api/captcha.png") &&

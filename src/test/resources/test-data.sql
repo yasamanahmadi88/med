@@ -1,0 +1,55 @@
+DELETE FROM JHI_USER_AUTHORITY;
+DELETE FROM JHI_RESOURCE_AUTHORITY;
+DELETE FROM JHI_RESOURCE;
+DELETE FROM JHI_USER;
+DELETE FROM JHI_AUTHORITY;
+DELETE FROM JHI_AUDIT_EVENT_DATA;
+DELETE FROM JHI_AUDIT_EVENT;
+
+INSERT INTO JHI_AUTHORITY (ID, NAME, DISPLAY_NAME, PARENT_ID)
+VALUES (1, 'ROLE_USER', 'User', NULL);
+
+INSERT INTO JHI_AUTHORITY (ID, NAME, DISPLAY_NAME, PARENT_ID)
+VALUES (2, 'ROLE_ADMIN', 'Admin', NULL);
+
+INSERT INTO JHI_USER (
+    ID,
+    LOGIN,
+    PASSWORD_HASH,
+    FIRST_NAME,
+    LAST_NAME,
+    EMAIL,
+    ACTIVATED,
+    LANG_KEY,
+    IMAGE_URL,
+    ACTIVATION_KEY,
+    RESET_KEY,
+    RESET_DATE,
+    PARTY_ID,
+    CREATED_BY,
+    CREATED_DATE,
+    LAST_MODIFIED_BY,
+    LAST_MODIFIED_DATE
+)
+VALUES (
+           1,
+           'test',
+           '$2a$10$VEjxoAgXbP7JxuMb1FGnIegqQNCBeQfGLO4xk1rCmEtF4iGm3uUeK',
+           'Test',
+           'User',
+           'test@localhost',
+           TRUE,
+           'en',
+           NULL,
+           NULL,
+           NULL,
+           NULL,
+           NULL,
+           'system',
+           CURRENT_TIMESTAMP,
+           'system',
+           CURRENT_TIMESTAMP
+       );
+
+INSERT INTO JHI_USER_AUTHORITY (USER_ID, AUTHORITY_ID)
+VALUES (1, 1);

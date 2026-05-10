@@ -307,6 +307,11 @@
             <artifactId>plexus-utils</artifactId>
             <version>3.5.1</version>
         </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
 
     </dependencies>
 
@@ -975,7 +980,7 @@
                                     <include>**/*IT*</include>
                                     <include>**/*IntTest*</include>
                                 </includes>
-                                <argLine>@{argLine} -Dspring.profiles.active=testdev</argLine>
+                                <argLine>@{argLine} -Dspring.profiles.active=test</argLine>
                             </configuration>
                             <executions>
                                 <execution>

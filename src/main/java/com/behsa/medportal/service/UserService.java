@@ -68,22 +68,24 @@ public class UserService {
     }
 
     public Optional<UserDTO> completePasswordReset(String newPassword, String key) {
-        log.debug("Reset user password for reset key {}", key);
-        return Optional
-            .of(userRepository.findOneByLogin(key))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .map(
-                user -> {
-                    user.setPassword(passwordEncoder.encode(newPassword));
-                    user.setResetKey(null);
-                    user.setResetDate(null);
-                    userRepository.save(user);
-                    log.debug("Changed Information for User: {}", user);
-                    this.clearUserCaches(user);
-                    return user;
-                }
-            )
+        log.debug("Reset user password for reset key");
+
+        if (key == null || key.isBlank()) {
+            return Optional.empty();
+        }
+
+        return userRepository
+            .findOneByResetKey(key)
+            .filter(user -> user.getResetDate() != null)
+            .filter(user -> user.getResetDate().isAfter(Instant.now().minusSeconds(86400)))
+            .map(user -> {
+                user.setPassword(passwordEncoder.encode(newPassword));
+                user.setResetKey(null);
+                user.setResetDate(null);
+                userRepository.save(user);
+                this.clearUserCaches(user);
+                return user;
+            })
             .map(UserDTO::new);
     }
 
@@ -119,24 +121,31 @@ public class UserService {
         User newUser = new User();
         String encryptedPassword = passwordEncoder.encode(password);
         newUser.setLogin(userDTO.getLogin().toLowerCase());
-        // new user gets initially a generated password
         newUser.setPassword(encryptedPassword);
         newUser.setFirstName(userDTO.getFirstName());
         newUser.setLastName(userDTO.getLastName());
+
         if (userDTO.getEmail() != null) {
             newUser.setEmail(userDTO.getEmail().toLowerCase());
         }
+
         newUser.setImageUrl(userDTO.getImageUrl());
         newUser.setLangKey(userDTO.getLangKey());
-        // new user is not active
         newUser.setActivated(false);
-        // new user gets registration key
         newUser.setActivationKey(RandomUtil.generateActivationKey());
+
         Set<Authority> authorities = new HashSet<>();
-        authorityRepository.findById(AuthoritiesConstants.USER).ifPresent(authorities::add);
+
+        Authority userAuthority = authorityRepository
+            .findByName(AuthoritiesConstants.USER)
+            .orElseThrow(() -> new IllegalStateException("ROLE_USER authority was not found in database"));
+
+        authorities.add(userAuthority);
         newUser.setAuthorities(authorities);
+
         userRepository.save(newUser);
         this.clearUserCaches(newUser);
+
         log.debug("Created Information for User: {}", newUser);
         return newUser;
     }

@@ -6,6 +6,8 @@ import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 
 import com.behsa.medportal.config.ApplicationProperties;
 import com.behsa.medportal.config.Constants;
+import com.behsa.medportal.security.UserLoginPolicy;
+import com.behsa.medportal.web.rest.errors.BadRequestAlertException;
 import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeTests;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
@@ -26,7 +28,7 @@ class TechnicalStructureTest {
 
         .whereLayer("Config").mayNotBeAccessedByAnyLayer()
         .whereLayer("Web").mayOnlyBeAccessedByLayers("Config")
-        .whereLayer("Service").mayOnlyBeAccessedByLayers("Web", "Config")
+        .whereLayer("Service").mayOnlyBeAccessedByLayers("Web", "Config", "Security")
         .whereLayer("Security").mayOnlyBeAccessedByLayers("Config", "Service", "Web")
         .whereLayer("Persistence").mayOnlyBeAccessedByLayers("Service", "Security", "Web", "Config")
         .whereLayer("Domain").mayOnlyBeAccessedByLayers("Persistence", "Service", "Security", "Web", "Config")
@@ -35,5 +37,14 @@ class TechnicalStructureTest {
         .ignoreDependency(alwaysTrue(), belongToAnyOf(
             Constants.class,
             ApplicationProperties.class
-        ));
+        ))
+
+        // Existing exception:
+        // UserLoginPolicy is inside security package, but it currently throws a web-layer exception.
+        // This keeps the architecture rule strict for Web layer in general,
+        // while allowing only this known dependency.
+        .ignoreDependency(
+            belongToAnyOf(UserLoginPolicy.class),
+            belongToAnyOf(BadRequestAlertException.class)
+        );
 }

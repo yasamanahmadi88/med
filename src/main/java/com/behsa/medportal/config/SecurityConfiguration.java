@@ -98,11 +98,18 @@ public class SecurityConfiguration {
             .antMatchers("/content/**").permitAll()
             .antMatchers("/swagger-ui/**").hasAuthority(AuthoritiesConstants.ADMIN)
             .antMatchers("/test/**").permitAll()
-            // public auth & captcha endpoints
-            .antMatchers(HttpMethod.POST, "/api/authenticate").permitAll()
-            .antMatchers(HttpMethod.POST, "/api/register", "/api/activate",
+
+            // authenticate endpoint has both GET and POST in JHipster tests
+            .antMatchers("/api/authenticate").permitAll()
+
+            // public account endpoints
+            .antMatchers(HttpMethod.POST,
+                "/api/register",
                 "/api/account/reset-password/init",
-                "/api/account/reset-password/finish").permitAll()
+                "/api/account/reset-password/finish"
+            ).permitAll()
+            .antMatchers(HttpMethod.GET, "/api/activate").permitAll()
+            // captcha endpoints
             .antMatchers(HttpMethod.POST, "/api/captcha-endpoint", "/api/captcha-validate").permitAll()
             .antMatchers(HttpMethod.GET,  "/api/captcha.png").permitAll()
             // admin & other APIs

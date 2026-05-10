@@ -115,8 +115,7 @@ mediation:
 # ===================================================================
 
 captcha:
-  # Enable captcha in development
+  provider: local
   enabled: true
-  # Allow bypass in development for testing (set to true to skip captcha validation)
-  dev-bypass: true
+  dev-bypass: false
 

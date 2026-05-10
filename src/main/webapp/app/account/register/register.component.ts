@@ -1,9 +1,7 @@
 import { Component, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
-import { HttpErrorResponse } from '@angular/common/http';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 
-import { EMAIL_ALREADY_USED_TYPE, LOGIN_ALREADY_USED_TYPE } from 'app/config/error.constants';
 import { RegisterService } from './register.service';
 
 @Component({
@@ -16,8 +14,6 @@ export class RegisterComponent implements AfterViewInit {
 
   doNotMatch = false;
   error = false;
-  errorEmailExists = false;
-  errorUserExists = false;
   success = false;
 
   registerForm = new FormGroup({
@@ -55,27 +51,24 @@ export class RegisterComponent implements AfterViewInit {
   register(): void {
     this.doNotMatch = false;
     this.error = false;
-    this.errorEmailExists = false;
-    this.errorUserExists = false;
+    this.success = false;
 
     const { password, confirmPassword } = this.registerForm.getRawValue();
+
     if (password !== confirmPassword) {
       this.doNotMatch = true;
-    } else {
-      const { login, email } = this.registerForm.getRawValue();
-      this.registerService
-        .save({ login, email, password, langKey: this.translateService.currentLang })
-        .subscribe({ next: () => (this.success = true), error: response => this.processError(response) });
+      return;
     }
-  }
 
-  private processError(response: HttpErrorResponse): void {
-    if (response.status === 400 && response.error.type === LOGIN_ALREADY_USED_TYPE) {
-      this.errorUserExists = true;
-    } else if (response.status === 400 && response.error.type === EMAIL_ALREADY_USED_TYPE) {
-      this.errorEmailExists = true;
-    } else {
-      this.error = true;
-    }
+    const { login, email } = this.registerForm.getRawValue();
+
+    this.registerService.save({ login, email, password, langKey: this.translateService.currentLang }).subscribe({
+      next: () => {
+        this.success = true;
+      },
+      error: () => {
+        this.error = true;
+      },
+    });
   }
 }

@@ -38,7 +38,10 @@ public class DatabasePortalConfiguration {
         EntityManagerFactoryBuilder builder) {
         return builder
             .dataSource(defaultDataSource())
-            .packages("com.behsa.medportal.domain")
+            .packages(
+                "com.behsa.medportal.domain",
+                "com.behsa.medportal.repository.timezone"
+            )
             .persistenceUnit("default")
             .build();
     }

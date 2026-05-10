@@ -5,25 +5,25 @@ import com.behsa.medportal.repository.UserRepository;
 import com.behsa.medportal.security.SecurityUtils;
 import com.behsa.medportal.service.MailService;
 import com.behsa.medportal.service.UserService;
+import com.behsa.medportal.service.UsernameAlreadyUsedException;
 import com.behsa.medportal.service.dto.AdminUserDTO;
 import com.behsa.medportal.service.dto.PasswordChangeDTO;
 import com.behsa.medportal.service.dto.UserDTO;
-import com.behsa.medportal.web.rest.errors.EmailAlreadyUsedException;
 import com.behsa.medportal.web.rest.errors.InvalidPasswordException;
+import com.behsa.medportal.service.EmailAlreadyUsedException;
 import com.behsa.medportal.web.rest.errors.LoginAlreadyUsedException;
-import com.behsa.medportal.web.rest.errors.*;
 import com.behsa.medportal.web.rest.vm.KeyAndPasswordVM;
 import com.behsa.medportal.web.rest.vm.ManagedUserVM;
-import java.util.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import java.util.Optional;
 
 /**
  * REST controller for managing the current user's account.
@@ -64,15 +64,28 @@ public class AccountResource {
      * @throws LoginAlreadyUsedException {@code 400 (Bad Request)} if the login is already used.
      */
     @PostMapping("/register")
-    @ResponseStatus(HttpStatus.CREATED)
-    public void registerAccount(@Valid @RequestBody ManagedUserVM managedUserVM) {
+    public ResponseEntity<Void> registerAccount(@Valid @RequestBody ManagedUserVM managedUserVM) {
+//        if (isPasswordLengthInvalid(managedUserVM.getPassword())) {
+//            throw new InvalidPasswordException();
+//        }
+//        User user = userService.registerUser(managedUserVM, managedUserVM.getPassword());
+//        mailService.sendActivationEmail(user);
+//    }
         if (isPasswordLengthInvalid(managedUserVM.getPassword())) {
             throw new InvalidPasswordException();
         }
-        User user = userService.registerUser(managedUserVM, managedUserVM.getPassword());
-        mailService.sendActivationEmail(user);
-    }
 
+        try {
+            User user = userService.registerUser(managedUserVM, managedUserVM.getPassword());
+            mailService.sendActivationEmail(user);
+        } catch (UsernameAlreadyUsedException | EmailAlreadyUsedException ex) {
+            log.info("Public registration request ignored because login/email is already in use.");
+        } catch (DataIntegrityViolationException ex) {
+            log.warn("Public registration request ignored because of unique constraint violation.");
+        }
+
+        return ResponseEntity.accepted().build();
+    }
     /**
      * {@code GET  /activate} : activate the registered user.
      *
@@ -107,17 +120,16 @@ public class AccountResource {
      */
     @GetMapping("/account")
     public AdminUserDTO getAccount() {
-        /*return userService
-            .getUserWithAuthorities()
-            .map(AdminUserDTO::new)
-            .orElseThrow(() -> new AccountResourceException("User could not be found"));*/
-
         AdminUserDTO userDto = userService
             .getUserWithAuthorities()
             .map(AdminUserDTO::new)
             .orElseThrow(() -> new AccountResourceException("User could not be found"));
-        userDto.setPartyId(SecurityUtils.getCurrentUser().get().getPartyId());
-        userDto.setResourceAuthorities(SecurityUtils.getCurrentUser().get().getResourceAuthorities());
+
+        SecurityUtils.getCurrentUser().ifPresent(portalUser -> {
+            userDto.setPartyId(portalUser.getPartyId());
+            userDto.setResourceAuthorities(portalUser.getResourceAuthorities());
+        });
+
         return userDto;
     }
 
@@ -165,7 +177,7 @@ public class AccountResource {
     }
 
     /**
-     * {@code POST   /account/reset-password/init} : Send an email to reset the password of the user.
+     * {@code POST   /account/reset-password/init} : Email reset the password of the user.
      *
      * @param mail the mail of the user.
      */
@@ -189,17 +201,22 @@ public class AccountResource {
      * @throws RuntimeException {@code 500 (Internal Server Error)} if the password could not be reset.
      */
     @PostMapping(path = "/account/reset-password/finish")
-    @Secured(ENTITY_NAME)
-    public ResponseEntity<Optional<UserDTO>> finishPasswordReset(@RequestBody KeyAndPasswordVM keyAndPassword) {
+    public ResponseEntity<Void>  finishPasswordReset(@RequestBody KeyAndPasswordVM keyAndPassword) {
         if (isPasswordLengthInvalid(keyAndPassword.getNewPassword())) {
             throw new InvalidPasswordException();
         }
-        Optional<UserDTO> user = userService.completePasswordReset(keyAndPassword.getNewPassword(), keyAndPassword.getKey());
+        Optional<UserDTO> user = userService.completePasswordReset(
+            keyAndPassword.getNewPassword(),
+            keyAndPassword.getKey()
+        );
 
-        if (!user.isPresent()) {
-            throw new AccountResourceException("No user was found for this reset key");
+        if (user.isPresent()) {
+            log.info("Password reset completed.");
+        } else {
+            log.info("Password reset finish request ignored because reset key was invalid or expired.");
         }
-        return new ResponseEntity<>(user, null, HttpStatus.OK);
+       // return new ResponseEntity<>(user, null, HttpStatus.OK);
+        return ResponseEntity.noContent().build();
     }
 
     private static boolean isPasswordLengthInvalid(String password) {

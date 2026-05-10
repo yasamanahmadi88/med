@@ -23,12 +23,16 @@ export class AuthServerProvider {
   getToken(): string {
     const tokenInLocalStorage: string | null = this.localStorageService.retrieve('authenticationToken');
     const tokenInSessionStorage: string | null = this.sessionStorageService.retrieve('authenticationToken');
+
     return tokenInLocalStorage ?? tokenInSessionStorage ?? '';
   }
 
   login(credentials: Login): Observable<void> {
     return this.http
-      .post<JwtToken>(this.applicationConfigService.getEndpointFor('api/authenticate'), credentials)
+      .post<JwtToken>(
+        this.applicationConfigService.getEndpointFor('api/authenticate'),
+        credentials
+      )
       .pipe(map(response => this.authenticateSuccess(response, credentials.rememberMe)));
   }
 
@@ -42,6 +46,7 @@ export class AuthServerProvider {
 
   private authenticateSuccess(response: JwtToken, rememberMe: boolean): void {
     const jwt = response.id_token;
+
     if (rememberMe) {
       this.localStorageService.store('authenticationToken', jwt);
       this.sessionStorageService.clear('authenticationToken');

@@ -7,6 +7,7 @@ import com.behsa.medportal.repository.AuthorityRepository;
 import com.behsa.medportal.repository.UserRepository;
 import com.behsa.medportal.security.AuthoritiesConstants;
 import com.behsa.medportal.security.captcha.CaptchaValidationService;
+import com.behsa.medportal.web.rest.vm.KeyAndPasswordVM;
 import com.behsa.medportal.web.rest.vm.LoginVM;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -135,5 +136,39 @@ class AuthResourceIT {
         return authorityRepository
             .findByName(authorityName)
             .orElseThrow(() -> new IllegalStateException(authorityName + " authority was not found in database"));
+    }
+
+
+    @Test
+    @Transactional
+    @WithUnauthenticatedMockUser
+    void finishPasswordResetShouldRejectUsernameAsResetKey() throws Exception {
+        KeyAndPasswordVM keyAndPasswordVM = new KeyAndPasswordVM();
+        keyAndPasswordVM.setKey("admin");
+        keyAndPasswordVM.setNewPassword("12345678");
+
+        restAuthMockMvc
+            .perform(
+                post("/api/account/reset-password/finish")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(TestUtil.convertObjectToJsonBytes(keyAndPasswordVM))
+            )
+            .andExpect(status().isBadRequest());
+    }
+    @Test
+    @Transactional
+    @WithUnauthenticatedMockUser
+    void finishPasswordResetShouldRejectUnknownResetKey() throws Exception {
+        KeyAndPasswordVM keyAndPasswordVM = new KeyAndPasswordVM();
+        keyAndPasswordVM.setKey("ABCDEFGHIJKLMNOPQRST");
+        keyAndPasswordVM.setNewPassword("12345678");
+
+        restAuthMockMvc
+            .perform(
+                post("/api/account/reset-password/finish")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(TestUtil.convertObjectToJsonBytes(keyAndPasswordVM))
+            )
+            .andExpect(status().isBadRequest());
     }
 }

@@ -201,21 +201,22 @@ public class AccountResource {
      * @throws RuntimeException {@code 500 (Internal Server Error)} if the password could not be reset.
      */
     @PostMapping(path = "/account/reset-password/finish")
-    public ResponseEntity<Void>  finishPasswordReset(@RequestBody KeyAndPasswordVM keyAndPassword) {
+    public ResponseEntity<Void> finishPasswordReset(@Valid @RequestBody KeyAndPasswordVM keyAndPassword) {
         if (isPasswordLengthInvalid(keyAndPassword.getNewPassword())) {
             throw new InvalidPasswordException();
         }
+
         Optional<UserDTO> user = userService.completePasswordReset(
             keyAndPassword.getNewPassword(),
             keyAndPassword.getKey()
         );
 
-        if (user.isPresent()) {
-            log.info("Password reset completed.");
-        } else {
+        if (!user.isPresent()) {
             log.info("Password reset finish request ignored because reset key was invalid or expired.");
+            return ResponseEntity.badRequest().build();
         }
-       // return new ResponseEntity<>(user, null, HttpStatus.OK);
+
+        log.info("Password reset completed.");
         return ResponseEntity.noContent().build();
     }
 

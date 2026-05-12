@@ -70,7 +70,7 @@ public class UserService {
     public Optional<UserDTO> completePasswordReset(String newPassword, String key) {
         log.debug("Reset user password for reset key");
 
-        if (key == null || key.isBlank()) {
+        if (key == null || key.isBlank() || key.length() != 20) {
             return Optional.empty();
         }
 
@@ -174,10 +174,16 @@ public class UserService {
         } else {
             user.setLangKey(userDTO.getLangKey());
         }
-        String encryptedPassword = passwordEncoder.encode("Ab@123456");
+//        String encryptedPassword = passwordEncoder.encode("Ab@123456");
+//        user.setPassword(encryptedPassword);
+//        user.setResetKey(RandomUtil.generateResetKey());
+//        user.setResetDate(Instant.now());
+//        user.setActivated(true);
+
+        String encryptedPassword = passwordEncoder.encode(RandomUtil.generatePassword());
         user.setPassword(encryptedPassword);
-        user.setResetKey(RandomUtil.generateResetKey());
-        user.setResetDate(Instant.now());
+        user.setResetKey(null);
+        user.setResetDate(null);
         user.setActivated(true);
         if (userDTO.getAuthorities() != null) {
             Set<Authority> authorities = userDTO

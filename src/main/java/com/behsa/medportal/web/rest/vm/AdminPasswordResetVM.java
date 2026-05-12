@@ -7,24 +7,11 @@ import javax.validation.constraints.Size;
 /**
  * View Model object for storing the user's reset key and new password.
  */
-public class KeyAndPasswordVM {
-
-    @NotBlank
-    @Size(min = 20, max = 20)
-    @Pattern(regexp = "^[A-Za-z0-9]+$")
-    private String key;
+public class AdminPasswordResetVM {
 
     @NotBlank
     @Size(min = ManagedUserVM.PASSWORD_MIN_LENGTH, max = ManagedUserVM.PASSWORD_MAX_LENGTH)
     private String newPassword;
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
 
     public String getNewPassword() {
         return newPassword;

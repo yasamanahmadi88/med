@@ -12,6 +12,7 @@ import com.behsa.medportal.service.dto.UserDTO;
 import com.behsa.medportal.web.rest.errors.InvalidPasswordException;
 import com.behsa.medportal.service.EmailAlreadyUsedException;
 import com.behsa.medportal.web.rest.errors.LoginAlreadyUsedException;
+import com.behsa.medportal.web.rest.vm.AdminPasswordResetVM;
 import com.behsa.medportal.web.rest.vm.KeyAndPasswordVM;
 import com.behsa.medportal.web.rest.vm.ManagedUserVM;
 import org.apache.commons.lang3.StringUtils;
@@ -226,5 +227,22 @@ public class AccountResource {
             password.length() < ManagedUserVM.PASSWORD_MIN_LENGTH ||
             password.length() > ManagedUserVM.PASSWORD_MAX_LENGTH
         );
+    }
+    @PostMapping("/admin/users/{login}/reset-password")
+    public ResponseEntity<Void> resetUserPasswordByAdmin(
+        @PathVariable String login,
+        @Valid @RequestBody AdminPasswordResetVM passwordResetVM
+    ) {
+        if (isPasswordLengthInvalid(passwordResetVM.getNewPassword())) {
+            throw new InvalidPasswordException();
+        }
+
+        boolean changed = userService.resetPasswordByAdmin(login, passwordResetVM.getNewPassword());
+
+        if (!changed) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.noContent().build();
     }
 }

@@ -19,10 +19,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import tech.jhipster.config.JHipsterProperties;
+import com.behsa.medportal.repository.UserRepository;
+import org.springframework.security.authentication.BadCredentialsException;
 
 @Component
 public class TokenProvider {
@@ -45,10 +46,13 @@ public class TokenProvider {
 
     private final SecurityMetersService securityMetersService;
 
+    private final UserRepository userRepository;
+
     public TokenProvider(JHipsterProperties jHipsterProperties, SecurityMetersService securityMetersService,
-                         ResourceAuthorityQueryService resourceAuthorityQueryService) {
+                         ResourceAuthorityQueryService resourceAuthorityQueryService, UserRepository userRepository) {
 
         this.resourceAuthorityQueryService = resourceAuthorityQueryService;
+        this.userRepository = userRepository;
 
         byte[] keyBytes;
         String secret = jHipsterProperties.getSecurity().getAuthentication().getJwt().getBase64Secret();
@@ -97,25 +101,59 @@ public class TokenProvider {
             .compact();
     }
 
+//    public Authentication getAuthentication(String token) {
+//        Claims claims = jwtParser.parseClaimsJws(token).getBody();
+//
+//        Collection<? extends GrantedAuthority> authorities = Arrays
+//            .stream(claims.get(AUTHORITIES_KEY).toString().split(","))
+//            .filter(auth -> !auth.trim().isEmpty())
+//            .map(SimpleGrantedAuthority::new)
+//            .collect(Collectors.toList());
+//
+//        List<ResourceAuthorityDTO> resourceAuthorities = fetchResourceAuthorities(authorities);
+//        PortalUser principal = new PortalUser(
+//            claims.getSubject(),
+//            "",
+//            true,
+//            true,
+//            true,
+//            true,
+//            authorities,
+//            ((String) claims.get(PARTY_ID_KEY)),
+//            resourceAuthorities,
+//            null
+//        );
+//
+//        return new UsernamePasswordAuthenticationToken(principal, token, authorities);
+//    }
+
     public Authentication getAuthentication(String token) {
         Claims claims = jwtParser.parseClaimsJws(token).getBody();
 
-        Collection<? extends GrantedAuthority> authorities = Arrays
-            .stream(claims.get(AUTHORITIES_KEY).toString().split(","))
-            .filter(auth -> !auth.trim().isEmpty())
+        String login = claims.getSubject();
+
+        com.behsa.medportal.domain.User user = userRepository
+            .findOneWithAuthoritiesByLoginAndActivatedTrue(login)
+            .orElseThrow(() -> new BadCredentialsException("User is not active or no longer exists."));
+
+        Collection<? extends GrantedAuthority> authorities = user
+            .getAuthorities()
+            .stream()
+            .map(authority -> authority.getName())
             .map(SimpleGrantedAuthority::new)
             .collect(Collectors.toList());
 
         List<ResourceAuthorityDTO> resourceAuthorities = fetchResourceAuthorities(authorities);
+
         PortalUser principal = new PortalUser(
-            claims.getSubject(),
+            user.getLogin(),
             "",
-            true,
+            user.isActivated(),
             true,
             true,
             true,
             authorities,
-            ((String) claims.get(PARTY_ID_KEY)),
+            user.getPartyId(),
             resourceAuthorities,
             null
         );

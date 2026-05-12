@@ -100,6 +100,26 @@ public class UserService {
                 return user;
             });
     }
+    public boolean resetPasswordByAdmin(String login, String newPassword) {
+        if (login == null || login.isBlank()) {
+            return false;
+        }
+
+        return userRepository
+            .findOneByLogin(login.toLowerCase())
+            .filter(User::isActivated)
+            .map(user -> {
+                user.setPassword(passwordEncoder.encode(newPassword));
+                user.setResetKey(null);
+                user.setResetDate(null);
+                user.setActivationKey(null);
+                userRepository.save(user);
+                this.clearUserCaches(user);
+                log.info("Password was reset by admin for user {}", user.getLogin());
+                return true;
+            })
+            .orElse(false);
+    }
 
     public User registerUser(AdminUserDTO userDTO, String password) {
         userRepository
@@ -222,6 +242,11 @@ public class UserService {
                 }
                 user.setImageUrl(userDTO.getImageUrl());
                 user.setActivated(userDTO.isActivated());
+                if (!userDTO.isActivated()) {
+                    user.setActivationKey(null);
+                    user.setResetKey(null);
+                    user.setResetDate(null);
+                }
                 user.setLangKey(userDTO.getLangKey());
                 Set<Authority> managedAuthorities = user.getAuthorities();
                 managedAuthorities.clear();

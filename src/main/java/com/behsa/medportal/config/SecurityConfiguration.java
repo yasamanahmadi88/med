@@ -96,7 +96,13 @@ public class SecurityConfiguration {
             .antMatchers("/app/**/*.{js,html}").permitAll()
             .antMatchers("/i18n/**").permitAll()
             .antMatchers("/content/**").permitAll()
-            .antMatchers("/swagger-ui/**").hasAuthority(AuthoritiesConstants.ADMIN)
+            .antMatchers(
+                "/swagger-ui/**",
+                "/swagger-ui.html",
+                "/v3/api-docs/**",
+                "/swagger-resources/**",
+                "/api-docs/**"
+            ).hasAuthority(AuthoritiesConstants.ADMIN)
             .antMatchers("/test/**").permitAll()
 
             // authenticate endpoint has both GET and POST in JHipster tests
@@ -116,7 +122,7 @@ public class SecurityConfiguration {
             .antMatchers("/api/admin/**").hasAuthority(AuthoritiesConstants.ADMIN)
             .antMatchers("/api/**").authenticated()
             .antMatchers("/management/health", "/management/health/**").hasAuthority(AuthoritiesConstants.ADMIN)
-            .antMatchers("/management/info").permitAll()
+            .antMatchers("/management/info").hasAuthority(AuthoritiesConstants.ADMIN)
             .antMatchers("/management/prometheus",
                 "/management/threaddump",
                 "/management/jhimetrics").denyAll()

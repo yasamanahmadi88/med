@@ -11,7 +11,7 @@ import org.springframework.security.config.annotation.method.configuration.Globa
  * Custom method security configuration
  */
 @Configuration
-@EnableGlobalMethodSecurity(prePostEnabled = false, securedEnabled = true, proxyTargetClass = true, mode = AdviceMode.PROXY)
+@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, proxyTargetClass = true, mode = AdviceMode.PROXY)
 public class MethodSecurityConfiguration extends GlobalMethodSecurityConfiguration {
 
     private final ResourceAuthorityQueryService resourceAuthorityQueryService;

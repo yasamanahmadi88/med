@@ -120,6 +120,12 @@ public class SecurityConfiguration {
             .antMatchers(HttpMethod.GET,  "/api/captcha.png").permitAll()
             // admin & other APIs
             .antMatchers("/api/admin/**").hasAuthority(AuthoritiesConstants.ADMIN)
+            .antMatchers(HttpMethod.GET, "/api/authorities").hasAuthority(AuthoritiesConstants.ADMIN)
+            .antMatchers("/api/resources/**").hasAuthority(AuthoritiesConstants.ADMIN)
+            .antMatchers("/api/resource-authorities/**").hasAuthority(AuthoritiesConstants.ADMIN)
+            .antMatchers("/api/med-authorities/**").hasAuthority(AuthoritiesConstants.ADMIN)
+            .antMatchers("/api/configs/**").hasAuthority(AuthoritiesConstants.ADMIN)
+            .antMatchers("/api/custom-audit-events/**").hasAuthority(AuthoritiesConstants.ADMIN)
             .antMatchers("/api/**").authenticated()
             .antMatchers("/management/health", "/management/health/**").hasAuthority(AuthoritiesConstants.ADMIN)
             .antMatchers("/management/info").hasAuthority(AuthoritiesConstants.ADMIN)

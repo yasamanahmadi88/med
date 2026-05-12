@@ -24,6 +24,7 @@ import org.springframework.util.ObjectUtils;
 import tech.jhipster.config.JHipsterProperties;
 import com.behsa.medportal.repository.UserRepository;
 import org.springframework.security.authentication.BadCredentialsException;
+import com.behsa.medportal.domain.Authority;
 
 @Component
 public class TokenProvider {
@@ -47,6 +48,7 @@ public class TokenProvider {
     private final SecurityMetersService securityMetersService;
 
     private final UserRepository userRepository;
+
 
     public TokenProvider(JHipsterProperties jHipsterProperties, SecurityMetersService securityMetersService,
                          ResourceAuthorityQueryService resourceAuthorityQueryService, UserRepository userRepository) {
@@ -139,7 +141,7 @@ public class TokenProvider {
         Collection<? extends GrantedAuthority> authorities = user
             .getAuthorities()
             .stream()
-            .map(authority -> authority.getName())
+            .map(Authority::getName)
             .map(SimpleGrantedAuthority::new)
             .collect(Collectors.toList());
 

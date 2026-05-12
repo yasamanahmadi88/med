@@ -7,6 +7,7 @@ import com.behsa.medportal.repository.AuthorityRepository;
 import com.behsa.medportal.repository.UserRepository;
 import com.behsa.medportal.security.AuthoritiesConstants;
 import com.behsa.medportal.security.captcha.CaptchaValidationService;
+import com.behsa.medportal.security.jwt.JWTFilter;
 import com.behsa.medportal.web.rest.vm.KeyAndPasswordVM;
 import com.behsa.medportal.web.rest.vm.LoginVM;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,10 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+
 
 @AutoConfigureMockMvc
 @IntegrationTest
@@ -52,6 +57,9 @@ class AuthResourceIT {
 
     @MockBean
     private CaptchaValidationService captchaValidationService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     @Transactional
@@ -171,4 +179,53 @@ class AuthResourceIT {
             )
             .andExpect(status().isBadRequest());
     }
+
+    @Test
+    @Transactional
+    @WithUnauthenticatedMockUser
+    void tokenShouldBeRejectedAfterUserIsDeactivated() throws Exception {
+        doNothing()
+            .when(captchaValidationService)
+            .validate(anyString(), anyString(), anyString());
+
+        createActivatedUser(
+            "disabled-token-user",
+            "disabled-token-user@example.com",
+            "CorrectPassword123"
+        );
+
+        LoginVM loginVM = createLoginVM(
+            "disabled-token-user",
+            "CorrectPassword123"
+        );
+
+        MvcResult loginResult = restAuthMockMvc
+            .perform(
+                post(AUTHENTICATE_URL)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(TestUtil.convertObjectToJsonBytes(loginVM))
+            )
+            .andExpect(status().isOk())
+            .andReturn();
+
+        JsonNode jsonNode = objectMapper.readTree(loginResult.getResponse().getContentAsString());
+        String token = jsonNode.get("id_token").asText();
+
+        User user = userRepository
+            .findOneByLogin("disabled-token-user")
+            .orElseThrow(() -> new IllegalStateException("Test user was not found"));
+
+        user.setActivated(false);
+        userRepository.saveAndFlush(user);
+
+        restAuthMockMvc
+            .perform(
+                get("/api/account")
+                    .header(JWTFilter.AUTHORIZATION_HEADER, "Bearer " + token)
+            )
+            .andExpect(status().isUnauthorized());
+    }
+
+
+
 }

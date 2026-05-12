@@ -170,7 +170,7 @@ public class AccountResource {
      * @throws InvalidPasswordException {@code 400 (Bad Request)} if the new password is incorrect.
      */
     @PostMapping(path = "/account/change-password")
-    public void changePassword(@RequestBody PasswordChangeDTO passwordChangeDto) {
+    public void changePassword(@Valid @RequestBody PasswordChangeDTO passwordChangeDto) {
         if (isPasswordLengthInvalid(passwordChangeDto.getNewPassword())) {
             throw new InvalidPasswordException();
         }

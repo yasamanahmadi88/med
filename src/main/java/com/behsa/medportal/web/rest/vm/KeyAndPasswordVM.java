@@ -16,6 +16,7 @@ public class KeyAndPasswordVM {
 
     @NotBlank
     @Size(min = ManagedUserVM.PASSWORD_MIN_LENGTH, max = ManagedUserVM.PASSWORD_MAX_LENGTH)
+    @Pattern(regexp = ManagedUserVM.PASSWORD_PATTERN, message = ManagedUserVM.PASSWORD_PATTERN_MESSAGE)
     private String newPassword;
 
     public String getKey() {

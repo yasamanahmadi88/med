@@ -59,8 +59,7 @@
         "authenticated": {
           "prefix": "اگر شما می‌خواهید",
           "link": "ورود",
-          "suffix": ", می‌توانید از حساب پایه:<br/>- مدیریت برتر (login=\"admin\" and password=\"admin\") <br/>- کاربر (login=\"user\" and password=\"user\")."
-        },
+          "suffix": "، لطفاً از نام کاربری و رمز عبور اختصاص داده‌شده استفاده کنید."        },
         "register": {
           "noaccount": "آیا هنوز حساب کاربری ندارید؟",
           "link": "ثبت نام حساب کاربری جدید"

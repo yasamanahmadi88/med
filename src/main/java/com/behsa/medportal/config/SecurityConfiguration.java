@@ -109,8 +109,9 @@ public class SecurityConfiguration {
             .antMatchers("/api/authenticate").permitAll()
 
             // public account endpoints
+            .antMatchers(HttpMethod.POST, "/api/register").denyAll()
+
             .antMatchers(HttpMethod.POST,
-                "/api/register",
                 "/api/account/reset-password/init",
                 "/api/account/reset-password/finish"
             ).permitAll()

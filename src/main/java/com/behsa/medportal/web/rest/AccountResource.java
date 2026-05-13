@@ -198,9 +198,10 @@ public class AccountResource {
     /**
      * {@code POST   /account/reset-password/finish} : Finish to reset the password of the user.
      *
+     * Invalid or expired reset keys return a generic bad request response.
+     *
      * @param keyAndPassword the generated key and the new password.
      * @throws InvalidPasswordException {@code 400 (Bad Request)} if the password is incorrect.
-     * @throws RuntimeException {@code 500 (Internal Server Error)} if the password could not be reset.
      */
     @PostMapping(path = "/account/reset-password/finish")
     public ResponseEntity<Void> finishPasswordReset(@Valid @RequestBody KeyAndPasswordVM keyAndPassword) {

@@ -11,11 +11,12 @@ import com.behsa.medportal.service.UsernameAlreadyUsedException;
 import com.behsa.medportal.service.dto.AdminUserDTO;
 import com.behsa.medportal.service.dto.PasswordChangeDTO;
 import com.behsa.medportal.service.dto.UserDTO;
+import com.behsa.medportal.vaidators.PasswordValidator;
+import com.behsa.medportal.vaidators.dto.PasswordValidationDto;
 import com.behsa.medportal.web.rest.errors.InvalidPasswordException;
 import com.behsa.medportal.web.rest.vm.AdminPasswordResetVM;
 import com.behsa.medportal.web.rest.vm.KeyAndPasswordVM;
 import com.behsa.medportal.web.rest.vm.ManagedUserVM;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -55,29 +57,35 @@ public class AccountResource {
 
     private final MailService mailService;
 
-    public AccountResource(UserRepository userRepository, UserService userService, MailService mailService) {
+    private final PasswordValidator passwordValidator;
+
+    public AccountResource(
+        UserRepository userRepository,
+        UserService userService,
+        MailService mailService,
+        PasswordValidator passwordValidator
+    ) {
         this.userRepository = userRepository;
         this.userService = userService;
         this.mailService = mailService;
+        this.passwordValidator = passwordValidator;
     }
 
     /**
-     * {@code POST  /register} : register the user.
+     * {@code POST /register} : register the user.
      *
      * Public registration returns a generic accepted response to avoid revealing
      * whether a login or email address already exists.
      *
      * In this deployment, public self-registration should be disabled in
-     * {@link com.behsa.medportal.config.SecurityConfiguration}.
+     * SecurityConfiguration.
      *
      * @param managedUserVM the managed user View Model.
-     * @throws InvalidPasswordException {@code 400 (Bad Request)} if the password is incorrect.
+     * @return {@code 202 Accepted}.
      */
     @PostMapping("/register")
     public ResponseEntity<Void> registerAccount(@Valid @RequestBody ManagedUserVM managedUserVM) {
-        if (isPasswordLengthInvalid(managedUserVM.getPassword())) {
-            throw new InvalidPasswordException();
-        }
+        validatePasswordOrThrow(managedUserVM.getPassword());
 
         try {
             User user = userService.registerUser(managedUserVM, managedUserVM.getPassword());
@@ -92,7 +100,7 @@ public class AccountResource {
     }
 
     /**
-     * {@code GET  /activate} : activate the registered user.
+     * {@code GET /activate} : activate the registered user.
      *
      * @param key the activation key.
      */
@@ -106,7 +114,7 @@ public class AccountResource {
     }
 
     /**
-     * {@code GET  /authenticate} : check if the user is authenticated, and return its login.
+     * {@code GET /authenticate} : check if the user is authenticated, and return its login.
      *
      * @param request the HTTP request.
      * @return the login if the user is authenticated.
@@ -118,7 +126,7 @@ public class AccountResource {
     }
 
     /**
-     * {@code GET  /account} : get the current user.
+     * {@code GET /account} : get the current user.
      *
      * @return the current user.
      */
@@ -138,10 +146,9 @@ public class AccountResource {
     }
 
     /**
-     * {@code POST  /account} : update the current user information.
+     * {@code POST /account} : update the current user information.
      *
      * @param userDTO the current user information.
-     * @throws EmailAlreadyUsedException {@code 400 (Bad Request)} if the email is already used.
      */
     @PostMapping("/account")
     public void saveAccount(@Valid @RequestBody AdminUserDTO userDTO) {
@@ -171,16 +178,13 @@ public class AccountResource {
     }
 
     /**
-     * {@code POST  /account/change-password} : changes the current user's password.
+     * {@code POST /account/change-password} : changes the current user's password.
      *
      * @param passwordChangeDto current and new password.
-     * @throws InvalidPasswordException {@code 400 (Bad Request)} if the new password is incorrect.
      */
     @PostMapping(path = "/account/change-password")
     public void changePassword(@Valid @RequestBody PasswordChangeDTO passwordChangeDto) {
-        if (isPasswordLengthInvalid(passwordChangeDto.getNewPassword())) {
-            throw new InvalidPasswordException();
-        }
+        validatePasswordOrThrow(passwordChangeDto.getNewPassword());
 
         userService.changePassword(
             passwordChangeDto.getCurrentPassword(),
@@ -189,7 +193,21 @@ public class AccountResource {
     }
 
     /**
-     * {@code POST   /account/reset-password/init} : send a password reset email.
+     * {@code POST /password/validate} : validate password policy.
+     *
+     * This endpoint is useful for frontend password validation.
+     *
+     * @param request request body containing password.
+     * @return password validation result.
+     */
+    @PostMapping("/password/validate")
+    public PasswordValidationDto validatePassword(@RequestBody Map<String, String> request) {
+        String password = request.get("password");
+        return passwordValidator.isValid(password);
+    }
+
+    /**
+     * {@code POST /account/reset-password/init} : send a password reset email.
      *
      * This endpoint intentionally returns the same public response whether the
      * email exists or not, to prevent user enumeration.
@@ -208,18 +226,16 @@ public class AccountResource {
     }
 
     /**
-     * {@code POST   /account/reset-password/finish} : finish resetting the password.
+     * {@code POST /account/reset-password/finish} : finish resetting the password.
      *
      * Invalid or expired reset keys return a generic bad request response.
      *
      * @param keyAndPassword the generated key and the new password.
-     * @throws InvalidPasswordException {@code 400 (Bad Request)} if the password is incorrect.
+     * @return {@code 204 No Content} if reset succeeded, otherwise {@code 400 Bad Request}.
      */
     @PostMapping(path = "/account/reset-password/finish")
     public ResponseEntity<Void> finishPasswordReset(@Valid @RequestBody KeyAndPasswordVM keyAndPassword) {
-        if (isPasswordLengthInvalid(keyAndPassword.getNewPassword())) {
-            throw new InvalidPasswordException();
-        }
+        validatePasswordOrThrow(keyAndPassword.getNewPassword());
 
         Optional<UserDTO> user = userService.completePasswordReset(
             keyAndPassword.getNewPassword(),
@@ -250,9 +266,7 @@ public class AccountResource {
         @PathVariable String login,
         @Valid @RequestBody AdminPasswordResetVM passwordResetVM
     ) {
-        if (isPasswordLengthInvalid(passwordResetVM.getNewPassword())) {
-            throw new InvalidPasswordException();
-        }
+        validatePasswordOrThrow(passwordResetVM.getNewPassword());
 
         boolean changed = userService.resetPasswordByAdmin(
             login,
@@ -266,11 +280,11 @@ public class AccountResource {
         return ResponseEntity.noContent().build();
     }
 
-    private static boolean isPasswordLengthInvalid(String password) {
-        return (
-            StringUtils.isEmpty(password) ||
-                password.length() < ManagedUserVM.PASSWORD_MIN_LENGTH ||
-                password.length() > ManagedUserVM.PASSWORD_MAX_LENGTH
-        );
+    private void validatePasswordOrThrow(String password) {
+        PasswordValidationDto validation = passwordValidator.isValid(password);
+
+        if (!validation.isValid()) {
+            throw new InvalidPasswordException(validation.getValidationException());
+        }
     }
 }

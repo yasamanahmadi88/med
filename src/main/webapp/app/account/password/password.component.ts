@@ -89,7 +89,7 @@ export class PasswordComponent implements OnInit {
     const errorOrder = [
       'emptyPassword',
       'passwordSmallerThanMinLength',
-      'passwordGraterThanMaxLength',
+      'passwordGreaterThanMaxLength',
       'passwordMustContainAtLeastOneUppercaseLetter',
       'passwordMustContainAtLeastOneLowercaseLetter',
       'passwordMustContainAtLeastOneDigit',

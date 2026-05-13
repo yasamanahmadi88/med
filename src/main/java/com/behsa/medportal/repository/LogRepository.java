@@ -1,13 +1,14 @@
 package com.behsa.medportal.repository;
 
 import com.behsa.medportal.domain.LogEntity;
-import com.behsa.medportal.service.dto.LogListRowDTO;
+import com.behsa.medportal.repository.projection.LogListRowProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.*;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.springframework.data.jpa.repository.Query;
 
 /**
  * Spring Data JPA repository for the LogEntity entity.
@@ -15,11 +16,10 @@ import org.springframework.data.jpa.repository.Query;
 @Repository
 public interface LogRepository extends JpaRepository<LogEntity, Long>, JpaSpecificationExecutor<LogEntity> {
 
-    // Your requested query as a paged projection
     @Query(
         value =
-            "select new com.behsa.medportal.service.dto.LogListRowDTO(" +
-                "  l.id," +
+            "select new com.behsa.medportal.repository.projection.LogListRowProjection(" +
+                "  l.id, " +
                 "  l.msgType, " +
                 "  l.correlationId, " +
                 "  l.referenceType, " +
@@ -39,9 +39,11 @@ public interface LogRepository extends JpaRepository<LogEntity, Long>, JpaSpecif
                 "order by l.createDate desc",
         countQuery = "select count(l) from LogEntity l"
     )
-    Page<LogListRowDTO> findSummary(Pageable pageable);
+    Page<LogListRowProjection> findSummary(Pageable pageable);
 
     @Query("select l from LogEntity l where lower(l.correlationId) like lower(concat('%', :correlationId, '%'))")
-    Page<LogEntity> findAllByCorrelationIdContainingIgnoreCase(@Param("correlationId") String correlationId, Pageable pageable);
-
+    Page<LogEntity> findAllByCorrelationIdContainingIgnoreCase(
+        @Param("correlationId") String correlationId,
+        Pageable pageable
+    );
 }

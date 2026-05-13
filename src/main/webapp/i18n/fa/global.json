@@ -77,7 +77,7 @@
           "strength": "قدرتمندی رمزعبور:",
           "emptyPassword": "رمز عبور نمی تواند خالی باشد",
           "passwordSmallerThanMinLength": "رمز عبور می بایست حداقل 8 کاراکتر باشد",
-          "passwordGraterThanMaxLength": "رمز عبور حداکثر می تواند 64 کاراکتر باشد",
+          "passwordGreaterThanMaxLength": "رمز عبور حداکثر می تواند 64 کاراکتر باشد",
           "passwordMustContainAtLeastOneUppercaseLetter" : "رمز عبور می بایست حداقل یک حرف بزرگ داشته باشد",
           "passwordMustContainAtLeastOneLowercaseLetter" : "رمز عبور می بایست حداقل یک حرف کوچک داشته باشد",
           "passwordMustContainAtLeastOneDigit" : "رمز عبور می بایست حداقل یک عدد داشته باشد",

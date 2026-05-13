@@ -3,7 +3,6 @@ package com.behsa.medportal.web.rest;
 import com.behsa.medportal.security.AuthoritiesConstants;
 import com.behsa.medportal.security.SecurityCache;
 import com.behsa.medportal.security.captcha.CaptchaValidationService;
-import com.behsa.medportal.security.captcha.exception.InvalidCaptchaException;
 import com.behsa.medportal.security.jwt.JWTFilter;
 import com.behsa.medportal.security.jwt.SessionInfo;
 import com.behsa.medportal.security.jwt.TokenProvider;
@@ -103,7 +102,7 @@ public class AuthResource {
             log.info("User authenticated successfully: {}", loginVM.getUsername());
 
             return new ResponseEntity<>(new JWTToken(jwt), httpHeaders, HttpStatus.OK);
-        } catch (AuthenticationException | InvalidCaptchaException ex) {
+        } catch (AuthenticationException ex) {
             SecurityContextHolder.clearContext();
 
             log.debug("Authentication failed for user: {}", loginVM.getUsername());

@@ -1,6 +1,7 @@
 package com.behsa.medportal.config;
 
 import com.behsa.medportal.security.AuthoritiesConstants;
+import com.behsa.medportal.security.SecurityCache;
 import com.behsa.medportal.security.jwt.JWTConfigurer;
 import com.behsa.medportal.security.jwt.TokenProvider;
 import org.springframework.context.annotation.Bean;
@@ -22,8 +23,8 @@ import tech.jhipster.config.JHipsterProperties;
 
 import java.util.Arrays;
 
-@Configuration                   // <-- add
-@EnableWebSecurity               // <-- add
+@Configuration
+@EnableWebSecurity
 @Import(SecurityProblemSupport.class)
 public class SecurityConfiguration {
 
@@ -31,17 +32,20 @@ public class SecurityConfiguration {
     private final TokenProvider tokenProvider;
     private final CorsFilter corsFilter;
     private final SecurityProblemSupport problemSupport;
+    private final SecurityCache securityCache;
 
     public SecurityConfiguration(
         TokenProvider tokenProvider,
         CorsFilter corsFilter,
         JHipsterProperties jHipsterProperties,
-        SecurityProblemSupport problemSupport
+        SecurityProblemSupport problemSupport,
+        SecurityCache securityCache
     ) {
         this.tokenProvider = tokenProvider;
         this.corsFilter = corsFilter;
         this.problemSupport = problemSupport;
         this.jHipsterProperties = jHipsterProperties;
+        this.securityCache = securityCache;
     }
 
     @Bean
@@ -52,92 +56,160 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+
         configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:9000","http://localhost:4200","http://localhost:8100"));
-        configuration.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization","Cache-Control","Content-Type","X-Requested-With"));
-        configuration.setExposedHeaders(Arrays.asList("Authorization","Link","X-Total-Count"));
+            "http://localhost:9000",
+            "http://localhost:4200",
+            "http://localhost:8100"
+        ));
+
+        configuration.setAllowedMethods(Arrays.asList(
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE",
+            "OPTIONS"
+        ));
+
+        configuration.setAllowedHeaders(Arrays.asList(
+            "Authorization",
+            "Cache-Control",
+            "Content-Type",
+            "X-Requested-With"
+        ));
+
+        configuration.setExposedHeaders(Arrays.asList(
+            "Authorization",
+            "Link",
+            "X-Total-Count"
+        ));
+
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+
         return source;
     }
 
     @Bean
-    public SecurityFilterChain filterChain(org.springframework.security.config.annotation.web.builders.HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(
+        org.springframework.security.config.annotation.web.builders.HttpSecurity http
+    ) throws Exception {
         http
-            .cors().configurationSource(corsConfigurationSource())
+            .cors()
+            .configurationSource(corsConfigurationSource())
             .and()
-            .csrf().disable()
+            .csrf()
+            .disable()
             .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
             .exceptionHandling()
             .authenticationEntryPoint(problemSupport)
             .accessDeniedHandler(problemSupport)
             .and()
             .headers()
-            .httpStrictTransportSecurity().maxAgeInSeconds(31536000).includeSubDomains(true)
+            .httpStrictTransportSecurity()
+            .maxAgeInSeconds(31536000)
+            .includeSubDomains(true)
             .and()
             .contentSecurityPolicy(jHipsterProperties.getSecurity().getContentSecurityPolicy())
             .and()
-            .referrerPolicy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER)
+            .referrerPolicy(
+                org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER
+            )
             .and()
-            .xssProtection().block(true)
+            .xssProtection()
+            .block(true)
             .and()
-            .permissionsPolicy().policy("camera=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), sync-xhr=()")
+            .permissionsPolicy()
+            .policy(
+                "camera=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), sync-xhr=()"
+            )
             .and()
-            .frameOptions().sameOrigin()
+            .frameOptions()
+            .sameOrigin()
             .and()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .sessionManagement()
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
             .authorizeRequests()
+
+            // Preflight
             .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+            // Frontend static assets
             .antMatchers("/app/**/*.{js,html}").permitAll()
             .antMatchers("/i18n/**").permitAll()
+
+            // If bpmnjs content must be protected, this rule must come before /content/**
+            .antMatchers("/content/bpmnjs/**").authenticated()
             .antMatchers("/content/**").permitAll()
-            .antMatchers(
-                "/swagger-ui/**",
-                "/swagger-ui.html",
-                "/v3/api-docs/**",
-                "/swagger-resources/**",
-                "/api-docs/**"
-            ).hasAuthority(AuthoritiesConstants.ADMIN)
+
             .antMatchers("/test/**").permitAll()
 
-            // authenticate endpoint has both GET and POST in JHipster tests
+            // Authentication and CAPTCHA
             .antMatchers("/api/authenticate").permitAll()
+            .antMatchers(HttpMethod.POST, "/api/captcha-endpoint", "/api/captcha-validate").permitAll()
+            .antMatchers(HttpMethod.GET, "/api/captcha.png").permitAll()
 
-            // public account endpoints
+            // Disable public self-registration
             .antMatchers(HttpMethod.POST, "/api/register").denyAll()
 
+            // Public account recovery endpoints
             .antMatchers(HttpMethod.POST,
                 "/api/account/reset-password/init",
                 "/api/account/reset-password/finish"
             ).permitAll()
+
             .antMatchers(HttpMethod.GET, "/api/activate").permitAll()
-            // captcha endpoints
-            .antMatchers(HttpMethod.POST, "/api/captcha-endpoint", "/api/captcha-validate").permitAll()
-            .antMatchers(HttpMethod.GET,  "/api/captcha.png").permitAll()
-            // admin & other APIs
+
+            // Swagger / API docs: admin only
+            .antMatchers(
+                "/swagger-ui/**",
+                "/swagger-ui.html",
+                "/v3/api-docs",
+                "/v3/api-docs/**",
+                "/swagger-resources/**",
+                "/api-docs",
+                "/api-docs/**"
+            ).hasAuthority(AuthoritiesConstants.ADMIN)
+
+            // Admin APIs
             .antMatchers("/api/admin/**").hasAuthority(AuthoritiesConstants.ADMIN)
+
+            // Sensitive authorization/config/audit APIs
             .antMatchers(HttpMethod.GET, "/api/authorities").hasAuthority(AuthoritiesConstants.ADMIN)
             .antMatchers("/api/resources/**").hasAuthority(AuthoritiesConstants.ADMIN)
             .antMatchers("/api/resource-authorities/**").hasAuthority(AuthoritiesConstants.ADMIN)
             .antMatchers("/api/med-authorities/**").hasAuthority(AuthoritiesConstants.ADMIN)
             .antMatchers("/api/configs/**").hasAuthority(AuthoritiesConstants.ADMIN)
             .antMatchers("/api/custom-audit-events/**").hasAuthority(AuthoritiesConstants.ADMIN)
+
+            // Other APIs require authentication
             .antMatchers("/api/**").authenticated()
+
+            // Management endpoints
             .antMatchers("/management/health", "/management/health/**").hasAuthority(AuthoritiesConstants.ADMIN)
             .antMatchers("/management/info").hasAuthority(AuthoritiesConstants.ADMIN)
-            .antMatchers("/management/prometheus",
+
+            // Highly sensitive management endpoints: blocked for everyone
+            .antMatchers(
+                "/management/prometheus",
                 "/management/threaddump",
-                "/management/jhimetrics").denyAll()
+                "/management/jhimetrics"
+            ).denyAll()
+
             .antMatchers("/management/**").hasAuthority(AuthoritiesConstants.ADMIN)
+
             .and()
             .httpBasic()
-            .and()
-            .apply(new JWTConfigurer(tokenProvider));
+            .disable()
+            .formLogin()
+            .disable();
+
+        http.apply(new JWTConfigurer(tokenProvider, securityCache));
 
         return http.build();
     }

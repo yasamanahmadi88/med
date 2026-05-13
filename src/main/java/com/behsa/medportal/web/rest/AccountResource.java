@@ -2,7 +2,9 @@ package com.behsa.medportal.web.rest;
 
 import com.behsa.medportal.domain.User;
 import com.behsa.medportal.repository.UserRepository;
+import com.behsa.medportal.security.AuthoritiesConstants;
 import com.behsa.medportal.security.SecurityUtils;
+import com.behsa.medportal.service.EmailAlreadyUsedException;
 import com.behsa.medportal.service.MailService;
 import com.behsa.medportal.service.UserService;
 import com.behsa.medportal.service.UsernameAlreadyUsedException;
@@ -10,8 +12,6 @@ import com.behsa.medportal.service.dto.AdminUserDTO;
 import com.behsa.medportal.service.dto.PasswordChangeDTO;
 import com.behsa.medportal.service.dto.UserDTO;
 import com.behsa.medportal.web.rest.errors.InvalidPasswordException;
-import com.behsa.medportal.service.EmailAlreadyUsedException;
-import com.behsa.medportal.web.rest.errors.LoginAlreadyUsedException;
 import com.behsa.medportal.web.rest.vm.AdminPasswordResetVM;
 import com.behsa.medportal.web.rest.vm.KeyAndPasswordVM;
 import com.behsa.medportal.web.rest.vm.ManagedUserVM;
@@ -20,7 +20,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -42,8 +49,6 @@ public class AccountResource {
 
     private final Logger log = LoggerFactory.getLogger(AccountResource.class);
 
-    private final String ENTITY_NAME = "userManagement";
-
     private final UserRepository userRepository;
 
     private final UserService userService;
@@ -62,17 +67,14 @@ public class AccountResource {
      * Public registration returns a generic accepted response to avoid revealing
      * whether a login or email address already exists.
      *
+     * In this deployment, public self-registration should be disabled in
+     * {@link com.behsa.medportal.config.SecurityConfiguration}.
+     *
      * @param managedUserVM the managed user View Model.
      * @throws InvalidPasswordException {@code 400 (Bad Request)} if the password is incorrect.
      */
     @PostMapping("/register")
     public ResponseEntity<Void> registerAccount(@Valid @RequestBody ManagedUserVM managedUserVM) {
-//        if (isPasswordLengthInvalid(managedUserVM.getPassword())) {
-//            throw new InvalidPasswordException();
-//        }
-//        User user = userService.registerUser(managedUserVM, managedUserVM.getPassword());
-//        mailService.sendActivationEmail(user);
-//    }
         if (isPasswordLengthInvalid(managedUserVM.getPassword())) {
             throw new InvalidPasswordException();
         }
@@ -88,15 +90,16 @@ public class AccountResource {
 
         return ResponseEntity.accepted().build();
     }
+
     /**
      * {@code GET  /activate} : activate the registered user.
      *
      * @param key the activation key.
-     * @throws RuntimeException {@code 500 (Internal Server Error)} if the user couldn't be activated.
      */
     @GetMapping("/activate")
     public void activateAccount(@RequestParam(value = "key") String key) {
         Optional<User> user = userService.activateRegistration(key);
+
         if (!user.isPresent()) {
             throw new AccountResourceException("No user was found for this activation key");
         }
@@ -118,7 +121,6 @@ public class AccountResource {
      * {@code GET  /account} : get the current user.
      *
      * @return the current user.
-     * @throws RuntimeException {@code 500 (Internal Server Error)} if the user couldn't be returned.
      */
     @GetMapping("/account")
     public AdminUserDTO getAccount() {
@@ -140,21 +142,25 @@ public class AccountResource {
      *
      * @param userDTO the current user information.
      * @throws EmailAlreadyUsedException {@code 400 (Bad Request)} if the email is already used.
-     * @throws RuntimeException {@code 500 (Internal Server Error)} if the user login wasn't found.
      */
     @PostMapping("/account")
     public void saveAccount(@Valid @RequestBody AdminUserDTO userDTO) {
         String userLogin = SecurityUtils
             .getCurrentUserLogin()
             .orElseThrow(() -> new AccountResourceException("Current user login not found"));
+
         Optional<User> existingUser = userRepository.findOneByEmailIgnoreCase(userDTO.getEmail());
-        if (existingUser.isPresent() && (!existingUser.get().getLogin().equalsIgnoreCase(userLogin))) {
+
+        if (existingUser.isPresent() && !existingUser.get().getLogin().equalsIgnoreCase(userLogin)) {
             throw new EmailAlreadyUsedException();
         }
+
         Optional<User> user = userRepository.findOneByLogin(userLogin);
+
         if (!user.isPresent()) {
             throw new AccountResourceException("User could not be found");
         }
+
         userService.updateUser(
             userDTO.getFirstName(),
             userDTO.getLastName(),
@@ -175,28 +181,34 @@ public class AccountResource {
         if (isPasswordLengthInvalid(passwordChangeDto.getNewPassword())) {
             throw new InvalidPasswordException();
         }
-        userService.changePassword(passwordChangeDto.getCurrentPassword(), passwordChangeDto.getNewPassword());
+
+        userService.changePassword(
+            passwordChangeDto.getCurrentPassword(),
+            passwordChangeDto.getNewPassword()
+        );
     }
 
     /**
-     * {@code POST   /account/reset-password/init} : Email reset the password of the user.
+     * {@code POST   /account/reset-password/init} : send a password reset email.
+     *
+     * This endpoint intentionally returns the same public response whether the
+     * email exists or not, to prevent user enumeration.
      *
      * @param mail the mail of the user.
      */
     @PostMapping(path = "/account/reset-password/init")
     public void requestPasswordReset(@RequestBody String mail) {
         Optional<User> user = userService.requestPasswordReset(mail);
+
         if (user.isPresent()) {
             mailService.sendPasswordResetMail(user.get());
         } else {
-            // Pretend the request has been successful to prevent checking which emails really exist
-            // but log that an invalid attempt has been made
-            log.warn("Password reset requested for non existing mail");
+            log.warn("Password reset requested for non existing mail.");
         }
     }
 
     /**
-     * {@code POST   /account/reset-password/finish} : Finish to reset the password of the user.
+     * {@code POST   /account/reset-password/finish} : finish resetting the password.
      *
      * Invalid or expired reset keys return a generic bad request response.
      *
@@ -223,13 +235,16 @@ public class AccountResource {
         return ResponseEntity.noContent().build();
     }
 
-    private static boolean isPasswordLengthInvalid(String password) {
-        return (
-            StringUtils.isEmpty(password) ||
-            password.length() < ManagedUserVM.PASSWORD_MIN_LENGTH ||
-            password.length() > ManagedUserVM.PASSWORD_MAX_LENGTH
-        );
-    }
+    /**
+     * {@code POST /admin/users/{login}/reset-password} : reset a user's password by admin.
+     *
+     * This endpoint is intended for administrative user management only.
+     *
+     * @param login the login of the target user.
+     * @param passwordResetVM the new password request body.
+     * @return {@code 204 No Content} if changed, otherwise {@code 400 Bad Request}.
+     */
+    @Secured(AuthoritiesConstants.ADMIN)
     @PostMapping("/admin/users/{login}/reset-password")
     public ResponseEntity<Void> resetUserPasswordByAdmin(
         @PathVariable String login,
@@ -239,12 +254,23 @@ public class AccountResource {
             throw new InvalidPasswordException();
         }
 
-        boolean changed = userService.resetPasswordByAdmin(login, passwordResetVM.getNewPassword());
+        boolean changed = userService.resetPasswordByAdmin(
+            login,
+            passwordResetVM.getNewPassword()
+        );
 
         if (!changed) {
             return ResponseEntity.badRequest().build();
         }
 
         return ResponseEntity.noContent().build();
+    }
+
+    private static boolean isPasswordLengthInvalid(String password) {
+        return (
+            StringUtils.isEmpty(password) ||
+                password.length() < ManagedUserVM.PASSWORD_MIN_LENGTH ||
+                password.length() > ManagedUserVM.PASSWORD_MAX_LENGTH
+        );
     }
 }

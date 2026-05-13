@@ -72,14 +72,22 @@
       "validate": {
         "newpassword": {
           "required": "رمزعبور شما ضروری است",
-          "minlength": "رمزعبور شما باید حداقل ۴ کرکتر باشد",
-          "maxlength": "رمز عبور شما نمی‌تواند بیش از ۵۰ کرکتر باشد.",
-          "strength": "قدرتمندی رمزعبور:"
+          "minlength": "رمزعبور شما باید حداقل 8 کرکتر باشد",
+          "maxlength": "رمز عبور شما نمی‌تواند بیش از 64 کرکتر باشد.",
+          "strength": "قدرتمندی رمزعبور:",
+          "emptyPassword": "رمز عبور نمی تواند خالی باشد",
+          "passwordSmallerThanMinLength": "رمز عبور می بایست حداقل 8 کاراکتر باشد",
+          "passwordGraterThanMaxLength": "رمز عبور حداکثر می تواند 64 کاراکتر باشد",
+          "passwordMustContainAtLeastOneUppercaseLetter" : "رمز عبور می بایست حداقل یک حرف بزرگ داشته باشد",
+          "passwordMustContainAtLeastOneLowercaseLetter" : "رمز عبور می بایست حداقل یک حرف کوچک داشته باشد",
+          "passwordMustContainAtLeastOneDigit" : "رمز عبور می بایست حداقل یک عدد داشته باشد",
+          "passwordMustContainAtLeastOneSpecialCharacter" : "رمز عبور می بایست حداقل یک کاراکتر ویژه داشته باشد مانند (!@#$%^&*)",
+          "passwordIsTooCommonAndInsecure" : "رمز عبور خیلی عمومی و غیر امن است"
         },
         "confirmpassword": {
           "required": "تصدیق رمزعبور شما ضروری است",
-          "minlength": "تصدیق رمزعبور شما باید حداقل ۴ کرکتر باشد",
-          "maxlength": "تصدیق رمز عبور شما نمی‌تواند بیش از ۵۰ کرکتر باشد."
+          "minlength": "تصدیق رمزعبور شما باید حداقل 8 کرکتر باشد",
+          "maxlength": "تصدیق رمز عبور شما نمی‌تواند بیش از 64 کرکتر باشد."
         },
         "email": {
           "required": "آدرس ایمیل شما ضروری است",

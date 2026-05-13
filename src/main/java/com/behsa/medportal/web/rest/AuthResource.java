@@ -1,7 +1,11 @@
 package com.behsa.medportal.web.rest;
 
+import com.behsa.medportal.security.AuthoritiesConstants;
+import com.behsa.medportal.security.SecurityCache;
 import com.behsa.medportal.security.captcha.CaptchaValidationService;
+import com.behsa.medportal.security.captcha.exception.InvalidCaptchaException;
 import com.behsa.medportal.security.jwt.JWTFilter;
+import com.behsa.medportal.security.jwt.SessionInfo;
 import com.behsa.medportal.security.jwt.TokenProvider;
 import com.behsa.medportal.web.rest.vm.LoginVM;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -22,6 +26,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
@@ -35,14 +41,18 @@ public class AuthResource {
 
     private final CaptchaValidationService captchaValidationService;
 
+    private final SecurityCache securityCache;
+
     public AuthResource(
         AuthenticationManagerBuilder authenticationManagerBuilder,
         TokenProvider tokenProvider,
-        CaptchaValidationService captchaValidationService
+        CaptchaValidationService captchaValidationService,
+        SecurityCache securityCache
     ) {
         this.authenticationManagerBuilder = authenticationManagerBuilder;
         this.tokenProvider = tokenProvider;
         this.captchaValidationService = captchaValidationService;
+        this.securityCache = securityCache;
     }
 
     @PostMapping("/authenticate")
@@ -66,23 +76,57 @@ public class AuthResource {
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
+            if (isAdmin(authentication) && securityCache.hasConcurrentSession(loginVM.getUsername())) {
+                removeExistingSession(loginVM.getUsername());
+            }
+
             String jwt = tokenProvider.createToken(
                 authentication,
                 Boolean.TRUE.equals(loginVM.getRememberMe())
             );
 
+            securityCache.storeSession(
+                authentication.getPrincipal(),
+                UUID.randomUUID().toString(),
+                request.getRemoteAddr(),
+                loginVM.getUsername(),
+                jwt,
+                request.getHeader("User-Agent"),
+                LocalDateTime.now(),
+                null,
+                Boolean.TRUE
+            );
+
             HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add(JWTFilter.AUTHORIZATION_HEADER, "Bearer " + jwt);
 
+            log.info("User authenticated successfully: {}", loginVM.getUsername());
+
             return new ResponseEntity<>(new JWTToken(jwt), httpHeaders, HttpStatus.OK);
-        } catch (AuthenticationException ex) {
+        } catch (AuthenticationException | InvalidCaptchaException ex) {
             SecurityContextHolder.clearContext();
 
-            log.debug("Authentication failed.");
+            log.debug("Authentication failed for user: {}", loginVM.getUsername());
 
             return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .build();
+        }
+    }
+
+    private boolean isAdmin(Authentication authentication) {
+        return authentication
+            .getAuthorities()
+            .stream()
+            .anyMatch(authority -> AuthoritiesConstants.ADMIN.equals(authority.getAuthority()));
+    }
+
+    private void removeExistingSession(String username) {
+        SessionInfo existingSession = securityCache.fetchSessionInfo(username);
+
+        if (existingSession != null && existingSession.getJwtToken() != null) {
+            securityCache.removeSession(existingSession.getJwtToken());
+            log.info("Existing admin session removed for user: {}", username);
         }
     }
 

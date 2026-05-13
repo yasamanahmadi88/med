@@ -17,6 +17,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
 
   backUrl = '';
   authenticationError = false;
+  captchaLoadError = false;
   captchaId = '';
   captchaImageUrl = '';
   isLoading = false;
@@ -54,6 +55,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
 
   loadCaptcha(): void {
     this.isLoading = true;
+    this.captchaLoadError = false;
 
     this.http.post<{ captchaId: string; captchaImageUrl: string }>(this.backUrl + '/api/captcha-endpoint', {}).subscribe({
       next: response => {
@@ -65,6 +67,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
       error: () => {
         this.captchaId = '';
         this.captchaImageUrl = '';
+        this.captchaLoadError = true;
         this.authenticationError = true;
         this.isLoading = false;
       },
@@ -86,6 +89,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
     const formValue = this.loginForm.getRawValue();
 
     this.authenticationError = false;
+    this.captchaLoadError = false;
     this.isLoading = true;
 
     const credentials: Login = new Login(
@@ -100,14 +104,13 @@ export class LoginComponent implements OnInit, AfterViewInit {
       next: () => {
         this.authenticationError = false;
         this.isLoading = false;
-
-        if (!this.router.getCurrentNavigation()) {
-          void this.router.navigate(['']);
-        }
+        void this.router.navigate(['']);
       },
       error: () => {
         this.authenticationError = true;
         this.isLoading = false;
+
+        // Captcha is one-time. Reload it after every failed login attempt.
         this.loadCaptcha();
       },
     });
@@ -122,6 +125,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
   reloadCaptcha(): void {
     if (!this.isLoading) {
       this.authenticationError = false;
+      this.captchaLoadError = false;
       this.loadCaptcha();
     }
   }

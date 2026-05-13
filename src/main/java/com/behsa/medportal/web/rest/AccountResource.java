@@ -59,10 +59,11 @@ public class AccountResource {
     /**
      * {@code POST  /register} : register the user.
      *
+     * Public registration returns a generic accepted response to avoid revealing
+     * whether a login or email address already exists.
+     *
      * @param managedUserVM the managed user View Model.
      * @throws InvalidPasswordException {@code 400 (Bad Request)} if the password is incorrect.
-     * @throws EmailAlreadyUsedException {@code 400 (Bad Request)} if the email is already used.
-     * @throws LoginAlreadyUsedException {@code 400 (Bad Request)} if the login is already used.
      */
     @PostMapping("/register")
     public ResponseEntity<Void> registerAccount(@Valid @RequestBody ManagedUserVM managedUserVM) {

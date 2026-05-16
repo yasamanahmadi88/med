@@ -24,6 +24,10 @@ management:
     export:
       prometheus:
         enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health,info
 
 spring:
   devtools:

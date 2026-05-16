@@ -197,7 +197,15 @@ public class SecurityConfiguration {
             .antMatchers(
                 "/management/prometheus",
                 "/management/threaddump",
-                "/management/jhimetrics"
+                "/management/jhimetrics",
+                "/management/env",
+                "/management/env/**",
+                "/management/configprops",
+                "/management/configprops/**",
+                "/management/loggers",
+                "/management/loggers/**",
+                "/management/metrics",
+                "/management/metrics/**"
             ).denyAll()
 
             .antMatchers("/management/**").hasAuthority(AuthoritiesConstants.ADMIN)

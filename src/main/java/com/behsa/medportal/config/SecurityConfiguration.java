@@ -152,7 +152,7 @@ public class SecurityConfiguration {
             // Authentication and CAPTCHA
             .antMatchers("/api/authenticate").permitAll()
             .antMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
-            .antMatchers(HttpMethod.POST, "/api/captcha-endpoint", "/api/captcha-validate").permitAll()
+            .antMatchers(HttpMethod.POST, "/api/captcha-endpoint").permitAll()
             .antMatchers(HttpMethod.GET, "/api/captcha.png").permitAll()
 
             // Disable public self-registration

@@ -132,7 +132,7 @@ public class ConfigResource {
     @Secured(ENTITY_NAME)
     public ResponseEntity<ConfigDTO> partialUpdateConfig(
         @PathVariable(value = "id", required = false) final Long id,
-        @NotNull @RequestBody ConfigDTO configDTO
+        @NotNull  @Valid @RequestBody ConfigDTO configDTO
     ) throws URISyntaxException {
         log.debug("REST request to partial update Config partially : {}, {}", id, configDTO);
         if (configDTO.getId() == null) {

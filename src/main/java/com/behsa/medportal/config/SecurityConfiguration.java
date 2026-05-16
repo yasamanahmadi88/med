@@ -151,6 +151,7 @@ public class SecurityConfiguration {
 
             // Authentication and CAPTCHA
             .antMatchers("/api/authenticate").permitAll()
+            .antMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
             .antMatchers(HttpMethod.POST, "/api/captcha-endpoint", "/api/captcha-validate").permitAll()
             .antMatchers(HttpMethod.GET, "/api/captcha.png").permitAll()
 
@@ -185,7 +186,7 @@ public class SecurityConfiguration {
             .antMatchers("/api/med-authorities/**").hasAuthority(AuthoritiesConstants.ADMIN)
             .antMatchers("/api/custom-audit-events/**").hasAuthority(AuthoritiesConstants.ADMIN)
 
-// Normal APIs: authenticated first, then @Secured + CustomAccessDecisionManager decides VIEW/CREATE/EDIT/DELETE
+            // Normal APIs: authenticated first, then @Secured + CustomAccessDecisionManager decides VIEW/CREATE/EDIT/DELETE
             .antMatchers("/api/**").authenticated()
 
             // Management endpoints

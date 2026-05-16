@@ -1,72 +1,96 @@
 import { Directive, Input, OnDestroy, TemplateRef, ViewContainerRef } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AccountService } from 'app/core/auth/account.service';
-import { Router } from '@angular/router';
+
+type PermissionOperator = 'AND' | 'OR';
 
 @Directive({
   selector: '[jhiHasPermission]',
 })
 export class HasPermissionDirective implements OnDestroy {
-  private logicalOp = 'AND';
+  private permissions: string[][] = [];
+  private operator: PermissionOperator = 'AND';
   private authenticationSubscription?: Subscription;
-  private params?: any[];
-  private isHidden = true;
+  private hasView = false;
 
   constructor(
     private accountService: AccountService,
-    protected router: Router,
-    private templateRef: TemplateRef<any>,
+    private templateRef: TemplateRef<unknown>,
     private viewContainerRef: ViewContainerRef
-  ) {}
-
-  @Input()
-  set jhiHasPermission(val: any) {
-    this.params = val;
-    this.updateView();
-    this.authenticationSubscription = this.accountService.getAuthenticationState().subscribe(() => this.updateView());
+  ) {
+    this.authenticationSubscription = this.accountService
+      .getAuthenticationState()
+      .subscribe(() => this.updateView());
   }
 
   @Input()
-  set jhiHasPermissionOp(permop: any) {
-    this.logicalOp = permop;
+  set jhiHasPermission(value: string[] | string[][]) {
+    this.permissions = this.normalizePermissions(value);
     this.updateView();
-    this.authenticationSubscription = this.accountService.getAuthenticationState().subscribe(() => this.updateView());
+  }
+
+  @Input()
+  set jhiHasPermissionOp(value: PermissionOperator | string) {
+    this.operator = String(value || 'AND').toUpperCase() === 'OR' ? 'OR' : 'AND';
+    this.updateView();
   }
 
   ngOnDestroy(): void {
-    if (this.authenticationSubscription) {
-      this.authenticationSubscription.unsubscribe();
-    }
+    this.authenticationSubscription?.unsubscribe();
   }
 
   private updateView(): void {
-    if (this.checkPermission()) {
-      if (this.isHidden) {
-        this.viewContainerRef.createEmbeddedView(this.templateRef);
-        this.isHidden = false;
-      }
-    } else {
-      this.isHidden = true;
+    const allowed = this.checkPermission();
+
+    if (allowed && !this.hasView) {
+      this.viewContainerRef.createEmbeddedView(this.templateRef);
+      this.hasView = true;
+      return;
+    }
+
+    if (!allowed && this.hasView) {
       this.viewContainerRef.clear();
-      // this.router.navigate(['/not-permitted/forbidden']);
+      this.hasView = false;
     }
   }
 
-  private checkPermission(): any {
-    let hasPermission = false;
-    const resources = this.accountService.loggedInUser?.resourceAuthorities;
-    if (resources) {
-      for (const resAuth of resources) {
-        if (
-          this.params &&
-          this.params[0]?.toUpperCase() === resAuth.resource?.name?.toUpperCase() &&
-          this.params[1]?.toUpperCase() === resAuth.verb?.toUpperCase()
-        ) {
-          hasPermission = true;
-          break;
-        }
-      }
+  private checkPermission(): boolean {
+    if (!this.permissions.length) {
+      return false;
     }
-    return hasPermission;
+
+    const resourceAuthorities = this.accountService.loggedInUser?.resourceAuthorities || [];
+
+    const checks = this.permissions.map(([resourceName, verb]) =>
+      resourceAuthorities.some(
+        resourceAuthority =>
+          resourceAuthority.resource?.name?.toUpperCase() === resourceName.toUpperCase() &&
+          resourceAuthority.verb?.toUpperCase() === verb.toUpperCase()
+      )
+    );
+
+    return this.operator === 'OR' ? checks.some(Boolean) : checks.every(Boolean);
   }
+
+  private normalizePermissions(value: string[] | string[][]): string[][] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    if (value.length === 2 && typeof value[0] === 'string' && typeof value[1] === 'string') {
+      return [value as string[]];
+    }
+
+    return (value as string[][]).filter(
+      permission =>
+        Array.isArray(permission) &&
+        permission.length === 2 &&
+        typeof permission[0] === 'string' &&
+        typeof permission[1] === 'string'
+    );
+  }
+
+
+     // for use ->     *jhiHasPermission="[['config', 'create'], ['config', 'edit']]; op: 'OR'"
+
 }

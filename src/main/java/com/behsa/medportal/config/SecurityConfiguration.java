@@ -176,18 +176,16 @@ public class SecurityConfiguration {
                 "/api-docs/**"
             ).hasAuthority(AuthoritiesConstants.ADMIN)
 
-            // Admin APIs
+            // Admin-only/security-management APIs
             .antMatchers("/api/admin/**").hasAuthority(AuthoritiesConstants.ADMIN)
-
-            // Sensitive authorization/config/audit APIs
             .antMatchers(HttpMethod.GET, "/api/authorities").hasAuthority(AuthoritiesConstants.ADMIN)
+
             .antMatchers("/api/resources/**").hasAuthority(AuthoritiesConstants.ADMIN)
             .antMatchers("/api/resource-authorities/**").hasAuthority(AuthoritiesConstants.ADMIN)
             .antMatchers("/api/med-authorities/**").hasAuthority(AuthoritiesConstants.ADMIN)
-            .antMatchers("/api/configs/**").hasAuthority(AuthoritiesConstants.ADMIN)
             .antMatchers("/api/custom-audit-events/**").hasAuthority(AuthoritiesConstants.ADMIN)
 
-            // Other APIs require authentication
+// Normal APIs: authenticated first, then @Secured + CustomAccessDecisionManager decides VIEW/CREATE/EDIT/DELETE
             .antMatchers("/api/**").authenticated()
 
             // Management endpoints

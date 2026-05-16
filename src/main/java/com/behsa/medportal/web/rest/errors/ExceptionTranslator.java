@@ -1,15 +1,5 @@
 package com.behsa.medportal.web.rest.errors;
 
-import java.net.URI;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.servlet.http.HttpServletRequest;
-
 import com.behsa.medportal.service.UsernameAlreadyUsedException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,16 +13,19 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.NativeWebRequest;
-import org.zalando.problem.DefaultProblem;
-import org.zalando.problem.Problem;
-import org.zalando.problem.ProblemBuilder;
-import org.zalando.problem.Status;
-import org.zalando.problem.StatusType;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.zalando.problem.*;
 import org.zalando.problem.spring.web.advice.ProblemHandling;
 import org.zalando.problem.spring.web.advice.security.SecurityAdviceTrait;
 import org.zalando.problem.violations.ConstraintViolationProblem;
-import tech.jhipster.config.JHipsterConstants;
 import tech.jhipster.web.util.HeaderUtil;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.servlet.http.HttpServletRequest;
+import java.net.URI;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Controller advice to translate the server side exceptions to client-friendly json structures.
@@ -166,44 +159,46 @@ public class ExceptionTranslator implements ProblemHandling, SecurityAdviceTrait
         return create(ex, problem, request);
     }
 
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Problem> handleMethodArgumentTypeMismatch(
+        MethodArgumentTypeMismatchException ex,
+        NativeWebRequest request
+    ) {
+        Problem problem = Problem
+            .builder()
+            .withType(ErrorConstants.CONSTRAINT_VIOLATION_TYPE)
+            .withTitle("Bad Request")
+            .withStatus(Status.BAD_REQUEST)
+            .with(MESSAGE_KEY, ErrorConstants.ERR_VALIDATION)
+            .build();
+
+        return create(ex, problem, request);
+    }
+
+    @ExceptionHandler(HttpMessageConversionException.class)
+    public ResponseEntity<Problem> handleHttpMessageConversionException(
+        HttpMessageConversionException ex,
+        NativeWebRequest request
+    ) {
+        Problem problem = Problem
+            .builder()
+            .withType(ErrorConstants.DEFAULT_TYPE)
+            .withTitle("Bad Request")
+            .withStatus(Status.BAD_REQUEST)
+            .with(MESSAGE_KEY, "error.http.400")
+            .build();
+
+        return create(ex, problem, request);
+    }
+
     @Override
     public ProblemBuilder prepare(final Throwable throwable, final StatusType status, final URI type) {
-        Collection<String> activeProfiles = Arrays.asList(env.getActiveProfiles());
-
-        if (activeProfiles.contains(JHipsterConstants.SPRING_PROFILE_PRODUCTION)) {
-            if (throwable instanceof HttpMessageConversionException) {
-                return Problem
-                    .builder()
-                    .withType(type)
-                    .withTitle(status.getReasonPhrase())
-                    .withStatus(status)
-                    .withDetail("Unable to convert http message")
-                    .withCause(
-                        Optional.ofNullable(throwable.getCause()).filter(cause -> isCausalChainsEnabled()).map(this::toProblem).orElse(null)
-                    );
-            }
-            if (throwable instanceof DataAccessException) {
-                return Problem
-                    .builder()
-                    .withType(type)
-                    .withTitle(status.getReasonPhrase())
-                    .withStatus(status)
-                    .withDetail("Failure during data access")
-                    .withCause(
-                        Optional.ofNullable(throwable.getCause()).filter(cause -> isCausalChainsEnabled()).map(this::toProblem).orElse(null)
-                    );
-            }
-            if (containsPackageName(throwable.getMessage())) {
-                return Problem
-                    .builder()
-                    .withType(type)
-                    .withTitle(status.getReasonPhrase())
-                    .withStatus(status)
-                    .withDetail("Unexpected runtime exception")
-                    .withCause(
-                        Optional.ofNullable(throwable.getCause()).filter(cause -> isCausalChainsEnabled()).map(this::toProblem).orElse(null)
-                    );
-            }
+        if (shouldHideExceptionDetail(throwable, status)) {
+            return Problem
+                .builder()
+                .withType(type)
+                .withTitle(status.getReasonPhrase())
+                .withStatus(status);
         }
 
         return Problem
@@ -211,14 +206,59 @@ public class ExceptionTranslator implements ProblemHandling, SecurityAdviceTrait
             .withType(type)
             .withTitle(status.getReasonPhrase())
             .withStatus(status)
-            .withDetail(throwable.getMessage())
-            .withCause(
-                Optional.ofNullable(throwable.getCause()).filter(cause -> isCausalChainsEnabled()).map(this::toProblem).orElse(null)
-            );
+            .withDetail(throwable.getMessage());
     }
 
-    private boolean containsPackageName(String message) {
-        // This list is for sure not complete
-        return StringUtils.containsAny(message, "org.", "java.", "net.", "javax.", "com.", "io.", "de.", "com.behsa.medportal");
+    private boolean shouldHideExceptionDetail(Throwable throwable, StatusType status) {
+        if (status == null) {
+            return true;
+        }
+
+        if (status.getStatusCode() >= 500) {
+            return true;
+        }
+
+        if (throwable instanceof HttpMessageConversionException) {
+            return true;
+        }
+
+        if (throwable instanceof DataAccessException) {
+            return true;
+        }
+
+        if (throwable instanceof MethodArgumentTypeMismatchException) {
+            return true;
+        }
+
+        return containsPackageName(throwable.getMessage());
     }
+
+
+    private boolean containsPackageName(String message) {
+        if (message == null) {
+            return false;
+        }
+
+        return StringUtils.containsAny(
+            message,
+            "org.",
+            "java.",
+            "javax.",
+            "jakarta.",
+            "net.",
+            "com.",
+            "io.",
+            "de.",
+            "oracle.",
+            "hibernate",
+            "SQLException",
+            "Exception",
+            "C:\\",
+            "E:\\",
+            "com.behsa.medportal"
+        );
+    }
+
+
+
 }

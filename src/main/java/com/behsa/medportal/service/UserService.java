@@ -23,7 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.jhipster.security.RandomUtil;
-
+import com.behsa.medportal.security.SecurityCache;
 /**
  * Service class for managing users.
  */
@@ -40,17 +40,19 @@ public class UserService {
     private final AuthorityRepository authorityRepository;
 
     private final CacheManager cacheManager;
+    private final SecurityCache securityCache;
 
     public UserService(
         UserRepository userRepository,
         PasswordEncoder passwordEncoder,
         AuthorityRepository authorityRepository,
-        CacheManager cacheManager
+        CacheManager cacheManager, SecurityCache securityCache
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authorityRepository = authorityRepository;
         this.cacheManager = cacheManager;
+        this.securityCache = securityCache;
     }
 
     public Optional<User> activateRegistration(String key) {
@@ -84,6 +86,7 @@ public class UserService {
                 user.setResetDate(null);
                 userRepository.save(user);
                 this.clearUserCaches(user);
+                securityCache.removeSessionsByUsername(user.getLogin());
                 return user;
             })
             .map(UserDTO::new);
@@ -115,6 +118,7 @@ public class UserService {
                 user.setActivationKey(null);
                 userRepository.save(user);
                 this.clearUserCaches(user);
+                securityCache.removeSessionsByUsername(user.getLogin());
                 log.info("Password was reset by admin for user {}", user.getLogin());
                 return true;
             })
@@ -246,6 +250,7 @@ public class UserService {
                     user.setActivationKey(null);
                     user.setResetKey(null);
                     user.setResetDate(null);
+                    securityCache.removeSessionsByUsername(user.getLogin());
                 }
                 user.setLangKey(userDTO.getLangKey());
                 Set<Authority> managedAuthorities = user.getAuthorities();
@@ -271,6 +276,7 @@ public class UserService {
             .ifPresent(user -> {
                 userRepository.delete(user);
                 this.clearUserCaches(user);
+                securityCache.removeSessionsByUsername(user.getLogin());
                 log.debug("Deleted User: {}", user);
             });
     }
@@ -314,6 +320,7 @@ public class UserService {
                 String encryptedPassword = passwordEncoder.encode(newPassword);
                 user.setPassword(encryptedPassword);
                 this.clearUserCaches(user);
+                securityCache.removeSessionsByUsername(user.getLogin());
                 log.debug("Changed password for User: {}", user);
             });
     }

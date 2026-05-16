@@ -73,11 +73,19 @@ public class SecurityCache {
         );
     }
 
+
+
     public void removeSession(String jwtToken) {
-        if (sessionInfos.get(jwtToken) != null) {
-            sessionInfos.remove(jwtToken);
+        if (jwtToken == null || jwtToken.isBlank()) {
+            return;
         }
+
+        sessionInfos.remove(jwtToken);
     }
+
+    
+
+
 
     public List<SessionInfo> getAllSessionInfo() {
         try {
@@ -90,6 +98,25 @@ public class SecurityCache {
         } catch (Exception ex) {
             LOGGER.error("Error occurred in getAllSessionInfo",ex);
             return null;
+        }
+    }
+
+
+    public void removeSessionsByUsername(String username) {
+        try {
+            if (username == null || username.isBlank() || sessionInfos.isEmpty()) {
+                return;
+            }
+
+            sessionInfos.entrySet().removeIf(entry -> {
+                SessionInfo sessionInfo = entry.getValue();
+
+                return sessionInfo != null
+                    && sessionInfo.getUsername() != null
+                    && sessionInfo.getUsername().equalsIgnoreCase(username);
+            });
+        } catch (Exception ex) {
+            LOGGER.error("Error occurred in removeSessionsByUsername", ex);
         }
     }
 

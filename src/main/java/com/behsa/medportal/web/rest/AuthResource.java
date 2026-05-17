@@ -4,10 +4,14 @@ import com.behsa.medportal.security.AuthoritiesConstants;
 import com.behsa.medportal.security.SecurityCache;
 import com.behsa.medportal.security.captcha.CaptchaValidationService;
 import com.behsa.medportal.security.jwt.JWTFilter;
-import com.behsa.medportal.security.jwt.SessionInfo;
 import com.behsa.medportal.security.jwt.TokenProvider;
 import com.behsa.medportal.web.rest.vm.LoginVM;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.LocalDateTime;
+import java.util.Locale;
+import java.util.UUID;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -18,15 +22,11 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
@@ -35,11 +35,8 @@ public class AuthResource {
     private static final Logger log = LoggerFactory.getLogger(AuthResource.class);
 
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
-
     private final TokenProvider tokenProvider;
-
     private final CaptchaValidationService captchaValidationService;
-
     private final SecurityCache securityCache;
 
     public AuthResource(
@@ -56,16 +53,25 @@ public class AuthResource {
 
     @PostMapping("/authenticate")
     public ResponseEntity<JWTToken> authorize(@Valid @RequestBody LoginVM loginVM, HttpServletRequest request) {
+        String username = normalizeUsername(loginVM.getUsername());
+        String clientIp = getClientIp(request);
+        String loginRateLimitKey = clientIp + ":" + username;
+
         try {
+            if (!securityCache.tryConsumeLogin(loginRateLimitKey)) {
+                log.warn("Login rate limit exceeded for user: {} from IP: {}", username, clientIp);
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+            }
+
             captchaValidationService.validate(
                 loginVM.getCaptchaId(),
                 loginVM.getCaptchaToken(),
-                request.getRemoteAddr()
+                clientIp
             );
 
             UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(
-                    loginVM.getUsername(),
+                    username,
                     loginVM.getPassword()
                 );
 
@@ -75,8 +81,9 @@ public class AuthResource {
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            if (isAdmin(authentication) && securityCache.hasConcurrentSession(loginVM.getUsername())) {
-                removeExistingSession(loginVM.getUsername());
+            if (isAdmin(authentication)) {
+                securityCache.removeSessionsByUsername(username);
+                log.info("Existing admin sessions removed for user: {}", username);
             }
 
             String jwt = tokenProvider.createToken(
@@ -87,8 +94,8 @@ public class AuthResource {
             securityCache.storeSession(
                 authentication.getPrincipal(),
                 UUID.randomUUID().toString(),
-                request.getRemoteAddr(),
-                loginVM.getUsername(),
+                clientIp,
+                username,
                 jwt,
                 request.getHeader("User-Agent"),
                 LocalDateTime.now(),
@@ -99,18 +106,26 @@ public class AuthResource {
             HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add(JWTFilter.AUTHORIZATION_HEADER, "Bearer " + jwt);
 
-            log.info("User authenticated successfully: {}", loginVM.getUsername());
+            log.info("User authenticated successfully: {}", username);
 
             return new ResponseEntity<>(new JWTToken(jwt), httpHeaders, HttpStatus.OK);
         } catch (AuthenticationException ex) {
             SecurityContextHolder.clearContext();
-
-            log.debug("Authentication failed for user: {}", loginVM.getUsername());
-
-            return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .build();
+            log.debug("Authentication failed for user: {}", username);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+    }
+
+    private String normalizeUsername(String username) {
+        if (!StringUtils.hasText(username)) {
+            return "";
+        }
+
+        return username.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String getClientIp(HttpServletRequest request) {
+        return request.getRemoteAddr();
     }
 
     private boolean isAdmin(Authentication authentication) {
@@ -118,15 +133,6 @@ public class AuthResource {
             .getAuthorities()
             .stream()
             .anyMatch(authority -> AuthoritiesConstants.ADMIN.equals(authority.getAuthority()));
-    }
-
-    private void removeExistingSession(String username) {
-        SessionInfo existingSession = securityCache.fetchSessionInfo(username);
-
-        if (existingSession != null && existingSession.getJwtToken() != null) {
-            securityCache.removeSession(existingSession.getJwtToken());
-            log.info("Existing admin session removed for user: {}", username);
-        }
     }
 
     public static class JWTToken {

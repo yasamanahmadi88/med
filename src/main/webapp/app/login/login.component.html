@@ -1,174 +1,97 @@
-<div style="padding: 0 25%">
-  <style>
-    @keyframes spin {
-      from {
-        transform: rotate(0deg);
-      }
-      to {
-        transform: rotate(360deg);
-      }
-    }
+<section class="login-page py-5">
 
-    ::placeholder {
-      font-size: 0.9rem !important;
-      font-weight: 400 !important;
-      opacity: 0.7;
-    }
-  </style>
+  <!-- Event nodes only بالای فرم -->
+  <div class="event-stream" aria-hidden="true">
+    <svg class="event-node l2r" style="--top: 0%; --size: 50px; --dur: 40s; --delay: -3s" viewBox="0 0 120 104">
+      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52"/>
+    </svg>
+    <svg class="event-node r2l" style="--top: 10%; --size: 60px; --dur: 42s; --delay: -7s" viewBox="0 0 120 104">
+      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52"/>
+    </svg>
+    <svg class="event-node l2r" style="--top: 20%; --size: 55px; --dur: 44s; --delay: -5s" viewBox="0 0 120 104">
+      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52"/>
+    </svg>
+    <svg class="event-node r2l" style="--top: 30%; --size: 65px; --dur: 38s; --delay: -12s" viewBox="0 0 120 104">
+      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52"/>
+    </svg>
+    <svg class="event-node l2r" style="--top: 40%; --size: 70px; --dur: 45s; --delay: -9s" viewBox="0 0 120 104">
+      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52"/>
+    </svg>
+  </div>
 
-  <div style="background: #fff; padding: 50px 0; border-radius: 20px">
-    <div class="d-flex justify-content-center">
-      <div class="col-lg-6 col-md-8 col-sm-10">
-        <h1 jhiTranslate="login.title" data-cy="loginTitle">Sign in</h1>
+  <!-- Form wrapper -->
+  <div class="login-form-wrapper">
+    <div class="card login-card my-5">
+      <h2 class="sr-only" jhiTranslate="login.title">Sign in</h2>
 
-        <div
-          class="alert alert-danger"
-          *ngIf="authenticationError"
-          jhiTranslate="login.messages.error.authentication"
-          data-cy="loginError"
-        >
-          <strong>Failed to sign in!</strong> Please check your credentials and try again.
+      <div class="alert alert-danger login-alert" *ngIf="authenticationError"
+           jhiTranslate="login.messages.error.authentication" data-cy="loginError">
+        <strong>Failed to sign in!</strong> Please check your credentials and try again.
+      </div>
+
+      <form class="login-form" role="form" (ngSubmit)="login()" [formGroup]="loginForm">
+
+        <!-- Username -->
+        <div class="form-field my-3">
+          <label for="username" jhiTranslate="global.form.username.label">Username</label>
+          <input type="text" class="form-control login-input" name="username" id="username"
+                 placeholder="{{ 'global.form.username.placeholder' | translate }}" formControlName="username"
+                 #username data-cy="username" />
         </div>
 
-        <form class="form" role="form" (ngSubmit)="login()" [formGroup]="loginForm">
-          <div class="mb-3">
-            <label class="username-label" for="username" jhiTranslate="global.form.username.label">Username</label>
-            <input
-              type="text"
-              class="form-control"
-              name="username"
-              id="username"
-              placeholder="{{ 'global.form.username.placeholder' | translate }}"
-              formControlName="username"
-              #username
-              data-cy="username"
-            />
-          </div>
+        <!-- Password -->
+        <div class="form-field my-3">
+          <label for="password" jhiTranslate="login.form.password">Password</label>
+          <input type="password" class="form-control login-input" name="password" id="password"
+                 placeholder="{{ 'login.form.password.placeholder' | translate }}" formControlName="password"
+                 data-cy="password" />
+        </div>
 
-          <div class="mb-3">
-            <label for="password" jhiTranslate="login.form.password">Password</label>
-            <input
-              type="password"
-              class="form-control"
-              name="password"
-              id="password"
-              placeholder="{{ 'login.form.password.placeholder' | translate }}"
-              formControlName="password"
-              data-cy="password"
-            />
-          </div>
+        <!-- Captcha -->
+        <div class="form-field my-3">
+          <label for="userCaptchaInput">Captcha Verification</label>
+          <div class="captcha-box">
+            <input placeholder="Enter code" autocomplete="off" #userCaptchaInput type="text"
+                   id="userCaptchaInput" name="userCaptchaInput" formControlName="userCaptchaInput"
+                   [maxLength]="6" maxlength="6" class="form-control login-input captcha-input"
+                   (keydown)="loginWithEnterKey($event)" [disabled]="isLoading" />
 
-          <div class="mb-3">
-            <label for="userCaptchaInput" class="form-label">Captcha Verification</label>
-
-            <div class="d-flex justify-content-center align-items-center">
-              <div class="form-group fadeIn third captchaInput me-3" style="flex: 1">
-                <input
-                  placeholder="Enter code"
-                  autocomplete="off"
-                  #userCaptchaInput
-                  type="text"
-                  id="userCaptchaInput"
-                  name="userCaptchaInput"
-                  formControlName="userCaptchaInput"
-                  [maxLength]="6"
-                  maxlength="6"
-                  class="form-control"
-                  (keydown)="loginWithEnterKey($event)"
-                  [disabled]="isLoading"
-                  style="
-                    border-radius: 8px;
-                    font-size: 0.9rem;
-                    font-weight: 400;
-                    width: 200px;
-                    text-transform: uppercase;
-                    letter-spacing: 2px;
-                    padding: 0.5rem 0.75rem;
-                  "
-                />
-              </div>
-
-              <div class="form-group fadeIn second d-flex">
-                <div class="input-group formsData">
-                  <div class="captcha-container d-flex" style="height: 40px; position: relative">
-                    <img
-                      *ngIf="captchaImageUrl && !isLoading"
-                      [src]="captchaImageUrl"
-                      alt="Captcha"
-                      class="captcha-image"
-                      style="border: 2px solid #dee2e6; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1)"
-                    />
-
-                    <div
-                      *ngIf="isLoading"
-                      class="d-flex align-items-center justify-content-center"
-                      style="width: 200px; border: 2px solid #dee2e6; border-radius: 8px; background-color: #f8f9fa"
-                    >
-                      <div class="spinner-border spinner-border-sm text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                      </div>
-                      <span class="ms-2 text-muted small">Loading...</span>
-                    </div>
-
-                    <button
-                      type="button"
-                      class="btn btn-outline-primary ms-2"
-                      (click)="reloadCaptcha()"
-                      title="Refresh Captcha"
-                      style="border-radius: 8px; border: 2px solid #dee2e6; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1)"
-                      [disabled]="isLoading"
-                    >
-                      <span *ngIf="!isLoading" style="font-size: 18px">↻</span>
-                      <span *ngIf="isLoading" class="spinner-border spinner-border-sm" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              </div>
+            <div class="captcha-preview">
+              <img *ngIf="captchaImageUrl && !isLoading" [src]="captchaImageUrl" alt="Captcha" />
             </div>
 
-            <div
-              class="text-danger small mt-2"
-              *ngIf="loginForm.get('userCaptchaInput')?.invalid && loginForm.get('userCaptchaInput')?.touched"
-            >
-              <span style="color: #dc3545; margin-right: 4px">⚠</span>
-              Please enter the captcha code.
-            </div>
-
-            <div class="text-muted small mt-1">
-              <span style="color: #6c757d; margin-right: 4px">ℹ</span>
-              Enter the 6-character code shown in the image above.
-            </div>
+            <button type="button" class="captcha-refresh" (click)="reloadCaptcha()" title="Refresh Captcha"
+                    [disabled]="isLoading">↻</button>
           </div>
 
-          <div class="form-check mb-3">
-            <label class="form-check-label" for="rememberMe">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                name="rememberMe"
-                id="rememberMe"
-                formControlName="rememberMe"
-              />
-              <span jhiTranslate="login.form.rememberme">Remember me</span>
-            </label>
+          <div class="validation-message"
+               *ngIf="loginForm.get('userCaptchaInput')?.invalid && loginForm.get('userCaptchaInput')?.touched">
+            Please enter the captcha code.
           </div>
+          <div class="helper-message">Enter the 6-character code shown in the image.</div>
+        </div>
 
-          <button
-            type="submit"
-            class="btn btn-primary"
-            data-cy="submit"
-            [disabled]="loginForm.invalid || isLoading"
-          >
-            <span *ngIf="!isLoading" jhiTranslate="login.form.button">Sign in</span>
-            <span *ngIf="isLoading">
-              <span style="animation: spin 1s linear infinite; display: inline-block; margin-right: 8px">⟳</span>
-              Signing in...
-            </span>
-          </button>
-        </form>
-      </div>
+        <!-- Remember me -->
+        <div class="login-options">
+          <label class="remember-me" for="rememberMe">
+            <input type="checkbox" name="rememberMe" id="rememberMe" formControlName="rememberMe" />
+            <span jhiTranslate="login.form.rememberme">Remember me</span>
+          </label>
+        </div>
+
+        <!-- Submit -->
+        <div class="d-flex justify-content-end my-3">
+        <button type="submit" class="login-submit" data-cy="submit"
+                [disabled]="loginForm.invalid || isLoading">
+          <span *ngIf="!isLoading" jhiTranslate="login.form.button" class="w-40">Sign in</span>
+          <span *ngIf="isLoading" class="submit-loading">
+            <span class="loading-icon">⟳</span>
+            Signing in...
+          </span>
+        </button>
+        </div>
+      </form>
     </div>
   </div>
-</div>
+
+</section>

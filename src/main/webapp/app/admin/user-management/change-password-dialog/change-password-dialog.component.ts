@@ -49,7 +49,10 @@ export class ChangePasswordDialogComponent implements OnInit {
       this.doNotMatch = 'ERROR';
     } else {
       this.doNotMatch = null;
-      this.passwordService.resetPassword({ key: this.user.login, newPassword: newLocalPass }).subscribe(
+      if (!this.user.login) {
+        return;
+      }
+        this.passwordService.resetPasswordByAdmin(this.user.login, newLocalPass).subscribe(
         () => {
           this.error = null;
           this.success = 'OK';

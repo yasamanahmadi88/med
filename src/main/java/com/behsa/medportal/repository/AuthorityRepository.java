@@ -8,6 +8,6 @@ import java.util.Optional;
 /**
  * Spring Data JPA repository for the {@link Authority} entity.
  */
-public interface AuthorityRepository extends JpaRepository<Authority, String> {
+public interface AuthorityRepository extends JpaRepository<Authority, Long> {
     Optional<Authority> findByName(String string);
 }

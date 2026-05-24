@@ -1,28 +1,33 @@
 package com.behsa.medportal.security.jwt;
 
 import com.behsa.medportal.security.SecurityCache;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.util.StringUtils;
-import org.springframework.web.filter.GenericFilterBean;
-
+import java.io.IOException;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.GenericFilterBean;
 
 /**
- * Filters incoming requests and installs a Spring Security principal if a header corresponding to a valid user is
- * found.
+ * Filters incoming requests and installs a Spring Security principal
+ * if a valid Bearer token is present and the token is active in server session cache.
  */
 public class JWTFilter extends GenericFilterBean {
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
 
+    private static final Logger log = LoggerFactory.getLogger(JWTFilter.class);
+
     private final TokenProvider tokenProvider;
+
     private final SecurityCache securityCache;
 
     public JWTFilter(TokenProvider tokenProvider, SecurityCache securityCache) {
@@ -33,79 +38,96 @@ public class JWTFilter extends GenericFilterBean {
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
         throws IOException, ServletException {
-        boolean flag = true;
-        HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
-        String jwt = resolveToken(httpServletRequest);
-        SessionInfo sessionInfo = securityCache.getSessionInfoByToken(jwt);
 
-        if (
-            !httpServletRequest.getRequestURI().endsWith("api/cp-eyrtyertye") &&
-                !httpServletRequest.getRequestURI().endsWith("api/authenticate") &&
-               // !httpServletRequest.getRequestURI().endsWith("management/info") &&
-                !httpServletRequest.getRequestURI().endsWith("/captcha-endpoint") &&
-                !httpServletRequest.getRequestURI().endsWith("api/captcha-validate") &&
-                !httpServletRequest.getRequestURI().endsWith("api/captcha.png") &&
-                !httpServletRequest.getRequestURI().endsWith("api/public/backUrl") &&
-                !httpServletRequest.getRequestURI().endsWith("api/auth/logout") &&
-                !httpServletRequest.getRequestURI().endsWith("error") &&
-                !httpServletRequest.getRequestURI().endsWith("/login") &&
-                !httpServletRequest.getRequestURI().endsWith(".js") &&
-                !httpServletRequest.getRequestURI().endsWith(".html") &&
-                !httpServletRequest.getRequestURI().endsWith(".woff2") &&
-                !httpServletRequest.getRequestURI().endsWith(".css") &&
-                !httpServletRequest.getRequestURI().equals("/")
-        ) {
-            if (jwt == null || sessionInfo == null) {
-                HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
-                httpResponse.setContentType("text/plain");
-                httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                httpResponse.getWriter().append("error.npg.token.empty");
-                httpResponse.sendRedirect("/login");//TODO redirect do not work properly
-                flag = false;
-            } else if (!sessionInfo.getValidToken()) {
-                HttpServletResponse httpServletResponse = ((HttpServletResponse) servletResponse);
-                httpServletResponse.setContentType("text/plain");
-                httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                httpServletResponse.getWriter().append("error.portal.token.invalid");
-                flag = false;
+        HttpServletRequest request = (HttpServletRequest) servletRequest;
+        String jwt = resolveToken(request);
+
+        try {
+            if (!StringUtils.hasText(jwt)) {
+                filterChain.doFilter(servletRequest, servletResponse);
+                return;
             }
+
+            if (!tokenProvider.validateToken(jwt)) {
+                SecurityContextHolder.clearContext();
+                removeInvalidSession(jwt);
+                filterChain.doFilter(servletRequest, servletResponse);
+                return;
+            }
+
+            SessionInfo sessionInfo = securityCache.getSessionInfoByToken(jwt);
+
+            if (!isActiveSession(sessionInfo)) {
+                SecurityContextHolder.clearContext();
+                removeInvalidSession(jwt);
+                filterChain.doFilter(servletRequest, servletResponse);
+                return;
+            }
+
+            if (isRateLimitExceeded(request, sessionInfo)) {
+                SecurityContextHolder.clearContext();
+                rejectTooManyRequests(servletResponse);
+                return;
+            }
+
+            Authentication authentication = tokenProvider.getAuthentication(jwt);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        } catch (RuntimeException ex) {
+            SecurityContextHolder.clearContext();
+            removeInvalidSession(jwt);
+            log.debug("JWT authentication failed: {}", ex.getMessage());
         }
 
-        if (StringUtils.hasText(jwt) && this.tokenProvider.validateToken(jwt)) {
-            Authentication authentication = this.tokenProvider.getAuthentication(jwt);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-        } else if (StringUtils.hasText(jwt) && !this.tokenProvider.validateToken(jwt)) {
-            SecurityContextHolder.getContext().setAuthentication(null);
+        filterChain.doFilter(servletRequest, servletResponse);
+    }
+
+    private boolean isActiveSession(SessionInfo sessionInfo) {
+        return sessionInfo != null && Boolean.TRUE.equals(sessionInfo.getValidToken());
+    }
+
+    private void removeInvalidSession(String jwt) {
+        if (StringUtils.hasText(jwt)) {
             securityCache.removeSession(jwt);
         }
-
-        if (sessionInfo != null) {
-            boolean isRequestRateLimited = false;
-            if (httpServletRequest.getMethod().equals("GET")) {
-                isRequestRateLimited = !sessionInfo.getBucketGet().tryConsume(1);
-            } else if (httpServletRequest.getMethod().equals("POST")) {
-                isRequestRateLimited = !sessionInfo.getBucketPost().tryConsume(1);
-            } else {
-                isRequestRateLimited = !sessionInfo.getBucketGet().tryConsume(1);
-            }
-
-            if (isRequestRateLimited) {
-                HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
-                httpServletResponse.setContentType("text/plain");
-                httpServletResponse.setStatus(429); // Too Many Requests
-                httpServletResponse.getWriter().append("error.too.many.requests");
-                flag = false;
-            }
-        }
-
-        if (flag) filterChain.doFilter(servletRequest, servletResponse);
     }
 
     private String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
+
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }
+
         return null;
+    }
+
+    private boolean isRateLimitExceeded(HttpServletRequest request, SessionInfo sessionInfo) {
+        if (sessionInfo == null) {
+            return false;
+        }
+
+        String method = request.getMethod();
+
+        if ("GET".equalsIgnoreCase(method)) {
+            return sessionInfo.getBucketGet() != null && !sessionInfo.getBucketGet().tryConsume(1);
+        }
+
+        if (
+            "POST".equalsIgnoreCase(method) ||
+                "PUT".equalsIgnoreCase(method) ||
+                "PATCH".equalsIgnoreCase(method) ||
+                "DELETE".equalsIgnoreCase(method)
+        ) {
+            return sessionInfo.getBucketPost() != null && !sessionInfo.getBucketPost().tryConsume(1);
+        }
+
+        return false;
+    }
+
+    private void rejectTooManyRequests(ServletResponse servletResponse) throws IOException {
+        HttpServletResponse response = (HttpServletResponse) servletResponse;
+        response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+        response.setContentType("application/json");
+        response.getWriter().write("{\"message\":\"too many requests\"}");
     }
 }

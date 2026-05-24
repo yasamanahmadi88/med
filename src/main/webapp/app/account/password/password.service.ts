@@ -22,4 +22,10 @@ export class PasswordService {
   resetPassword(keyAndPassword: any): Observable<any> {
     return this.http.post(this.applicationConfigService.getEndpointFor('api/account/reset-password/finish'), keyAndPassword);
   }
+  resetPasswordByAdmin(login: string, newPassword: string): Observable<void> {
+    return this.http.post<void>(
+      this.applicationConfigService.getEndpointFor(`api/admin/users/${encodeURIComponent(login)}/reset-password`),
+      { newPassword }
+    );
+  }
 }

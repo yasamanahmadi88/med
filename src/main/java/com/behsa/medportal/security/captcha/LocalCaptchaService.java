@@ -11,7 +11,7 @@ import java.security.SecureRandom;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-
+import org.springframework.scheduling.annotation.Scheduled;
 @Service
 public class LocalCaptchaService {
 
@@ -47,18 +47,32 @@ public class LocalCaptchaService {
     }
 
     /** Render PNG for an issued id (does not consume). */
+//    public byte[] renderPng(String id) {
+//        Entry e = store.get(id);
+//        if (e == null || e.expiresAt < System.currentTimeMillis()) return null;
+//        return render(e.text);
+//    }
     public byte[] renderPng(String id) {
         Entry e = store.get(id);
-        if (e == null || e.expiresAt < System.currentTimeMillis()) return null;
+
+        if (e == null) {
+            return null;
+        }
+
+        if (e.expiresAt < System.currentTimeMillis()) {
+            store.remove(id);
+            return null;
+        }
+
         return render(e.text);
     }
 
     /** Peek validity (no consume). */
-    public boolean peek(String id, String userInput) {
-        Entry e = store.get(id);
-        if (e == null || e.expiresAt < System.currentTimeMillis()) return false;
-        return userInput != null && userInput.trim().toLowerCase().equals(e.text);
-    }
+//    public boolean peek(String id, String userInput) {
+//        Entry e = store.get(id);
+//        if (e == null || e.expiresAt < System.currentTimeMillis()) return false;
+//        return userInput != null && userInput.trim().toLowerCase().equals(e.text);
+//    }
 
     /** Verify and consume (one-time). */
     public boolean verifyAndConsume(String id, String userInput) {
@@ -119,5 +133,10 @@ public class LocalCaptchaService {
         int g = min + rng.nextInt(max - min + 1);
         int b = min + rng.nextInt(max - min + 1);
         return new Color(r, g, b);
+    }
+    @Scheduled(fixedDelay = 60000)
+    public void cleanupExpiredCaptchas() {
+        long now = System.currentTimeMillis();
+        store.entrySet().removeIf(entry -> entry.getValue().expiresAt < now);
     }
 }

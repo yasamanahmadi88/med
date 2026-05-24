@@ -80,6 +80,23 @@ public class LogServiceImpl implements LogService {
     @Transactional(readOnly = true)
     public Page<LogListRowDTO> findSummary(Pageable pageable) {
         log.debug("Request to get summary page of Logs");
-        return logRepository.findSummary(pageable);
+        return logRepository.findSummary(pageable)
+            .map(row -> new LogListRowDTO(
+                row.getId(),
+                row.getMsgType(),
+                row.getCorrelationId(),
+                row.getReferenceType(),
+                row.getReference(),
+                row.getModuleSource(),
+                row.getModuleDestination(),
+                row.getProperties(),
+                row.getReqMessage(),
+                row.getResMessage(),
+                row.getError(),
+                row.getErrorDetails(),
+                row.getInitialDate(),
+                row.getCreateDate(),
+                row.getLogType()
+            ));
     }
 }

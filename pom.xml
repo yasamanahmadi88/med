@@ -307,6 +307,11 @@
             <artifactId>plexus-utils</artifactId>
             <version>3.5.1</version>
         </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
         <!-- SLF4J for logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -1000,7 +1005,7 @@
                                     <include>**/*IT*</include>
                                     <include>**/*IntTest*</include>
                                 </includes>
-                                <argLine>@{argLine} -Dspring.profiles.active=testdev</argLine>
+                                <argLine>@{argLine} -Dspring.profiles.active=test</argLine>
                             </configuration>
                             <executions>
                                 <execution>
@@ -1240,7 +1245,7 @@
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-war-plugin</artifactId>
+                        <artifactId>maven-jar-plugin</artifactId>
                     </plugin>
                 </plugins>
             </build>

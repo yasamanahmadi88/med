@@ -60,8 +60,7 @@
         "authenticated": {
           "prefix": "If you want to ",
           "link": "sign in",
-          "suffix": ", you can try the default accounts:<br/>- Administrator (login=\"admin\" and password=\"admin\") <br/>- User (login=\"user\" and password=\"user\")."
-        },
+          "suffix": ", please use your assigned account credentials."        },
         "register": {
           "noaccount": "You don't have an account yet?",
           "link": "Register a new account"
@@ -79,7 +78,7 @@
           "strength": "Password strength:",
           "emptyPassword": "Password cannot be empty",
           "passwordSmallerThanMinLength": "Password must be at least 8 characters long",
-          "passwordGraterThanMaxLength": "Password cannot be longer than 64 characters",
+          "passwordGreaterThanMaxLength": "Password cannot be longer than 64 characters",
           "passwordMustContainAtLeastOneUppercaseLetter" : "Password must contain at least one uppercase letter",
           "passwordMustContainAtLeastOneLowercaseLetter" : "Password must contain at least one lowercase letter",
           "passwordMustContainAtLeastOneDigit" : "Password must contain at least one digit",

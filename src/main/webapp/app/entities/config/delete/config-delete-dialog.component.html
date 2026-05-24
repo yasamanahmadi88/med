@@ -7,8 +7,13 @@
 
   <div class="modal-body">
     <jhi-alert-error></jhi-alert-error>
-    <p id="jhi-delete-config-heading" jhiTranslate="medPortalApp.config.delete.question" [translateValues]="{ name: config.property }">
-      Are you sure you want to delete Config {{ config.property }}?
+
+    <p id="jhi-delete-config-heading">
+      <span jhiTranslate="medPortalApp.config.delete.question">Are you sure you want to delete this Config?</span>
+    </p>
+
+    <p class="text-break">
+      <strong>{{ config.property }}</strong>
     </p>
   </div>
 

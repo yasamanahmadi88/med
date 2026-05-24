@@ -38,58 +38,86 @@ public class SecurityCache {
 
 
     private final Map<String, SessionInfo> sessionInfos = new ConcurrentHashMap<>();
+    private final Map<String, Bucket> loginBuckets = new ConcurrentHashMap<>();
 
     public SecurityCache() {
 
     }
 
     public void storeSession(
-            Object principal,
-            String sessionId,
-            String ip,
-            String username,
-            String token,
-            String userAgent,
-            LocalDateTime login,
-            LocalDateTime logout,
-            Boolean validToken
+        Object principal,
+        String sessionId,
+        String ip,
+        String username,
+        String token,
+        String userAgent,
+        LocalDateTime login,
+        LocalDateTime logout,
+        Boolean validToken
     ) {
         sessionInfos.put(
+            token,
+            new SessionInfo(
+                principal,
+                sessionId,
+                ip,
+                username,
                 token,
-                new SessionInfo(
-                        principal,
-                        sessionId,
-                        ip,
-                        username,
-                        token,
-                        userAgent,
-                        login,
-                        logout,
-                        validToken,
-                        login,
-                        createNewBucket("get"),
-                        createNewBucket("post")
-                )
+                userAgent,
+                login,
+                logout,
+                validToken,
+                login,
+                createNewBucket("get"),
+                createNewBucket("post")
+            )
         );
     }
 
+
+
     public void removeSession(String jwtToken) {
-        if (sessionInfos.get(jwtToken) != null) {
-            sessionInfos.remove(jwtToken);
+        if (jwtToken == null || jwtToken.isBlank()) {
+            return;
         }
+
+        sessionInfos.remove(jwtToken);
     }
+
+
+
+
 
     public List<SessionInfo> getAllSessionInfo() {
         try {
             sessionInfos.forEach(
-                    (s, sessionInfo) -> {
-                        if (isTokenExpired(sessionInfo)) removeSession(s);
-                    }
+                (s, sessionInfo) -> {
+                    if (isTokenExpired(sessionInfo)) removeSession(s);
+                }
             );
             return new ArrayList<>(sessionInfos.values());
         } catch (Exception ex) {
             LOGGER.error("Error occurred in getAllSessionInfo",ex);
             return null;
+        }
+    }
+
+
+    public void removeSessionsByUsername(String username) {
+        try {
+            if (username == null || username.isBlank() || sessionInfos.isEmpty()) {
+                return;
+            }
+
+            sessionInfos.entrySet().removeIf(entry -> {
+                SessionInfo sessionInfo = entry.getValue();
+
+                return sessionInfo != null
+                    && sessionInfo.getUsername() != null
+                    && sessionInfo.getUsername().equalsIgnoreCase(username);
+            });
+        } catch (Exception ex) {
+            LOGGER.error("Error occurred in removeSessionsByUsername", ex);
         }
     }
 
@@ -114,10 +142,10 @@ public class SecurityCache {
         try {
             if (username == null) return false;
             Map<String, SessionInfo> result = sessionInfos
-                    .entrySet()
-                    .stream()
-                    .filter(map -> username.equalsIgnoreCase(map.getValue().getUsername()))
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .entrySet()
+                .stream()
+                .filter(map -> username.equalsIgnoreCase(map.getValue().getUsername()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
             return !result.isEmpty();
         } catch (Exception ex) {
@@ -130,10 +158,10 @@ public class SecurityCache {
         try {
             if (username == null) return null;
             Map<String, SessionInfo> result = sessionInfos
-                    .entrySet()
-                    .stream()
-                    .filter(map -> username.equalsIgnoreCase(map.getValue().getUsername()))
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .entrySet()
+                .stream()
+                .filter(map -> username.equalsIgnoreCase(map.getValue().getUsername()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             return result.values().stream().findFirst().orElse(null);
         } catch (Exception ex) {
             LOGGER.error("Error occurred in fetchSessionInfo",ex);
@@ -160,4 +188,18 @@ public class SecurityCache {
 
         return Bucket.builder().addLimit(limit).build();
     }
+    public boolean tryConsumeLogin(String key) {
+        if (key == null || key.isBlank()) {
+            key = "unknown";
+        }
+
+        Bucket bucket = loginBuckets.computeIfAbsent(key, ignored ->
+            Bucket.builder()
+                .addLimit(Bandwidth.classic(10, Refill.greedy(10, Duration.ofMinutes(1))))
+                .build()
+        );
+
+        return bucket.tryConsume(1);
+    }
+
 }

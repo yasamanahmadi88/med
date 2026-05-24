@@ -65,7 +65,7 @@ server:
 jhipster:
   cache: # Cache configuration
     ehcache: # Ehcache configuration
-      time-to-live-seconds: 3600 # By default objects stay 1 hour in the cache
+      time-to-live-seconds: 3600 # By default, objects stay 1 hour in the cache
       max-entries: 100 # Number of objects in each cache entry
   # CORS is only enabled by default with the "dev" profile
   cors:
@@ -115,18 +115,20 @@ mediation:
 # ===================================================================
 
 captcha:
-  # Enable captcha in development
+  provider: local
   enabled: true
-  # Allow bypass in development for testing (set to true to skip captcha validation)
-  dev-bypass: true
+  dev-bypass: false
 
 bucket4j:
+  login:
+    bucket-size: 5
+    token-per-minute: 5
   get:
-    bucket-size: 1000
-    token-per-minute: 100
+    bucket-size: 10
+    token-per-minute: 10
   post:
-    bucket-size: 2000
-    token-per-minute: 200
+    bucket-size: 5
+    token-per-minute: 5
 
 user-session:
   expire:

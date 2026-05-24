@@ -60,8 +60,7 @@
         "authenticated": {
           "prefix": "اگر شما می‌خواهید",
           "link": "ورود",
-          "suffix": ", می‌توانید از حساب پایه:<br/>- مدیریت برتر (login=\"admin\" and password=\"admin\") <br/>- کاربر (login=\"user\" and password=\"user\")."
-        },
+          "suffix": "، لطفاً از نام کاربری و رمز عبور اختصاص داده‌شده استفاده کنید."        },
         "register": {
           "noaccount": "آیا هنوز حساب کاربری ندارید؟",
           "link": "ثبت نام حساب کاربری جدید"
@@ -79,7 +78,7 @@
           "strength": "قدرتمندی رمزعبور:",
           "emptyPassword": "رمز عبور نمی تواند خالی باشد",
           "passwordSmallerThanMinLength": "رمز عبور می بایست حداقل 8 کاراکتر باشد",
-          "passwordGraterThanMaxLength": "رمز عبور حداکثر می تواند 64 کاراکتر باشد",
+          "passwordGreaterThanMaxLength": "رمز عبور حداکثر می تواند 64 کاراکتر باشد",
           "passwordMustContainAtLeastOneUppercaseLetter" : "رمز عبور می بایست حداقل یک حرف بزرگ داشته باشد",
           "passwordMustContainAtLeastOneLowercaseLetter" : "رمز عبور می بایست حداقل یک حرف کوچک داشته باشد",
           "passwordMustContainAtLeastOneDigit" : "رمز عبور می بایست حداقل یک عدد داشته باشد",

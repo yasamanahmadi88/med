@@ -5,8 +5,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 /**
- * View-Model object for storing a user’s credentials and captcha token.
- * Add the two new fields shown below.
+ * View Model object for storing a user's credentials and captcha data.
  */
 public class LoginVM {
 
@@ -20,13 +19,11 @@ public class LoginVM {
 
     private Boolean rememberMe;
 
-    /* ───── NEW FIELDS ───── */
+    @NotBlank
+    private String captchaId;
 
-    /** Opaque token returned by the captcha provider (Turnstile, reCAPTCHA, …). */
     @NotBlank
     private String captchaToken;
-
-    // ───────────────── getters / setters ─────────────────
 
     public String getUsername() {
         return username;
@@ -50,6 +47,14 @@ public class LoginVM {
 
     public void setRememberMe(Boolean rememberMe) {
         this.rememberMe = rememberMe;
+    }
+
+    public String getCaptchaId() {
+        return captchaId;
+    }
+
+    public void setCaptchaId(String captchaId) {
+        this.captchaId = captchaId;
     }
 
     public String getCaptchaToken() {

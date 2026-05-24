@@ -23,7 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.jhipster.security.RandomUtil;
-
+import com.behsa.medportal.security.SecurityCache;
 /**
  * Service class for managing users.
  */
@@ -40,17 +40,19 @@ public class UserService {
     private final AuthorityRepository authorityRepository;
 
     private final CacheManager cacheManager;
+    private final SecurityCache securityCache;
 
     public UserService(
         UserRepository userRepository,
         PasswordEncoder passwordEncoder,
         AuthorityRepository authorityRepository,
-        CacheManager cacheManager
+        CacheManager cacheManager, SecurityCache securityCache
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authorityRepository = authorityRepository;
         this.cacheManager = cacheManager;
+        this.securityCache = securityCache;
     }
 
     public Optional<User> activateRegistration(String key) {
@@ -68,22 +70,25 @@ public class UserService {
     }
 
     public Optional<UserDTO> completePasswordReset(String newPassword, String key) {
-        log.debug("Reset user password for reset key {}", key);
-        return Optional
-            .of(userRepository.findOneByLogin(key))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .map(
-                user -> {
-                    user.setPassword(passwordEncoder.encode(newPassword));
-                    user.setResetKey(null);
-                    user.setResetDate(null);
-                    userRepository.save(user);
-                    log.debug("Changed Information for User: {}", user);
-                    this.clearUserCaches(user);
-                    return user;
-                }
-            )
+        log.debug("Reset user password for reset key");
+
+        if (key == null || key.isBlank() || key.length() != 20) {
+            return Optional.empty();
+        }
+
+        return userRepository
+            .findOneByResetKey(key)
+            .filter(user -> user.getResetDate() != null)
+            .filter(user -> user.getResetDate().isAfter(Instant.now().minusSeconds(86400)))
+            .map(user -> {
+                user.setPassword(passwordEncoder.encode(newPassword));
+                user.setResetKey(null);
+                user.setResetDate(null);
+                userRepository.save(user);
+                this.clearUserCaches(user);
+                securityCache.removeSessionsByUsername(user.getLogin());
+                return user;
+            })
             .map(UserDTO::new);
     }
 
@@ -97,6 +102,27 @@ public class UserService {
                 this.clearUserCaches(user);
                 return user;
             });
+    }
+    public boolean resetPasswordByAdmin(String login, String newPassword) {
+        if (login == null || login.isBlank()) {
+            return false;
+        }
+
+        return userRepository
+            .findOneByLogin(login.toLowerCase())
+            .filter(User::isActivated)
+            .map(user -> {
+                user.setPassword(passwordEncoder.encode(newPassword));
+                user.setResetKey(null);
+                user.setResetDate(null);
+                user.setActivationKey(null);
+                userRepository.save(user);
+                this.clearUserCaches(user);
+                securityCache.removeSessionsByUsername(user.getLogin());
+                log.info("Password was reset by admin for user {}", user.getLogin());
+                return true;
+            })
+            .orElse(false);
     }
 
     public User registerUser(AdminUserDTO userDTO, String password) {
@@ -119,24 +145,31 @@ public class UserService {
         User newUser = new User();
         String encryptedPassword = passwordEncoder.encode(password);
         newUser.setLogin(userDTO.getLogin().toLowerCase());
-        // new user gets initially a generated password
         newUser.setPassword(encryptedPassword);
         newUser.setFirstName(userDTO.getFirstName());
         newUser.setLastName(userDTO.getLastName());
+
         if (userDTO.getEmail() != null) {
             newUser.setEmail(userDTO.getEmail().toLowerCase());
         }
+
         newUser.setImageUrl(userDTO.getImageUrl());
         newUser.setLangKey(userDTO.getLangKey());
-        // new user is not active
         newUser.setActivated(false);
-        // new user gets registration key
         newUser.setActivationKey(RandomUtil.generateActivationKey());
+
         Set<Authority> authorities = new HashSet<>();
-        authorityRepository.findById(AuthoritiesConstants.USER).ifPresent(authorities::add);
+
+        Authority userAuthority = authorityRepository
+            .findByName(AuthoritiesConstants.USER)
+            .orElseThrow(() -> new IllegalStateException("ROLE_USER authority was not found in database"));
+
+        authorities.add(userAuthority);
         newUser.setAuthorities(authorities);
+
         userRepository.save(newUser);
         this.clearUserCaches(newUser);
+
         log.debug("Created Information for User: {}", newUser);
         return newUser;
     }
@@ -165,10 +198,16 @@ public class UserService {
         } else {
             user.setLangKey(userDTO.getLangKey());
         }
-        String encryptedPassword = passwordEncoder.encode("Ab@123456");
+//        String encryptedPassword = passwordEncoder.encode("Ab@123456");
+//        user.setPassword(encryptedPassword);
+//        user.setResetKey(RandomUtil.generateResetKey());
+//        user.setResetDate(Instant.now());
+//        user.setActivated(true);
+
+        String encryptedPassword = passwordEncoder.encode(RandomUtil.generatePassword());
         user.setPassword(encryptedPassword);
-        user.setResetKey(RandomUtil.generateResetKey());
-        user.setResetDate(Instant.now());
+        user.setResetKey(null);
+        user.setResetDate(null);
         user.setActivated(true);
         if (userDTO.getAuthorities() != null) {
             Set<Authority> authorities = userDTO
@@ -207,6 +246,12 @@ public class UserService {
                 }
                 user.setImageUrl(userDTO.getImageUrl());
                 user.setActivated(userDTO.isActivated());
+                if (!userDTO.isActivated()) {
+                    user.setActivationKey(null);
+                    user.setResetKey(null);
+                    user.setResetDate(null);
+                    securityCache.removeSessionsByUsername(user.getLogin());
+                }
                 user.setLangKey(userDTO.getLangKey());
                 Set<Authority> managedAuthorities = user.getAuthorities();
                 managedAuthorities.clear();
@@ -231,6 +276,7 @@ public class UserService {
             .ifPresent(user -> {
                 userRepository.delete(user);
                 this.clearUserCaches(user);
+                securityCache.removeSessionsByUsername(user.getLogin());
                 log.debug("Deleted User: {}", user);
             });
     }
@@ -274,6 +320,7 @@ public class UserService {
                 String encryptedPassword = passwordEncoder.encode(newPassword);
                 user.setPassword(encryptedPassword);
                 this.clearUserCaches(user);
+                securityCache.removeSessionsByUsername(user.getLogin());
                 log.debug("Changed password for User: {}", user);
             });
     }

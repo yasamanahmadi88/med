@@ -8,10 +8,22 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
 
 /**
- * Custom method security configuration
+ * Custom method security configuration.
+ *
+ * Enables:
+ * - @PreAuthorize / @PostAuthorize
+ * - @Secured
+ *
+ * Uses Spring Security's default AccessDecisionManager first,
+ * then applies the project's resource-based permission checks.
  */
 @Configuration
-@EnableGlobalMethodSecurity(prePostEnabled = false, securedEnabled = true, proxyTargetClass = true, mode = AdviceMode.PROXY)
+@EnableGlobalMethodSecurity(
+    prePostEnabled = true,
+    securedEnabled = true,
+    proxyTargetClass = true,
+    mode = AdviceMode.PROXY
+)
 public class MethodSecurityConfiguration extends GlobalMethodSecurityConfiguration {
 
     private final ResourceAuthorityQueryService resourceAuthorityQueryService;
@@ -20,8 +32,11 @@ public class MethodSecurityConfiguration extends GlobalMethodSecurityConfigurati
         this.resourceAuthorityQueryService = resourceAuthorityQueryService;
     }
 
-    public AccessDecisionManager accessDecisionManager() {
-        CustomAccessDecisionManager accessDecisionManager = new CustomAccessDecisionManager(resourceAuthorityQueryService);
-        return accessDecisionManager;
+    @Override
+    protected AccessDecisionManager accessDecisionManager() {
+        return new CustomAccessDecisionManager(
+            super.accessDecisionManager(),
+            resourceAuthorityQueryService
+        );
     }
 }

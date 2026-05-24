@@ -1,10 +1,12 @@
 package com.behsa.medportal.vaidators.dto;
 
 public class PasswordValidationDto {
+
     private boolean valid;
     private String validationException;
 
-    private PasswordValidationDto() {
+    public PasswordValidationDto() {
+        // Needed for Jackson.
     }
 
     private PasswordValidationDto(boolean valid, String validationException) {
@@ -12,11 +14,11 @@ public class PasswordValidationDto {
         this.validationException = validationException;
     }
 
-    public static PasswordValidationDto validPassword(){
+    public static PasswordValidationDto validPassword() {
         return new PasswordValidationDto(true, null);
     }
 
-    public static PasswordValidationDto invalidPassword(String validationException){
+    public static PasswordValidationDto invalidPassword(String validationException) {
         return new PasswordValidationDto(false, validationException);
     }
 

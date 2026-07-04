@@ -1,0 +1,46 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <div *ngIf="resourceAuthority">
+      <h2 data-cy="resourceAuthorityDetailsHeading">
+        <span jhiTranslate="medPortalApp.resourceAuthority.detail.title">Resource Authority</span>
+      </h2>
+
+      <hr />
+
+      <jhi-alert-error></jhi-alert-error>
+
+      <jhi-alert></jhi-alert>
+
+      <dl class="row-md jh-entity-details">
+        <dt><span jhiTranslate="global.field.id">ID</span></dt>
+        <dd>
+          <span>{{ resourceAuthority.id }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.resourceAuthority.verb">Verb</span></dt>
+        <dd>
+          <span>{{ resourceAuthority.verb }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.resourceAuthority.medAuthority">Med Authority</span></dt>
+        <dd>
+          <div *ngIf="resourceAuthority.medAuthority">
+            <a [routerLink]="['/med-authority', resourceAuthority.medAuthority.id, 'view']">{{ resourceAuthority.medAuthority.id }}</a>
+          </div>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.resourceAuthority.resource">Resource</span></dt>
+        <dd>
+          <div *ngIf="resourceAuthority.resource">
+            <a [routerLink]="['/resource', resourceAuthority.resource.id, 'view']">{{ resourceAuthority.resource.id }}</a>
+          </div>
+        </dd>
+      </dl>
+
+      <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+        <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Back</span>
+      </button>
+
+      <button type="button" [routerLink]="['/resource-authority', resourceAuthority.id, 'edit']" class="btn btn-primary">
+        <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Edit</span>
+      </button>
+    </div>
+  </div>
+</div>

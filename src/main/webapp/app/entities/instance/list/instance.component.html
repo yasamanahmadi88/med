@@ -1,0 +1,140 @@
+<div>
+  <h2 id="page-heading" data-cy="InstanceHeading">
+    <span jhiTranslate="medPortalApp.instance.home.title">Instances</span>
+
+    <div class="d-flex justify-content-end">
+      <button class="btn btn-info me-2" (click)="load()" [disabled]="isLoading">
+        <fa-icon icon="sync" [animation]="isLoading ? 'spin' : undefined"></fa-icon>
+        <span jhiTranslate="medPortalApp.instance.home.refreshListLabel">Refresh list</span>
+      </button>
+    </div>
+  </h2>
+
+  <jhi-alert-error></jhi-alert-error>
+
+  <jhi-alert></jhi-alert>
+
+  <jhi-filter [filters]="filters"></jhi-filter>
+
+  <div class="alert alert-warning" id="no-result" *ngIf="instances?.length === 0">
+    <span jhiTranslate="medPortalApp.instance.home.notFound">No Instances found</span>
+  </div>
+
+  <div class="table-responsive table-entities" id="entities" *ngIf="instances && instances.length > 0">
+    <table class="table table-striped" aria-describedby="page-heading">
+      <thead>
+        <tr jhiSort [(predicate)]="predicate" [(ascending)]="ascending" (sortChange)="navigateToWithComponentValues()">
+          <th scope="col" jhiSortBy="moduleName">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.instance.moduleName">Module Name</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="hostName">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.instance.hostName">Host Name</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="port">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.instance.port">Port</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="moduleStatus">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.instance.moduleStatus">Module Status</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="lastUpdateDate">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.instance.lastUpdateDate">Last Update Date</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="threadPoolQueueSize">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.instance.threadPoolQueueSize">Thread Pool Queue Size</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="moduleStartTime">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.instance.moduleStartTime">Module Start Time</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="totalProcessedWork">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.instance.totalProcessedWork">Total Processed Work</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="totalProcessedTask">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.instance.totalProcessedTask">Total Processed Task</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.instance.processedStatistics">Processed Statistics</span>
+            </div>
+          </th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let instance of instances; trackBy: trackId" data-cy="entityTable" [ngClass]="instance.moduleStatus != 'OK'? 'table-danger': ''">
+          <td>{{ instance.moduleName }}</td>
+          <td>{{ instance.hostName }}</td>
+          <td>{{ instance.port }}</td>
+          <td>{{ instance.moduleStatus }}</td>
+          <td>{{ instance.lastUpdateDate | formatMediumDate }}</td>
+          <td>{{ instance.threadPoolQueueSize }}</td>
+          <td>{{ instance.moduleStartTime }}</td>
+          <td>{{ instance.totalProcessedWork }}</td>
+          <td>{{ instance.totalProcessedTask }}</td>
+          <td>
+            <button type="submit"  class="btn btn-sm" (click)="showLoggingFilterDialog(instance.processedStatistics)">
+              <fa-icon icon="eye"></fa-icon>
+            </button>
+          </td>
+          <td class="text-end">
+            <div class="btn-group">
+              <button
+                type="submit"
+                [routerLink]="['/instance', instance.id, 'view']"
+                class="btn btn-info btn-sm"
+                data-cy="entityDetailsButton"
+              >
+                <fa-icon icon="eye"></fa-icon>
+                <span class="d-none d-md-inline" jhiTranslate="entity.action.view">View</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="instances && instances.length > 0">
+    <div class="d-flex justify-content-center">
+      <jhi-item-count [params]="{ page: page, totalItems: totalItems, itemsPerPage: itemsPerPage }"></jhi-item-count>
+    </div>
+
+    <div class="d-flex justify-content-center">
+      <ngb-pagination
+        [collectionSize]="totalItems"
+        [page]="page"
+        [pageSize]="itemsPerPage"
+        [maxSize]="5"
+        [rotate]="true"
+        [boundaryLinks]="true"
+        (pageChange)="navigateToPage($event)"
+      ></ngb-pagination>
+    </div>
+  </div>
+</div>

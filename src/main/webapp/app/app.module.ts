@@ -5,7 +5,7 @@ import locale from '@angular/common/locales/en';
 import { BrowserModule, Title } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { provideNgxWebstorage, withNgxWebstorageConfig } from 'ngx-webstorage';
+import { provideNgxWebstorage, withLocalStorage, withNgxWebstorageConfig, withSessionStorage } from 'ngx-webstorage';
 import dayjs from 'dayjs/esm';
 import { NgbDateAdapter, NgbDatepickerConfig } from '@ng-bootstrap/ng-bootstrap';
 
@@ -55,7 +55,11 @@ import { ThemeService } from './core/theme/theme.service';
     }),
   ],
   providers: [
-    provideNgxWebstorage(withNgxWebstorageConfig({ prefix: 'jhi', separator: '-', caseSensitive: true })),
+    provideNgxWebstorage(
+      withNgxWebstorageConfig({ prefix: 'jhi', separator: '-', caseSensitive: true }),
+      withLocalStorage(),
+      withSessionStorage(),
+    ),
     Title,
     { provide: LOCALE_ID, useValue: 'en' },
     { provide: NgbDateAdapter, useClass: NgbDateDayjsAdapter },

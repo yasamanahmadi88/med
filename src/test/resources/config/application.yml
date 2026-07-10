@@ -67,7 +67,6 @@ jhipster:
       enabled: false
       host: localhost
       port: 5000
-      queue-size: 512
   security:
     authentication:
       jwt:

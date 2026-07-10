@@ -8,11 +8,11 @@ MedPortal backend is both **token issuer** and **resource server** (classic JHip
 
 - Algorithm: **HS512** (explicit at sign time)
 - Key: Base64 secret from `jhipster.security.authentication.jwt.base64-secret` (env/config)
-- Claims: `sub` (login), `auth` (authorities CSV historically), `PartyId`, `exp`
-- Validation parser: `Jwts.parser().verifyWith(secretKey).clockSkewSeconds(30)`
+- Claims: `iss` (`MedPortal`), `aud` (`medportal-api`), `sub` (login), `auth` (authorities CSV historically), `PartyId`, `exp`
+- Validation parser: `Jwts.parser().verifyWith(secretKey).requireIssuer("MedPortal").requireAudience("medportal-api").clockSkewSeconds(30)`
   - Rejects `alg=none`
   - Rejects asymmetric algorithms against HMAC key
-  - Enforces signature + expiration
+  - Enforces signature, issuer, audience, not-before, expiration, subject, authority, and party claims
 
 ## Authentication flow
 
@@ -31,14 +31,15 @@ MedPortal backend is both **token issuer** and **resource server** (classic JHip
 ## Hardening applied in this upgrade
 
 - Explicit HS512 signing
+- Required issuer/audience claims
 - HMAC `verifyWith` parser
 - Clock skew 30s
 - Null/blank token short-circuit
+- Missing critical-claim rejection
 - Resource method security preserved for `@Secured("resourceName")`
 
 ## Follow-ups
 
-- Add `iss` / `aud` if multiple services share tokens
 - Rotate signing keys with `kid`
 - Prefer refresh-token rotation for long sessions
 - Migrate SPA storage to HttpOnly Secure SameSite cookies when UX allows

@@ -21,6 +21,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import tech.jhipster.config.JHipsterProperties;
 import com.behsa.medportal.repository.UserRepository;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -33,6 +34,8 @@ public class TokenProvider {
 
     private static final String AUTHORITIES_KEY = "auth";
     private static final String PARTY_ID_KEY = "PartyId";
+    static final String TOKEN_ISSUER = "MedPortal";
+    static final String TOKEN_AUDIENCE = "medportal-api";
 
     private static final String INVALID_JWT_TOKEN = "Invalid JWT token.";
 
@@ -71,7 +74,13 @@ public class TokenProvider {
         }
         key = Keys.hmacShaKeyFor(keyBytes);
         // verifyWith binds an HMAC key so alg=none / asymmetric alg confusion is rejected.
-        jwtParser = Jwts.parser().verifyWith(key).clockSkewSeconds(30).build();
+        jwtParser = Jwts
+            .parser()
+            .verifyWith(key)
+            .requireIssuer(TOKEN_ISSUER)
+            .requireAudience(TOKEN_AUDIENCE)
+            .clockSkewSeconds(30)
+            .build();
         this.tokenValidityInMilliseconds = 1000 * jHipsterProperties.getSecurity().getAuthentication().getJwt().getTokenValidityInSeconds();
         this.tokenValidityInMillisecondsForRememberMe =
             1000 * jHipsterProperties.getSecurity().getAuthentication().getJwt().getTokenValidityInSecondsForRememberMe();
@@ -96,6 +105,10 @@ public class TokenProvider {
 
         return Jwts
             .builder()
+            .issuer(TOKEN_ISSUER)
+            .audience()
+            .add(TOKEN_AUDIENCE)
+            .and()
             .subject(authentication.getName())
             .claim(AUTHORITIES_KEY, authorities)
             .claims(claims)
@@ -169,7 +182,11 @@ public class TokenProvider {
             return false;
         }
         try {
-            jwtParser.parseSignedClaims(authToken);
+            Claims claims = jwtParser.parseSignedClaims(authToken).getPayload();
+            if (!hasRequiredClaims(claims)) {
+                log.trace("Invalid JWT token because required claims are missing.");
+                return false;
+            }
 
             return true;
         } catch (ExpiredJwtException e) {
@@ -188,11 +205,19 @@ public class TokenProvider {
             this.securityMetersService.trackTokenInvalidSignature();
 
             log.trace(INVALID_JWT_TOKEN, e);
+        } catch (JwtException e) {
+            log.trace(INVALID_JWT_TOKEN, e);
         } catch (IllegalArgumentException e) {
             log.error("Token validation error {}", e.getMessage());
         }
 
         return false;
+    }
+
+    private boolean hasRequiredClaims(Claims claims) {
+        return StringUtils.hasText(claims.getSubject()) &&
+            StringUtils.hasText(claims.get(AUTHORITIES_KEY, String.class)) &&
+            StringUtils.hasText(claims.get(PARTY_ID_KEY, String.class));
     }
 
     private List<ResourceAuthorityDTO> fetchResourceAuthorities(Collection<? extends GrantedAuthority> authorities) {

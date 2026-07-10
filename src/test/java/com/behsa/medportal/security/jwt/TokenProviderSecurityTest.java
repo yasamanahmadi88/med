@@ -14,10 +14,13 @@ import com.behsa.medportal.security.AuthoritiesConstants;
 import com.behsa.medportal.security.PortalUser;
 import com.behsa.medportal.service.ResourceAuthorityQueryService;
 import com.behsa.medportal.service.dto.ResourceAuthorityDTO;
+import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashSet;
@@ -69,6 +72,10 @@ class TokenProviderSecurityTest {
     void validTokenIsAccepted() {
         String token = tokenProvider.createToken(createAuthentication("admin"), false);
         assertThat(tokenProvider.validateToken(token)).isTrue();
+
+        var claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+        assertThat(claims.getIssuer()).isEqualTo(TokenProvider.TOKEN_ISSUER);
+        assertThat(claims.getAudience()).containsExactly(TokenProvider.TOKEN_AUDIENCE);
     }
 
     @Test
@@ -91,16 +98,30 @@ class TokenProviderSecurityTest {
     }
 
     @Test
-    void tokenWithWrongSignatureIsRejected() {
+    void notBeforeTokenIsRejectedBeforeValidWindow() {
+        String token = baseTokenBuilder().notBefore(Date.from(Instant.now().plusSeconds(120))).signWith(key, Jwts.SIG.HS512).compact();
+        assertThat(tokenProvider.validateToken(token)).isFalse();
+    }
+
+    @Test
+    void tokenWithWrongSignatureOrSecretIsRejected() {
         SecretKey otherKey = Keys.hmacShaKeyFor(
             Decoders.BASE64.decode("Xfd54a45s65fds737b9aafcb3412e07ed99b267f33413274720ddbb7f6c5e64e9f14075f2d7ed041592f0b7657baf8")
         );
-        String forged = Jwts.builder()
-            .subject("admin")
-            .claim("auth", AuthoritiesConstants.ADMIN)
+        String forged = baseTokenBuilder()
             .signWith(otherKey, Jwts.SIG.HS512)
-            .expiration(Date.from(Instant.now().plusSeconds(60)))
             .compact();
+        assertThat(tokenProvider.validateToken(forged)).isFalse();
+    }
+
+    @Test
+    void tokenWithAsymmetricAlgorithmIsRejected() throws Exception {
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+        generator.initialize(2048);
+        KeyPair keyPair = generator.generateKeyPair();
+
+        String forged = baseTokenBuilder().signWith(keyPair.getPrivate(), Jwts.SIG.RS256).compact();
+
         assertThat(tokenProvider.validateToken(forged)).isFalse();
     }
 
@@ -109,8 +130,70 @@ class TokenProviderSecurityTest {
         // Unsigned / alg=none style payload must not validate against HMAC parser.
         String noneToken =
             "eyJhbGciOiJub25lIn0." +
-            "eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOIiwiZXhwIjo0MTAyNDQ0ODAwfQ.";
+            "eyJpc3MiOiJNZWRQb3J0YWwiLCJhdWQiOiJtZWRwb3J0YWwtYXBpIiwic3ViIjoiYWRtaW4iLCJhdXRoIjoiUk9MRV9BRE1JTiIsIlBhcnR5SWQiOiJwYXJ0eS0xIiwiZXhwIjo0MTAyNDQ0ODAwfQ.";
         assertThat(tokenProvider.validateToken(noneToken)).isFalse();
+    }
+
+    @Test
+    void wrongIssuerIsRejected() {
+        String forged = baseTokenBuilder().issuer("untrusted-issuer").signWith(key, Jwts.SIG.HS512).compact();
+
+        assertThat(tokenProvider.validateToken(forged)).isFalse();
+    }
+
+    @Test
+    void wrongAudienceIsRejected() {
+        String forged = Jwts
+            .builder()
+            .issuer(TokenProvider.TOKEN_ISSUER)
+            .audience()
+            .add("untrusted-audience")
+            .and()
+            .subject("admin")
+            .claim("auth", AuthoritiesConstants.ADMIN)
+            .claim("PartyId", "party-1")
+            .expiration(Date.from(Instant.now().plusSeconds(60)))
+            .signWith(key, Jwts.SIG.HS512)
+            .compact();
+
+        assertThat(tokenProvider.validateToken(forged)).isFalse();
+    }
+
+    @Test
+    void emptySubjectIsRejected() {
+        String forged = baseTokenBuilder().subject("").signWith(key, Jwts.SIG.HS512).compact();
+
+        assertThat(tokenProvider.validateToken(forged)).isFalse();
+    }
+
+    @Test
+    void incompleteClaimsAreRejected() {
+        String missingAuthorities = Jwts
+            .builder()
+            .issuer(TokenProvider.TOKEN_ISSUER)
+            .audience()
+            .add(TokenProvider.TOKEN_AUDIENCE)
+            .and()
+            .subject("admin")
+            .claim("PartyId", "party-1")
+            .expiration(Date.from(Instant.now().plusSeconds(60)))
+            .signWith(key, Jwts.SIG.HS512)
+            .compact();
+
+        String missingPartyId = Jwts
+            .builder()
+            .issuer(TokenProvider.TOKEN_ISSUER)
+            .audience()
+            .add(TokenProvider.TOKEN_AUDIENCE)
+            .and()
+            .subject("admin")
+            .claim("auth", AuthoritiesConstants.ADMIN)
+            .expiration(Date.from(Instant.now().plusSeconds(60)))
+            .signWith(key, Jwts.SIG.HS512)
+            .compact();
+
+        assertThat(tokenProvider.validateToken(missingAuthorities)).isFalse();
+        assertThat(tokenProvider.validateToken(missingPartyId)).isFalse();
     }
 
     @Test
@@ -146,5 +229,18 @@ class TokenProviderSecurityTest {
             null
         );
         return new UsernamePasswordAuthenticationToken(principal, "", principal.getAuthorities());
+    }
+
+    private JwtBuilder baseTokenBuilder() {
+        return Jwts
+            .builder()
+            .issuer(TokenProvider.TOKEN_ISSUER)
+            .audience()
+            .add(TokenProvider.TOKEN_AUDIENCE)
+            .and()
+            .subject("admin")
+            .claim("auth", AuthoritiesConstants.ADMIN)
+            .claim("PartyId", "party-1")
+            .expiration(Date.from(Instant.now().plusSeconds(60)));
     }
 }

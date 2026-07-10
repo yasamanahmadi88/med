@@ -8,12 +8,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.behsa.medportal.IntegrationTest;
+import com.behsa.medportal.domain.Authority;
 import com.behsa.medportal.domain.User;
+import com.behsa.medportal.repository.AuthorityRepository;
 import com.behsa.medportal.repository.UserRepository;
 import com.behsa.medportal.security.AuthoritiesConstants;
+import com.behsa.medportal.security.SecurityCache;
+import com.behsa.medportal.security.PortalUser;
 import com.behsa.medportal.security.jwt.TokenProvider;
 import com.behsa.medportal.web.rest.vm.LoginVM;
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -24,7 +31,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-import com.behsa.medportal.security.PortalUser;
 
 /**
  * Security integration coverage for authn/authz, CORS, and actuator exposure.
@@ -40,10 +46,16 @@ class SecurityAuthorizationIT {
     private UserRepository userRepository;
 
     @Autowired
+    private AuthorityRepository authorityRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
     private TokenProvider tokenProvider;
+
+    @Autowired
+    private SecurityCache securityCache;
 
     @Test
     void missingTokenReturnsUnauthorizedForProtectedApi() throws Exception {
@@ -114,6 +126,32 @@ class SecurityAuthorizationIT {
     }
 
     @Test
+    void malformedBearerTokenReturnsUnauthorized() throws Exception {
+        mockMvc
+            .perform(get("/api/account").header(HttpHeaders.AUTHORIZATION, "Bearer not-a-jwt"))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void authorizationHeaderWithoutBearerReturnsUnauthorized() throws Exception {
+        String token = tokenFor("user-no-bearer", AuthoritiesConstants.USER);
+
+        mockMvc.perform(get("/api/account").header(HttpHeaders.AUTHORIZATION, token)).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void emptyAuthorizationHeaderReturnsUnauthorized() throws Exception {
+        mockMvc.perform(get("/api/account").header(HttpHeaders.AUTHORIZATION, "")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void queryStringTokenIsRejected() throws Exception {
+        String token = tokenFor("query-token-user", AuthoritiesConstants.USER);
+
+        mockMvc.perform(get("/api/account").param("access_token", token)).andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void corsPreflightAllowsConfiguredOrigin() throws Exception {
         mockMvc
             .perform(
@@ -137,15 +175,9 @@ class SecurityAuthorizationIT {
             .andExpect(header().doesNotExist(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
     }
 
-    @Test
-    void expiredTokenIsUnauthorized() throws Exception {
-        // Empty / garbage bearer
-        mockMvc
-            .perform(get("/api/account").header(HttpHeaders.AUTHORIZATION, "Bearer not-a-jwt"))
-            .andExpect(status().isUnauthorized());
-    }
-
     private String tokenFor(String login, String authority) {
+        ensureActiveUser(login, authority);
+
         PortalUser principal = new PortalUser(
             login,
             "",
@@ -158,6 +190,35 @@ class SecurityAuthorizationIT {
             List.of(),
             null
         );
-        return tokenProvider.createToken(new UsernamePasswordAuthenticationToken(principal, "", principal.getAuthorities()), false);
+        String token = tokenProvider.createToken(new UsernamePasswordAuthenticationToken(principal, "", principal.getAuthorities()), false);
+        securityCache.storeSession(
+            principal,
+            "session-" + login,
+            "127.0.0.1",
+            login,
+            token,
+            "MockMvc",
+            LocalDateTime.now(),
+            null,
+            true
+        );
+        return token;
+    }
+
+    private void ensureActiveUser(String login, String authorityName) {
+        User user = userRepository.findOneByLogin(login).orElseGet(User::new);
+        user.setLogin(login);
+        user.setEmail(login + "@example.com");
+        user.setActivated(true);
+        user.setPassword(passwordEncoder.encode("test-password"));
+        user.setPartyId("party");
+        user.setAuthorities(new HashSet<>(Set.of(getAuthority(authorityName))));
+        userRepository.saveAndFlush(user);
+    }
+
+    private Authority getAuthority(String authorityName) {
+        return authorityRepository
+            .findByName(authorityName)
+            .orElseThrow(() -> new IllegalStateException(authorityName + " authority was not found in database"));
     }
 }

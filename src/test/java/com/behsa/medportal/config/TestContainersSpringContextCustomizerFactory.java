@@ -6,9 +6,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.core.env.Profiles;
 import org.springframework.test.context.ContextConfigurationAttributes;
 import org.springframework.test.context.ContextCustomizer;
 import org.springframework.test.context.ContextCustomizerFactory;
+import org.testcontainers.containers.JdbcDatabaseContainer;
 
 public class TestContainersSpringContextCustomizerFactory implements ContextCustomizerFactory {
 
@@ -23,6 +25,20 @@ public class TestContainersSpringContextCustomizerFactory implements ContextCust
             if (null != sqlAnnotation) {
                 log.debug("detected the EmbeddedSQL annotation on class {}", testClass.getName());
                 log.info("Warming up the sql database");
+            }
+            if (null != sqlAnnotation && context.getEnvironment().acceptsProfiles(Profiles.of("testcontainers"))) {
+                OracleSqlTestContainer oracle = new OracleSqlTestContainer();
+                oracle.afterPropertiesSet();
+                JdbcDatabaseContainer<?> container = oracle.getTestContainer();
+                beanFactory.registerSingleton("oracleSqlTestContainer", oracle);
+                testValues = TestPropertyValues.of(
+                    "spring.datasource.url=" + container.getJdbcUrl(),
+                    "spring.datasource.username=" + container.getUsername(),
+                    "spring.datasource.password=" + container.getPassword(),
+                    "spring.datasource.driver-class-name=oracle.jdbc.OracleDriver",
+                    "spring.jpa.database-platform=org.hibernate.dialect.OracleDialect",
+                    "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.OracleDialect"
+                );
             }
             testValues.applyTo(context);
         };

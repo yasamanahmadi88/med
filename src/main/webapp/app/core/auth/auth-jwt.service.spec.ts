@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { AuthServerProvider } from 'app/core/auth/auth-jwt.service';
@@ -27,13 +28,13 @@ describe('Auth JWT', () => {
     });
 
     it('should return token from session storage if local storage is empty', () => {
-      sessionStorageService.retrieve = jest.fn().mockReturnValue('sessionStorageToken');
+      sessionStorageService.retrieve = vi.fn().mockReturnValue('sessionStorageToken');
       const result = service.getToken();
       expect(result).toEqual('sessionStorageToken');
     });
 
     it('should return token from localstorage storage', () => {
-      localStorageService.retrieve = jest.fn().mockReturnValue('localStorageToken');
+      localStorageService.retrieve = vi.fn().mockReturnValue('localStorageToken');
       const result = service.getToken();
       expect(result).toEqual('localStorageToken');
     });
@@ -42,8 +43,8 @@ describe('Auth JWT', () => {
   describe('Login', () => {
     it('should clear session storage and save in local storage when rememberMe is true', () => {
       // GIVEN
-      localStorageService.store = jest.fn();
-      sessionStorageService.clear = jest.fn();
+      localStorageService.store = vi.fn();
+      sessionStorageService.clear = vi.fn();
 
       // WHEN
       service.login({ username: 'John', password: '123', rememberMe: true }).subscribe();
@@ -57,8 +58,8 @@ describe('Auth JWT', () => {
 
     it('should clear local storage and save in session storage when rememberMe is false', () => {
       // GIVEN
-      sessionStorageService.store = jest.fn();
-      localStorageService.clear = jest.fn();
+      sessionStorageService.store = vi.fn();
+      localStorageService.clear = vi.fn();
 
       // WHEN
       service.login({ username: 'John', password: '123', rememberMe: false }).subscribe();
@@ -74,8 +75,8 @@ describe('Auth JWT', () => {
   describe('Logout', () => {
     it('should clear storage', () => {
       // GIVEN
-      sessionStorageService.clear = jest.fn();
-      localStorageService.clear = jest.fn();
+      sessionStorageService.clear = vi.fn();
+      localStorageService.clear = vi.fn();
 
       // WHEN
       service.logout().subscribe();

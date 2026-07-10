@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 jest.mock('app/core/auth/account.service');
 
 import { ComponentFixture, TestBed, waitForAsync, inject, fakeAsync, tick } from '@angular/core/testing';
@@ -44,7 +45,7 @@ describe('User Management Component', () => {
     comp = fixture.componentInstance;
     service = TestBed.inject(UserManagementService);
     mockAccountService = TestBed.inject(AccountService);
-    mockAccountService.identity = jest.fn(() => of(null));
+    mockAccountService.identity = vi.fn(() => of(null));
   });
 
   describe('OnInit', () => {

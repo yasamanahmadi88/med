@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 jest.mock('app/core/auth/account.service');
 
 import { waitForAsync, ComponentFixture, TestBed } from '@angular/core/testing';
@@ -50,8 +51,8 @@ describe('MainComponent', () => {
     translateService = TestBed.inject(TranslateService);
     findLanguageFromKeyPipe = TestBed.inject(FindLanguageFromKeyPipe);
     mockAccountService = TestBed.inject(AccountService);
-    mockAccountService.identity = jest.fn(() => of(null));
-    mockAccountService.getAuthenticationState = jest.fn(() => of(null));
+    mockAccountService.identity = vi.fn(() => of(null));
+    mockAccountService.getAuthenticationState = vi.fn(() => of(null));
   });
 
   describe('page title', () => {
@@ -185,7 +186,7 @@ describe('MainComponent', () => {
       comp.ngOnInit();
 
       // WHEN
-      findLanguageFromKeyPipe.isRTL = jest.fn(() => false);
+      findLanguageFromKeyPipe.isRTL = vi.fn(() => false);
       translateService.onLangChange.emit({ lang: 'lang1', translations: null });
 
       // THEN
@@ -193,7 +194,7 @@ describe('MainComponent', () => {
       expect(document.querySelector('html')?.getAttribute('dir')).toEqual('ltr');
 
       // WHEN
-      findLanguageFromKeyPipe.isRTL = jest.fn(() => true);
+      findLanguageFromKeyPipe.isRTL = vi.fn(() => true);
       translateService.onLangChange.emit({ lang: 'lang2', translations: null });
 
       // THEN

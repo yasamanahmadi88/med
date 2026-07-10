@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { ElementRef } from '@angular/core';
 import { ComponentFixture, TestBed, inject, tick, fakeAsync } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
@@ -41,7 +42,7 @@ describe('PasswordResetFinishComponent', () => {
 
   it('sets focus after the view has been initialized', () => {
     const node = {
-      focus: jest.fn(),
+      focus: vi.fn(),
     };
     comp.newPassword = new ElementRef(node);
 

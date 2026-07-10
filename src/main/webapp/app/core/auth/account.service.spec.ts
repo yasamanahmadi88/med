@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 jest.mock('app/core/auth/state-storage.service');
 
 import { Router } from '@angular/router';
@@ -136,7 +137,7 @@ describe('Account Service', () => {
     describe('should change the language on authentication if necessary', () => {
       it('should change language if user has not changed language manually', () => {
         // GIVEN
-        sessionStorageService.retrieve = jest.fn(key => (key === 'locale' ? undefined : 'otherSessionStorageValue'));
+        sessionStorageService.retrieve = vi.fn(key => (key === 'locale' ? undefined : 'otherSessionStorageValue'));
 
         // WHEN
         service.identity().subscribe();
@@ -148,7 +149,7 @@ describe('Account Service', () => {
 
       it('should not change language if user has changed language manually', () => {
         // GIVEN
-        sessionStorageService.retrieve = jest.fn(key => (key === 'locale' ? 'sessionLang' : undefined));
+        sessionStorageService.retrieve = vi.fn(key => (key === 'locale' ? 'sessionLang' : undefined));
 
         // WHEN
         service.identity().subscribe();
@@ -162,7 +163,7 @@ describe('Account Service', () => {
     describe('navigateToStoredUrl', () => {
       it('should navigate to the previous stored url post successful authentication', () => {
         // GIVEN
-        mockStorageService.getUrl = jest.fn(() => 'admin/users?page=0');
+        mockStorageService.getUrl = vi.fn(() => 'admin/users?page=0');
 
         // WHEN
         service.identity().subscribe();
@@ -187,7 +188,7 @@ describe('Account Service', () => {
 
       it('should not navigate to the previous stored url when no such url exists post successful authentication', () => {
         // GIVEN
-        mockStorageService.getUrl = jest.fn(() => null);
+        mockStorageService.getUrl = vi.fn(() => null);
 
         // WHEN
         service.identity().subscribe();

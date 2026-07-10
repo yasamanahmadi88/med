@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { Component, DebugElement } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
@@ -22,7 +23,7 @@ class TestSortByDirectiveComponent {
   predicate?: string;
   ascending?: boolean;
   sortAllowed = true;
-  transition = jest.fn();
+  transition = vi.fn();
 
   constructor(library: FaIconLibrary) {
     library.addIconPacks(fas);

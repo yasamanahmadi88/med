@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HttpResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
@@ -42,7 +43,7 @@ describe('Instance routing resolve service', () => {
   describe('resolve', () => {
     it('should return IInstance returned by find', () => {
       // GIVEN
-      service.find = jest.fn(id => of(new HttpResponse({ body: { id } })));
+      service.find = vi.fn(id => of(new HttpResponse({ body: { id } })));
       mockActivatedRouteSnapshot.params = { id: 123 };
 
       // WHEN
@@ -57,7 +58,7 @@ describe('Instance routing resolve service', () => {
 
     it('should return null if id is not provided', () => {
       // GIVEN
-      service.find = jest.fn();
+      service.find = vi.fn();
       mockActivatedRouteSnapshot.params = {};
 
       // WHEN

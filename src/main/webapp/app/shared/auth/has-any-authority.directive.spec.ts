@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 jest.mock('app/core/auth/account.service');
 
 import { Component, ElementRef, ViewChild } from '@angular/core';
@@ -31,13 +32,13 @@ describe('HasAnyAuthorityDirective tests', () => {
 
   beforeEach(() => {
     mockAccountService = TestBed.inject(AccountService);
-    mockAccountService.getAuthenticationState = jest.fn(() => authenticationState.asObservable());
+    mockAccountService.getAuthenticationState = vi.fn(() => authenticationState.asObservable());
   });
 
   describe('set jhiHasAnyAuthority', () => {
     it('should show restricted content to user if user has required role', () => {
       // GIVEN
-      mockAccountService.hasAnyAuthority = jest.fn(() => true);
+      mockAccountService.hasAnyAuthority = vi.fn(() => true);
       const fixture = TestBed.createComponent(TestHasAnyAuthorityDirectiveComponent);
       const comp = fixture.componentInstance;
 
@@ -50,7 +51,7 @@ describe('HasAnyAuthorityDirective tests', () => {
 
     it('should not show restricted content to user if user has not required role', () => {
       // GIVEN
-      mockAccountService.hasAnyAuthority = jest.fn(() => false);
+      mockAccountService.hasAnyAuthority = vi.fn(() => false);
       const fixture = TestBed.createComponent(TestHasAnyAuthorityDirectiveComponent);
       const comp = fixture.componentInstance;
 
@@ -65,7 +66,7 @@ describe('HasAnyAuthorityDirective tests', () => {
   describe('change authorities', () => {
     it('should show or not show restricted content correctly if user authorities are changing', () => {
       // GIVEN
-      mockAccountService.hasAnyAuthority = jest.fn(() => true);
+      mockAccountService.hasAnyAuthority = vi.fn(() => true);
       const fixture = TestBed.createComponent(TestHasAnyAuthorityDirectiveComponent);
       const comp = fixture.componentInstance;
 
@@ -76,7 +77,7 @@ describe('HasAnyAuthorityDirective tests', () => {
       expect(comp.content).toBeDefined();
 
       // GIVEN
-      mockAccountService.hasAnyAuthority = jest.fn(() => false);
+      mockAccountService.hasAnyAuthority = vi.fn(() => false);
 
       // WHEN
       authenticationState.next(null);
@@ -86,7 +87,7 @@ describe('HasAnyAuthorityDirective tests', () => {
       expect(comp.content).toBeUndefined();
 
       // GIVEN
-      mockAccountService.hasAnyAuthority = jest.fn(() => true);
+      mockAccountService.hasAnyAuthority = vi.fn(() => true);
 
       // WHEN
       authenticationState.next(null);
@@ -100,7 +101,7 @@ describe('HasAnyAuthorityDirective tests', () => {
   describe('ngOnDestroy', () => {
     it('should destroy authentication state subscription on component destroy', () => {
       // GIVEN
-      mockAccountService.hasAnyAuthority = jest.fn(() => true);
+      mockAccountService.hasAnyAuthority = vi.fn(() => true);
       const fixture = TestBed.createComponent(TestHasAnyAuthorityDirectiveComponent);
       const div = fixture.debugElement.queryAllNodes(By.directive(HasAnyAuthorityDirective))[0];
       const hasAnyAuthorityDirective = div.injector.get(HasAnyAuthorityDirective);

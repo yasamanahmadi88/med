@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 jest.mock('app/core/auth/account.service');
 
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
@@ -40,13 +41,13 @@ describe('SettingsComponent', () => {
     fixture = TestBed.createComponent(SettingsComponent);
     comp = fixture.componentInstance;
     mockAccountService = TestBed.inject(AccountService);
-    mockAccountService.identity = jest.fn(() => of(account));
-    mockAccountService.getAuthenticationState = jest.fn(() => of(account));
+    mockAccountService.identity = vi.fn(() => of(account));
+    mockAccountService.getAuthenticationState = vi.fn(() => of(account));
   });
 
   it('should send the current identity upon save', () => {
     // GIVEN
-    mockAccountService.save = jest.fn(() => of({}));
+    mockAccountService.save = vi.fn(() => of({}));
     const settingsFormValues = {
       firstName: 'John',
       lastName: 'Doe',
@@ -67,7 +68,7 @@ describe('SettingsComponent', () => {
 
   it('should notify of success upon successful save', () => {
     // GIVEN
-    mockAccountService.save = jest.fn(() => of({}));
+    mockAccountService.save = vi.fn(() => of({}));
 
     // WHEN
     comp.ngOnInit();
@@ -79,7 +80,7 @@ describe('SettingsComponent', () => {
 
   it('should notify of error upon failed save', () => {
     // GIVEN
-    mockAccountService.save = jest.fn(() => throwError('ERROR'));
+    mockAccountService.save = vi.fn(() => throwError('ERROR'));
 
     // WHEN
     comp.ngOnInit();

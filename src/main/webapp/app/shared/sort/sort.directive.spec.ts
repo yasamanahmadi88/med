@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { Component, DebugElement } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
@@ -16,7 +17,7 @@ import { SortDirective } from './sort.directive';
 class TestSortDirectiveComponent {
   predicate?: string;
   ascending?: boolean;
-  transition = jest.fn();
+  transition = vi.fn();
 }
 
 describe('Directive: SortDirective', () => {

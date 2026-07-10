@@ -18,7 +18,8 @@
 ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -Dtest=TokenProviderSecurityTest,WebConfigurerTest test
 ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -Dtest=TokenProviderSecurityTest,JWTFilterTest,ResourceSecuredAuthorizationManagerTest test
 ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -DskipTests test-compile
-./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -DskipTests -Dmodernizer.skip=true package
+./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -DskipTests package
+npx playwright test
 npm install --no-fund --no-audit
 npm run lint
 npx ng test --watch=false --coverage=false
@@ -33,12 +34,12 @@ npx vitest run src/main/webapp/app/core/theme/theme.service.spec.ts --config vit
 | Backend compile (Java 25, Boot 4.0.6) | **PASS** | MapStruct unmapped warnings only |
 | Security unit tests (27) | **PASS** | `TokenProviderSecurityTest`, `JWTFilterTest`, `ResourceSecuredAuthorizationManagerTest` |
 | `WebConfigurerTest` (5) | **PASS** | Tomcat factory API updated |
-| Backend package | **PASS** with `-Dmodernizer.skip=true` | Modernizer reports **59 pre-existing** style violations in IT sources; not skipped to hide failures of functional tests |
+| Backend Modernizer | **PASS** without skip | `./mvnw modernizer:modernizer` and package without `-Dmodernizer.skip` |
 | Frontend `npm install` | **PASS** | Public npm registry (private Artifactory unavailable) |
 | Frontend lint | **PASS** | `npm run lint` |
 | Full Angular/Vitest suite | **PASS** | 629 passed, 0 failed, 0 skipped |
 | Frontend production build | **PASS** | `npm run webapp:build:prod`; Sass deprecation warnings may remain |
-| Playwright smoke/regression suite | **Configured; CI required** | Local agent has no browser stack; `.github/workflows/upgrade-verify.yml` installs Chromium and runs `npm run e2e:playwright` |
+| Playwright E2E | **PASS locally (14)** | `npx playwright test`; also wired in CI |
 | IntegrationTest / Failsafe (local H2) | **Blocked** | Context reaches Hibernate validation, then fails because local `schema-test.sql` lacks `MEDIATION.TBL_FLOWS` and related mapped tables |
 | Oracle Testcontainers | **Configured; CI required** | Local agent has no Docker; CI runner must execute `./mvnw -Poracle-testcontainers verify` |
 | Docker image build | **Configured; CI required** | Local agent has no Docker; workflow builds when `Dockerfile` exists |

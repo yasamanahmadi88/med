@@ -75,9 +75,13 @@ jobs:
   docker-image:
     name: Docker image build
     runs-on: ubuntu-latest
-    if: ${{ hashFiles('Dockerfile') != '' }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Docker build
-        run: docker build -t medportal-upgrade-verify:${{ github.sha }} .
+        run: |
+          if [ ! -f Dockerfile ]; then
+            echo "No Dockerfile present; skipping image build"
+            exit 0
+          fi
+          docker build -t medportal-upgrade-verify:${{ github.sha }} .

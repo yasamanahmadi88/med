@@ -76,7 +76,9 @@
     "webapp:dev-ssl": "ng serve --ssl",
     "webapp:dev-verbose": "ng serve --verbose",
     "webapp:prod": "npm run clean-www && npm run webapp:build:prod",
-    "webapp:test": "npm run test --"
+    "webapp:test": "npm run test --",
+    "e2e:playwright": "playwright test",
+    "e2e:playwright:ui": "playwright test --ui"
   },
   "config": {
     "backend_port": 8080,
@@ -117,6 +119,7 @@
     "@angular/compiler-cli": "21.2.14",
     "@angular/service-worker": "21.2.14",
     "@eslint/js": "10.0.1",
+    "@playwright/test": "^1.61.1",
     "@types/node": "22.19.19",
     "@vitest/coverage-v8": "4.1.7",
     "angular-eslint": "21.4.0",

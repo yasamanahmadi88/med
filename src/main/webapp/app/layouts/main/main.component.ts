@@ -1,4 +1,4 @@
-import { Component, OnInit, RendererFactory2, Renderer2 } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, RendererFactory2, Renderer2 } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { Router, ActivatedRouteSnapshot, NavigationEnd, NavigationStart } from '@angular/router';
 import { TranslateService, LangChangeEvent } from '@ngx-translate/core';
@@ -24,6 +24,7 @@ export class MainComponent implements OnInit {
     private router: Router,
     private findLanguageFromKeyPipe: FindLanguageFromKeyPipe,
     private translateService: TranslateService,
+    private changeDetector: ChangeDetectorRef,
     rootRenderer: RendererFactory2,
   ) {
     this.renderer = rootRenderer.createRenderer(document.querySelector('html'), null);
@@ -47,10 +48,19 @@ export class MainComponent implements OnInit {
       this.updatePageDirection();
     });
 
+    this.updateLayoutState(this.router.url);
     this.router.events.subscribe(value => {
-      if (value instanceof NavigationStart) this.fullScreen = value.url.includes('/bpmn');
+      if (value instanceof NavigationStart) {
+        this.updateLayoutState(value.url);
+      }
+    });
+  }
 
-      if (value instanceof NavigationStart) this.isLoginPage = value.url.includes('/login');
+  private updateLayoutState(url: string): void {
+    setTimeout(() => {
+      this.fullScreen = url.includes('/bpmn');
+      this.isLoginPage = url.includes('/login');
+      this.changeDetector.detectChanges();
     });
   }
 

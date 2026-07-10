@@ -90,6 +90,9 @@ export const test = base.extend<{ mockApi: (options?: MockOptions) => Promise<Mo
       if (text.includes('User has not any of required authorities')) {
         return;
       }
+      if (text.includes('Failed to load resource: the server responded with a status of 401')) {
+        return;
+      }
       unexpectedConsole.push(text);
     });
 
@@ -154,9 +157,11 @@ async function handleApiRoute(route: Route, state: MockState): Promise<void> {
 
   if (path === '/api/account') {
     if (!state.account) {
+      await delay();
       await route.fulfill({ status: 401, headers: jsonHeaders, body: '{}' });
       return;
     }
+    await delay();
     await fulfillJson(route, state.account);
     return;
   }
@@ -178,6 +183,7 @@ async function handleApiRoute(route: Route, state: MockState): Promise<void> {
   }
 
   if (path === '/api/captcha-endpoint') {
+    await delay();
     await fulfillJson(route, { captchaId: 'captcha-e2e', captchaImageUrl: '/api/captcha-image/captcha-e2e.svg' });
     return;
   }
@@ -330,6 +336,10 @@ async function fulfillJson(route: Route, json: unknown, headers: Record<string, 
     headers,
     body: JSON.stringify(json),
   });
+}
+
+async function delay(ms = 25): Promise<void> {
+  await new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function isAllowedRequestFailure(request: Request): boolean {

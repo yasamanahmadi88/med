@@ -1,0 +1,16 @@
+{
+  "medPortalApp": {
+    "logs": {
+      "home": {
+        "notFound": "وقایع ثبت شده ای یافت نشد"
+      },
+      "title": "وقایع ثبت شده",
+      "nbloggers": "آنها هستند {{ total }} وقایع ثبت کننده",
+      "filter": "فیلتر",
+      "table": {
+        "name": "نام",
+        "level": "سطح"
+      }
+    }
+  }
+}

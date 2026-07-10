@@ -1,0 +1,171 @@
+{
+  "global": {
+    "title": "File Mediator Portal",
+    "browsehappy": "شما از مرورگر <strong>قدیمی</strong> استفاده می‌کنید. لطفا <a href=\"http://browsehappy.com/?locale=en\">مرورگر خود را به روز کنید</a>",
+    "menu": {
+      "home": "خانه",
+      "jhipster-needle-menu-add-element": "JHipster will add additional menu entries here (do not translate!)",
+      "entities": {
+        "main": "ماهیت ها",
+        "medAuthority": "مجوز ها",
+        "resource": "منابع",
+        "resourceAuthority": "مجوز منابع",
+        "module": "Module",
+        "config": "Config",
+        "instance": "Instance",
+        "version": "Version",
+        "product": "Product",
+        "flow": "Flow",
+        "logReports": "گزارش لاگ ها",
+        "customAuditEvent": "لاگ ممیزی",
+        "jhipster-needle-menu-add-entry": "JHipster will add additional entities here (do not translate!)"
+      },
+      "account": {
+        "main": "حساب",
+        "settings": "تنظیمات",
+        "password": "رمزعبور",
+        "sessions": "نشست ها",
+        "login": "ورود",
+        "logout": "خروج",
+        "register": "ثبت نام"
+      },
+      "admin": {
+        "main": "مدیریت برتر",
+        "userManagement": "مدیریت کاربر",
+        "tracker": "ردیاب کاربر",
+        "metrics": "معیارها",
+        "health": "سلامتی",
+        "configuration": "پیکربندی",
+        "logs": "وقایع ثبت شده",
+        "apidocs": "ای‌پی‌آی",
+        "database": "پایگاه داده",
+        "jhipster-needle-menu-add-admin-element": "JHipster will add additional menu entries here (do not translate!)"
+      },
+      "language": "زبان"
+    },
+    "form": {
+      "username.label": "نام کاربری",
+      "username.placeholder": "نام کاربری شما",
+      "currentpassword.label": "Current password",
+      "currentpassword.placeholder": "Current password",
+      "newpassword.label": "رمزعبور جدید",
+      "newpassword.placeholder": "رمزعبور جدید",
+      "confirmpassword.label": "تصدیق رمزعبور جدید",
+      "confirmpassword.placeholder": "تصدیق رمزعبور جدید",
+      "email.label": "رایانامه",
+      "email.placeholder": "آدرس رایانامه شما"
+    },
+    "messages": {
+      "info": {
+        "authenticated": {
+          "prefix": "اگر شما می‌خواهید",
+          "link": "ورود",
+          "suffix": "، لطفاً از نام کاربری و رمز عبور اختصاص داده‌شده استفاده کنید."        },
+        "register": {
+          "noaccount": "آیا هنوز حساب کاربری ندارید؟",
+          "link": "ثبت نام حساب کاربری جدید"
+        },
+        "saved": "ذخیره شد"
+      },
+      "error": {
+        "dontmatch": "رمزعبور و تصدیق رمزعبور یکی نیستند!"
+      },
+      "validate": {
+        "newpassword": {
+          "required": "رمزعبور شما ضروری است",
+          "minlength": "رمزعبور شما باید حداقل 8 کرکتر باشد",
+          "maxlength": "رمز عبور شما نمی‌تواند بیش از 64 کرکتر باشد.",
+          "strength": "قدرتمندی رمزعبور:",
+          "emptyPassword": "رمز عبور نمی تواند خالی باشد",
+          "passwordSmallerThanMinLength": "رمز عبور می بایست حداقل 8 کاراکتر باشد",
+          "passwordGreaterThanMaxLength": "رمز عبور حداکثر می تواند 64 کاراکتر باشد",
+          "passwordMustContainAtLeastOneUppercaseLetter" : "رمز عبور می بایست حداقل یک حرف بزرگ داشته باشد",
+          "passwordMustContainAtLeastOneLowercaseLetter" : "رمز عبور می بایست حداقل یک حرف کوچک داشته باشد",
+          "passwordMustContainAtLeastOneDigit" : "رمز عبور می بایست حداقل یک عدد داشته باشد",
+          "passwordMustContainAtLeastOneSpecialCharacter" : "رمز عبور می بایست حداقل یک کاراکتر ویژه داشته باشد مانند (!@#$%^&*)",
+          "passwordIsTooCommonAndInsecure" : "رمز عبور خیلی عمومی و غیر امن است"
+        },
+        "confirmpassword": {
+          "required": "تصدیق رمزعبور شما ضروری است",
+          "minlength": "تصدیق رمزعبور شما باید حداقل 8 کرکتر باشد",
+          "maxlength": "تصدیق رمز عبور شما نمی‌تواند بیش از 64 کرکتر باشد."
+        },
+        "email": {
+          "required": "آدرس ایمیل شما ضروری است",
+          "invalid": "آدرس ایمیل شما نامعتبر است",
+          "minlength": "آدرس ایمیل شما حداقل باید ۵ کرکتر باشد",
+          "maxlength": "آدرس ایمیل شما نمی‌تواند بیش از ۵۰ کرکتر باشد."
+        }
+      }
+    },
+    "field": {
+      "id": "شناسه"
+    },
+    "ribbon": {
+      "dev": "در حال توسعه"
+    },
+    "item-count": "نمایش {{first}} - {{second}} از {{total}} مورد."
+  },
+  "entity": {
+    "action": {
+      "addblob": "اضافه کردن فایل",
+      "addimage": "اضافه کردن تصویر",
+      "back": "برگشت",
+      "cancel": "انصراف",
+      "close": "بستن",
+      "delete": "حذف",
+      "edit": "ویرایش",
+      "open": "باز",
+      "save": "ذخیره",
+      "create": "ایجاد",
+      "view": "مشاهده",
+      "show": "نمایش {{otherEntity}} ها"
+    },
+    "detail": {
+      "field": "فیلد",
+      "value": "مقدار"
+    },
+    "delete": {
+      "title": "تصدیق عملیات حذف"
+    },
+    "validation": {
+      "required": "وارد کردن این فیلد ضروری است",
+      "minlength": "این فیلد باید حداقل {{ min }} کراکتر باشد.",
+      "maxlength": "این فیلد نمی‌تواند بیشتر از {{ max }} کرکتر باشد",
+      "min": "این فیلد باید بیشتر از {{ min }} باشد.",
+      "max": "این فیلد نمی‌تواند بیش از {{ max }} باشد.",
+      "minbytes": "این فیلد باید بیش از {{ min }} بایت باشد.",
+      "maxbytes": "این فیلد نمی‌تواند بیش از {{ max }} بایت باشد.",
+      "pattern": "این فیلد باید بر طبق این الگو {{ pattern }} باشد.",
+      "number": "این فیلد باید عدد باشد.",
+      "datetimelocal": "این فیلد باید زمان باشد.",
+      "smallLettersAndDashOnly": "این فیلد باید فقط شامل حروف کوچک انگلیسی و کاراکتر ( - ) باشد.",
+      "capitalLettersOnly": "این فیلد باید فقط شامل حروف بزرگ انگلیسی باشد.",
+      "numbersOnly": "این فیلد باید فقط شامل اعداد باشد.",
+      "minmaxlength": "این فیلد باید {{ length }} کرکتر باشد"
+    },
+    "filters": {
+      "set": "Following filters are set",
+      "clear": "Clear filter",
+      "clearAll": "Clear all filters"
+    }
+  },
+  "error": {
+    "internalServerError": "خطای داخلی در سرور",
+    "server.not.reachable": "سرور در دسترس نیست",
+    "url.not.found": "پیدا نشد",
+    "NotNull": "فیلد {{ fieldName }} نمی‌تواند خالی باشد!",
+    "Size": "فیلد{{ fieldName }} نیازمندی‌های حداقل/حداکثر را ندارد!",
+    "userexists": "این نام کاربر در سیستم وجود دارد!",
+    "emailexists": "این آدرس ایمیل در سیستم وجود دارد!",
+    "idexists": "موجودیت جدید {{ entityName }} نمی‌تواند شناسه داشته‌باشد.",
+    "idnull": "Invalid ID",
+    "idinvalid": "Invalid Id",
+    "idnotfound": "ID cannot be found",
+    "file": {
+      "could.not.extract": "Could not extract file",
+      "not.image": "File was expected to be an image but was found to be \"{{ fileType }}\""
+    }
+  },
+  "footer": "این پاورقی است"
+}

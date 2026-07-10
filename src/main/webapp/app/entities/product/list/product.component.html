@@ -1,0 +1,146 @@
+<div>
+  <h2 id="page-heading" data-cy="ProductHeading">
+    <span jhiTranslate="medPortalApp.product.home.title">Products</span>
+
+    <div class="d-flex justify-content-end">
+      <button class="btn btn-info me-2" (click)="load()" [disabled]="isLoading">
+        <fa-icon icon="sync" [spin]="isLoading"></fa-icon>
+        <span jhiTranslate="medPortalApp.product.home.refreshListLabel">Refresh list</span>
+      </button>
+
+      <button
+        id="jh-create-entity"
+        data-cy="entityCreateButton"
+        class="btn btn-primary jh-create-entity create-product"
+        [routerLink]="['/product/new']"
+        *jhiHasPermission="['product','create'];op 'OR'"
+      >
+        <fa-icon icon="plus"></fa-icon>
+        <span jhiTranslate="medPortalApp.product.home.createLabel"> Create a new Product </span>
+      </button>
+    </div>
+  </h2>
+
+  <jhi-alert-error></jhi-alert-error>
+
+  <jhi-alert></jhi-alert>
+
+  <jhi-filter [filters]="filters"></jhi-filter>
+
+  <div>
+    <form name="searchForm" class="form-inline">
+      <div class="input-group w-100 mb-3">
+        <input type="text" class="form-control" [(ngModel)]="searchText" id="currentSearch"
+               name="currentSearch">
+        <button class="input-group-append btn btn-info" (click)="search(searchText)">
+          <fa-icon [icon]="'search'"></fa-icon>
+        </button>
+        <button class="input-group-append btn btn-danger" (click)="clearSearch()" *ngIf="searchText">
+          <fa-icon [icon]="'trash-alt'"></fa-icon>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="alert alert-warning" id="no-result" *ngIf="products?.length === 0">
+    <span jhiTranslate="medPortalApp.product.home.notFound">No Products found</span>
+  </div>
+
+  <div class="table-responsive table-entities" id="entities" *ngIf="products && products.length > 0">
+    <table class="table table-striped" aria-describedby="page-heading">
+      <thead>
+        <tr jhiSort [(predicate)]="predicate" [(ascending)]="reverse" (sortChange)="navigateToWithComponentValues()">
+          <th scope="col" jhiSortBy="productName">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.product.productName">Product Name</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="productDesc">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.product.productDesc">Product Desc</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let product of products; trackBy: trackId" data-cy="entityTable">
+          <td>{{ product.productName }}</td>
+          <td>{{ product.productDesc }}</td>
+          <td class="text-end">
+            <div class="btn-group">
+              <button
+                type="submit"
+                [routerLink]="['/flow/new']"
+                [queryParams]="{ 'productId': product.id }"
+                class="btn goldenButton btn-sm"
+                style="margin-inline-end: 10px"
+                data-cy="filterOtherEntityButton">
+                <fa-icon icon="plus"></fa-icon>
+                <span class="d-none d-md-inline" jhiTranslate="medPortalApp.product.addFlow">Add Flow</span>
+              </button>
+              <button
+                type="submit"
+                [routerLink]="['/flow']"
+                [queryParams]="{ 'filter[productId.in]': product.id }"
+                class="btn goldenButton btn-sm"
+                style="margin-inline-end: 10px"
+                data-cy="filterOtherEntityButton"
+              >
+                <fa-icon [icon]="faRandom"></fa-icon>
+                <span
+                  class="d-none d-md-inline"
+                  jhiTranslate="entity.action.show"
+                  [translateValues]="{ otherEntity: ('medPortalApp.product.flows' | translate) }"
+                  >Show Flow</span
+                >
+              </button>
+              <button
+                type="submit"
+                [routerLink]="['/product', product.id, 'view']"
+                class="btn btn-info btn-sm"
+                data-cy="entityDetailsButton"
+              >
+                <fa-icon [icon]="faEye" style="color:white"></fa-icon>
+              </button>
+
+              <button
+                type="submit"
+                [routerLink]="['/product', product.id, 'edit']"
+                class="btn btn-primary btn-sm"
+                data-cy="entityEditButton"
+                *jhiHasPermission="['product','edit'];op 'OR'"
+              >
+                <fa-icon [icon]="faPencil" style="color:white"></fa-icon>
+              </button>
+
+              <button type="submit" (click)="delete(product)" class="btn btn-danger btn-sm" data-cy="entityDeleteButton" *jhiHasPermission="['product','delete'];op 'OR'">
+                <fa-icon [icon]="faTrash" style="color:white"></fa-icon>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="products && products.length > 0">
+    <div class="d-flex justify-content-center">
+      <jhi-item-count [params]="{ page: page, totalItems: totalItems, itemsPerPage: itemsPerPage }"></jhi-item-count>
+    </div>
+
+    <div class="d-flex justify-content-center">
+      <ngb-pagination
+        [collectionSize]="totalItems"
+        [page]="page"
+        [pageSize]="itemsPerPage"
+        [maxSize]="5"
+        [rotate]="true"
+        [boundaryLinks]="true"
+        (pageChange)="navigateToPage($event)"
+      ></ngb-pagination>
+    </div>
+  </div>
+</div>

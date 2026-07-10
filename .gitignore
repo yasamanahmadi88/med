@@ -1,0 +1,12 @@
+/node/
+node_modules/
+/target/
+/build/
+.idea/
+*.iml
+.vscode/
+.DS_Store
+*.log
+/extracted/
+/.angular/
+coverage/

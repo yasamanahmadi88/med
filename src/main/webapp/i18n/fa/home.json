@@ -1,0 +1,19 @@
+{
+  "home": {
+    "title": "File Mediator Portal",
+    "subtitle": "این صفحه اصلی شماست",
+    "logged": {
+      "message": "شما وارد شدید با کاربر \"{{username}}\"."
+    },
+    "question": "اگر سوالی دارید؟ در مورد :",
+    "link": {
+      "homepage": " صفحه اصلی",
+      "stackoverflow": " در Stack Overflow",
+      "bugtracker": " bug tracker",
+      "chat": " public chat room",
+      "follow": "دنبال کنید @ در Twitter"
+    },
+    "like": "اگر  را دوست دارید، فراموش نکنید بهش ستاره بدید در",
+    "github": "GitHub"
+  }
+}

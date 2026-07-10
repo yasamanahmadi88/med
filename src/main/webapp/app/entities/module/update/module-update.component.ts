@@ -11,6 +11,7 @@ import { ModuleService } from '../service/module.service';
 @Component({
   selector: 'jhi-module-update',
   templateUrl: './module-update.component.html',
+  standalone: false,
 })
 export class ModuleUpdateComponent implements OnInit {
   isSaving = false;

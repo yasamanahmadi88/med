@@ -15,6 +15,7 @@ import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/
 @Component({
   selector: 'jhi-flow',
   templateUrl: './flow.component.html',
+  standalone: false,
 })
 export class FlowComponent implements OnInit {
   flows?: IFlow[];

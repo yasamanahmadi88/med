@@ -16,6 +16,7 @@ import { faRandom, faTrash, faEye, faPencil } from '@fortawesome/free-solid-svg-
 @Component({
   selector: 'jhi-product',
   templateUrl: './product.component.html',
+  standalone: false,
 })
 export class ProductComponent implements OnInit {
   products?: IProduct[];

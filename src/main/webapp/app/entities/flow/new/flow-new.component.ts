@@ -14,7 +14,8 @@ import {TranslateService} from "@ngx-translate/core";
 @Component({
   selector: 'jhi-new',
   templateUrl: './flow-new.component.html',
-  styleUrls: ['./flow-new.component.scss']
+  styleUrls: ['./flow-new.component.scss'],
+  standalone: false,
 })
 export class FlowNewComponent implements OnInit {
 

@@ -1,8 +1,8 @@
 package com.behsa.medportal.domain;
 
 import java.io.Serializable;
-import javax.persistence.*;
-import javax.validation.constraints.*;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 /**
  * A VersionEntity.

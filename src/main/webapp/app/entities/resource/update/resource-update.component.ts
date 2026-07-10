@@ -11,6 +11,7 @@ import { ResourceService } from '../service/resource.service';
 @Component({
   selector: 'jhi-resource-update',
   templateUrl: './resource-update.component.html',
+  standalone: false,
 })
 export class ResourceUpdateComponent implements OnInit {
   isSaving = false;

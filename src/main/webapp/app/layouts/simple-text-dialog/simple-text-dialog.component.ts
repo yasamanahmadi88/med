@@ -4,7 +4,8 @@ import {NgbActiveModal} from "@ng-bootstrap/ng-bootstrap";
 @Component({
   selector: 'jhi-simple-text-dialog',
   templateUrl: './simple-text-dialog.component.html',
-  styleUrls: ['./simple-text-dialog.component.scss']
+  styleUrls: ['./simple-text-dialog.component.scss'],
+  standalone: false,
 })
 export class SimpleTextDialogComponent implements OnInit {
 

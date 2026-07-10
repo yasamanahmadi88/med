@@ -19,6 +19,7 @@ import {TranslateService} from "@ngx-translate/core";
 @Component({
   selector: 'jhi-user-mgmt',
   templateUrl: './user-management.component.html',
+  standalone: false,
 })
 export class UserManagementComponent implements OnInit {
   currentAccount: Account | null = null;
@@ -125,7 +126,7 @@ export class UserManagementComponent implements OnInit {
     modalRef.componentInstance.result.subscribe((result:any) => {
       if(result === "success"){
         this.toastr.success(this.translateService.instant("reset.change.success"));
-      }else if("error"){
+      } else if (result === 'error') {
         this.toastr.error(this.translateService.instant("reset.change.error"));
       }
     });

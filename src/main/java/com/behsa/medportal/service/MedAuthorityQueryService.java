@@ -7,7 +7,7 @@ import com.behsa.medportal.service.criteria.MedAuthorityCriteria;
 import com.behsa.medportal.service.dto.MedAuthorityDTO;
 import com.behsa.medportal.service.mapper.MedAuthorityMapper;
 import java.util.List;
-import javax.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.JoinType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -81,7 +81,7 @@ public class MedAuthorityQueryService extends QueryService<MedAuthorityEntity> {
      * @return the matching {@link Specification} of the entity.
      */
     protected Specification<MedAuthorityEntity> createSpecification(MedAuthorityCriteria criteria) {
-        Specification<MedAuthorityEntity> specification = Specification.where(null);
+        Specification<MedAuthorityEntity> specification = (root, query, criteriaBuilder) -> null;
         if (criteria != null) {
             // This has to be called first, because the distinct method returns null
             if (criteria.getDistinct() != null) {

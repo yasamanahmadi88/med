@@ -10,6 +10,7 @@ import { EventManager, EventWithContent } from 'app/core/util/event-manager.serv
 @Component({
   selector: 'jhi-alert-error',
   templateUrl: './alert-error.component.html',
+  standalone: false,
 })
 export class AlertErrorComponent implements OnDestroy {
   alerts: Alert[] = [];

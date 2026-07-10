@@ -15,6 +15,7 @@ import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/
 @Component({
   selector: 'jhi-config',
   templateUrl: './config.component.html',
+  standalone: false,
 })
 export class ConfigComponent implements OnInit {
   configs?: IConfig[];

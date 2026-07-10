@@ -3,6 +3,7 @@ import { TranslateService, LangChangeEvent } from '@ngx-translate/core';
 
 @Directive({
   selector: '[jhiActiveMenu]',
+  standalone: false,
 })
 export class ActiveMenuDirective implements OnInit {
   @Input() jhiActiveMenu?: string;

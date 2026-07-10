@@ -1,42 +1,34 @@
 package com.behsa.medportal.config;
 
 import com.behsa.medportal.service.ResourceAuthorityQueryService;
-import org.springframework.context.annotation.AdviceMode;
+import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.access.AccessDecisionManager;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
+import org.springframework.context.annotation.Role;
+import org.springframework.security.authorization.AuthorizationManager;
+import org.springframework.security.authorization.method.AuthorizationManagerBeforeMethodInterceptor;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.aop.Advisor;
+import org.springframework.security.authorization.method.AuthorizationInterceptorsOrder;
 
 /**
- * Custom method security configuration.
+ * Method security for MedPortal.
  *
- * Enables:
- * - @PreAuthorize / @PostAuthorize
- * - @Secured
- *
- * Uses Spring Security's default AccessDecisionManager first,
- * then applies the project's resource-based permission checks.
+ * <p>Uses a custom {@link AuthorizationManager} so {@code @Secured("resourceName")} continues to
+ * enforce resource+verb checks (legacy {@code CustomAccessDecisionManager} behavior) on Spring
+ * Security 6+/7, while {@code @Secured("ROLE_*")} keeps standard role checks.
  */
 @Configuration
-@EnableGlobalMethodSecurity(
-    prePostEnabled = true,
-    securedEnabled = true,
-    proxyTargetClass = true,
-    mode = AdviceMode.PROXY
-)
-public class MethodSecurityConfiguration extends GlobalMethodSecurityConfiguration {
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = false)
+public class MethodSecurityConfiguration {
 
-    private final ResourceAuthorityQueryService resourceAuthorityQueryService;
-
-    public MethodSecurityConfiguration(ResourceAuthorityQueryService resourceAuthorityQueryService) {
-        this.resourceAuthorityQueryService = resourceAuthorityQueryService;
-    }
-
-    @Override
-    protected AccessDecisionManager accessDecisionManager() {
-        return new CustomAccessDecisionManager(
-            super.accessDecisionManager(),
-            resourceAuthorityQueryService
-        );
+    @Bean
+    @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+    Advisor securedResourceAuthorizationAdvisor(ResourceAuthorityQueryService resourceAuthorityQueryService) {
+        AuthorizationManager<MethodInvocation> manager = new ResourceSecuredAuthorizationManager(resourceAuthorityQueryService);
+        AuthorizationManagerBeforeMethodInterceptor interceptor = AuthorizationManagerBeforeMethodInterceptor.secured(manager);
+        interceptor.setOrder(AuthorizationInterceptorsOrder.SECURED.getOrder());
+        return interceptor;
     }
 }

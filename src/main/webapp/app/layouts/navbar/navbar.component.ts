@@ -16,6 +16,7 @@ import { faHistory } from '@fortawesome/free-solid-svg-icons';
   selector: 'jhi-navbar',
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss'],
+  standalone: false,
 })
 export class NavbarComponent implements OnInit {
   inProduction?: boolean;

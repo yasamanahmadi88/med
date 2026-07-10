@@ -70,7 +70,8 @@ public class TokenProvider {
             keyBytes = secret.getBytes(StandardCharsets.UTF_8);
         }
         key = Keys.hmacShaKeyFor(keyBytes);
-        jwtParser = Jwts.parserBuilder().setSigningKey(key).build();
+        // verifyWith binds an HMAC key so alg=none / asymmetric alg confusion is rejected.
+        jwtParser = Jwts.parser().verifyWith((javax.crypto.SecretKey) key).clockSkewSeconds(30).build();
         this.tokenValidityInMilliseconds = 1000 * jHipsterProperties.getSecurity().getAuthentication().getJwt().getTokenValidityInSeconds();
         this.tokenValidityInMillisecondsForRememberMe =
             1000 * jHipsterProperties.getSecurity().getAuthentication().getJwt().getTokenValidityInSecondsForRememberMe();
@@ -95,16 +96,16 @@ public class TokenProvider {
 
         return Jwts
             .builder()
-            .setSubject(authentication.getName())
+            .subject(authentication.getName())
             .claim(AUTHORITIES_KEY, authorities)
-            .addClaims(claims)
-            .signWith(key, SignatureAlgorithm.HS512)
-            .setExpiration(validity)
+            .claims(claims)
+            .signWith(key, Jwts.SIG.HS512)
+            .expiration(validity)
             .compact();
     }
 
 //    public Authentication getAuthentication(String token) {
-//        Claims claims = jwtParser.parseClaimsJws(token).getBody();
+//        Claims claims = jwtParser.parseSignedClaims(token).getPayload();
 //
 //        Collection<? extends GrantedAuthority> authorities = Arrays
 //            .stream(claims.get(AUTHORITIES_KEY).toString().split(","))
@@ -130,7 +131,7 @@ public class TokenProvider {
 //    }
 
     public Authentication getAuthentication(String token) {
-        Claims claims = jwtParser.parseClaimsJws(token).getBody();
+        Claims claims = jwtParser.parseSignedClaims(token).getPayload();
 
         String login = claims.getSubject();
 
@@ -165,7 +166,7 @@ public class TokenProvider {
 
     public boolean validateToken(String authToken) {
         try {
-            jwtParser.parseClaimsJws(authToken);
+            jwtParser.parseSignedClaims(authToken);
 
             return true;
         } catch (ExpiredJwtException e) {

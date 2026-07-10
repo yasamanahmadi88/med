@@ -9,7 +9,8 @@ import {TranslateService} from "@ngx-translate/core";
 @Component({
   selector: 'jhi-bpmn',
   templateUrl: './bpmn.component.html',
-  styleUrls: ['./bpmn.component.scss']
+  styleUrls: ['./bpmn.component.scss'],
+  standalone: false,
 })
 export class BpmnComponent implements OnInit {
 

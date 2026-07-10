@@ -15,6 +15,7 @@ import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/
 @Component({
   selector: 'jhi-resource-authority',
   templateUrl: './resource-authority.component.html',
+  standalone: false,
 })
 export class ResourceAuthorityComponent implements OnInit {
   resourceAuthorities?: IResourceAuthority[];

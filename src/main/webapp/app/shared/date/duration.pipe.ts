@@ -4,7 +4,9 @@
 //
 // @Pipe({
 //   name: 'duration',
-// })
+// ,
+  standalone: false,
+})
 // export class DurationPipe implements PipeTransform {
 //   transform(value: any): string {
 //     if (value) {

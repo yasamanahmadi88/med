@@ -15,6 +15,7 @@ import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/
 @Component({
   selector: 'jhi-resource',
   templateUrl: './resource.component.html',
+  standalone: false,
 })
 export class ResourceComponent implements OnInit {
   resources?: IResource[];

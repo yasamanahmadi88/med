@@ -11,6 +11,7 @@ import { ProductService } from '../service/product.service';
 @Component({
   selector: 'jhi-product-update',
   templateUrl: './product-update.component.html',
+  standalone: false,
 })
 export class ProductUpdateComponent implements OnInit {
   isSaving = false;

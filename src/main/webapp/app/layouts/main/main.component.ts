@@ -11,7 +11,7 @@ import { FindLanguageFromKeyPipe } from 'app/shared/language/find-language-from-
   selector: 'jhi-main',
   templateUrl: './main.component.html',
   styleUrls: ['./main.component.scss'],
-
+  standalone: false,
 })
 export class MainComponent implements OnInit {
   private renderer: Renderer2;

@@ -15,6 +15,7 @@ import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/
 @Component({
   selector: 'jhi-version',
   templateUrl: './version.component.html',
+  standalone: false,
 })
 export class VersionComponent implements OnInit {
   versions?: IVersion[];

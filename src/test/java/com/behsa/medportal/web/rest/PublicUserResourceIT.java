@@ -10,7 +10,7 @@ import com.behsa.medportal.domain.User;
 import com.behsa.medportal.repository.UserRepository;
 import com.behsa.medportal.security.AuthoritiesConstants;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

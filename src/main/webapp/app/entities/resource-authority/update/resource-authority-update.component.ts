@@ -15,6 +15,7 @@ import { ResourceService } from 'app/entities/resource/service/resource.service'
 @Component({
   selector: 'jhi-resource-authority-update',
   templateUrl: './resource-authority-update.component.html',
+  standalone: false,
 })
 export class ResourceAuthorityUpdateComponent implements OnInit {
   isSaving = false;

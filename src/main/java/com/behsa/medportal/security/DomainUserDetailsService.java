@@ -4,7 +4,7 @@ import com.behsa.medportal.domain.User;
 import com.behsa.medportal.repository.UserRepository;
 import com.behsa.medportal.service.ResourceAuthorityQueryService;
 import com.behsa.medportal.service.dto.ResourceAuthorityDTO;
-import org.hibernate.validator.internal.constraintvalidators.hv.EmailValidator;
+import org.apache.commons.validator.routines.EmailValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
@@ -43,7 +43,7 @@ public class DomainUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(final String login) {
         log.debug("Authenticating {}", login);
 
-        if (new EmailValidator().isValid(login, null)) {
+        if (EmailValidator.getInstance().isValid(login)) {
             return userRepository
                 .findOneWithAuthoritiesByEmailIgnoreCase(login)
                 .map(user -> createSpringSecurityUser(login, user))
@@ -75,7 +75,7 @@ public class DomainUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(final String login) {
         log.debug("Authenticating {}", login);
 
-        if (new EmailValidator().isValid(login, null)) {
+        if (EmailValidator.getInstance().isValid(login)) {
             return userRepository
                 .findOneWithAuthoritiesByEmailIgnoreCase(login)
                 .map(user -> createSpringSecurityUser(login, user))

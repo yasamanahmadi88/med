@@ -16,6 +16,7 @@ const newUser: IUser = {
 @Component({
   selector: 'jhi-user-mgmt-update',
   templateUrl: './user-management-update.component.html',
+  standalone: false,
 })
 export class UserManagementUpdateComponent implements OnInit {
   languages = LANGUAGES;

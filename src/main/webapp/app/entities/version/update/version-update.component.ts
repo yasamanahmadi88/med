@@ -11,6 +11,7 @@ import { VersionService } from '../service/version.service';
 @Component({
   selector: 'jhi-version-update',
   templateUrl: './version-update.component.html',
+  standalone: false,
 })
 export class VersionUpdateComponent implements OnInit {
   isSaving = false;

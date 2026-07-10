@@ -6,6 +6,7 @@ type PermissionOperator = 'AND' | 'OR';
 
 @Directive({
   selector: '[jhiHasPermission]',
+  standalone: false,
 })
 export class HasPermissionDirective implements OnDestroy {
   private permissions: string[][] = [];

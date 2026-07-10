@@ -5,7 +5,7 @@ import locale from '@angular/common/locales/en';
 import { BrowserModule, Title } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import {FaIconLibrary, FontAwesomeModule} from '@fortawesome/angular-fontawesome';
-import { NgxWebstorageModule } from 'ngx-webstorage';
+import { provideNgxWebstorage, withNgxWebstorageConfig } from 'ngx-webstorage';
 import dayjs from 'dayjs/esm';
 import { NgbDateAdapter, NgbDatepickerConfig } from '@ng-bootstrap/ng-bootstrap';
 
@@ -40,7 +40,6 @@ import { BpmnComponent } from './entities/bpmn/bpmn.component';
     // Set this to true to enable service worker (PWA)
     ServiceWorkerModule.register('ngsw-worker.js', { enabled: false }),
     HttpClientModule,
-    NgxWebstorageModule.forRoot({ prefix: 'jhi', separator: '-', caseSensitive: true }),
     TranslationModule,
     FontAwesomeModule,
     ToastrModule.forRoot({
@@ -54,6 +53,7 @@ import { BpmnComponent } from './entities/bpmn/bpmn.component';
     }),
   ],
   providers: [
+    provideNgxWebstorage(withNgxWebstorageConfig({ prefix: 'jhi', separator: '-', caseSensitive: true })),
     Title,
     { provide: LOCALE_ID, useValue: 'en' },
     { provide: NgbDateAdapter, useClass: NgbDateDayjsAdapter },

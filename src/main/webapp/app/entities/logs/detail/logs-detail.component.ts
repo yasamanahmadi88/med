@@ -6,6 +6,7 @@ import {IReportLogs} from "../logs.model";
 @Component({
   selector: 'jhi-log-detail',
   templateUrl: './logs-detail.component.html',
+  standalone: false,
 })
 export class LogsDetailComponent implements OnInit {
   log: IReportLogs | null = null;

@@ -11,6 +11,7 @@ import {TranslateService} from "@ngx-translate/core";
   selector: 'jhi-change-password-dialog',
   templateUrl: './change-password-dialog.component.html',
   styleUrls: ['./change-password-dialog.component.scss'],
+  standalone: false,
 })
 export class ChangePasswordDialogComponent implements OnInit {
 

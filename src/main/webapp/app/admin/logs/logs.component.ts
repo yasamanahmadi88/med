@@ -6,6 +6,7 @@ import { LogsService } from './logs.service';
 @Component({
   selector: 'jhi-logs',
   templateUrl: './logs.component.html',
+  standalone: false,
 })
 export class LogsComponent implements OnInit {
   loggers?: Log[];

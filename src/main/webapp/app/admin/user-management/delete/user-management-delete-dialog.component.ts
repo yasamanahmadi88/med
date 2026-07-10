@@ -7,6 +7,7 @@ import { UserManagementService } from '../service/user-management.service';
 @Component({
   selector: 'jhi-user-mgmt-delete-dialog',
   templateUrl: './user-management-delete-dialog.component.html',
+  standalone: false,
 })
 export class UserManagementDeleteDialogComponent {
   user?: User;

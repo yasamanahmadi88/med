@@ -16,6 +16,7 @@ import {IProduct} from "../../product/product.model";
 @Component({
   selector: 'jhi-flow',
   templateUrl: './logs.component.html',
+  standalone: false,
 })
 export class LogsComponent implements OnInit {
   logs?: IReportLogs[];

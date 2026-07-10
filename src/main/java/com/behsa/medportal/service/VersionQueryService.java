@@ -80,7 +80,7 @@ public class VersionQueryService extends QueryService<VersionEntity> {
      * @return the matching {@link Specification} of the entity.
      */
     protected Specification<VersionEntity> createSpecification(VersionCriteria criteria) {
-        Specification<VersionEntity> specification = Specification.where(null);
+        Specification<VersionEntity> specification = (root, query, criteriaBuilder) -> null;
         if (criteria != null) {
             // This has to be called first, because the distinct method returns null
             if (criteria.getDistinct() != null) {

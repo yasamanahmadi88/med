@@ -12,6 +12,7 @@ import { Login } from './login.model';
   selector: 'jhi-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
+  standalone: false,
 })
 export class LoginComponent implements OnInit, AfterViewInit {
   @ViewChild('username', { static: false }) username!: ElementRef;

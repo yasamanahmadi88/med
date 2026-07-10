@@ -7,6 +7,7 @@ import { ITEM_DELETED_EVENT } from 'app/config/navigation.constants';
 
 @Component({
   templateUrl: './module-delete-dialog.component.html',
+  standalone: false,
 })
 export class ModuleDeleteDialogComponent {
   module?: IModule;

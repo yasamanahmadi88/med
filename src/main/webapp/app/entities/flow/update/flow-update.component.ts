@@ -15,6 +15,7 @@ import {TranslateService} from "@ngx-translate/core";
 @Component({
   selector: 'jhi-flow-update',
   templateUrl: './flow-update.component.html',
+  standalone: false,
 })
 export class FlowUpdateComponent implements OnInit {
   isSaving = false;

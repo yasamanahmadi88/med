@@ -3,7 +3,6 @@ package com.behsa.medportal.security;
 import com.behsa.medportal.security.jwt.SessionInfo;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
-import io.github.bucket4j.Refill;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -174,20 +173,23 @@ public class SecurityCache {
     }
 
     private Bucket createNewBucket(String reqType) {
-        Refill refill;
         Bandwidth limit;
 
-
         if (reqType.equals("get")) {
-            refill = Refill.greedy(tokenPerMinuteForGet, Duration.ofMinutes(1));
-            limit = Bandwidth.classic(bucketSizeForGet, refill);
+            limit = Bandwidth.builder()
+                .capacity(bucketSizeForGet)
+                .refillGreedy(tokenPerMinuteForGet, Duration.ofMinutes(1))
+                .build();
         } else {
-            refill = Refill.greedy(tokenPerMinuteForPost, Duration.ofMinutes(1));
-            limit = Bandwidth.classic(bucketSizeForPost, refill);
+            limit = Bandwidth.builder()
+                .capacity(bucketSizeForPost)
+                .refillGreedy(tokenPerMinuteForPost, Duration.ofMinutes(1))
+                .build();
         }
 
         return Bucket.builder().addLimit(limit).build();
     }
+
     public boolean tryConsumeLogin(String key) {
         if (key == null || key.isBlank()) {
             key = "unknown";
@@ -195,7 +197,12 @@ public class SecurityCache {
 
         Bucket bucket = loginBuckets.computeIfAbsent(key, ignored ->
             Bucket.builder()
-                .addLimit(Bandwidth.classic(10, Refill.greedy(10, Duration.ofMinutes(1))))
+                .addLimit(
+                    Bandwidth.builder()
+                        .capacity(10)
+                        .refillGreedy(10, Duration.ofMinutes(1))
+                        .build()
+                )
                 .build()
         );
 

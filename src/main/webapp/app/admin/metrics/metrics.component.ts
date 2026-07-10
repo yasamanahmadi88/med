@@ -8,6 +8,7 @@ import { Metrics, Thread } from './metrics.model';
   selector: 'jhi-metrics',
   templateUrl: './metrics.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false,
 })
 export class MetricsComponent implements OnInit {
   metrics?: Metrics;

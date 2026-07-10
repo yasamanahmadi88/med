@@ -10,6 +10,7 @@ import { translationNotFoundMessage } from 'app/config/translation.config';
  */
 @Directive({
   selector: '[jhiTranslate]',
+  standalone: false,
 })
 export class TranslateDirective implements OnChanges, OnInit, OnDestroy {
   @Input() jhiTranslate!: string;

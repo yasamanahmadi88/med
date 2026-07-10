@@ -11,6 +11,7 @@ import { CustomAuditEventService } from '../service/custom-audit-event.service';
 @Component({
   selector: 'jhi-custom-audit-event-update',
   templateUrl: './custom-audit-event-update.component.html',
+  standalone: false,
 })
 export class CustomAuditEventUpdateComponent implements OnInit {
   isSaving = false;

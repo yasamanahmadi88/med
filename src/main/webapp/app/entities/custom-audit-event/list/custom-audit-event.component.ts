@@ -16,6 +16,7 @@ import {SimpleTextDialogService} from "../../../layouts/simple-text-dialog/simpl
 @Component({
   selector: 'jhi-custom-audit-event',
   templateUrl: './custom-audit-event.component.html',
+  standalone: false,
 })
 export class CustomAuditEventComponent implements OnInit {
   customAuditEvents?: ICustomAuditEvent[];

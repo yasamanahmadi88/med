@@ -7,6 +7,7 @@ import { ITEM_DELETED_EVENT } from 'app/config/navigation.constants';
 
 @Component({
   templateUrl: './flow-delete-dialog.component.html',
+  standalone: false,
 })
 export class FlowDeleteDialogComponent {
   flow?: IFlow;

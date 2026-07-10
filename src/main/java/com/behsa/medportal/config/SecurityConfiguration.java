@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -60,7 +61,8 @@ public class SecurityConfiguration {
         configuration.setAllowedOrigins(Arrays.asList(
             "http://localhost:9000",
             "http://localhost:4200",
-            "http://localhost:8100"
+            "http://localhost:8100",
+            "http://localhost:9060"
         ));
 
         configuration.setAllowedMethods(Arrays.asList(
@@ -95,128 +97,87 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(
-        org.springframework.security.config.annotation.web.builders.HttpSecurity http
-    ) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors()
-            .configurationSource(corsConfigurationSource())
-            .and()
-            .csrf()
-            .disable()
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .csrf(csrf -> csrf.disable())
             .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
-            .exceptionHandling()
-            .authenticationEntryPoint(problemSupport)
-            .accessDeniedHandler(problemSupport)
-            .and()
-            .headers()
-            .httpStrictTransportSecurity()
-            .maxAgeInSeconds(31536000)
-            .includeSubDomains(true)
-            .and()
-            .contentSecurityPolicy(jHipsterProperties.getSecurity().getContentSecurityPolicy())
-            .and()
-            .referrerPolicy(
-                org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER
+            .exceptionHandling(exceptions ->
+                exceptions
+                    .authenticationEntryPoint(problemSupport)
+                    .accessDeniedHandler(problemSupport)
             )
-            .and()
-            .xssProtection()
-            .block(true)
-            .and()
-            .permissionsPolicy()
-            .policy(
-                "camera=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), sync-xhr=()"
+            .headers(headers ->
+                headers
+                    .httpStrictTransportSecurity(hsts -> hsts.maxAgeInSeconds(31536000).includeSubDomains(true))
+                    .contentSecurityPolicy(csp -> csp.policyDirectives(jHipsterProperties.getSecurity().getContentSecurityPolicy()))
+                    .referrerPolicy(referrer ->
+                        referrer.policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER)
+                    )
+                    .permissionsPolicyHeader(permissions ->
+                        permissions.policy(
+                            "camera=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), sync-xhr=()"
+                        )
+                    )
+                    .frameOptions(frame -> frame.sameOrigin())
             )
-            .and()
-            .frameOptions()
-            .sameOrigin()
-            .and()
-            .sessionManagement()
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            .authorizeRequests()
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(authz ->
+                authz
+                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                    .requestMatchers("/app/**/*.{js,html}").permitAll()
+                    .requestMatchers("/i18n/**").permitAll()
+                    .requestMatchers("/content/bpmnjs/**").authenticated()
+                    .requestMatchers("/content/**").permitAll()
+                    .requestMatchers("/test/**").permitAll()
+                    .requestMatchers("/api/authenticate").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/captcha-endpoint").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/captcha.png").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/register").denyAll()
+                    .requestMatchers(
+                        HttpMethod.POST,
+                        "/api/account/reset-password/init",
+                        "/api/account/reset-password/finish"
+                    ).permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/activate").permitAll()
+                    .requestMatchers(
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/v3/api-docs",
+                        "/v3/api-docs/**",
+                        "/swagger-resources/**",
+                        "/api-docs",
+                        "/api-docs/**"
+                    ).hasAuthority(AuthoritiesConstants.ADMIN)
+                    .requestMatchers("/api/admin/**").hasAuthority(AuthoritiesConstants.ADMIN)
+                    .requestMatchers(HttpMethod.GET, "/api/authorities").hasAuthority(AuthoritiesConstants.ADMIN)
+                    .requestMatchers("/api/resources/**").hasAuthority(AuthoritiesConstants.ADMIN)
+                    .requestMatchers("/api/resource-authorities/**").hasAuthority(AuthoritiesConstants.ADMIN)
+                    .requestMatchers("/api/med-authorities/**").hasAuthority(AuthoritiesConstants.ADMIN)
+                    .requestMatchers("/api/custom-audit-events/**").hasAuthority(AuthoritiesConstants.ADMIN)
+                    .requestMatchers("/api/**").authenticated()
+                    .requestMatchers("/management/health", "/management/health/**").hasAuthority(AuthoritiesConstants.ADMIN)
+                    .requestMatchers("/management/info").hasAuthority(AuthoritiesConstants.ADMIN)
+                    .requestMatchers(
+                        "/management/prometheus",
+                        "/management/threaddump",
+                        "/management/jhimetrics",
+                        "/management/env",
+                        "/management/env/**",
+                        "/management/configprops",
+                        "/management/configprops/**",
+                        "/management/loggers",
+                        "/management/loggers/**",
+                        "/management/metrics",
+                        "/management/metrics/**"
+                    ).denyAll()
+                    .requestMatchers("/management/**").hasAuthority(AuthoritiesConstants.ADMIN)
+            )
+            .httpBasic(httpBasic -> httpBasic.disable())
+            .formLogin(formLogin -> formLogin.disable());
 
-            // Preflight
-            .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-            // Frontend static assets
-            .antMatchers("/app/**/*.{js,html}").permitAll()
-            .antMatchers("/i18n/**").permitAll()
-
-            // If bpmnjs content must be protected, this rule must come before /content/**
-            .antMatchers("/content/bpmnjs/**").authenticated()
-            .antMatchers("/content/**").permitAll()
-
-            .antMatchers("/test/**").permitAll()
-
-            // Authentication and CAPTCHA
-            .antMatchers("/api/authenticate").permitAll()
-            .antMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
-            .antMatchers(HttpMethod.POST, "/api/captcha-endpoint").permitAll()
-            .antMatchers(HttpMethod.GET, "/api/captcha.png").permitAll()
-
-            // Disable public self-registration
-            .antMatchers(HttpMethod.POST, "/api/register").denyAll()
-
-            // Public account recovery endpoints
-            .antMatchers(HttpMethod.POST,
-                "/api/account/reset-password/init",
-                "/api/account/reset-password/finish"
-            ).permitAll()
-
-            .antMatchers(HttpMethod.GET, "/api/activate").permitAll()
-
-            // Swagger / API docs: admin only
-            .antMatchers(
-                "/swagger-ui/**",
-                "/swagger-ui.html",
-                "/v3/api-docs",
-                "/v3/api-docs/**",
-                "/swagger-resources/**",
-                "/api-docs",
-                "/api-docs/**"
-            ).hasAuthority(AuthoritiesConstants.ADMIN)
-
-            // Admin-only/security-management APIs
-            .antMatchers("/api/admin/**").hasAuthority(AuthoritiesConstants.ADMIN)
-            .antMatchers(HttpMethod.GET, "/api/authorities").hasAuthority(AuthoritiesConstants.ADMIN)
-
-            .antMatchers("/api/resources/**").hasAuthority(AuthoritiesConstants.ADMIN)
-            .antMatchers("/api/resource-authorities/**").hasAuthority(AuthoritiesConstants.ADMIN)
-            .antMatchers("/api/med-authorities/**").hasAuthority(AuthoritiesConstants.ADMIN)
-            .antMatchers("/api/custom-audit-events/**").hasAuthority(AuthoritiesConstants.ADMIN)
-
-            // Normal APIs: authenticated first, then @Secured + CustomAccessDecisionManager decides VIEW/CREATE/EDIT/DELETE
-            .antMatchers("/api/**").authenticated()
-
-            // Management endpoints
-            .antMatchers("/management/health", "/management/health/**").hasAuthority(AuthoritiesConstants.ADMIN)
-            .antMatchers("/management/info").hasAuthority(AuthoritiesConstants.ADMIN)
-
-            // Highly sensitive management endpoints: blocked for everyone
-            .antMatchers(
-                "/management/prometheus",
-                "/management/threaddump",
-                "/management/jhimetrics",
-                "/management/env",
-                "/management/env/**",
-                "/management/configprops",
-                "/management/configprops/**",
-                "/management/loggers",
-                "/management/loggers/**",
-                "/management/metrics",
-                "/management/metrics/**"
-            ).denyAll()
-
-            .antMatchers("/management/**").hasAuthority(AuthoritiesConstants.ADMIN)
-
-            .and()
-            .httpBasic()
-            .disable()
-            .formLogin()
-            .disable();
-
-        http.apply(new JWTConfigurer(tokenProvider, securityCache));
+        http.with(new JWTConfigurer(tokenProvider, securityCache), customizer -> {});
 
         return http.build();
     }

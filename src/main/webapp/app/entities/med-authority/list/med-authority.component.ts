@@ -15,6 +15,7 @@ import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/
 @Component({
   selector: 'jhi-med-authority',
   templateUrl: './med-authority.component.html',
+  standalone: false,
 })
 export class MedAuthorityComponent implements OnInit {
   medAuthorities?: IMedAuthority[];

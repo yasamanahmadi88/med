@@ -13,6 +13,7 @@ import { ModuleService } from 'app/entities/module/service/module.service';
 @Component({
   selector: 'jhi-config-update',
   templateUrl: './config-update.component.html',
+  standalone: false,
 })
 export class ConfigUpdateComponent implements OnInit {
   isSaving = false;

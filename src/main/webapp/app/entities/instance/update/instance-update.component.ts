@@ -11,6 +11,7 @@ import { InstanceService } from '../service/instance.service';
 @Component({
   selector: 'jhi-instance-update',
   templateUrl: './instance-update.component.html',
+  standalone: false,
 })
 export class InstanceUpdateComponent implements OnInit {
   isSaving = false;

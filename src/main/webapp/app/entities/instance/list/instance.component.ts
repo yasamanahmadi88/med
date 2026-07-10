@@ -16,6 +16,7 @@ import {SimpleTextDialogService} from "../../../layouts/simple-text-dialog/simpl
 @Component({
   selector: 'jhi-instance',
   templateUrl: './instance.component.html',
+  standalone: false,
 })
 export class InstanceComponent implements OnInit {
   instances?: IInstance[];

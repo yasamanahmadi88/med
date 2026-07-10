@@ -17,6 +17,7 @@ import { faCog, faTrash, faEye, faPencil } from '@fortawesome/free-solid-svg-ico
 @Component({
   selector: 'jhi-module',
   templateUrl: './module.component.html',
+  standalone: false,
 })
 export class ModuleComponent implements OnInit {
   modules?: IModule[];

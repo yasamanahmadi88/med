@@ -22,6 +22,7 @@ The upgrade branch **materialized the full MedPortal source** that previously li
 | Resources / Liquibase | 31 | RAR | Yes |
 | Docker compose/jib helpers | 11 | RAR | Yes |
 | Docs (`docs/**`) | 12+ | This upgrade | Yes |
+| CI / Playwright verification (`.github/workflows/**`, `e2e/playwright/**`, `playwright.config.ts`) | 4+ | This upgrade | Yes |
 | Webpack / Maven wrapper / root configs | ~40 | med-upgrade + prior upgrade | Yes |
 | `src-for-medPortal.rar` | 1 | main | **Remove from tracking** after extract (redundant; bloated) |
 
@@ -59,4 +60,5 @@ Removing them without an alternate packaging step would break `/bpmn`. They are 
 
 - No wholesale deletion of company domain/security code beyond archiving `CustomAccessDecisionManager` to `docs/upgrade/legacy-source/` (API removed in Spring Security 7).
 - Spec files touched only for Jest → Vitest (`vi.fn`) compatibility.
+- Playwright specs mock backend APIs to verify Angular route/auth/theme behavior without requiring a live database.
 - Prior agent branch had dropped custom security/DB files; this branch restored/migrated them.

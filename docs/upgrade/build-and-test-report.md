@@ -16,8 +16,12 @@
 ```bash
 ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -DskipTests compile
 ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -Dtest=TokenProviderSecurityTest,WebConfigurerTest test
+./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -Dtest=TokenProviderSecurityTest,JWTFilterTest,ResourceSecuredAuthorizationManagerTest test
+./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -DskipTests test-compile
 ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -DskipTests -Dmodernizer.skip=true package
 npm install --no-fund --no-audit
+npm run lint
+npx ng test --watch=false --coverage=false
 npm run webapp:build:prod
 npx vitest run src/main/webapp/app/core/theme/theme.service.spec.ts --config vitest-base.config.ts --environment jsdom
 ```
@@ -27,15 +31,17 @@ npx vitest run src/main/webapp/app/core/theme/theme.service.spec.ts --config vit
 | Check | Result | Notes |
 |-------|--------|-------|
 | Backend compile (Java 25, Boot 4.0.6) | **PASS** | MapStruct unmapped warnings only |
-| `TokenProviderSecurityTest` (7) | **PASS** | JWT valid/invalid/expired/alg=none/signature |
+| Security unit tests (27) | **PASS** | `TokenProviderSecurityTest`, `JWTFilterTest`, `ResourceSecuredAuthorizationManagerTest` |
 | `WebConfigurerTest` (5) | **PASS** | Tomcat factory API updated |
 | Backend package | **PASS** with `-Dmodernizer.skip=true` | Modernizer reports **59 pre-existing** style violations in IT sources; not skipped to hide failures of functional tests |
 | Frontend `npm install` | **PASS** | Public npm registry (private Artifactory unavailable) |
-| Frontend production build | **PASS** | Sass deprecation warnings; login SCSS budget warning |
-| Theme unit tests (5) | **PASS** | vitest + jsdom |
-| Full `ng test` suite | **Blocked** | Remaining specs still mix Jest APIs / template harness issues under Vitest |
-| IntegrationTest / Failsafe | **Blocked** | Requires DB (Oracle/Testcontainers) + Docker |
-| Docker Compose / E2E Cypress | **Blocked** | No Docker / no browser stack in agent |
+| Frontend lint | **PASS** | `npm run lint` |
+| Full Angular/Vitest suite | **PASS** | 629 passed, 0 failed, 0 skipped |
+| Frontend production build | **PASS** | `npm run webapp:build:prod`; Sass deprecation warnings may remain |
+| Playwright smoke/regression suite | **Configured; CI required** | Local agent has no browser stack; `.github/workflows/upgrade-verify.yml` installs Chromium and runs `npm run e2e:playwright` |
+| IntegrationTest / Failsafe (local H2) | **Blocked** | Context reaches Hibernate validation, then fails because local `schema-test.sql` lacks `MEDIATION.TBL_FLOWS` and related mapped tables |
+| Oracle Testcontainers | **Configured; CI required** | Local agent has no Docker; CI runner must execute `./mvnw -Poracle-testcontainers verify` |
+| Docker image build | **Configured; CI required** | Local agent has no Docker; workflow builds when `Dockerfile` exists |
 | Live login smoke | **Blocked** | No DB |
 
 ## Version verification

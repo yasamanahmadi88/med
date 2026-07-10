@@ -20,7 +20,10 @@ import { SessionStorageService } from 'ngx-webstorage';
   providers: [translationProviders],
 })
 export class TranslationModule {
-  constructor(private translateService: TranslateService, sessionStorageService: SessionStorageService) {
+  constructor(
+    private translateService: TranslateService,
+    sessionStorageService: SessionStorageService,
+  ) {
     translateService.setDefaultLang('en');
     const langKey = sessionStorageService.retrieve('locale') ?? 'en';
     translateService.use(langKey);

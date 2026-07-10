@@ -12,7 +12,10 @@ import { ITEM_DELETED_EVENT } from 'app/config/navigation.constants';
 export class FlowDeleteDialogComponent {
   flow?: IFlow;
 
-  constructor(protected flowService: FlowService, protected activeModal: NgbActiveModal) {}
+  constructor(
+    protected flowService: FlowService,
+    protected activeModal: NgbActiveModal,
+  ) {}
 
   cancel(): void {
     this.activeModal.dismiss();

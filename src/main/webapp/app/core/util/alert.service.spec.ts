@@ -36,7 +36,7 @@ describe('Alert service test', () => {
           timeout: 3000,
           toast: true,
           position: 'top left',
-        })
+        }),
       ).toEqual(
         expect.objectContaining({
           type: 'success',
@@ -45,7 +45,7 @@ describe('Alert service test', () => {
           timeout: 3000,
           toast: true,
           position: 'top left',
-        } as Alert)
+        }),
       );
 
       expect(service.get().length).toBe(1);
@@ -57,46 +57,46 @@ describe('Alert service test', () => {
           timeout: 3000,
           toast: true,
           position: 'top left',
-        } as Alert)
+        }),
       );
     });
 
     it('should produce a proper alert object and add it to external alert objects array', () => {
       const service = TestBed.inject(AlertService);
 
-        expect(
-          service.addAlert(
-            {
-              type: 'success',
-              message: 'Hello Jhipster',
-              timeout: 3000,
-              toast: true,
-              position: 'top left',
-            },
-            extAlerts
-          )
-        ).toEqual(
-          expect.objectContaining({
+      expect(
+        service.addAlert(
+          {
             type: 'success',
             message: 'Hello Jhipster',
-            id: 0,
             timeout: 3000,
             toast: true,
             position: 'top left',
-          } as Alert)
-        );
+          },
+          extAlerts,
+        ),
+      ).toEqual(
+        expect.objectContaining({
+          type: 'success',
+          message: 'Hello Jhipster',
+          id: 0,
+          timeout: 3000,
+          toast: true,
+          position: 'top left',
+        }),
+      );
 
-        expect(extAlerts.length).toBe(1);
-        expect(extAlerts[0]).toEqual(
-          expect.objectContaining({
-            type: 'success',
-            message: 'Hello Jhipster',
-            id: 0,
-            timeout: 3000,
-            toast: true,
-            position: 'top left',
-          } as Alert)
-        );
+      expect(extAlerts.length).toBe(1);
+      expect(extAlerts[0]).toEqual(
+        expect.objectContaining({
+          type: 'success',
+          message: 'Hello Jhipster',
+          id: 0,
+          timeout: 3000,
+          toast: true,
+          position: 'top left',
+        }),
+      );
     });
 
     it('should produce an alert object with correct id', () => {
@@ -108,7 +108,7 @@ describe('Alert service test', () => {
           type: 'success',
           message: 'Hello Jhipster success',
           id: 1,
-        } as Alert)
+        }),
       );
 
       expect(service.get().length).toBe(2);
@@ -117,7 +117,7 @@ describe('Alert service test', () => {
           type: 'success',
           message: 'Hello Jhipster success',
           id: 1,
-        } as Alert)
+        }),
       );
     });
 
@@ -132,7 +132,7 @@ describe('Alert service test', () => {
           type: 'success',
           message: 'Hello Jhipster success',
           id: 2,
-        } as Alert)
+        }),
       );
 
       expect(service.get().length).toBe(3);
@@ -143,7 +143,7 @@ describe('Alert service test', () => {
           type: 'info',
           message: 'Hello Jhipster info 2',
           id: 1,
-        } as Alert)
+        }),
       );
       alert2.close?.(service.get());
       expect(service.get().length).toBe(1);
@@ -152,7 +152,7 @@ describe('Alert service test', () => {
           type: 'success',
           message: 'Hello Jhipster success',
           id: 2,
-        } as Alert)
+        }),
       );
       alert0.close?.(service.get());
       expect(service.get().length).toBe(0);
@@ -193,8 +193,8 @@ describe('Alert service test', () => {
             toast: true,
             position: 'top left',
           },
-          []
-        )
+          [],
+        ),
       ).toEqual(
         expect.objectContaining({
           type: 'success',
@@ -203,7 +203,7 @@ describe('Alert service test', () => {
           timeout: 3000,
           toast: true,
           position: 'top left',
-        } as Alert)
+        }),
       );
 
       expect(service.get().length).toBe(0);
@@ -216,7 +216,7 @@ describe('Alert service test', () => {
         expect.objectContaining({
           type: 'success',
           message: 'Hello Jhipster',
-        } as Alert)
+        }),
       );
     });
 
@@ -228,7 +228,7 @@ describe('Alert service test', () => {
           type: 'success',
           message: 'Hello Jhipster',
           position: 'bottom left',
-        } as Alert)
+        }),
       );
     });
 
@@ -239,7 +239,7 @@ describe('Alert service test', () => {
         expect.objectContaining({
           type: 'danger',
           message: 'Hello Jhipster',
-        } as Alert)
+        }),
       );
     });
 
@@ -250,7 +250,7 @@ describe('Alert service test', () => {
         expect.objectContaining({
           type: 'warning',
           message: 'Hello Jhipster',
-        } as Alert)
+        }),
       );
     });
 
@@ -261,7 +261,7 @@ describe('Alert service test', () => {
         expect.objectContaining({
           type: 'info',
           message: 'Hello Jhipster',
-        } as Alert)
+        }),
       );
     });
 
@@ -269,37 +269,37 @@ describe('Alert service test', () => {
       const service = TestBed.inject(AlertService);
       const translateService = TestBed.inject(TranslateService);
 
-        translateService.setTranslation('en', {
-          'hello.jhipster': 'Translated message',
-        });
-        expect(service.addAlert({ type: 'info', message: 'Hello Jhipster', translationKey: 'hello.jhipster' })).toEqual(
-          expect.objectContaining({
-            type: 'info',
-            message: 'Translated message',
-          } as Alert)
-        );
+      translateService.setTranslation('en', {
+        'hello.jhipster': 'Translated message',
+      });
+      expect(service.addAlert({ type: 'info', message: 'Hello Jhipster', translationKey: 'hello.jhipster' })).toEqual(
+        expect.objectContaining({
+          type: 'info',
+          message: 'Translated message',
+        }),
+      );
     });
 
     it('should produce a info message with provided message if key does not exists', () => {
       const service = TestBed.inject(AlertService);
 
-        expect(service.addAlert({ type: 'info', message: 'Hello Jhipster', translationKey: 'hello.jhipster' })).toEqual(
-          expect.objectContaining({
-            type: 'info',
-            message: 'Hello Jhipster',
-          } as Alert)
-        );
+      expect(service.addAlert({ type: 'info', message: 'Hello Jhipster', translationKey: 'hello.jhipster' })).toEqual(
+        expect.objectContaining({
+          type: 'info',
+          message: 'Hello Jhipster',
+        }),
+      );
     });
 
     it('should produce a info message with provided key if transltion key does not exist in translations and message is not provided', () => {
       const service = TestBed.inject(AlertService);
 
-        expect(service.addAlert({ type: 'info', translationKey: 'hello.jhipster' })).toEqual(
-          expect.objectContaining({
-            type: 'info',
-            message: 'hello.jhipster',
-          } as Alert)
-        );
+      expect(service.addAlert({ type: 'info', translationKey: 'hello.jhipster' })).toEqual(
+        expect.objectContaining({
+          type: 'info',
+          message: 'hello.jhipster',
+        }),
+      );
     });
   });
 });

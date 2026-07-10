@@ -71,7 +71,7 @@ describe('ResourceAuthority Management Update Component', () => {
       expect(medAuthorityService.query).toHaveBeenCalled();
       expect(medAuthorityService.addMedAuthorityToCollectionIfMissing).toHaveBeenCalledWith(
         medAuthorityCollection,
-        ...additionalMedAuthorities.map(item => expect.objectContaining(item))
+        ...additionalMedAuthorities.map(item => expect.objectContaining(item)),
       );
       expect(comp.medAuthoritiesSharedCollection).toEqual(expectedCollection);
     });
@@ -93,7 +93,7 @@ describe('ResourceAuthority Management Update Component', () => {
       expect(resourceService.query).toHaveBeenCalled();
       expect(resourceService.addResourceToCollectionIfMissing).toHaveBeenCalledWith(
         resourceCollection,
-        ...additionalResources.map(item => expect.objectContaining(item))
+        ...additionalResources.map(item => expect.objectContaining(item)),
       );
       expect(comp.resourcesSharedCollection).toEqual(expectedCollection);
     });

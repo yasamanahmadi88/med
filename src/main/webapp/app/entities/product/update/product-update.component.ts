@@ -22,7 +22,7 @@ export class ProductUpdateComponent implements OnInit {
   constructor(
     protected productService: ProductService,
     protected productFormService: ProductFormService,
-    protected activatedRoute: ActivatedRoute
+    protected activatedRoute: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {

@@ -21,14 +21,20 @@ describe('PasswordComponent', () => {
     await TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       declarations: [PasswordComponent],
-      providers: [FormBuilder, { provide: AccountService, useValue: {
-          identity: vi.fn(() => of(null)),
-          getAuthenticationState: vi.fn(() => of(null)),
-          isAuthenticated: vi.fn(() => false),
-          authenticate: vi.fn(),
-          hasAnyAuthority: vi.fn(() => false),
-          save: vi.fn(() => of({})),
-        } }],
+      providers: [
+        FormBuilder,
+        {
+          provide: AccountService,
+          useValue: {
+            identity: vi.fn(() => of(null)),
+            getAuthenticationState: vi.fn(() => of(null)),
+            isAuthenticated: vi.fn(() => false),
+            authenticate: vi.fn(),
+            hasAnyAuthority: vi.fn(() => false),
+            save: vi.fn(() => of({})),
+          },
+        },
+      ],
     })
       .overrideTemplate(PasswordComponent, '')
       .compileComponents();

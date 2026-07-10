@@ -27,14 +27,19 @@ describe('HasAnyAuthorityDirective tests', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [HasAnyAuthorityDirective, TestHasAnyAuthorityDirectiveComponent],
-      providers: [{ provide: AccountService, useValue: {
-          identity: vi.fn(() => of(null)),
-          getAuthenticationState: vi.fn(() => of(null)),
-          isAuthenticated: vi.fn(() => false),
-          authenticate: vi.fn(),
-          hasAnyAuthority: vi.fn(() => false),
-          save: vi.fn(() => of({})),
-        } }],
+      providers: [
+        {
+          provide: AccountService,
+          useValue: {
+            identity: vi.fn(() => of(null)),
+            getAuthenticationState: vi.fn(() => of(null)),
+            isAuthenticated: vi.fn(() => false),
+            authenticate: vi.fn(),
+            hasAnyAuthority: vi.fn(() => false),
+            save: vi.fn(() => of({})),
+          },
+        },
+      ],
     });
   });
 

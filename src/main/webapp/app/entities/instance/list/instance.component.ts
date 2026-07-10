@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpHeaders } from '@angular/common/http';
 import { ActivatedRoute, Data, ParamMap, Router } from '@angular/router';
 import { combineLatest, filter, Observable, switchMap, tap } from 'rxjs';
@@ -11,14 +11,14 @@ import { ASC, DESC, SORT, ITEM_DELETED_EVENT, DEFAULT_SORT_DATA } from 'app/conf
 import { EntityArrayResponseType, InstanceService } from '../service/instance.service';
 import { InstanceDeleteDialogComponent } from '../delete/instance-delete-dialog.component';
 import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/filter.model';
-import {SimpleTextDialogService} from "../../../layouts/simple-text-dialog/simple-text-dialog.service";
+import { SimpleTextDialogService } from '../../../layouts/simple-text-dialog/simple-text-dialog.service';
 
 @Component({
   selector: 'jhi-instance',
   templateUrl: './instance.component.html',
   standalone: false,
 })
-export class InstanceComponent implements OnInit {
+export class InstanceComponent implements OnInit, OnDestroy {
   instances?: IInstance[];
   isLoading = false;
 
@@ -37,7 +37,7 @@ export class InstanceComponent implements OnInit {
     protected activatedRoute: ActivatedRoute,
     public router: Router,
     protected modalService: NgbModal,
-    private simpleTextDialogService: SimpleTextDialogService
+    private simpleTextDialogService: SimpleTextDialogService,
   ) {}
 
   trackId = (_index: number, item: IInstance): number => this.instanceService.getInstanceIdentifier(item);
@@ -47,7 +47,9 @@ export class InstanceComponent implements OnInit {
 
     this.filters.filterChanges.subscribe(filterOptions => this.handleNavigation(1, this.predicate, this.ascending, filterOptions));
 
-    this.intervalId = setInterval(() => {this.load()}, 10000);
+    this.intervalId = setInterval(() => {
+      this.load();
+    }, 10000);
   }
 
   ngOnDestroy(): void {
@@ -61,7 +63,7 @@ export class InstanceComponent implements OnInit {
     modalRef.closed
       .pipe(
         filter(reason => reason === ITEM_DELETED_EVENT),
-        switchMap(() => this.loadFromBackendWithRouteInformations())
+        switchMap(() => this.loadFromBackendWithRouteInformations()),
       )
       .subscribe({
         next: (res: EntityArrayResponseType) => {
@@ -89,7 +91,7 @@ export class InstanceComponent implements OnInit {
   protected loadFromBackendWithRouteInformations(): Observable<EntityArrayResponseType> {
     return combineLatest([this.activatedRoute.queryParamMap, this.activatedRoute.data]).pipe(
       tap(([params, data]) => this.fillComponentAttributeFromRoute(params, data)),
-      switchMap(() => this.queryBackend(this.page, this.predicate, this.ascending, this.filters.filterOptions))
+      switchMap(() => this.queryBackend(this.page, this.predicate, this.ascending, this.filters.filterOptions)),
     );
   }
 
@@ -120,7 +122,7 @@ export class InstanceComponent implements OnInit {
     page?: number,
     predicate?: string,
     ascending?: boolean,
-    filterOptions?: IFilterOption[]
+    filterOptions?: IFilterOption[],
   ): Observable<EntityArrayResponseType> {
     this.isLoading = true;
     const pageToLoad: number = page ?? 1;
@@ -161,7 +163,7 @@ export class InstanceComponent implements OnInit {
     }
   }
 
-  showLoggingFilterDialog(loggingFilter: any){
+  showLoggingFilterDialog(loggingFilter: any) {
     this.simpleTextDialogService.open(loggingFilter);
   }
 }

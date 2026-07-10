@@ -13,8 +13,9 @@
         data-cy="entityCreateButton"
         class="btn btn-primary jh-create-entity create-config"
         [routerLink]="['/config/new']"
-        *jhiHasPermission="['config','create'];op 'OR'">
-<!--        *jhiHasPermission="[['config', 'create'], ['config', 'edit']]; op: 'OR'"-->
+        *jhiHasPermission="['config', 'create']; op: 'OR'"
+      >
+        <!--        *jhiHasPermission="[['config', 'create'], ['config', 'edit']]; op: 'OR'"-->
 
         <fa-icon icon="plus"></fa-icon>
         <span jhiTranslate="medPortalApp.config.home.createLabel"> Create a new Config </span>
@@ -80,12 +81,24 @@
                 <span class="d-none d-md-inline" jhiTranslate="entity.action.view">View</span>
               </button>
 
-              <button type="submit" [routerLink]="['/config', config.id, 'edit']" class="btn btn-primary btn-sm" data-cy="entityEditButton" *jhiHasPermission="['config','edit'];op 'OR'">
+              <button
+                type="submit"
+                [routerLink]="['/config', config.id, 'edit']"
+                class="btn btn-primary btn-sm"
+                data-cy="entityEditButton"
+                *jhiHasPermission="['config', 'edit']; op: 'OR'"
+              >
                 <fa-icon icon="pencil-alt"></fa-icon>
                 <span class="d-none d-md-inline" jhiTranslate="entity.action.edit">Edit</span>
               </button>
 
-              <button type="submit" (click)="delete(config)" class="btn btn-danger btn-sm" data-cy="entityDeleteButton" *jhiHasPermission="['config','delete'];op 'OR'">
+              <button
+                type="submit"
+                (click)="delete(config)"
+                class="btn btn-danger btn-sm"
+                data-cy="entityDeleteButton"
+                *jhiHasPermission="['config', 'delete']; op: 'OR'"
+              >
                 <fa-icon icon="times"></fa-icon>
                 <span class="d-none d-md-inline" jhiTranslate="entity.action.delete">Delete</span>
               </button>

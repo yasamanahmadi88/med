@@ -34,18 +34,18 @@ describe('Event Manager tests', () => {
     it('should create an observable and callback when broadcasted EventWithContent', () => {
       const eventManager = TestBed.inject(EventManager);
 
-        // GIVEN
-        eventManager.subscribe('modifier', (event: EventWithContent<unknown> | string) => (recievedEvent = event));
+      // GIVEN
+      eventManager.subscribe('modifier', (event: EventWithContent<unknown> | string) => (recievedEvent = event));
 
-        // WHEN
-        eventManager.broadcast({ name: 'unrelatedModifier', content: 'unreleated modification' });
-        // THEN
-        expect(recievedEvent).toBeNull();
+      // WHEN
+      eventManager.broadcast({ name: 'unrelatedModifier', content: 'unreleated modification' });
+      // THEN
+      expect(recievedEvent).toBeNull();
 
-        // WHEN
-        eventManager.broadcast({ name: 'modifier', content: 'modified something' });
-        // THEN
-        expect(recievedEvent).toEqual({ name: 'modifier', content: 'modified something' });
+      // WHEN
+      eventManager.broadcast({ name: 'modifier', content: 'modified something' });
+      // THEN
+      expect(recievedEvent).toEqual({ name: 'modifier', content: 'modified something' });
     });
 
     it('should create an observable and callback when broadcasted string', () => {

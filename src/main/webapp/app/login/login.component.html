@@ -1,21 +1,20 @@
 <section class="login-page py-5">
-
   <!-- Event nodes only بالای فرم -->
   <div class="event-stream" aria-hidden="true">
     <svg class="event-node l2r" style="--top: 0%; --size: 50px; --dur: 40s; --delay: -3s" viewBox="0 0 120 104">
-      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52"/>
+      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52" />
     </svg>
     <svg class="event-node r2l" style="--top: 10%; --size: 60px; --dur: 42s; --delay: -7s" viewBox="0 0 120 104">
-      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52"/>
+      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52" />
     </svg>
     <svg class="event-node l2r" style="--top: 20%; --size: 55px; --dur: 44s; --delay: -5s" viewBox="0 0 120 104">
-      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52"/>
+      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52" />
     </svg>
     <svg class="event-node r2l" style="--top: 30%; --size: 65px; --dur: 38s; --delay: -12s" viewBox="0 0 120 104">
-      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52"/>
+      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52" />
     </svg>
     <svg class="event-node l2r" style="--top: 40%; --size: 70px; --dur: 45s; --delay: -9s" viewBox="0 0 120 104">
-      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52"/>
+      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52" />
     </svg>
   </div>
 
@@ -24,48 +23,74 @@
     <div class="card login-card my-5">
       <h2 class="sr-only" jhiTranslate="login.title">Sign in</h2>
 
-      <div class="alert alert-danger login-alert" *ngIf="authenticationError"
-           jhiTranslate="login.messages.error.authentication" data-cy="loginError">
+      <div
+        class="alert alert-danger login-alert"
+        *ngIf="authenticationError"
+        jhiTranslate="login.messages.error.authentication"
+        data-cy="loginError"
+      >
         <strong>Failed to sign in!</strong> Please check your credentials and try again.
       </div>
 
       <form class="login-form" role="form" (ngSubmit)="login()" [formGroup]="loginForm">
-
         <!-- Username -->
         <div class="form-field my-3">
           <label for="username" jhiTranslate="global.form.username.label">Username</label>
-          <input type="text" class="form-control login-input" name="username" id="username"
-                 placeholder="{{ 'global.form.username.placeholder' | translate }}" formControlName="username"
-                 #username data-cy="username" />
+          <input
+            type="text"
+            class="form-control login-input"
+            name="username"
+            id="username"
+            placeholder="{{ 'global.form.username.placeholder' | translate }}"
+            formControlName="username"
+            #username
+            data-cy="username"
+          />
         </div>
 
         <!-- Password -->
         <div class="form-field my-3">
           <label for="password" jhiTranslate="login.form.password">Password</label>
-          <input type="password" class="form-control login-input" name="password" id="password"
-                 placeholder="{{ 'login.form.password.placeholder' | translate }}" formControlName="password"
-                 data-cy="password" />
+          <input
+            type="password"
+            class="form-control login-input"
+            name="password"
+            id="password"
+            placeholder="{{ 'login.form.password.placeholder' | translate }}"
+            formControlName="password"
+            data-cy="password"
+          />
         </div>
 
         <!-- Captcha -->
         <div class="form-field my-3">
           <label for="userCaptchaInput">Captcha Verification</label>
           <div class="captcha-box">
-            <input placeholder="Enter code" autocomplete="off" #userCaptchaInput type="text"
-                   id="userCaptchaInput" name="userCaptchaInput" formControlName="userCaptchaInput"
-                   [maxLength]="6" maxlength="6" class="form-control login-input captcha-input"
-                   (keydown)="loginWithEnterKey($event)" [disabled]="isLoading" />
+            <input
+              placeholder="Enter code"
+              autocomplete="off"
+              #userCaptchaInput
+              type="text"
+              id="userCaptchaInput"
+              name="userCaptchaInput"
+              formControlName="userCaptchaInput"
+              [maxLength]="6"
+              maxlength="6"
+              class="form-control login-input captcha-input"
+              (keydown)="loginWithEnterKey($event)"
+              [disabled]="isLoading"
+            />
 
             <div class="captcha-preview">
               <img *ngIf="captchaImageUrl && !isLoading" [src]="captchaImageUrl" alt="Captcha" />
             </div>
 
-            <button type="button" class="captcha-refresh" (click)="reloadCaptcha()" title="Refresh Captcha"
-                    [disabled]="isLoading">↻</button>
+            <button type="button" class="captcha-refresh" (click)="reloadCaptcha()" title="Refresh Captcha" [disabled]="isLoading">
+              ↻
+            </button>
           </div>
 
-          <div class="validation-message"
-               *ngIf="loginForm.get('userCaptchaInput')?.invalid && loginForm.get('userCaptchaInput')?.touched">
+          <div class="validation-message" *ngIf="loginForm.get('userCaptchaInput')?.invalid && loginForm.get('userCaptchaInput')?.touched">
             Please enter the captcha code.
           </div>
           <div class="helper-message">Enter the 6-character code shown in the image.</div>
@@ -81,17 +106,15 @@
 
         <!-- Submit -->
         <div class="d-flex justify-content-end my-3">
-        <button type="submit" class="login-submit" data-cy="submit"
-                [disabled]="loginForm.invalid || isLoading">
-          <span *ngIf="!isLoading" jhiTranslate="login.form.button" class="w-40">Sign in</span>
-          <span *ngIf="isLoading" class="submit-loading">
-            <span class="loading-icon">⟳</span>
-            Signing in...
-          </span>
-        </button>
+          <button type="submit" class="login-submit" data-cy="submit" [disabled]="loginForm.invalid || isLoading">
+            <span *ngIf="!isLoading" jhiTranslate="login.form.button" class="w-40">Sign in</span>
+            <span *ngIf="isLoading" class="submit-loading">
+              <span class="loading-icon">⟳</span>
+              Signing in...
+            </span>
+          </button>
         </div>
       </form>
     </div>
   </div>
-
 </section>

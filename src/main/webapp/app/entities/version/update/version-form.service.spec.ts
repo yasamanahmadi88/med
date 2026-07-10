@@ -23,7 +23,7 @@ describe('Version Form Service', () => {
             tableName: expect.any(Object),
             moduleName: expect.any(Object),
             tableVersion: expect.any(Object),
-          })
+          }),
         );
       });
 
@@ -36,14 +36,13 @@ describe('Version Form Service', () => {
             tableName: expect.any(Object),
             moduleName: expect.any(Object),
             tableVersion: expect.any(Object),
-          })
+          }),
         );
       });
     });
 
     describe('getVersion', () => {
       it('should return NewVersion for default Version initial value', () => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const formGroup = service.createVersionFormGroup(sampleWithNewData);
 
         const version = service.getVersion(formGroup) as any;

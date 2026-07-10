@@ -67,7 +67,7 @@ describe('Config Management Update Component', () => {
       expect(moduleService.query).toHaveBeenCalled();
       expect(moduleService.addModuleToCollectionIfMissing).toHaveBeenCalledWith(
         moduleCollection,
-        ...additionalModules.map(item => expect.objectContaining(item))
+        ...additionalModules.map(item => expect.objectContaining(item)),
       );
       expect(comp.modulesSharedCollection).toEqual(expectedCollection);
     });

@@ -21,11 +21,7 @@ describe('Auth JWT', () => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [
-        provideNgxWebstorage(
-          withNgxWebstorageConfig({ prefix: 'jhi', separator: '-' }),
-          withLocalStorage(),
-          withSessionStorage()
-        ),
+        provideNgxWebstorage(withNgxWebstorageConfig({ prefix: 'jhi', separator: '-' }), withLocalStorage(), withSessionStorage()),
       ],
     });
 
@@ -61,9 +57,7 @@ describe('Auth JWT', () => {
       localStorageService.store = vi.fn();
       sessionStorageService.store = vi.fn();
 
-      service
-        .login({ username: 'user', password: 'pass', rememberMe: true, captchaId: 'cid', captchaToken: 'ctok' })
-        .subscribe();
+      service.login({ username: 'user', password: 'pass', rememberMe: true, captchaId: 'cid', captchaToken: 'ctok' }).subscribe();
       httpMock.expectOne('api/authenticate').flush({ id_token: 'token' });
 
       expect(localStorageService.store).toHaveBeenCalledWith('authenticationToken', 'token');
@@ -76,9 +70,7 @@ describe('Auth JWT', () => {
       localStorageService.store = vi.fn();
       sessionStorageService.store = vi.fn();
 
-      service
-        .login({ username: 'user', password: 'pass', rememberMe: false, captchaId: 'cid', captchaToken: 'ctok' })
-        .subscribe();
+      service.login({ username: 'user', password: 'pass', rememberMe: false, captchaId: 'cid', captchaToken: 'ctok' }).subscribe();
       httpMock.expectOne('api/authenticate').flush({ id_token: 'token' });
 
       expect(sessionStorageService.store).toHaveBeenCalledWith('authenticationToken', 'token');

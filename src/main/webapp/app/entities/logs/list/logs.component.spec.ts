@@ -33,7 +33,7 @@ describe('Logs Management Component', () => {
                 page: '1',
                 size: '1',
                 sort: 'id,desc',
-              })
+              }),
             ),
             snapshot: { queryParams: {} },
           },
@@ -55,8 +55,8 @@ describe('Logs Management Component', () => {
         new HttpResponse({
           body: [{ id: 123 } as IReportLogs],
           headers,
-        })
-      )
+        }),
+      ),
     );
   });
 

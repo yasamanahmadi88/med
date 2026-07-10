@@ -69,7 +69,7 @@ describe('RegisterComponent', () => {
       throwError(() => ({
         status: 400,
         error: { type: LOGIN_ALREADY_USED_TYPE },
-      }))
+      })),
     );
     comp.registerForm.patchValue({
       password: 'password',
@@ -87,7 +87,7 @@ describe('RegisterComponent', () => {
       throwError(() => ({
         status: 400,
         error: { type: EMAIL_ALREADY_USED_TYPE },
-      }))
+      })),
     );
     comp.registerForm.patchValue({
       password: 'password',
@@ -104,7 +104,7 @@ describe('RegisterComponent', () => {
     vi.spyOn(service, 'save').mockReturnValue(
       throwError(() => ({
         status: 503,
-      }))
+      })),
     );
     comp.registerForm.patchValue({
       password: 'password',

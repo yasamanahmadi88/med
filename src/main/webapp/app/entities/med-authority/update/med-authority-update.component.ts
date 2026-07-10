@@ -23,7 +23,7 @@ export class MedAuthorityUpdateComponent implements OnInit {
   constructor(
     protected medAuthorityService: MedAuthorityService,
     protected medAuthorityFormService: MedAuthorityFormService,
-    protected activatedRoute: ActivatedRoute
+    protected activatedRoute: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {

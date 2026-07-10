@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import {HttpHeaders, HttpResponse} from '@angular/common/http';
+import { HttpHeaders, HttpResponse } from '@angular/common/http';
 import { ActivatedRoute, Data, ParamMap, Router } from '@angular/router';
 import { combineLatest, filter, Observable, switchMap, tap } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -8,10 +8,10 @@ import { faRandom, faTrash, faEye, faPencil } from '@fortawesome/free-solid-svg-
 import { IReportLogs } from '../logs.model';
 
 import { ITEMS_PER_PAGE, PAGE_HEADER, TOTAL_COUNT_RESPONSE_HEADER } from 'app/config/pagination.constants';
-import { ASC, DESC, SORT,  DEFAULT_SORT_DATA } from 'app/config/navigation.constants';
-import {EntityArrayResponseType, LogReportService} from '../service/logs.service';
+import { ASC, DESC, SORT, DEFAULT_SORT_DATA } from 'app/config/navigation.constants';
+import { EntityArrayResponseType, LogReportService } from '../service/logs.service';
 import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/filter.model';
-import {IProduct} from "../../product/product.model";
+import { IProduct } from '../../product/product.model';
 
 @Component({
   selector: 'jhi-flow',
@@ -27,7 +27,7 @@ export class LogsComponent implements OnInit {
   faEye = faEye;
   faPencil = faPencil;
 
-  searchText!: string ;
+  searchText!: string;
   reverse = false;
 
   predicate = 'id';
@@ -42,7 +42,7 @@ export class LogsComponent implements OnInit {
     protected logReportService: LogReportService,
     protected activatedRoute: ActivatedRoute,
     public router: Router,
-    protected modalService: NgbModal
+    protected modalService: NgbModal,
   ) {}
 
   ngOnInit(): void {
@@ -83,7 +83,7 @@ export class LogsComponent implements OnInit {
   protected loadFromBackendWithRouteInformations(): Observable<EntityArrayResponseType> {
     return combineLatest([this.activatedRoute.queryParamMap, this.activatedRoute.data]).pipe(
       tap(([params, data]) => this.fillComponentAttributeFromRoute(params, data)),
-      switchMap(() => this.queryBackend(this.page, this.predicate, this.ascending, this.filters.filterOptions))
+      switchMap(() => this.queryBackend(this.page, this.predicate, this.ascending, this.filters.filterOptions)),
     );
   }
 
@@ -114,7 +114,7 @@ export class LogsComponent implements OnInit {
     page?: number,
     predicate?: string,
     ascending?: boolean,
-    filterOptions?: IFilterOption[]
+    filterOptions?: IFilterOption[],
   ): Observable<EntityArrayResponseType> {
     this.isLoading = true;
     const pageToLoad: number = page ?? 1;

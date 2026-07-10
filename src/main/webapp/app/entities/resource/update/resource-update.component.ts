@@ -22,7 +22,7 @@ export class ResourceUpdateComponent implements OnInit {
   constructor(
     protected resourceService: ResourceService,
     protected resourceFormService: ResourceFormService,
-    protected activatedRoute: ActivatedRoute
+    protected activatedRoute: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {

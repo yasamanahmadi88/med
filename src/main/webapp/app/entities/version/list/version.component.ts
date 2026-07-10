@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpHeaders } from '@angular/common/http';
 import { ActivatedRoute, Data, ParamMap, Router } from '@angular/router';
 import { combineLatest, filter, Observable, switchMap, tap } from 'rxjs';
@@ -17,7 +17,7 @@ import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/
   templateUrl: './version.component.html',
   standalone: false,
 })
-export class VersionComponent implements OnInit {
+export class VersionComponent implements OnInit, OnDestroy {
   versions?: IVersion[];
   isLoading = false;
 
@@ -35,7 +35,7 @@ export class VersionComponent implements OnInit {
     protected versionService: VersionService,
     protected activatedRoute: ActivatedRoute,
     public router: Router,
-    protected modalService: NgbModal
+    protected modalService: NgbModal,
   ) {}
 
   trackId = (_index: number, item: IVersion): number => this.versionService.getVersionIdentifier(item);
@@ -45,7 +45,9 @@ export class VersionComponent implements OnInit {
 
     this.filters.filterChanges.subscribe(filterOptions => this.handleNavigation(1, this.predicate, this.ascending, filterOptions));
 
-    this.intervalId = setInterval(() => {this.load()}, 10000);
+    this.intervalId = setInterval(() => {
+      this.load();
+    }, 10000);
   }
 
   ngOnDestroy(): void {
@@ -59,7 +61,7 @@ export class VersionComponent implements OnInit {
     modalRef.closed
       .pipe(
         filter(reason => reason === ITEM_DELETED_EVENT),
-        switchMap(() => this.loadFromBackendWithRouteInformations())
+        switchMap(() => this.loadFromBackendWithRouteInformations()),
       )
       .subscribe({
         next: (res: EntityArrayResponseType) => {
@@ -87,7 +89,7 @@ export class VersionComponent implements OnInit {
   protected loadFromBackendWithRouteInformations(): Observable<EntityArrayResponseType> {
     return combineLatest([this.activatedRoute.queryParamMap, this.activatedRoute.data]).pipe(
       tap(([params, data]) => this.fillComponentAttributeFromRoute(params, data)),
-      switchMap(() => this.queryBackend(this.page, this.predicate, this.ascending, this.filters.filterOptions))
+      switchMap(() => this.queryBackend(this.page, this.predicate, this.ascending, this.filters.filterOptions)),
     );
   }
 
@@ -118,7 +120,7 @@ export class VersionComponent implements OnInit {
     page?: number,
     predicate?: string,
     ascending?: boolean,
-    filterOptions?: IFilterOption[]
+    filterOptions?: IFilterOption[],
   ): Observable<EntityArrayResponseType> {
     this.isLoading = true;
     const pageToLoad: number = page ?? 1;

@@ -24,7 +24,7 @@ describe('Config Form Service', () => {
             pValue: expect.any(Object),
             commentDesc: expect.any(Object),
             module: expect.any(Object),
-          })
+          }),
         );
       });
 
@@ -38,14 +38,13 @@ describe('Config Form Service', () => {
             pValue: expect.any(Object),
             commentDesc: expect.any(Object),
             module: expect.any(Object),
-          })
+          }),
         );
       });
     });
 
     describe('getConfig', () => {
       it('should return NewConfig for default Config initial value', () => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const formGroup = service.createConfigFormGroup(sampleWithNewData);
 
         const config = service.getConfig(formGroup) as any;

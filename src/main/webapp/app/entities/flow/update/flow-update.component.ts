@@ -9,8 +9,8 @@ import { IFlow } from '../flow.model';
 import { FlowService } from '../service/flow.service';
 import { IProduct } from 'app/entities/product/product.model';
 import { ProductService } from 'app/entities/product/service/product.service';
-import {ToastrService} from "ngx-toastr";
-import {TranslateService} from "@ngx-translate/core";
+import { ToastrService } from 'ngx-toastr';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'jhi-flow-update',
@@ -31,7 +31,7 @@ export class FlowUpdateComponent implements OnInit {
     protected productService: ProductService,
     protected activatedRoute: ActivatedRoute,
     private toastr: ToastrService,
-    private translateService: TranslateService
+    private translateService: TranslateService,
   ) {}
 
   compareProduct = (o1: IProduct | null, o2: IProduct | null): boolean => this.productService.compareProduct(o1, o2);
@@ -56,9 +56,9 @@ export class FlowUpdateComponent implements OnInit {
     const flow = this.flowFormService.getFlow(this.editForm);
 
     this.flowService.isFlowNameValid(flow).subscribe(value => {
-      let flows = value.body;
-      if(flows.length > 0 && flows[0].flowName != flow.flowName){
-        this.toastr.error(this.translateService.instant("medPortalApp.flow.invalidFlowName"));
+      const flows = value.body;
+      if (flows.length > 0 && flows[0].flowName != flow.flowName) {
+        this.toastr.error(this.translateService.instant('medPortalApp.flow.invalidFlowName'));
         this.isSaving = false;
       } else {
         if (flow.id !== null) {
@@ -95,7 +95,7 @@ export class FlowUpdateComponent implements OnInit {
 
     this.productsSharedCollection = this.productService.addProductToCollectionIfMissing<IProduct>(
       this.productsSharedCollection,
-      flow.product
+      flow.product,
     );
   }
 

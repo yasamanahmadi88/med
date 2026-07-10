@@ -16,7 +16,10 @@ export type EntityArrayResponseType = HttpResponse<IResource[]>;
 export class ResourceService {
   protected resourceUrl = this.applicationConfigService.getEndpointFor('api/resources');
 
-  constructor(protected http: HttpClient, protected applicationConfigService: ApplicationConfigService) {}
+  constructor(
+    protected http: HttpClient,
+    protected applicationConfigService: ApplicationConfigService,
+  ) {}
 
   create(resource: NewResource): Observable<EntityResponseType> {
     return this.http.post<IResource>(this.resourceUrl, resource, { observe: 'response' });
@@ -57,7 +60,7 @@ export class ResourceService {
   ): Type[] {
     const resources: Type[] = resourcesToCheck.filter(isPresent);
     if (resources.length > 0) {
-      const resourceCollectionIdentifiers = resourceCollection.map(resourceItem => this.getResourceIdentifier(resourceItem)!);
+      const resourceCollectionIdentifiers = resourceCollection.map(resourceItem => this.getResourceIdentifier(resourceItem));
       const resourcesToAdd = resources.filter(resourceItem => {
         const resourceIdentifier = this.getResourceIdentifier(resourceItem);
         if (resourceCollectionIdentifiers.includes(resourceIdentifier)) {

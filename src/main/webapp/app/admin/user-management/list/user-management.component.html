@@ -83,11 +83,17 @@
               </button>
 
               <button type="submit" [routerLink]="['./', user.login, 'view']" class="btn btn-info btn-sm" title="View">
-                <fa-icon [icon]="faEye" style="color:white"></fa-icon>
+                <fa-icon [icon]="faEye" style="color: white"></fa-icon>
               </button>
 
-              <button type="submit" [routerLink]="['./', user.login, 'edit']" queryParamsHandling="merge" class="btn btn-primary btn-sm" title="Edit">
-                <fa-icon [icon]="faPencil" style="color:white"></fa-icon>
+              <button
+                type="submit"
+                [routerLink]="['./', user.login, 'edit']"
+                queryParamsHandling="merge"
+                class="btn btn-primary btn-sm"
+                title="Edit"
+              >
+                <fa-icon [icon]="faPencil" style="color: white"></fa-icon>
               </button>
 
               <button

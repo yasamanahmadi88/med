@@ -9,7 +9,7 @@ describe('Directive: SortByDirective', () => {
   let sortDirective: SortDirective<string>;
   let sortByDirective: SortByDirective<string>;
   let icon: { icon: unknown };
-  let sortChanges: Array<{ predicate: string; ascending: boolean }>;
+  let sortChanges: { predicate: string; ascending: boolean }[];
 
   beforeEach(() => {
     sortDirective = new SortDirective<string>();

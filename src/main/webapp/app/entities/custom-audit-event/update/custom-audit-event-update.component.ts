@@ -22,7 +22,7 @@ export class CustomAuditEventUpdateComponent implements OnInit {
   constructor(
     protected customAuditEventService: CustomAuditEventService,
     protected customAuditEventFormService: CustomAuditEventFormService,
-    protected activatedRoute: ActivatedRoute
+    protected activatedRoute: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {

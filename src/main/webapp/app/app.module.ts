@@ -4,7 +4,7 @@ import { HttpClientModule } from '@angular/common/http';
 import locale from '@angular/common/locales/en';
 import { BrowserModule, Title } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
-import {FaIconLibrary, FontAwesomeModule} from '@fortawesome/angular-fontawesome';
+import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { provideNgxWebstorage, withNgxWebstorageConfig } from 'ngx-webstorage';
 import dayjs from 'dayjs/esm';
 import { NgbDateAdapter, NgbDatepickerConfig } from '@ng-bootstrap/ng-bootstrap';
@@ -26,7 +26,7 @@ import { FooterComponent } from './layouts/footer/footer.component';
 import { PageRibbonComponent } from './layouts/profiles/page-ribbon.component';
 import { ActiveMenuDirective } from './layouts/navbar/active-menu.directive';
 import { ErrorComponent } from './layouts/error/error.component';
-import {ToastrModule} from "ngx-toastr";
+import { ToastrModule } from 'ngx-toastr';
 import { SimpleTextDialogComponent } from './layouts/simple-text-dialog/simple-text-dialog.component';
 import { BpmnComponent } from './entities/bpmn/bpmn.component';
 import { ThemeToggleComponent } from './core/theme/theme-toggle.component';
@@ -80,7 +80,7 @@ export class AppModule {
     applicationConfigService: ApplicationConfigService,
     iconLibrary: FaIconLibrary,
     dpConfig: NgbDatepickerConfig,
-    _themeService: ThemeService
+    _themeService: ThemeService,
   ) {
     applicationConfigService.setEndpointPrefix(SERVER_API_URL);
     registerLocaleData(locale);

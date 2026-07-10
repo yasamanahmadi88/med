@@ -23,7 +23,7 @@ export class AccountService {
     private http: HttpClient,
     private stateStorageService: StateStorageService,
     private router: Router,
-    private applicationConfigService: ApplicationConfigService
+    private applicationConfigService: ApplicationConfigService,
   ) {}
 
   save(account: Account): Observable<{}> {
@@ -64,7 +64,7 @@ export class AccountService {
 
           this.navigateToStoredUrl();
         }),
-        shareReplay()
+        shareReplay(),
       );
     }
     return this.accountCache$.pipe(catchError(() => of(null)));
@@ -93,7 +93,7 @@ export class AccountService {
   }
 
   get loggedInUser(): Account | null | undefined {
-    return this._loggedInUser as Account;
+    return this._loggedInUser;
   }
 
   set loggedInUser(value: Account | null | undefined) {

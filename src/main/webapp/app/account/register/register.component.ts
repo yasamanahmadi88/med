@@ -41,7 +41,10 @@ export class RegisterComponent implements AfterViewInit {
     }),
   });
 
-  constructor(private translateService: TranslateService, private registerService: RegisterService) {}
+  constructor(
+    private translateService: TranslateService,
+    private registerService: RegisterService,
+  ) {}
 
   ngAfterViewInit(): void {
     if (this.login) {

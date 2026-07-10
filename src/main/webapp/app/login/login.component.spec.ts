@@ -29,20 +29,19 @@ describe('LoginComponent', () => {
       imports: [RouterTestingModule.withRoutes([]), HttpClientTestingModule],
       declarations: [LoginComponent],
       providers: [
-        provideNgxWebstorage(
-          withNgxWebstorageConfig({ prefix: 'jhi', separator: '-' }),
-          withLocalStorage(),
-          withSessionStorage()
-        ),
+        provideNgxWebstorage(withNgxWebstorageConfig({ prefix: 'jhi', separator: '-' }), withLocalStorage(), withSessionStorage()),
         FormBuilder,
-        { provide: AccountService, useValue: {
-          identity: vi.fn(() => of(null)),
-          getAuthenticationState: vi.fn(() => of(null)),
-          isAuthenticated: vi.fn(() => false),
-          authenticate: vi.fn(),
-          hasAnyAuthority: vi.fn(() => false),
-          save: vi.fn(() => of({})),
-        } },
+        {
+          provide: AccountService,
+          useValue: {
+            identity: vi.fn(() => of(null)),
+            getAuthenticationState: vi.fn(() => of(null)),
+            isAuthenticated: vi.fn(() => false),
+            authenticate: vi.fn(),
+            hasAnyAuthority: vi.fn(() => false),
+            save: vi.fn(() => of({})),
+          },
+        },
         {
           provide: LoginService,
           useValue: {

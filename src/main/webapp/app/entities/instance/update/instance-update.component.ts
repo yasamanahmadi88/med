@@ -22,7 +22,7 @@ export class InstanceUpdateComponent implements OnInit {
   constructor(
     protected instanceService: InstanceService,
     protected instanceFormService: InstanceFormService,
-    protected activatedRoute: ActivatedRoute
+    protected activatedRoute: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {

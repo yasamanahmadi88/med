@@ -36,7 +36,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
     private accountService: AccountService,
     private loginService: LoginService,
     private router: Router,
-    private http: HttpClient
+    private http: HttpClient,
   ) {
     this.backUrl = this.localStorageService.retrieve('backendUrl') || '';
   }
@@ -99,7 +99,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
       formValue.password,
       formValue.rememberMe,
       this.captchaId,
-      formValue.userCaptchaInput
+      formValue.userCaptchaInput,
     );
 
     this.loginService.login(credentials).subscribe({

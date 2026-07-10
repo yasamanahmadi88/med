@@ -4,9 +4,9 @@ import { SortDirective } from './sort.directive';
 
 describe('Directive: SortDirective', () => {
   let sortDirective: SortDirective<string>;
-  let predicateChanges: Array<string | undefined>;
-  let ascendingChanges: Array<boolean | undefined>;
-  let sortChanges: Array<{ predicate: string; ascending: boolean }>;
+  let predicateChanges: (string | undefined)[];
+  let ascendingChanges: (boolean | undefined)[];
+  let sortChanges: { predicate: string; ascending: boolean }[];
 
   beforeEach(() => {
     sortDirective = new SortDirective<string>();

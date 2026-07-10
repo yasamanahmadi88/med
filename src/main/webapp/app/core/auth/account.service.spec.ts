@@ -41,7 +41,10 @@ describe('Account Service', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule, RouterTestingModule.withRoutes([]), TranslateModule.forRoot()],
-      providers: [provideNgxWebstorage(withNgxWebstorageConfig({ prefix: 'jhi', separator: '-' }), withLocalStorage(), withSessionStorage()), StateStorageService],
+      providers: [
+        provideNgxWebstorage(withNgxWebstorageConfig({ prefix: 'jhi', separator: '-' }), withLocalStorage(), withSessionStorage()),
+        StateStorageService,
+      ],
     });
 
     service = TestBed.inject(AccountService);
@@ -54,7 +57,7 @@ describe('Account Service', () => {
     vi.spyOn(mockStorageService, 'clearUrl').mockImplementation(() => undefined);
 
     mockTranslateService = TestBed.inject(TranslateService);
-    vi.spyOn(mockTranslateService, 'use').mockImplementation(() => of({}) as any);
+    vi.spyOn(mockTranslateService, 'use').mockImplementation(() => of({}));
     sessionStorageService = TestBed.inject(SessionStorageService);
   });
 

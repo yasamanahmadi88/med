@@ -12,9 +12,9 @@ import { UserManagementService } from '../service/user-management.service';
 import { User } from '../user-management.model';
 import { UserManagementDeleteDialogComponent } from '../delete/user-management-delete-dialog.component';
 import { faKey, faTrash, faEye, faPencil } from '@fortawesome/free-solid-svg-icons';
-import {ChangePasswordDialogComponent} from "../change-password-dialog/change-password-dialog.component";
-import {ToastrService} from "ngx-toastr";
-import {TranslateService} from "@ngx-translate/core";
+import { ChangePasswordDialogComponent } from '../change-password-dialog/change-password-dialog.component';
+import { ToastrService } from 'ngx-toastr';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'jhi-user-mgmt',
@@ -42,7 +42,7 @@ export class UserManagementComponent implements OnInit {
     private router: Router,
     private modalService: NgbModal,
     private toastr: ToastrService,
-    private translateService: TranslateService
+    private translateService: TranslateService,
   ) {}
 
   ngOnInit(): void {
@@ -123,11 +123,11 @@ export class UserManagementComponent implements OnInit {
   changePassword(user: User): void {
     const modalRef = this.modalService.open(ChangePasswordDialogComponent, { size: 'lg', backdrop: 'static' });
     modalRef.componentInstance.user = user;
-    modalRef.componentInstance.result.subscribe((result:any) => {
-      if(result === "success"){
-        this.toastr.success(this.translateService.instant("reset.change.success"));
+    modalRef.componentInstance.result.subscribe((result: any) => {
+      if (result === 'success') {
+        this.toastr.success(this.translateService.instant('reset.change.success'));
       } else if (result === 'error') {
-        this.toastr.error(this.translateService.instant("reset.change.error"));
+        this.toastr.error(this.translateService.instant('reset.change.error'));
       }
     });
   }

@@ -17,11 +17,9 @@ export class HasPermissionDirective implements OnDestroy {
   constructor(
     private accountService: AccountService,
     private templateRef: TemplateRef<unknown>,
-    private viewContainerRef: ViewContainerRef
+    private viewContainerRef: ViewContainerRef,
   ) {
-    this.authenticationSubscription = this.accountService
-      .getAuthenticationState()
-      .subscribe(() => this.updateView());
+    this.authenticationSubscription = this.accountService.getAuthenticationState().subscribe(() => this.updateView());
   }
 
   @Input()
@@ -66,8 +64,8 @@ export class HasPermissionDirective implements OnDestroy {
       resourceAuthorities.some(
         resourceAuthority =>
           resourceAuthority.resource?.name?.toUpperCase() === resourceName.toUpperCase() &&
-          resourceAuthority.verb?.toUpperCase() === verb.toUpperCase()
-      )
+          resourceAuthority.verb?.toUpperCase() === verb.toUpperCase(),
+      ),
     );
 
     return this.operator === 'OR' ? checks.some(Boolean) : checks.every(Boolean);
@@ -84,14 +82,9 @@ export class HasPermissionDirective implements OnDestroy {
 
     return (value as string[][]).filter(
       permission =>
-        Array.isArray(permission) &&
-        permission.length === 2 &&
-        typeof permission[0] === 'string' &&
-        typeof permission[1] === 'string'
+        Array.isArray(permission) && permission.length === 2 && typeof permission[0] === 'string' && typeof permission[1] === 'string',
     );
   }
 
-
-     // for use ->     *jhiHasPermission="[['config', 'create'], ['config', 'edit']]; op: 'OR'"
-
+  // for use ->     *jhiHasPermission="[['config', 'create'], ['config', 'edit']]; op: 'OR'"
 }

@@ -9,7 +9,10 @@ import { ResourceService } from '../service/resource.service';
 
 @Injectable({ providedIn: 'root' })
 export class ResourceRoutingResolveService implements Resolve<IResource | null> {
-  constructor(protected service: ResourceService, protected router: Router) {}
+  constructor(
+    protected service: ResourceService,
+    protected router: Router,
+  ) {}
 
   resolve(route: ActivatedRouteSnapshot): Observable<IResource | null | never> {
     const id = route.params['id'];
@@ -22,7 +25,7 @@ export class ResourceRoutingResolveService implements Resolve<IResource | null> 
             this.router.navigate(['404']);
             return EMPTY;
           }
-        })
+        }),
       );
     }
     return of(null);

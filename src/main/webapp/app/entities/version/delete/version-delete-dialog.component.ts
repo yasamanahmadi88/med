@@ -12,7 +12,10 @@ import { ITEM_DELETED_EVENT } from 'app/config/navigation.constants';
 export class VersionDeleteDialogComponent {
   version?: IVersion;
 
-  constructor(protected versionService: VersionService, protected activeModal: NgbActiveModal) {}
+  constructor(
+    protected versionService: VersionService,
+    protected activeModal: NgbActiveModal,
+  ) {}
 
   cancel(): void {
     this.activeModal.dismiss();

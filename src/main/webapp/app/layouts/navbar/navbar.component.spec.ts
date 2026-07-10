@@ -36,7 +36,10 @@ describe('Navbar Component', () => {
     await TestBed.configureTestingModule({
       imports: [HttpClientTestingModule, RouterTestingModule.withRoutes([]), TranslateModule.forRoot()],
       declarations: [NavbarComponent],
-      providers: [provideNgxWebstorage(withNgxWebstorageConfig({ prefix: 'jhi', separator: '-' }), withLocalStorage(), withSessionStorage()), LoginService],
+      providers: [
+        provideNgxWebstorage(withNgxWebstorageConfig({ prefix: 'jhi', separator: '-' }), withLocalStorage(), withSessionStorage()),
+        LoginService,
+      ],
     })
       .overrideTemplate(NavbarComponent, '')
       .compileComponents();

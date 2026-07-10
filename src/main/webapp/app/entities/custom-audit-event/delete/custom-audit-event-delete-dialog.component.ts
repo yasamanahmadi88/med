@@ -12,7 +12,10 @@ import { ITEM_DELETED_EVENT } from 'app/config/navigation.constants';
 export class CustomAuditEventDeleteDialogComponent {
   customAuditEvent?: ICustomAuditEvent;
 
-  constructor(protected customAuditEventService: CustomAuditEventService, protected activeModal: NgbActiveModal) {}
+  constructor(
+    protected customAuditEventService: CustomAuditEventService,
+    protected activeModal: NgbActiveModal,
+  ) {}
 
   cancel(): void {
     this.activeModal.dismiss();

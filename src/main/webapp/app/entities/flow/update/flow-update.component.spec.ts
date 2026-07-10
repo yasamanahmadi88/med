@@ -72,7 +72,7 @@ describe('Flow Management Update Component', () => {
       expect(productService.query).toHaveBeenCalled();
       expect(productService.addProductToCollectionIfMissing).toHaveBeenCalledWith(
         productCollection,
-        ...additionalProducts.map(item => expect.objectContaining(item))
+        ...additionalProducts.map(item => expect.objectContaining(item)),
       );
       expect(comp.productsSharedCollection).toEqual(expectedCollection);
     });

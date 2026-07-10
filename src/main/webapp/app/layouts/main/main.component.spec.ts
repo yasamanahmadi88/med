@@ -36,14 +36,17 @@ describe('MainComponent', () => {
       providers: [
         Title,
         FindLanguageFromKeyPipe,
-        { provide: AccountService, useValue: {
-          identity: vi.fn(() => of(null)),
-          getAuthenticationState: vi.fn(() => of(null)),
-          isAuthenticated: vi.fn(() => false),
-          authenticate: vi.fn(),
-          hasAnyAuthority: vi.fn(() => false),
-          save: vi.fn(() => of({})),
-        } },
+        {
+          provide: AccountService,
+          useValue: {
+            identity: vi.fn(() => of(null)),
+            getAuthenticationState: vi.fn(() => of(null)),
+            isAuthenticated: vi.fn(() => false),
+            authenticate: vi.fn(),
+            hasAnyAuthority: vi.fn(() => false),
+            save: vi.fn(() => of({})),
+          },
+        },
         {
           provide: Router,
           useClass: MockRouter,
@@ -80,7 +83,7 @@ describe('MainComponent', () => {
     const childRoutePageTitle = 'childTitle';
     const navigationEnd = new NavigationEnd(1, '', '');
     const navigationStart = new NavigationStart(1, '');
-    const langChangeEvent: LangChangeEvent = { lang: 'en', translations: {} as any };
+    const langChangeEvent: LangChangeEvent = { lang: 'en', translations: {} };
 
     beforeEach(() => {
       routerState.snapshot.root = { data: {} };
@@ -181,14 +184,14 @@ describe('MainComponent', () => {
 
       findLanguageFromKeyPipe.isRTL = vi.fn(() => false);
       currentLangValue = 'lang1';
-      langChangeSubject.next({ lang: 'lang1', translations: {} as any });
+      langChangeSubject.next({ lang: 'lang1', translations: {} });
 
       expect(document.querySelector('html')?.getAttribute('lang')).toEqual('lang1');
       expect(document.querySelector('html')?.getAttribute('dir')).toEqual('ltr');
 
       findLanguageFromKeyPipe.isRTL = vi.fn(() => true);
       currentLangValue = 'lang2';
-      langChangeSubject.next({ lang: 'lang2', translations: {} as any });
+      langChangeSubject.next({ lang: 'lang2', translations: {} });
 
       expect(document.querySelector('html')?.getAttribute('lang')).toEqual('lang2');
       expect(document.querySelector('html')?.getAttribute('dir')).toEqual('rtl');

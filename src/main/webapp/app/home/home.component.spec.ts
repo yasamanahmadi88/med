@@ -31,14 +31,19 @@ describe('Home Component', () => {
     await TestBed.configureTestingModule({
       imports: [RouterTestingModule.withRoutes([])],
       declarations: [HomeComponent],
-      providers: [{ provide: AccountService, useValue: {
-          identity: vi.fn(() => of(null)),
-          getAuthenticationState: vi.fn(() => of(null)),
-          isAuthenticated: vi.fn(() => false),
-          authenticate: vi.fn(),
-          hasAnyAuthority: vi.fn(() => false),
-          save: vi.fn(() => of({})),
-        } }],
+      providers: [
+        {
+          provide: AccountService,
+          useValue: {
+            identity: vi.fn(() => of(null)),
+            getAuthenticationState: vi.fn(() => of(null)),
+            isAuthenticated: vi.fn(() => false),
+            authenticate: vi.fn(),
+            hasAnyAuthority: vi.fn(() => false),
+            save: vi.fn(() => of({})),
+          },
+        },
+      ],
     })
       .overrideTemplate(HomeComponent, '')
       .compileComponents();

@@ -22,7 +22,7 @@ export class VersionUpdateComponent implements OnInit {
   constructor(
     protected versionService: VersionService,
     protected versionFormService: VersionFormService,
-    protected activatedRoute: ActivatedRoute
+    protected activatedRoute: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {

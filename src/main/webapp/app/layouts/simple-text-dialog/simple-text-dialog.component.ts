@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import {NgbActiveModal} from "@ng-bootstrap/ng-bootstrap";
+import { Component } from '@angular/core';
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'jhi-simple-text-dialog',
@@ -7,15 +7,10 @@ import {NgbActiveModal} from "@ng-bootstrap/ng-bootstrap";
   styleUrls: ['./simple-text-dialog.component.scss'],
   standalone: false,
 })
-export class SimpleTextDialogComponent implements OnInit {
-
-  text:String = "";
+export class SimpleTextDialogComponent {
+  text = '';
 
   constructor(public activeModal: NgbActiveModal) {}
-
-  ngOnInit(): void {
-  }
-
 
   close(): void {
     this.activeModal.dismiss('cancel');

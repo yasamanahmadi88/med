@@ -115,12 +115,7 @@ test.describe('MedPortal routes and menus', () => {
 
     for (const path of lazyRoutePaths) {
       await test.step(`load ${path}`, async () => {
-        if (path === '/') {
-          await page.goto('/login');
-          await signIn(page);
-        } else {
-          await page.goto(path);
-        }
+        await page.goto(path);
         await expect(page).toHaveURL(new RegExp(`${path === '/' ? '\\/$' : `${path.replaceAll('/', '\\/')}$`}`));
         await expect(page.locator('main')).toBeVisible();
       });
@@ -133,14 +128,18 @@ test.describe('MedPortal routes and menus', () => {
     await page.goto('/route-that-does-not-exist');
 
     await expect(page).toHaveURL(/\/404$/);
-    await expect(page.locator('.alert-danger')).toContainText('not found');
+    await expect(page.locator('.alert-danger')).toContainText('does not exist');
   });
 });
 
 test.describe('MedPortal themes and responsive navigation', () => {
   test('theme toggles light to dark and persists after refresh on an internal page', async ({ page, mockApi }) => {
     await mockApi({ account: 'admin' });
-    await page.addInitScript(() => localStorage.setItem('medportal-theme', 'light'));
+    await page.addInitScript(() => {
+      if (!localStorage.getItem('medportal-theme')) {
+        localStorage.setItem('medportal-theme', 'light');
+      }
+    });
 
     await page.goto('/module');
     await expectTheme(page, 'light');

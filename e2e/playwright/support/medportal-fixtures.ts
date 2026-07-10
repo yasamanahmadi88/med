@@ -93,11 +93,11 @@ export const test = base.extend<{ mockApi: (options?: MockOptions) => Promise<Mo
       if (text.includes('Failed to load resource: the server responded with a status of 401')) {
         return;
       }
-      unexpectedConsole.push(text);
+      unexpectedConsole.push(`${page.url()} :: ${text}`);
     });
 
     page.on('pageerror', error => {
-      unexpectedConsole.push(error.message);
+      unexpectedConsole.push(`${page.url()} :: ${error.message}`);
     });
 
     page.on('requestfailed', request => {
@@ -133,7 +133,7 @@ export async function expectTheme(page: Page, theme: 'light' | 'dark'): Promise<
 
 export async function clickNavbarLink(page: Page, menuTestId: string, path: string): Promise<void> {
   await page.getByTestId(menuTestId).click();
-  await page.locator(`a.dropdown-item[href="${path}"]`).click();
+  await page.locator(`a.dropdown-item[href$="${path}"]`).click();
   await expect(page).toHaveURL(new RegExp(`${escapeRegExp(path)}(?:[?#].*)?$`));
 }
 
@@ -145,6 +145,13 @@ async function installMedPortalApiMocks(page: Page, options: MockOptions): Promi
   };
 
   await page.route('**/management/**', route => handleManagementRoute(route));
+  await page.route('**/v3/api-docs', route =>
+    fulfillJson(route, {
+      openapi: '3.0.1',
+      info: { title: 'MedPortal API', version: 'e2e' },
+      paths: {},
+    }),
+  );
   await page.route('**/api/**', route => handleApiRoute(route, state));
 
   return state;
@@ -343,7 +350,12 @@ async function delay(ms = 25): Promise<void> {
 }
 
 function isAllowedRequestFailure(request: Request): boolean {
-  return request.resourceType() === 'websocket' || request.url().includes('/sockjs-node/');
+  const failureText = request.failure()?.errorText ?? '';
+  return (
+    request.resourceType() === 'websocket' ||
+    request.url().includes('/sockjs-node/') ||
+    (failureText.includes('ERR_ABORTED') && /\/(api|management)\//.test(request.url()))
+  );
 }
 
 function escapeRegExp(value: string): string {

@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import tech.jhipster.config.JHipsterProperties;
@@ -50,7 +50,7 @@ class MailServiceIT {
     @Autowired
     private JHipsterProperties jHipsterProperties;
 
-    @MockBean
+    @MockitoBean
     private JavaMailSender javaMailSender;
 
     @Captor

@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Set;
 import java.util.Collections;
 import java.util.HashSet;
 
@@ -135,7 +136,7 @@ class AuthResourceIT {
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(rawPassword));
         user.setActivated(true);
-        user.setAuthorities(new HashSet<>(Collections.singleton(getAuthority(AuthoritiesConstants.USER))));
+        user.setAuthorities(new HashSet<>(Set.of(getAuthority(AuthoritiesConstants.USER))));
 
         userRepository.saveAndFlush(user);
     }

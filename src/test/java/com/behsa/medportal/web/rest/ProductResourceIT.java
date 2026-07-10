@@ -416,7 +416,7 @@ class ProductResourceIT {
         int databaseSizeBeforeUpdate = productRepository.findAll().size();
 
         // Update the product
-        ProductEntity updatedProductEntity = productRepository.findById(productEntity.getId()).get();
+        ProductEntity updatedProductEntity = productRepository.findById(productEntity.getId()).orElseThrow();
         // Disconnect from session so that the updates on updatedProductEntity are not directly saved in db
         em.detach(updatedProductEntity);
         updatedProductEntity.productName(UPDATED_PRODUCT_NAME).productDesc(UPDATED_PRODUCT_DESC);

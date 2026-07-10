@@ -158,7 +158,7 @@ public class AccountResource {
 
         Optional<User> existingUser = userRepository.findOneByEmailIgnoreCase(userDTO.getEmail());
 
-        if (existingUser.isPresent() && !existingUser.get().getLogin().equalsIgnoreCase(userLogin)) {
+        if (existingUser.isPresent() && !existingUser.orElseThrow().getLogin().equalsIgnoreCase(userLogin)) {
             throw new EmailAlreadyUsedException();
         }
 
@@ -219,7 +219,7 @@ public class AccountResource {
         Optional<User> user = userService.requestPasswordReset(mail);
 
         if (user.isPresent()) {
-            mailService.sendPasswordResetMail(user.get());
+            mailService.sendPasswordResetMail(user.orElseThrow());
         } else {
             log.warn("Password reset requested for non existing mail.");
         }

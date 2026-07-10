@@ -47,8 +47,8 @@ public class LoggerService implements AuditEventRepository {
     }
 
     public void log(final String eventName, Map<String, Object> data) {
-        data.put("jwt", SecurityUtils.getCurrentUserJWT().get());
-        AuditEvent event = new AuditEvent(SecurityUtils.getCurrentUser().get().getUsername(), eventName, data);
+        data.put("jwt", SecurityUtils.getCurrentUserJWT().orElseThrow());
+        AuditEvent event = new AuditEvent(SecurityUtils.getCurrentUser().orElseThrow().getUsername(), eventName, data);
         add(event);
     }
 

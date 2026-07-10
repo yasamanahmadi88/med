@@ -508,7 +508,7 @@ class ConfigResourceIT {
         int databaseSizeBeforeUpdate = configRepository.findAll().size();
 
         // Update the config
-        ConfigEntity updatedConfigEntity = configRepository.findById(configEntity.getId()).get();
+        ConfigEntity updatedConfigEntity = configRepository.findById(configEntity.getId()).orElseThrow();
         // Disconnect from session so that the updates on updatedConfigEntity are not directly saved in db
         em.detach(updatedConfigEntity);
         updatedConfigEntity.property(UPDATED_PROPERTY).pValue(UPDATED_P_VALUE).commentDesc(UPDATED_COMMENT_DESC);

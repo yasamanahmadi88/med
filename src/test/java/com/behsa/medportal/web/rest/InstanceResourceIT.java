@@ -1179,7 +1179,7 @@ class InstanceResourceIT {
         int databaseSizeBeforeUpdate = instanceRepository.findAll().size();
 
         // Update the instance
-        InstanceEntity updatedInstanceEntity = instanceRepository.findById(instanceEntity.getId()).get();
+        InstanceEntity updatedInstanceEntity = instanceRepository.findById(instanceEntity.getId()).orElseThrow();
         // Disconnect from session so that the updates on updatedInstanceEntity are not directly saved in db
         em.detach(updatedInstanceEntity);
         updatedInstanceEntity

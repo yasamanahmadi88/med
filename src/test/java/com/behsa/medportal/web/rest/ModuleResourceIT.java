@@ -890,7 +890,7 @@ class ModuleResourceIT {
         int databaseSizeBeforeUpdate = moduleRepository.findAll().size();
 
         // Update the module
-        ModuleEntity updatedModuleEntity = moduleRepository.findById(moduleEntity.getId()).get();
+        ModuleEntity updatedModuleEntity = moduleRepository.findById(moduleEntity.getId()).orElseThrow();
         // Disconnect from session so that the updates on updatedModuleEntity are not directly saved in db
         em.detach(updatedModuleEntity);
         updatedModuleEntity

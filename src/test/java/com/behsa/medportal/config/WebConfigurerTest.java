@@ -10,7 +10,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.*;
+import java.util.List;
 import jakarta.servlet.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,15 +58,15 @@ class WebConfigurerTest {
         // Boot 4 Tomcat factory exposes document root via settings; mime mappings are no longer
         // customized by WebConfigurer (behavior preserved: only static asset root is set when present).
         if (container.getSettings().getDocumentRoot() != null) {
-            assertThat(container.getSettings().getDocumentRoot()).isEqualTo(new File("target/classes/static/"));
+            assertThat(container.getSettings().getDocumentRoot()).isEqualTo(Path.of("target/classes/static/").toFile());
         }
     }
 
     @Test
     void shouldCorsFilterOnApiPath() throws Exception {
-        props.getCors().setAllowedOrigins(Collections.singletonList("other.domain.com"));
-        props.getCors().setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
-        props.getCors().setAllowedHeaders(Collections.singletonList("*"));
+        props.getCors().setAllowedOrigins(List.of("other.domain.com"));
+        props.getCors().setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+        props.getCors().setAllowedHeaders(List.of("*"));
         props.getCors().setMaxAge(1800L);
         props.getCors().setAllowCredentials(true);
 
@@ -91,9 +93,9 @@ class WebConfigurerTest {
 
     @Test
     void shouldCorsFilterOnOtherPath() throws Exception {
-        props.getCors().setAllowedOrigins(Collections.singletonList("*"));
-        props.getCors().setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
-        props.getCors().setAllowedHeaders(Collections.singletonList("*"));
+        props.getCors().setAllowedOrigins(List.of("*"));
+        props.getCors().setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+        props.getCors().setAllowedHeaders(List.of("*"));
         props.getCors().setMaxAge(1800L);
         props.getCors().setAllowCredentials(true);
 

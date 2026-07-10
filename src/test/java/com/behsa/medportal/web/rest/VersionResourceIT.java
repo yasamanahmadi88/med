@@ -515,7 +515,7 @@ class VersionResourceIT {
         int databaseSizeBeforeUpdate = versionRepository.findAll().size();
 
         // Update the version
-        VersionEntity updatedVersionEntity = versionRepository.findById(versionEntity.getId()).get();
+        VersionEntity updatedVersionEntity = versionRepository.findById(versionEntity.getId()).orElseThrow();
         // Disconnect from session so that the updates on updatedVersionEntity are not directly saved in db
         em.detach(updatedVersionEntity);
         updatedVersionEntity.tableName(UPDATED_TABLE_NAME).moduleName(UPDATED_MODULE_NAME).tableVersion(UPDATED_TABLE_VERSION);

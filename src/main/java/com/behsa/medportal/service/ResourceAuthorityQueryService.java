@@ -90,7 +90,7 @@ public class ResourceAuthorityQueryService extends QueryService<ResourceAuthorit
             .map(resourceAuthorityMapper::toDto);
         temp.forEach(
             x -> {
-                x.setMedAuthority(medAuthorityService.findOne(x.getMedAuthority().getId()).get());
+                x.setMedAuthority(medAuthorityService.findOne(x.getMedAuthority().getId()).orElseThrow());
             }
         );
         return temp;

@@ -526,7 +526,7 @@ class FlowResourceIT {
         int databaseSizeBeforeUpdate = flowRepository.findAll().size();
 
         // Update the flow
-        FlowEntity updatedFlowEntity = flowRepository.findById(flowEntity.getId()).get();
+        FlowEntity updatedFlowEntity = flowRepository.findById(flowEntity.getId()).orElseThrow();
         // Disconnect from session so that the updates on updatedFlowEntity are not directly saved in db
         em.detach(updatedFlowEntity);
         updatedFlowEntity.flowName(UPDATED_FLOW_NAME).flowDesc(UPDATED_FLOW_DESC).flow(UPDATED_FLOW);

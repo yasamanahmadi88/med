@@ -5,10 +5,14 @@
 node_modules/
 
 ######################
-# Build / target
+# Build / target / Angular
 ######################
 /target/
 /build/
+/dist/
+.angular/
+coverage/
+/out-tsc/
 
 ######################
 # IDE
@@ -16,18 +20,22 @@ node_modules/
 .idea/
 *.iml
 .vscode/
+*.swp
 
 ######################
 # OS
 ######################
 .DS_Store
+Thumbs.db
 
 ######################
-# Logs
+# Logs / temp
 ######################
 *.log
+/extracted/
+*.tmp
 
 ######################
-# Extracted archive (source is in src/)
+# Source archive (extracted into src/)
 ######################
-/extracted/
+/src-for-medPortal.rar

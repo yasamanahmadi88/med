@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
@@ -5,6 +6,8 @@ import { FormBuilder } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of, Subject, from } from 'rxjs';
+import { ToastrService } from 'ngx-toastr';
+import { TranslateService } from '@ngx-translate/core';
 
 import { FlowFormService } from './flow-form.service';
 import { FlowService } from '../service/flow.service';
@@ -32,8 +35,11 @@ describe('Flow Management Update Component', () => {
           provide: ActivatedRoute,
           useValue: {
             params: from([{}]),
+            data: of({ flow: null }),
           },
         },
+        { provide: ToastrService, useValue: { success: vi.fn(), error: vi.fn() } },
+        { provide: TranslateService, useValue: { instant: vi.fn((k: string) => k), get: vi.fn((k: string) => of(k)) } },
       ],
     })
       .overrideTemplate(FlowUpdateComponent, '')
@@ -55,10 +61,10 @@ describe('Flow Management Update Component', () => {
       flow.product = product;
 
       const productCollection: IProduct[] = [{ id: 95036 }];
-      jest.spyOn(productService, 'query').mockReturnValue(of(new HttpResponse({ body: productCollection })));
+      vi.spyOn(productService, 'query').mockReturnValue(of(new HttpResponse({ body: productCollection })));
       const additionalProducts = [product];
       const expectedCollection: IProduct[] = [...additionalProducts, ...productCollection];
-      jest.spyOn(productService, 'addProductToCollectionIfMissing').mockReturnValue(expectedCollection);
+      vi.spyOn(productService, 'addProductToCollectionIfMissing').mockReturnValue(expectedCollection);
 
       activatedRoute.data = of({ flow });
       comp.ngOnInit();
@@ -66,7 +72,7 @@ describe('Flow Management Update Component', () => {
       expect(productService.query).toHaveBeenCalled();
       expect(productService.addProductToCollectionIfMissing).toHaveBeenCalledWith(
         productCollection,
-        ...additionalProducts.map(expect.objectContaining)
+        ...additionalProducts.map(item => expect.objectContaining(item))
       );
       expect(comp.productsSharedCollection).toEqual(expectedCollection);
     });
@@ -89,9 +95,10 @@ describe('Flow Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<IFlow>>();
       const flow = { id: 123 };
-      jest.spyOn(flowFormService, 'getFlow').mockReturnValue(flow);
-      jest.spyOn(flowService, 'update').mockReturnValue(saveSubject);
-      jest.spyOn(comp, 'previousState');
+      vi.spyOn(flowFormService, 'getFlow').mockReturnValue(flow);
+      vi.spyOn(flowService, 'isFlowNameValid').mockReturnValue(of(new HttpResponse({ body: [] })));
+      vi.spyOn(flowService, 'update').mockReturnValue(saveSubject);
+      vi.spyOn(comp, 'previousState');
       activatedRoute.data = of({ flow });
       comp.ngOnInit();
 
@@ -112,9 +119,10 @@ describe('Flow Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<IFlow>>();
       const flow = { id: 123 };
-      jest.spyOn(flowFormService, 'getFlow').mockReturnValue({ id: null });
-      jest.spyOn(flowService, 'create').mockReturnValue(saveSubject);
-      jest.spyOn(comp, 'previousState');
+      vi.spyOn(flowFormService, 'getFlow').mockReturnValue({ id: null });
+      vi.spyOn(flowService, 'isFlowNameValid').mockReturnValue(of(new HttpResponse({ body: [] })));
+      vi.spyOn(flowService, 'create').mockReturnValue(saveSubject);
+      vi.spyOn(comp, 'previousState');
       activatedRoute.data = of({ flow: null });
       comp.ngOnInit();
 
@@ -135,8 +143,10 @@ describe('Flow Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<IFlow>>();
       const flow = { id: 123 };
-      jest.spyOn(flowService, 'update').mockReturnValue(saveSubject);
-      jest.spyOn(comp, 'previousState');
+      vi.spyOn(flowFormService, 'getFlow').mockReturnValue(flow);
+      vi.spyOn(flowService, 'isFlowNameValid').mockReturnValue(of(new HttpResponse({ body: [] })));
+      vi.spyOn(flowService, 'update').mockReturnValue(saveSubject);
+      vi.spyOn(comp, 'previousState');
       activatedRoute.data = of({ flow });
       comp.ngOnInit();
 
@@ -157,7 +167,7 @@ describe('Flow Management Update Component', () => {
       it('Should forward to productService', () => {
         const entity = { id: 123 };
         const entity2 = { id: 456 };
-        jest.spyOn(productService, 'compareProduct');
+        vi.spyOn(productService, 'compareProduct');
         comp.compareProduct(entity, entity2);
         expect(productService.compareProduct).toHaveBeenCalledWith(entity, entity2);
       });

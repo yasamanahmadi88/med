@@ -1,10 +1,11 @@
-jest.mock('app/login/login.service');
+import { vi } from 'vitest';
+vi.mock('app/login/login.service');
 
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
-import { NgxWebstorageModule } from 'ngx-webstorage';
+import { provideNgxWebstorage, withNgxWebstorageConfig, withLocalStorage, withSessionStorage } from 'ngx-webstorage';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { ProfileInfo } from 'app/layouts/profiles/profile-info.model';
@@ -31,15 +32,15 @@ describe('Navbar Component', () => {
     imageUrl: '',
   };
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, RouterTestingModule.withRoutes([]), TranslateModule.forRoot(), NgxWebstorageModule.forRoot()],
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule, RouterTestingModule.withRoutes([]), TranslateModule.forRoot()],
       declarations: [NavbarComponent],
-      providers: [LoginService],
+      providers: [provideNgxWebstorage(withNgxWebstorageConfig({ prefix: 'jhi', separator: '-' }), withLocalStorage(), withSessionStorage()), LoginService],
     })
       .overrideTemplate(NavbarComponent, '')
       .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(NavbarComponent);
@@ -50,7 +51,7 @@ describe('Navbar Component', () => {
 
   it('Should call profileService.getProfileInfo on init', () => {
     // GIVEN
-    jest.spyOn(profileService, 'getProfileInfo').mockReturnValue(of(new ProfileInfo()));
+    vi.spyOn(profileService, 'getProfileInfo').mockReturnValue(of(new ProfileInfo()));
 
     // WHEN
     comp.ngOnInit();

@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
@@ -55,10 +56,10 @@ describe('Config Management Update Component', () => {
       config.module = module;
 
       const moduleCollection: IModule[] = [{ id: 73220 }];
-      jest.spyOn(moduleService, 'query').mockReturnValue(of(new HttpResponse({ body: moduleCollection })));
+      vi.spyOn(moduleService, 'query').mockReturnValue(of(new HttpResponse({ body: moduleCollection })));
       const additionalModules = [module];
       const expectedCollection: IModule[] = [...additionalModules, ...moduleCollection];
-      jest.spyOn(moduleService, 'addModuleToCollectionIfMissing').mockReturnValue(expectedCollection);
+      vi.spyOn(moduleService, 'addModuleToCollectionIfMissing').mockReturnValue(expectedCollection);
 
       activatedRoute.data = of({ config });
       comp.ngOnInit();
@@ -66,7 +67,7 @@ describe('Config Management Update Component', () => {
       expect(moduleService.query).toHaveBeenCalled();
       expect(moduleService.addModuleToCollectionIfMissing).toHaveBeenCalledWith(
         moduleCollection,
-        ...additionalModules.map(expect.objectContaining)
+        ...additionalModules.map(item => expect.objectContaining(item))
       );
       expect(comp.modulesSharedCollection).toEqual(expectedCollection);
     });
@@ -89,9 +90,9 @@ describe('Config Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<IConfig>>();
       const config = { id: 123 };
-      jest.spyOn(configFormService, 'getConfig').mockReturnValue(config);
-      jest.spyOn(configService, 'update').mockReturnValue(saveSubject);
-      jest.spyOn(comp, 'previousState');
+      vi.spyOn(configFormService, 'getConfig').mockReturnValue(config);
+      vi.spyOn(configService, 'update').mockReturnValue(saveSubject);
+      vi.spyOn(comp, 'previousState');
       activatedRoute.data = of({ config });
       comp.ngOnInit();
 
@@ -112,9 +113,9 @@ describe('Config Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<IConfig>>();
       const config = { id: 123 };
-      jest.spyOn(configFormService, 'getConfig').mockReturnValue({ id: null });
-      jest.spyOn(configService, 'create').mockReturnValue(saveSubject);
-      jest.spyOn(comp, 'previousState');
+      vi.spyOn(configFormService, 'getConfig').mockReturnValue({ id: null });
+      vi.spyOn(configService, 'create').mockReturnValue(saveSubject);
+      vi.spyOn(comp, 'previousState');
       activatedRoute.data = of({ config: null });
       comp.ngOnInit();
 
@@ -135,8 +136,8 @@ describe('Config Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<IConfig>>();
       const config = { id: 123 };
-      jest.spyOn(configService, 'update').mockReturnValue(saveSubject);
-      jest.spyOn(comp, 'previousState');
+      vi.spyOn(configService, 'update').mockReturnValue(saveSubject);
+      vi.spyOn(comp, 'previousState');
       activatedRoute.data = of({ config });
       comp.ngOnInit();
 
@@ -157,7 +158,7 @@ describe('Config Management Update Component', () => {
       it('Should forward to moduleService', () => {
         const entity = { id: 123 };
         const entity2 = { id: 456 };
-        jest.spyOn(moduleService, 'compareModule');
+        vi.spyOn(moduleService, 'compareModule');
         comp.compareModule(entity, entity2);
         expect(moduleService.compareModule).toHaveBeenCalledWith(entity, entity2);
       });

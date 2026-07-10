@@ -6,17 +6,16 @@ import { ActivatedRouteSnapshot, ActivatedRoute, Router, convertToParamMap } fro
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
 
-import { IProduct } from '../product.model';
-import { ProductService } from '../service/product.service';
-
+import { IReportLogs } from '../logs.model';
+import { LogReportService } from '../service/logs.service';
 import { LogsRoutingResolveService } from './logs-routing-resolve.service';
 
-describe('Product routing resolve service', () => {
+describe('Logs routing resolve service', () => {
   let mockRouter: Router;
   let mockActivatedRouteSnapshot: ActivatedRouteSnapshot;
   let routingResolveService: LogsRoutingResolveService;
-  let service: ProductService;
-  let resultProduct: IProduct | null | undefined;
+  let service: LogReportService;
+  let resultLog: IReportLogs | null | undefined;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -33,57 +32,48 @@ describe('Product routing resolve service', () => {
       ],
     });
     mockRouter = TestBed.inject(Router);
-    jest.spyOn(mockRouter, 'navigate').mockImplementation(() => Promise.resolve(true));
+    vi.spyOn(mockRouter, 'navigate').mockImplementation(() => Promise.resolve(true));
     mockActivatedRouteSnapshot = TestBed.inject(ActivatedRoute).snapshot;
     routingResolveService = TestBed.inject(LogsRoutingResolveService);
-    service = TestBed.inject(ProductService);
-    resultProduct = undefined;
+    service = TestBed.inject(LogReportService);
+    resultLog = undefined;
   });
 
   describe('resolve', () => {
-    it('should return IProduct returned by find', () => {
-      // GIVEN
-      service.find = vi.fn(id => of(new HttpResponse({ body: { id } })));
+    it('should return IReportLogs returned by find', () => {
+      service.find = vi.fn(id => of(new HttpResponse({ body: { id } as IReportLogs })));
       mockActivatedRouteSnapshot.params = { id: 123 };
 
-      // WHEN
       routingResolveService.resolve(mockActivatedRouteSnapshot).subscribe(result => {
-        resultProduct = result;
+        resultLog = result;
       });
 
-      // THEN
       expect(service.find).toBeCalledWith(123);
-      expect(resultProduct).toEqual({ id: 123 });
+      expect(resultLog).toEqual(expect.objectContaining({ id: 123 }));
     });
 
     it('should return null if id is not provided', () => {
-      // GIVEN
       service.find = vi.fn();
       mockActivatedRouteSnapshot.params = {};
 
-      // WHEN
       routingResolveService.resolve(mockActivatedRouteSnapshot).subscribe(result => {
-        resultProduct = result;
+        resultLog = result;
       });
 
-      // THEN
       expect(service.find).not.toBeCalled();
-      expect(resultProduct).toEqual(null);
+      expect(resultLog).toEqual(null);
     });
 
     it('should route to 404 page if data not found in server', () => {
-      // GIVEN
-      jest.spyOn(service, 'find').mockReturnValue(of(new HttpResponse<IProduct>({ body: null })));
+      vi.spyOn(service, 'find').mockReturnValue(of(new HttpResponse<IReportLogs>({ body: null })));
       mockActivatedRouteSnapshot.params = { id: 123 };
 
-      // WHEN
       routingResolveService.resolve(mockActivatedRouteSnapshot).subscribe(result => {
-        resultProduct = result;
+        resultLog = result;
       });
 
-      // THEN
       expect(service.find).toBeCalledWith(123);
-      expect(resultProduct).toEqual(undefined);
+      expect(resultLog).toEqual(undefined);
       expect(mockRouter.navigate).toHaveBeenCalledWith(['404']);
     });
   });

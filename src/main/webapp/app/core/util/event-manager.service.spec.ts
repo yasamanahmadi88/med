@@ -1,4 +1,5 @@
-import { inject, TestBed } from '@angular/core/testing';
+import { vi } from 'vitest';
+import { TestBed } from '@angular/core/testing';
 
 import { EventManager, EventWithContent } from './event-manager.service';
 
@@ -23,14 +24,16 @@ describe('Event Manager tests', () => {
       recievedEvent = null;
     });
 
-    it('should not fail when nosubscriber and broadcasting', inject([EventManager], (eventManager: EventManager) => {
+    it('should not fail when nosubscriber and broadcasting', () => {
+      const eventManager = TestBed.inject(EventManager);
+
       expect(eventManager.observer).toBeUndefined();
       eventManager.broadcast({ name: 'modifier', content: 'modified something' });
-    }));
+    });
 
-    it('should create an observable and callback when broadcasted EventWithContent', inject(
-      [EventManager],
-      (eventManager: EventManager) => {
+    it('should create an observable and callback when broadcasted EventWithContent', () => {
+      const eventManager = TestBed.inject(EventManager);
+
         // GIVEN
         eventManager.subscribe('modifier', (event: EventWithContent<unknown> | string) => (recievedEvent = event));
 
@@ -43,10 +46,11 @@ describe('Event Manager tests', () => {
         eventManager.broadcast({ name: 'modifier', content: 'modified something' });
         // THEN
         expect(recievedEvent).toEqual({ name: 'modifier', content: 'modified something' });
-      }
-    ));
+    });
 
-    it('should create an observable and callback when broadcasted string', inject([EventManager], (eventManager: EventManager) => {
+    it('should create an observable and callback when broadcasted string', () => {
+      const eventManager = TestBed.inject(EventManager);
+
       // GIVEN
       eventManager.subscribe('modifier', (event: EventWithContent<unknown> | string) => (recievedEvent = event));
 
@@ -59,9 +63,11 @@ describe('Event Manager tests', () => {
       eventManager.broadcast('modifier');
       // THEN
       expect(recievedEvent).toEqual('modifier');
-    }));
+    });
 
-    it('should subscribe to multiple events', inject([EventManager], (eventManager: EventManager) => {
+    it('should subscribe to multiple events', () => {
+      const eventManager = TestBed.inject(EventManager);
+
       // GIVEN
       eventManager.subscribe(['modifier', 'modifier2'], (event: EventWithContent<unknown> | string) => (recievedEvent = event));
 
@@ -79,6 +85,6 @@ describe('Event Manager tests', () => {
       eventManager.broadcast('modifier2');
       // THEN
       expect(recievedEvent).toEqual('modifier2');
-    }));
+    });
   });
 });

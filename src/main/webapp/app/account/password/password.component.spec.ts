@@ -1,6 +1,7 @@
-jest.mock('app/core/auth/account.service');
+import { vi } from 'vitest';
+vi.mock('app/core/auth/account.service');
 
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { FormBuilder } from '@angular/forms';
@@ -16,15 +17,22 @@ describe('PasswordComponent', () => {
   let fixture: ComponentFixture<PasswordComponent>;
   let service: PasswordService;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       declarations: [PasswordComponent],
-      providers: [FormBuilder, AccountService],
+      providers: [FormBuilder, { provide: AccountService, useValue: {
+          identity: vi.fn(() => of(null)),
+          getAuthenticationState: vi.fn(() => of(null)),
+          isAuthenticated: vi.fn(() => false),
+          authenticate: vi.fn(),
+          hasAnyAuthority: vi.fn(() => false),
+          save: vi.fn(() => of({})),
+        } }],
     })
       .overrideTemplate(PasswordComponent, '')
       .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(PasswordComponent);
@@ -53,7 +61,7 @@ describe('PasswordComponent', () => {
       newPassword: 'myPassword',
     };
 
-    jest.spyOn(service, 'save').mockReturnValue(of(new HttpResponse({ body: true })));
+    vi.spyOn(service, 'save').mockReturnValue(of(new HttpResponse({ body: true })));
 
     comp.passwordForm.patchValue({
       currentPassword: passwordValues.currentPassword,
@@ -70,7 +78,7 @@ describe('PasswordComponent', () => {
 
   it('should set success to true upon success', () => {
     // GIVEN
-    jest.spyOn(service, 'save').mockReturnValue(of(new HttpResponse({ body: true })));
+    vi.spyOn(service, 'save').mockReturnValue(of(new HttpResponse({ body: true })));
     comp.passwordForm.patchValue({
       newPassword: 'myPassword',
       confirmPassword: 'myPassword',
@@ -87,7 +95,7 @@ describe('PasswordComponent', () => {
 
   it('should notify of error if change password fails', () => {
     // GIVEN
-    jest.spyOn(service, 'save').mockReturnValue(throwError('ERROR'));
+    vi.spyOn(service, 'save').mockReturnValue(throwError(() => 'ERROR'));
     comp.passwordForm.patchValue({
       newPassword: 'myPassword',
       confirmPassword: 'myPassword',

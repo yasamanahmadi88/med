@@ -1,4 +1,5 @@
-import { inject, TestBed } from '@angular/core/testing';
+import { vi } from 'vitest';
+import { TestBed } from '@angular/core/testing';
 import { TranslateModule, TranslateService, MissingTranslationHandler } from '@ngx-translate/core';
 import { missingTranslationHandler } from '../../config/translation.config';
 
@@ -21,11 +22,13 @@ describe('Alert service test', () => {
       });
       const translateService = TestBed.inject(TranslateService);
       translateService.setDefaultLang('en');
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       extAlerts = [];
     });
 
-    it('should produce a proper alert object and fetch it', inject([AlertService], (service: AlertService) => {
+    it('should produce a proper alert object and fetch it', () => {
+      const service = TestBed.inject(AlertService);
+
       expect(
         service.addAlert({
           type: 'success',
@@ -56,11 +59,11 @@ describe('Alert service test', () => {
           position: 'top left',
         } as Alert)
       );
-    }));
+    });
 
-    it('should produce a proper alert object and add it to external alert objects array', inject(
-      [AlertService],
-      (service: AlertService) => {
+    it('should produce a proper alert object and add it to external alert objects array', () => {
+      const service = TestBed.inject(AlertService);
+
         expect(
           service.addAlert(
             {
@@ -94,10 +97,11 @@ describe('Alert service test', () => {
             position: 'top left',
           } as Alert)
         );
-      }
-    ));
+    });
 
-    it('should produce an alert object with correct id', inject([AlertService], (service: AlertService) => {
+    it('should produce an alert object with correct id', () => {
+      const service = TestBed.inject(AlertService);
+
       service.addAlert({ type: 'info', message: 'Hello Jhipster info' });
       expect(service.addAlert({ type: 'success', message: 'Hello Jhipster success' })).toEqual(
         expect.objectContaining({
@@ -115,9 +119,11 @@ describe('Alert service test', () => {
           id: 1,
         } as Alert)
       );
-    }));
+    });
 
-    it('should close an alert correctly', inject([AlertService], (service: AlertService) => {
+    it('should close an alert correctly', () => {
+      const service = TestBed.inject(AlertService);
+
       const alert0 = service.addAlert({ type: 'info', message: 'Hello Jhipster info' });
       const alert1 = service.addAlert({ type: 'info', message: 'Hello Jhipster info 2' });
       const alert2 = service.addAlert({ type: 'success', message: 'Hello Jhipster success' });
@@ -150,28 +156,34 @@ describe('Alert service test', () => {
       );
       alert0.close?.(service.get());
       expect(service.get().length).toBe(0);
-    }));
+    });
 
-    it('should close an alert on timeout correctly', inject([AlertService], (service: AlertService) => {
+    it('should close an alert on timeout correctly', () => {
+      const service = TestBed.inject(AlertService);
+
       service.addAlert({ type: 'info', message: 'Hello Jhipster info' });
 
       expect(service.get().length).toBe(1);
 
-      jest.advanceTimersByTime(6000);
+      vi.advanceTimersByTime(6000);
 
       expect(service.get().length).toBe(0);
-    }));
+    });
 
-    it('should clear alerts', inject([AlertService], (service: AlertService) => {
+    it('should clear alerts', () => {
+      const service = TestBed.inject(AlertService);
+
       service.addAlert({ type: 'info', message: 'Hello Jhipster info' });
       service.addAlert({ type: 'danger', message: 'Hello Jhipster info' });
       service.addAlert({ type: 'success', message: 'Hello Jhipster info' });
       expect(service.get().length).toBe(3);
       service.clear();
       expect(service.get().length).toBe(0);
-    }));
+    });
 
-    it('should produce a scoped alert', inject([AlertService], (service: AlertService) => {
+    it('should produce a scoped alert', () => {
+      const service = TestBed.inject(AlertService);
+
       expect(
         service.addAlert(
           {
@@ -195,18 +207,22 @@ describe('Alert service test', () => {
       );
 
       expect(service.get().length).toBe(0);
-    }));
+    });
 
-    it('should produce a success message', inject([AlertService], (service: AlertService) => {
+    it('should produce a success message', () => {
+      const service = TestBed.inject(AlertService);
+
       expect(service.addAlert({ type: 'success', message: 'Hello Jhipster' })).toEqual(
         expect.objectContaining({
           type: 'success',
           message: 'Hello Jhipster',
         } as Alert)
       );
-    }));
+    });
 
-    it('should produce a success message with custom position', inject([AlertService], (service: AlertService) => {
+    it('should produce a success message with custom position', () => {
+      const service = TestBed.inject(AlertService);
+
       expect(service.addAlert({ type: 'success', message: 'Hello Jhipster', position: 'bottom left' })).toEqual(
         expect.objectContaining({
           type: 'success',
@@ -214,38 +230,45 @@ describe('Alert service test', () => {
           position: 'bottom left',
         } as Alert)
       );
-    }));
+    });
 
-    it('should produce a error message', inject([AlertService], (service: AlertService) => {
+    it('should produce a error message', () => {
+      const service = TestBed.inject(AlertService);
+
       expect(service.addAlert({ type: 'danger', message: 'Hello Jhipster' })).toEqual(
         expect.objectContaining({
           type: 'danger',
           message: 'Hello Jhipster',
         } as Alert)
       );
-    }));
+    });
 
-    it('should produce a warning message', inject([AlertService], (service: AlertService) => {
+    it('should produce a warning message', () => {
+      const service = TestBed.inject(AlertService);
+
       expect(service.addAlert({ type: 'warning', message: 'Hello Jhipster' })).toEqual(
         expect.objectContaining({
           type: 'warning',
           message: 'Hello Jhipster',
         } as Alert)
       );
-    }));
+    });
 
-    it('should produce a info message', inject([AlertService], (service: AlertService) => {
+    it('should produce a info message', () => {
+      const service = TestBed.inject(AlertService);
+
       expect(service.addAlert({ type: 'info', message: 'Hello Jhipster' })).toEqual(
         expect.objectContaining({
           type: 'info',
           message: 'Hello Jhipster',
         } as Alert)
       );
-    }));
+    });
 
-    it('should produce a info message with translated message if key exists', inject(
-      [AlertService, TranslateService],
-      (service: AlertService, translateService: TranslateService) => {
+    it('should produce a info message with translated message if key exists', () => {
+      const service = TestBed.inject(AlertService);
+      const translateService = TestBed.inject(TranslateService);
+
         translateService.setTranslation('en', {
           'hello.jhipster': 'Translated message',
         });
@@ -255,31 +278,28 @@ describe('Alert service test', () => {
             message: 'Translated message',
           } as Alert)
         );
-      }
-    ));
+    });
 
-    it('should produce a info message with provided message if key does not exists', inject(
-      [AlertService, TranslateService],
-      (service: AlertService) => {
+    it('should produce a info message with provided message if key does not exists', () => {
+      const service = TestBed.inject(AlertService);
+
         expect(service.addAlert({ type: 'info', message: 'Hello Jhipster', translationKey: 'hello.jhipster' })).toEqual(
           expect.objectContaining({
             type: 'info',
             message: 'Hello Jhipster',
           } as Alert)
         );
-      }
-    ));
+    });
 
-    it('should produce a info message with provided key if transltion key does not exist in translations and message is not provided', inject(
-      [AlertService, TranslateService],
-      (service: AlertService) => {
+    it('should produce a info message with provided key if transltion key does not exist in translations and message is not provided', () => {
+      const service = TestBed.inject(AlertService);
+
         expect(service.addAlert({ type: 'info', translationKey: 'hello.jhipster' })).toEqual(
           expect.objectContaining({
             type: 'info',
             message: 'hello.jhipster',
           } as Alert)
         );
-      }
-    ));
+    });
   });
 });

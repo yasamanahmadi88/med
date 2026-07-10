@@ -33,7 +33,7 @@ describe('Version routing resolve service', () => {
       ],
     });
     mockRouter = TestBed.inject(Router);
-    jest.spyOn(mockRouter, 'navigate').mockImplementation(() => Promise.resolve(true));
+    vi.spyOn(mockRouter, 'navigate').mockImplementation(() => Promise.resolve(true));
     mockActivatedRouteSnapshot = TestBed.inject(ActivatedRoute).snapshot;
     routingResolveService = TestBed.inject(VersionRoutingResolveService);
     service = TestBed.inject(VersionService);
@@ -73,7 +73,7 @@ describe('Version routing resolve service', () => {
 
     it('should route to 404 page if data not found in server', () => {
       // GIVEN
-      jest.spyOn(service, 'find').mockReturnValue(of(new HttpResponse<IVersion>({ body: null })));
+      vi.spyOn(service, 'find').mockReturnValue(of(new HttpResponse<IVersion>({ body: null })));
       mockActivatedRouteSnapshot.params = { id: 123 };
 
       // WHEN

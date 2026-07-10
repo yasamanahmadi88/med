@@ -1,20 +1,20 @@
+import { vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpHeaders, HttpResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute , convertToParamMap} from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
 
 import { ResourceService } from '../service/resource.service';
 
 import { ResourceComponent } from './resource.component';
-import SpyInstance = jest.SpyInstance;
 
 describe('Resource Management Component', () => {
   let comp: ResourceComponent;
   let fixture: ComponentFixture<ResourceComponent>;
   let service: ResourceService;
-  let routerNavigateSpy: SpyInstance<Promise<boolean>>;
+  let routerNavigateSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -28,7 +28,7 @@ describe('Resource Management Component', () => {
               defaultSort: 'id,asc',
             }),
             queryParamMap: of(
-              jest.requireActual('@angular/router').convertToParamMap({
+              convertToParamMap({
                 page: '1',
                 size: '1',
                 sort: 'id,desc',
@@ -46,10 +46,10 @@ describe('Resource Management Component', () => {
     fixture = TestBed.createComponent(ResourceComponent);
     comp = fixture.componentInstance;
     service = TestBed.inject(ResourceService);
-    routerNavigateSpy = jest.spyOn(comp.router, 'navigate');
+    routerNavigateSpy = vi.spyOn(comp.router, 'navigate');
 
     const headers = new HttpHeaders();
-    jest.spyOn(service, 'query').mockReturnValue(
+    vi.spyOn(service, 'query').mockReturnValue(
       of(
         new HttpResponse({
           body: [{ id: 123 }],
@@ -71,7 +71,7 @@ describe('Resource Management Component', () => {
   describe('trackId', () => {
     it('Should forward to resourceService', () => {
       const entity = { id: 123 };
-      jest.spyOn(service, 'getResourceIdentifier');
+      vi.spyOn(service, 'getResourceIdentifier');
       const id = comp.trackId(0, entity);
       expect(service.getResourceIdentifier).toHaveBeenCalledWith(entity);
       expect(id).toBe(entity.id);

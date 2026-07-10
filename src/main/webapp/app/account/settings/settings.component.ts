@@ -52,14 +52,19 @@ export class SettingsComponent implements OnInit {
     this.success = false;
 
     const account = this.settingsForm.getRawValue();
-    this.accountService.save(account).subscribe(() => {
-      this.success = true;
+    this.accountService.save(account).subscribe({
+      next: () => {
+        this.success = true;
 
-      this.accountService.authenticate(account);
+        this.accountService.authenticate(account);
 
-      if (account.langKey !== this.translateService.currentLang) {
-        this.translateService.use(account.langKey);
-      }
+        if (account.langKey !== this.translateService.currentLang) {
+          this.translateService.use(account.langKey);
+        }
+      },
+      error: () => {
+        this.success = false;
+      },
     });
   }
 }

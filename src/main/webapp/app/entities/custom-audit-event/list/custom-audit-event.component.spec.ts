@@ -1,20 +1,20 @@
+import { vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpHeaders, HttpResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute , convertToParamMap} from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
 
 import { CustomAuditEventService } from '../service/custom-audit-event.service';
 
 import { CustomAuditEventComponent } from './custom-audit-event.component';
-import SpyInstance = jest.SpyInstance;
 
 describe('CustomAuditEvent Management Component', () => {
   let comp: CustomAuditEventComponent;
   let fixture: ComponentFixture<CustomAuditEventComponent>;
   let service: CustomAuditEventService;
-  let routerNavigateSpy: SpyInstance<Promise<boolean>>;
+  let routerNavigateSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -31,7 +31,7 @@ describe('CustomAuditEvent Management Component', () => {
               defaultSort: 'id,asc',
             }),
             queryParamMap: of(
-              jest.requireActual('@angular/router').convertToParamMap({
+              convertToParamMap({
                 page: '1',
                 size: '1',
                 sort: 'id,desc',
@@ -49,10 +49,10 @@ describe('CustomAuditEvent Management Component', () => {
     fixture = TestBed.createComponent(CustomAuditEventComponent);
     comp = fixture.componentInstance;
     service = TestBed.inject(CustomAuditEventService);
-    routerNavigateSpy = jest.spyOn(comp.router, 'navigate');
+    routerNavigateSpy = vi.spyOn(comp.router, 'navigate');
 
     const headers = new HttpHeaders();
-    jest.spyOn(service, 'query').mockReturnValue(
+    vi.spyOn(service, 'query').mockReturnValue(
       of(
         new HttpResponse({
           body: [{ id: 123 }],
@@ -74,7 +74,7 @@ describe('CustomAuditEvent Management Component', () => {
   describe('trackId', () => {
     it('Should forward to customAuditEventService', () => {
       const entity = { id: 123 };
-      jest.spyOn(service, 'getCustomAuditEventIdentifier');
+      vi.spyOn(service, 'getCustomAuditEventIdentifier');
       const id = comp.trackId(0, entity);
       expect(service.getCustomAuditEventIdentifier).toHaveBeenCalledWith(entity);
       expect(id).toBe(entity.id);

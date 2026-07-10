@@ -1,20 +1,20 @@
+import { vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpHeaders, HttpResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute , convertToParamMap} from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
 
 import { ConfigService } from '../service/config.service';
 
 import { ConfigComponent } from './config.component';
-import SpyInstance = jest.SpyInstance;
 
 describe('Config Management Component', () => {
   let comp: ConfigComponent;
   let fixture: ComponentFixture<ConfigComponent>;
   let service: ConfigService;
-  let routerNavigateSpy: SpyInstance<Promise<boolean>>;
+  let routerNavigateSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -28,7 +28,7 @@ describe('Config Management Component', () => {
               defaultSort: 'id,asc',
             }),
             queryParamMap: of(
-              jest.requireActual('@angular/router').convertToParamMap({
+              convertToParamMap({
                 page: '1',
                 size: '1',
                 sort: 'id,desc',
@@ -46,10 +46,10 @@ describe('Config Management Component', () => {
     fixture = TestBed.createComponent(ConfigComponent);
     comp = fixture.componentInstance;
     service = TestBed.inject(ConfigService);
-    routerNavigateSpy = jest.spyOn(comp.router, 'navigate');
+    routerNavigateSpy = vi.spyOn(comp.router, 'navigate');
 
     const headers = new HttpHeaders();
-    jest.spyOn(service, 'query').mockReturnValue(
+    vi.spyOn(service, 'query').mockReturnValue(
       of(
         new HttpResponse({
           body: [{ id: 123 }],
@@ -71,7 +71,7 @@ describe('Config Management Component', () => {
   describe('trackId', () => {
     it('Should forward to configService', () => {
       const entity = { id: 123 };
-      jest.spyOn(service, 'getConfigIdentifier');
+      vi.spyOn(service, 'getConfigIdentifier');
       const id = comp.trackId(0, entity);
       expect(service.getConfigIdentifier).toHaveBeenCalledWith(entity);
       expect(id).toBe(entity.id);

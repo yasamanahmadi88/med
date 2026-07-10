@@ -1,4 +1,5 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { vi } from 'vitest';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
@@ -9,15 +10,15 @@ describe('HealthModalComponent', () => {
   let fixture: ComponentFixture<HealthModalComponent>;
   let mockActiveModal: NgbActiveModal;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       declarations: [HealthModalComponent],
-      providers: [NgbActiveModal],
+      providers: [{ provide: NgbActiveModal, useValue: { close: vi.fn(), dismiss: vi.fn() } }],
     })
       .overrideTemplate(HealthModalComponent, '')
       .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(HealthModalComponent);
@@ -100,7 +101,7 @@ describe('HealthModalComponent', () => {
   describe('dismiss', () => {
     it('should call dismiss when dismiss modal is called', () => {
       // GIVEN
-      const spy = jest.spyOn(mockActiveModal, 'dismiss');
+      const spy = vi.spyOn(mockActiveModal, 'dismiss');
 
       // WHEN
       comp.dismiss();

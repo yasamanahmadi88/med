@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { vi } from 'vitest';
 import { ThemeService } from './theme.service';
 
 function stubMatchMedia(matches: boolean): void {

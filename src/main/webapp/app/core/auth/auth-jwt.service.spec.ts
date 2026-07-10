@@ -1,8 +1,15 @@
 import { vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import {
+  provideNgxWebstorage,
+  withNgxWebstorageConfig,
+  withLocalStorage,
+  withSessionStorage,
+  LocalStorageService,
+  SessionStorageService,
+} from 'ngx-webstorage';
 import { AuthServerProvider } from 'app/core/auth/auth-jwt.service';
-import { LocalStorageService, NgxWebstorageModule, SessionStorageService } from 'ngx-webstorage';
 
 describe('Auth JWT', () => {
   let service: AuthServerProvider;
@@ -12,7 +19,14 @@ describe('Auth JWT', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, NgxWebstorageModule.forRoot()],
+      imports: [HttpClientTestingModule],
+      providers: [
+        provideNgxWebstorage(
+          withNgxWebstorageConfig({ prefix: 'jhi', separator: '-' }),
+          withLocalStorage(),
+          withSessionStorage()
+        ),
+      ],
     });
 
     httpMock = TestBed.inject(HttpTestingController);
@@ -42,48 +56,48 @@ describe('Auth JWT', () => {
 
   describe('Login', () => {
     it('should clear session storage and save in local storage when rememberMe is true', () => {
-      // GIVEN
-      localStorageService.store = vi.fn();
+      localStorageService.clear = vi.fn();
       sessionStorageService.clear = vi.fn();
+      localStorageService.store = vi.fn();
+      sessionStorageService.store = vi.fn();
 
-      // WHEN
-      service.login({ username: 'John', password: '123', rememberMe: true }).subscribe();
-      httpMock.expectOne('api/authenticate').flush({ id_token: '1' });
+      service
+        .login({ username: 'user', password: 'pass', rememberMe: true, captchaId: 'cid', captchaToken: 'ctok' })
+        .subscribe();
+      httpMock.expectOne('api/authenticate').flush({ id_token: 'token' });
 
-      // THEN
-      httpMock.verify();
-      expect(localStorageService.store).toHaveBeenCalledWith('authenticationToken', '1');
-      expect(sessionStorageService.clear).toHaveBeenCalled();
+      expect(localStorageService.store).toHaveBeenCalledWith('authenticationToken', 'token');
+      expect(sessionStorageService.clear).toHaveBeenCalledWith('authenticationToken');
     });
 
     it('should clear local storage and save in session storage when rememberMe is false', () => {
-      // GIVEN
-      sessionStorageService.store = vi.fn();
       localStorageService.clear = vi.fn();
+      sessionStorageService.clear = vi.fn();
+      localStorageService.store = vi.fn();
+      sessionStorageService.store = vi.fn();
 
-      // WHEN
-      service.login({ username: 'John', password: '123', rememberMe: false }).subscribe();
-      httpMock.expectOne('api/authenticate').flush({ id_token: '1' });
+      service
+        .login({ username: 'user', password: 'pass', rememberMe: false, captchaId: 'cid', captchaToken: 'ctok' })
+        .subscribe();
+      httpMock.expectOne('api/authenticate').flush({ id_token: 'token' });
 
-      // THEN
-      httpMock.verify();
-      expect(sessionStorageService.store).toHaveBeenCalledWith('authenticationToken', '1');
-      expect(localStorageService.clear).toHaveBeenCalled();
+      expect(sessionStorageService.store).toHaveBeenCalledWith('authenticationToken', 'token');
+      expect(localStorageService.clear).toHaveBeenCalledWith('authenticationToken');
     });
   });
 
   describe('Logout', () => {
     it('should clear storage', () => {
-      // GIVEN
-      sessionStorageService.clear = vi.fn();
       localStorageService.clear = vi.fn();
-
-      // WHEN
+      sessionStorageService.clear = vi.fn();
       service.logout().subscribe();
-
-      // THEN
-      expect(localStorageService.clear).toHaveBeenCalled();
-      expect(sessionStorageService.clear).toHaveBeenCalled();
+      httpMock.expectOne('api/auth/logout').flush({});
+      expect(localStorageService.clear).toHaveBeenCalledWith('authenticationToken');
+      expect(sessionStorageService.clear).toHaveBeenCalledWith('authenticationToken');
     });
+  });
+
+  afterEach(() => {
+    httpMock.verify();
   });
 });

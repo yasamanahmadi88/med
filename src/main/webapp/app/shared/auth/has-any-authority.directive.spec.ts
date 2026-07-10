@@ -1,10 +1,10 @@
 import { vi } from 'vitest';
-jest.mock('app/core/auth/account.service');
+vi.mock('app/core/auth/account.service');
 
 import { Component, ElementRef, ViewChild } from '@angular/core';
-import { TestBed, waitForAsync } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { Subject } from 'rxjs';
+import { Subject, of } from 'rxjs';
 
 import { AccountService } from 'app/core/auth/account.service';
 import { Account } from 'app/core/auth/account.model';
@@ -12,6 +12,7 @@ import { Account } from 'app/core/auth/account.model';
 import { HasAnyAuthorityDirective } from './has-any-authority.directive';
 
 @Component({
+  standalone: false,
   template: ` <div *jhiHasAnyAuthority="'ROLE_ADMIN'" #content></div> `,
 })
 class TestHasAnyAuthorityDirectiveComponent {
@@ -23,12 +24,19 @@ describe('HasAnyAuthorityDirective tests', () => {
   let mockAccountService: AccountService;
   const authenticationState = new Subject<Account | null>();
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [HasAnyAuthorityDirective, TestHasAnyAuthorityDirectiveComponent],
-      providers: [AccountService],
+      providers: [{ provide: AccountService, useValue: {
+          identity: vi.fn(() => of(null)),
+          getAuthenticationState: vi.fn(() => of(null)),
+          isAuthenticated: vi.fn(() => false),
+          authenticate: vi.fn(),
+          hasAnyAuthority: vi.fn(() => false),
+          save: vi.fn(() => of({})),
+        } }],
     });
-  }));
+  });
 
   beforeEach(() => {
     mockAccountService = TestBed.inject(AccountService);
@@ -113,14 +121,14 @@ describe('HasAnyAuthorityDirective tests', () => {
       expect(mockAccountService.hasAnyAuthority).toHaveBeenCalled();
 
       // WHEN
-      jest.clearAllMocks();
+      vi.clearAllMocks();
       authenticationState.next(null);
 
       // THEN
       expect(mockAccountService.hasAnyAuthority).toHaveBeenCalled();
 
       // WHEN
-      jest.clearAllMocks();
+      vi.clearAllMocks();
       hasAnyAuthorityDirective.ngOnDestroy();
       authenticationState.next(null);
 

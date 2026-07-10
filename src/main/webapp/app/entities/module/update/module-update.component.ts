@@ -30,12 +30,12 @@ export class ModuleUpdateComponent implements OnInit {
   ngOnInit(): void {
     this.activatedRoute.data.subscribe(({ module }) => {
       this.module = module;
-      if(module.status === 0){
-        module.status = true;
-      }else if(module.status === 1){
-        module.status = false;
-      }
       if (module) {
+        if (module.status === 0) {
+          module.status = true;
+        } else if (module.status === 1) {
+          module.status = false;
+        }
         this.updateForm(module);
       }
     });

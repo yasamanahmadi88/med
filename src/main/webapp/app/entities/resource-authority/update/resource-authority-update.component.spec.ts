@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
@@ -59,10 +60,10 @@ describe('ResourceAuthority Management Update Component', () => {
       resourceAuthority.medAuthority = medAuthority;
 
       const medAuthorityCollection: IMedAuthority[] = [{ id: 32359 }];
-      jest.spyOn(medAuthorityService, 'query').mockReturnValue(of(new HttpResponse({ body: medAuthorityCollection })));
+      vi.spyOn(medAuthorityService, 'query').mockReturnValue(of(new HttpResponse({ body: medAuthorityCollection })));
       const additionalMedAuthorities = [medAuthority];
       const expectedCollection: IMedAuthority[] = [...additionalMedAuthorities, ...medAuthorityCollection];
-      jest.spyOn(medAuthorityService, 'addMedAuthorityToCollectionIfMissing').mockReturnValue(expectedCollection);
+      vi.spyOn(medAuthorityService, 'addMedAuthorityToCollectionIfMissing').mockReturnValue(expectedCollection);
 
       activatedRoute.data = of({ resourceAuthority });
       comp.ngOnInit();
@@ -70,7 +71,7 @@ describe('ResourceAuthority Management Update Component', () => {
       expect(medAuthorityService.query).toHaveBeenCalled();
       expect(medAuthorityService.addMedAuthorityToCollectionIfMissing).toHaveBeenCalledWith(
         medAuthorityCollection,
-        ...additionalMedAuthorities.map(expect.objectContaining)
+        ...additionalMedAuthorities.map(item => expect.objectContaining(item))
       );
       expect(comp.medAuthoritiesSharedCollection).toEqual(expectedCollection);
     });
@@ -81,10 +82,10 @@ describe('ResourceAuthority Management Update Component', () => {
       resourceAuthority.resource = resource;
 
       const resourceCollection: IResource[] = [{ id: 99786 }];
-      jest.spyOn(resourceService, 'query').mockReturnValue(of(new HttpResponse({ body: resourceCollection })));
+      vi.spyOn(resourceService, 'query').mockReturnValue(of(new HttpResponse({ body: resourceCollection })));
       const additionalResources = [resource];
       const expectedCollection: IResource[] = [...additionalResources, ...resourceCollection];
-      jest.spyOn(resourceService, 'addResourceToCollectionIfMissing').mockReturnValue(expectedCollection);
+      vi.spyOn(resourceService, 'addResourceToCollectionIfMissing').mockReturnValue(expectedCollection);
 
       activatedRoute.data = of({ resourceAuthority });
       comp.ngOnInit();
@@ -92,7 +93,7 @@ describe('ResourceAuthority Management Update Component', () => {
       expect(resourceService.query).toHaveBeenCalled();
       expect(resourceService.addResourceToCollectionIfMissing).toHaveBeenCalledWith(
         resourceCollection,
-        ...additionalResources.map(expect.objectContaining)
+        ...additionalResources.map(item => expect.objectContaining(item))
       );
       expect(comp.resourcesSharedCollection).toEqual(expectedCollection);
     });
@@ -118,9 +119,9 @@ describe('ResourceAuthority Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<IResourceAuthority>>();
       const resourceAuthority = { id: 123 };
-      jest.spyOn(resourceAuthorityFormService, 'getResourceAuthority').mockReturnValue(resourceAuthority);
-      jest.spyOn(resourceAuthorityService, 'update').mockReturnValue(saveSubject);
-      jest.spyOn(comp, 'previousState');
+      vi.spyOn(resourceAuthorityFormService, 'getResourceAuthority').mockReturnValue(resourceAuthority);
+      vi.spyOn(resourceAuthorityService, 'update').mockReturnValue(saveSubject);
+      vi.spyOn(comp, 'previousState');
       activatedRoute.data = of({ resourceAuthority });
       comp.ngOnInit();
 
@@ -141,9 +142,9 @@ describe('ResourceAuthority Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<IResourceAuthority>>();
       const resourceAuthority = { id: 123 };
-      jest.spyOn(resourceAuthorityFormService, 'getResourceAuthority').mockReturnValue({ id: null });
-      jest.spyOn(resourceAuthorityService, 'create').mockReturnValue(saveSubject);
-      jest.spyOn(comp, 'previousState');
+      vi.spyOn(resourceAuthorityFormService, 'getResourceAuthority').mockReturnValue({ id: null });
+      vi.spyOn(resourceAuthorityService, 'create').mockReturnValue(saveSubject);
+      vi.spyOn(comp, 'previousState');
       activatedRoute.data = of({ resourceAuthority: null });
       comp.ngOnInit();
 
@@ -164,8 +165,8 @@ describe('ResourceAuthority Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<IResourceAuthority>>();
       const resourceAuthority = { id: 123 };
-      jest.spyOn(resourceAuthorityService, 'update').mockReturnValue(saveSubject);
-      jest.spyOn(comp, 'previousState');
+      vi.spyOn(resourceAuthorityService, 'update').mockReturnValue(saveSubject);
+      vi.spyOn(comp, 'previousState');
       activatedRoute.data = of({ resourceAuthority });
       comp.ngOnInit();
 
@@ -186,7 +187,7 @@ describe('ResourceAuthority Management Update Component', () => {
       it('Should forward to medAuthorityService', () => {
         const entity = { id: 123 };
         const entity2 = { id: 456 };
-        jest.spyOn(medAuthorityService, 'compareMedAuthority');
+        vi.spyOn(medAuthorityService, 'compareMedAuthority');
         comp.compareMedAuthority(entity, entity2);
         expect(medAuthorityService.compareMedAuthority).toHaveBeenCalledWith(entity, entity2);
       });
@@ -196,7 +197,7 @@ describe('ResourceAuthority Management Update Component', () => {
       it('Should forward to resourceService', () => {
         const entity = { id: 123 };
         const entity2 = { id: 456 };
-        jest.spyOn(resourceService, 'compareResource');
+        vi.spyOn(resourceService, 'compareResource');
         comp.compareResource(entity, entity2);
         expect(resourceService.compareResource).toHaveBeenCalledWith(entity, entity2);
       });

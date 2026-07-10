@@ -21,15 +21,15 @@ describe('Data Utils Service Test', () => {
 
   describe('openFile', () => {
     it('should open the file in the new window', () => {
-      const newWindow = { ...window };
-      newWindow.document.write = vi.fn();
-      window.open = vi.fn(() => newWindow);
-      window.URL.createObjectURL = vi.fn();
+      const newWindow = { onload: null as (() => void) | null };
+      window.open = vi.fn(() => newWindow as unknown as Window);
+      window.URL.createObjectURL = vi.fn(() => 'blob:mock');
       // 'JHipster' in base64 is 'SkhpcHN0ZXI='
       const data = 'SkhpcHN0ZXI=';
       const contentType = 'text/plain';
       service.openFile(data, contentType);
       expect(window.open).toHaveBeenCalledTimes(1);
+      expect(window.URL.createObjectURL).toHaveBeenCalled();
     });
   });
 });

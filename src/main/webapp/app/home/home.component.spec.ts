@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
-jest.mock('app/core/auth/account.service');
+vi.mock('app/core/auth/account.service');
 
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of, Subject } from 'rxjs';
@@ -27,15 +27,22 @@ describe('Home Component', () => {
     imageUrl: null,
   };
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [RouterTestingModule.withRoutes([])],
       declarations: [HomeComponent],
-      providers: [AccountService],
+      providers: [{ provide: AccountService, useValue: {
+          identity: vi.fn(() => of(null)),
+          getAuthenticationState: vi.fn(() => of(null)),
+          isAuthenticated: vi.fn(() => false),
+          authenticate: vi.fn(),
+          hasAnyAuthority: vi.fn(() => false),
+          save: vi.fn(() => of({})),
+        } }],
     })
       .overrideTemplate(HomeComponent, '')
       .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(HomeComponent);
@@ -43,9 +50,10 @@ describe('Home Component', () => {
     mockAccountService = TestBed.inject(AccountService);
     mockAccountService.identity = vi.fn(() => of(null));
     mockAccountService.getAuthenticationState = vi.fn(() => of(null));
+    mockAccountService.isAuthenticated = vi.fn(() => true);
 
     mockRouter = TestBed.inject(Router);
-    jest.spyOn(mockRouter, 'navigate').mockImplementation(() => Promise.resolve(true));
+    vi.spyOn(mockRouter, 'navigate').mockImplementation(() => Promise.resolve(true));
   });
 
   describe('ngOnInit', () => {

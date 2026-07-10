@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
@@ -60,9 +61,9 @@ describe('Version Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<IVersion>>();
       const version = { id: 123 };
-      jest.spyOn(versionFormService, 'getVersion').mockReturnValue(version);
-      jest.spyOn(versionService, 'update').mockReturnValue(saveSubject);
-      jest.spyOn(comp, 'previousState');
+      vi.spyOn(versionFormService, 'getVersion').mockReturnValue(version);
+      vi.spyOn(versionService, 'update').mockReturnValue(saveSubject);
+      vi.spyOn(comp, 'previousState');
       activatedRoute.data = of({ version });
       comp.ngOnInit();
 
@@ -83,9 +84,9 @@ describe('Version Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<IVersion>>();
       const version = { id: 123 };
-      jest.spyOn(versionFormService, 'getVersion').mockReturnValue({ id: null });
-      jest.spyOn(versionService, 'create').mockReturnValue(saveSubject);
-      jest.spyOn(comp, 'previousState');
+      vi.spyOn(versionFormService, 'getVersion').mockReturnValue({ id: null });
+      vi.spyOn(versionService, 'create').mockReturnValue(saveSubject);
+      vi.spyOn(comp, 'previousState');
       activatedRoute.data = of({ version: null });
       comp.ngOnInit();
 
@@ -106,8 +107,8 @@ describe('Version Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<IVersion>>();
       const version = { id: 123 };
-      jest.spyOn(versionService, 'update').mockReturnValue(saveSubject);
-      jest.spyOn(comp, 'previousState');
+      vi.spyOn(versionService, 'update').mockReturnValue(saveSubject);
+      vi.spyOn(comp, 'previousState');
       activatedRoute.data = of({ version });
       comp.ngOnInit();
 

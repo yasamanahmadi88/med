@@ -29,6 +29,8 @@ import { ErrorComponent } from './layouts/error/error.component';
 import {ToastrModule} from "ngx-toastr";
 import { SimpleTextDialogComponent } from './layouts/simple-text-dialog/simple-text-dialog.component';
 import { BpmnComponent } from './entities/bpmn/bpmn.component';
+import { ThemeToggleComponent } from './core/theme/theme-toggle.component';
+import { ThemeService } from './core/theme/theme.service';
 
 @NgModule({
   imports: [
@@ -60,11 +62,26 @@ import { BpmnComponent } from './entities/bpmn/bpmn.component';
     FindLanguageFromKeyPipe,
     httpInterceptorProviders,
   ],
-  declarations: [MainComponent, NavbarComponent, ErrorComponent, PageRibbonComponent, ActiveMenuDirective, FooterComponent, SimpleTextDialogComponent, BpmnComponent],
+  declarations: [
+    MainComponent,
+    NavbarComponent,
+    ErrorComponent,
+    PageRibbonComponent,
+    ActiveMenuDirective,
+    FooterComponent,
+    SimpleTextDialogComponent,
+    BpmnComponent,
+    ThemeToggleComponent,
+  ],
   bootstrap: [MainComponent],
 })
 export class AppModule {
-  constructor(applicationConfigService: ApplicationConfigService, iconLibrary: FaIconLibrary, dpConfig: NgbDatepickerConfig) {
+  constructor(
+    applicationConfigService: ApplicationConfigService,
+    iconLibrary: FaIconLibrary,
+    dpConfig: NgbDatepickerConfig,
+    _themeService: ThemeService
+  ) {
     applicationConfigService.setEndpointPrefix(SERVER_API_URL);
     registerLocaleData(locale);
     iconLibrary.addIcons(...fontAwesomeIcons);

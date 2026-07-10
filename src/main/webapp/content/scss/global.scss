@@ -4,6 +4,76 @@
 @import 'ngx-toastr/toastr';
 
 /* ==============================================================
+Theme tokens (light / dark via data-theme)
+===============================================================*/
+:root,
+[data-theme='light'] {
+  --mp-body-bg: #f5f7fa;
+  --mp-body-color: #212529;
+  --mp-surface: #ffffff;
+  --mp-surface-muted: #f8f9fa;
+  --mp-border: #dee2e6;
+  --mp-link: #533f03;
+  --mp-navbar-bg: #343a40;
+  --mp-navbar-color: #ffffff;
+  --mp-table-stripe: rgba(0, 0, 0, 0.03);
+  --mp-modal-bg: #ffffff;
+  --mp-focus-ring: #0d6efd;
+  --mp-input-bg: #ffffff;
+  --mp-input-color: #212529;
+}
+
+[data-theme='dark'] {
+  --mp-body-bg: #12161c;
+  --mp-body-color: #e8eaed;
+  --mp-surface: #1c222b;
+  --mp-surface-muted: #242b36;
+  --mp-border: #3a4452;
+  --mp-link: #f0d78c;
+  --mp-navbar-bg: #0f1318;
+  --mp-navbar-color: #e8eaed;
+  --mp-table-stripe: rgba(255, 255, 255, 0.04);
+  --mp-modal-bg: #1c222b;
+  --mp-focus-ring: #6ea8fe;
+  --mp-input-bg: #161b22;
+  --mp-input-color: #e8eaed;
+}
+
+body {
+  background-color: var(--mp-body-bg);
+  color: var(--mp-body-color);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.card,
+.jh-card,
+.modal-content,
+.dropdown-menu,
+.list-group-item,
+.table {
+  background-color: var(--mp-surface);
+  color: var(--mp-body-color);
+  border-color: var(--mp-border);
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+  background-color: var(--mp-table-stripe);
+  color: var(--mp-body-color);
+}
+
+.form-control,
+.form-select {
+  background-color: var(--mp-input-bg);
+  color: var(--mp-input-color);
+  border-color: var(--mp-border);
+}
+
+.navbar.bg-dark {
+  background-color: var(--mp-navbar-bg) !important;
+  color: var(--mp-navbar-color);
+}
+
+/* ==============================================================
 Bootstrap tweaks
 ===============================================================*/
 
@@ -17,12 +87,12 @@ h4 {
 
 /* Increase contrast of links to get 100% on Lighthouse Accessability Audit. Override this color if you want to change the link color, or use a Bootswatch theme */
 a {
-  color: #533f03;
+  color: var(--mp-link);
   font-weight: bold;
 }
 
 a:hover {
-  color: #533f03;
+  color: var(--mp-link);
 }
 
 /* override hover color for dropdown-item forced by bootstrap to all a:not([href]):not([tabindex]) elements in _reboot.scss */

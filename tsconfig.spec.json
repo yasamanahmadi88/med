@@ -1,9 +1,13 @@
 {
   "extends": "./tsconfig.json",
   "include": ["src/main/webapp/**/*.ts"],
+  "exclude": [
+    "src/main/webapp/content/bpmnjs/**",
+    "src/main/webapp/**/*.d.ts"
+  ],
   "compilerOptions": {
     "composite": true,
     "outDir": "target/out-tsc/spec",
-    "types": ["node"]
+    "types": ["node", "vitest/globals"]
   }
 }

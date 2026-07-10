@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 jest.mock('app/core/auth/account.service');
 
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
@@ -40,8 +41,8 @@ describe('Home Component', () => {
     fixture = TestBed.createComponent(HomeComponent);
     comp = fixture.componentInstance;
     mockAccountService = TestBed.inject(AccountService);
-    mockAccountService.identity = jest.fn(() => of(null));
-    mockAccountService.getAuthenticationState = jest.fn(() => of(null));
+    mockAccountService.identity = vi.fn(() => of(null));
+    mockAccountService.getAuthenticationState = vi.fn(() => of(null));
 
     mockRouter = TestBed.inject(Router);
     jest.spyOn(mockRouter, 'navigate').mockImplementation(() => Promise.resolve(true));
@@ -51,7 +52,7 @@ describe('Home Component', () => {
     it('Should synchronize account variable with current account', () => {
       // GIVEN
       const authenticationState = new Subject<Account | null>();
-      mockAccountService.getAuthenticationState = jest.fn(() => authenticationState.asObservable());
+      mockAccountService.getAuthenticationState = vi.fn(() => authenticationState.asObservable());
 
       // WHEN
       comp.ngOnInit();
@@ -87,7 +88,7 @@ describe('Home Component', () => {
     it('Should destroy authentication state subscription on component destroy', () => {
       // GIVEN
       const authenticationState = new Subject<Account | null>();
-      mockAccountService.getAuthenticationState = jest.fn(() => authenticationState.asObservable());
+      mockAccountService.getAuthenticationState = vi.fn(() => authenticationState.asObservable());
 
       // WHEN
       comp.ngOnInit();

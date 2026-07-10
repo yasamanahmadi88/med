@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 jest.mock('app/core/auth/account.service');
 jest.mock('app/login/login.service');
 
@@ -30,7 +31,7 @@ describe('LoginComponent', () => {
         {
           provide: LoginService,
           useValue: {
-            login: jest.fn(() => of({})),
+            login: vi.fn(() => of({})),
           },
         },
       ],
@@ -51,8 +52,8 @@ describe('LoginComponent', () => {
   describe('ngOnInit', () => {
     it('Should call accountService.identity on Init', () => {
       // GIVEN
-      mockAccountService.identity = jest.fn(() => of(null));
-      mockAccountService.getAuthenticationState = jest.fn(() => of(null));
+      mockAccountService.identity = vi.fn(() => of(null));
+      mockAccountService.getAuthenticationState = vi.fn(() => of(null));
 
       // WHEN
       comp.ngOnInit();
@@ -63,7 +64,7 @@ describe('LoginComponent', () => {
 
     it('Should call accountService.isAuthenticated on Init', () => {
       // GIVEN
-      mockAccountService.identity = jest.fn(() => of(null));
+      mockAccountService.identity = vi.fn(() => of(null));
 
       // WHEN
       comp.ngOnInit();
@@ -74,8 +75,8 @@ describe('LoginComponent', () => {
 
     it('should navigate to home page on Init if authenticated=true', () => {
       // GIVEN
-      mockAccountService.identity = jest.fn(() => of(null));
-      mockAccountService.getAuthenticationState = jest.fn(() => of(null));
+      mockAccountService.identity = vi.fn(() => of(null));
+      mockAccountService.getAuthenticationState = vi.fn(() => of(null));
       mockAccountService.isAuthenticated = () => true;
 
       // WHEN
@@ -90,7 +91,7 @@ describe('LoginComponent', () => {
     it('shoult set focus to username input after the view has been initialized', () => {
       // GIVEN
       const node = {
-        focus: jest.fn(),
+        focus: vi.fn(),
       };
       comp.username = new ElementRef(node);
 
@@ -140,7 +141,7 @@ describe('LoginComponent', () => {
 
     it('should stay on login form and show error message on login error', () => {
       // GIVEN
-      mockLoginService.login = jest.fn(() => throwError({}));
+      mockLoginService.login = vi.fn(() => throwError({}));
 
       // WHEN
       comp.login();

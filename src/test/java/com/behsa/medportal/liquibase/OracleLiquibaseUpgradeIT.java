@@ -67,7 +67,7 @@ class OracleLiquibaseUpgradeIT {
     @Test
     @Order(1)
     void legacyInitialSchemaUsesNamePrimaryKey() throws Exception {
-        runLiquibase("config/liquibase/changelog/00000000000000_initial_schema.xml", null);
+        runLiquibase("config/liquibase/legacy-only-master.xml", null);
 
         try (Connection connection = DriverManager.getConnection(jdbcUrl, username, password); Statement statement = connection.createStatement()) {
             try (

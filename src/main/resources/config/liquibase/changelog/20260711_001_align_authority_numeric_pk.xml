@@ -50,6 +50,21 @@
         <renameTable oldTableName="jhi_authority" newTableName="jhi_authority_legacy"/>
     </changeSet>
 
+    <!-- Oracle keeps PK constraint names across renameTable; free PK_JHI_AUTHORITY for the new table. -->
+    <changeSet id="20260711-04b-drop-legacy-authority-pk" author="upgrade" dbms="oracle">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="jhi_authority_legacy"/>
+        </preConditions>
+        <dropPrimaryKey tableName="jhi_authority_legacy"/>
+    </changeSet>
+
+    <changeSet id="20260711-04c-drop-legacy-user-authority-pk" author="upgrade" dbms="oracle">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="jhi_user_authority_legacy"/>
+        </preConditions>
+        <dropPrimaryKey tableName="jhi_user_authority_legacy"/>
+    </changeSet>
+
     <changeSet id="20260711-05-create-authority-numeric" author="upgrade">
         <preConditions onFail="MARK_RAN">
             <not>
@@ -58,10 +73,10 @@
         </preConditions>
         <createTable tableName="jhi_authority">
             <column name="id" type="bigint">
-                <constraints primaryKey="true" nullable="false"/>
+                <constraints primaryKey="true" primaryKeyName="pk_jhi_authority_id" nullable="false"/>
             </column>
             <column name="name" type="varchar(50)">
-                <constraints nullable="false" unique="true" uniqueConstraintName="ux_authority_name"/>
+                <constraints nullable="false" unique="true" uniqueConstraintName="ux_jhi_authority_name"/>
             </column>
             <column name="display_name" type="varchar(500)"/>
             <column name="parent_id" type="bigint"/>
@@ -71,7 +86,7 @@
             baseColumnNames="parent_id"
             referencedTableName="jhi_authority"
             referencedColumnNames="id"
-            constraintName="fk_authority_parent"/>
+            constraintName="fk_jhi_authority_parent"/>
     </changeSet>
 
     <changeSet id="20260711-06-create-user-authority-numeric" author="upgrade">
@@ -88,19 +103,19 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-        <addPrimaryKey tableName="jhi_user_authority" columnNames="user_id, authority_id"/>
+        <addPrimaryKey tableName="jhi_user_authority" columnNames="user_id, authority_id" constraintName="pk_jhi_user_authority_id"/>
         <addForeignKeyConstraint
             baseTableName="jhi_user_authority"
             baseColumnNames="user_id"
             referencedTableName="jhi_user"
             referencedColumnNames="id"
-            constraintName="fk_user_authority_user"/>
+            constraintName="fk_jhi_user_authority_user"/>
         <addForeignKeyConstraint
             baseTableName="jhi_user_authority"
             baseColumnNames="authority_id"
             referencedTableName="jhi_authority"
             referencedColumnNames="id"
-            constraintName="fk_user_authority_authority"/>
+            constraintName="fk_jhi_user_authority_auth"/>
     </changeSet>
 
     <changeSet id="20260711-07-migrate-authority-rows" author="upgrade">

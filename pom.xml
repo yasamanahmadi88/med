@@ -567,6 +567,11 @@
                             <include>**/*IT*</include>
                             <include>**/*IntTest*</include>
                         </includes>
+                        <excludes>
+                            <!-- Oracle Liquibase gates run only under -Poracle-liquibase-testcontainers -->
+                            <exclude>**/OracleLiquibase*IT.java</exclude>
+                            <exclude>**/OracleLiquibase*IT.class</exclude>
+                        </excludes>
                         <argLine>@{argLine} -Dspring.profiles.active=${profile.test}</argLine>
                     </configuration>
                     <executions>
@@ -1096,6 +1101,7 @@
                             <includes>
                                 <include>**/OracleLiquibase*IT.java</include>
                             </includes>
+                            <excludes combine.self="override"/>
                         </configuration>
                     </plugin>
                 </plugins>

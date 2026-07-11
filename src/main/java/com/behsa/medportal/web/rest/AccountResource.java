@@ -20,6 +20,7 @@ import com.behsa.medportal.web.rest.vm.ManagedUserVM;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -215,7 +216,12 @@ public class AccountResource {
      * @param mail the mail of the user.
      */
     @PostMapping(path = "/account/reset-password/init")
-    public void requestPasswordReset(@RequestBody String mail) {
+    public void requestPasswordReset(HttpServletRequest request) throws java.io.IOException {
+        String mail = new String(request.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8).trim();
+        // Strip optional JSON quotes when clients send a JSON string body.
+        if (mail.length() >= 2 && mail.startsWith("\"") && mail.endsWith("\"")) {
+            mail = mail.substring(1, mail.length() - 1);
+        }
         Optional<User> user = userService.requestPasswordReset(mail);
 
         if (user.isPresent()) {

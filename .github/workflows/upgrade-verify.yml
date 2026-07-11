@@ -5,6 +5,8 @@ on:
     branches:
       - upgrade/angular21-java25-springboot-4.0.6
   pull_request:
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -34,7 +36,7 @@ jobs:
       - run: npm run e2e:playwright
 
   maven-default:
-    name: Java 25 Maven verify
+    name: Java 25 Maven unit tests and modernizer
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -47,11 +49,26 @@ jobs:
 
       - run: ./mvnw -version
 
-      - name: Modernizer
+      - name: Modernizer (no skip)
         run: ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -DskipTests modernizer:modernizer
 
-      - name: Maven verify
-        run: ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm verify
+      - name: Unit tests (Surefire; ITs run in oracle-testcontainers job)
+        run: ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm test
+
+  maven-h2-it:
+    name: Java 25 H2 integration tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: maven
+
+      - name: Failsafe integration tests on H2
+        run: ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -Dsurefire.skip=true verify
 
   oracle-testcontainers:
     name: Oracle Testcontainers Maven verify

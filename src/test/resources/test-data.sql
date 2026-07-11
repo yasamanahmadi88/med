@@ -32,7 +32,7 @@ INSERT INTO JHI_USER (
     LAST_MODIFIED_DATE
 )
 VALUES (
-           1,
+           1000,
            'test',
            '$2a$10$VEjxoAgXbP7JxuMb1FGnIegqQNCBeQfGLO4xk1rCmEtF4iGm3uUeK',
            'Test',
@@ -52,4 +52,4 @@ VALUES (
        );
 
 INSERT INTO JHI_USER_AUTHORITY (USER_ID, AUTHORITY_ID)
-VALUES (1, 1);
+VALUES (1000, 1);

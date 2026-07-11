@@ -56,10 +56,11 @@ export class MainComponent implements OnInit {
     });
   }
 
-  private updateLayoutState(url: string): void {
+  private updateLayoutState(url: string | null | undefined): void {
+    const path = url ?? '';
     setTimeout(() => {
-      this.fullScreen = url.includes('/bpmn');
-      this.isLoginPage = url.includes('/login');
+      this.fullScreen = path.includes('/bpmn');
+      this.isLoginPage = path.includes('/login');
       this.changeDetector.detectChanges();
     });
   }

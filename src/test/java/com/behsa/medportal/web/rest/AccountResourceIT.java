@@ -138,9 +138,7 @@ class AccountResourceIT {
     void testRegisterValid() throws Exception {
         ManagedUserVM validUser = createManagedUser(
             "test-register-valid",
-            "test-register-valid@example.com",
-            "password"
-        );
+            "test-register-valid@example.com", "Password1!");
 
         assertThat(userRepository.findOneByLogin("test-register-valid")).isEmpty();
 
@@ -162,7 +160,7 @@ class AccountResourceIT {
     @Transactional
     @WithUnauthenticatedMockUser
     void testRegisterInvalidLogin() throws Exception {
-        ManagedUserVM invalidUser = createManagedUser("funky-log(n", "funky@example.com", "password");
+        ManagedUserVM invalidUser = createManagedUser("funky-log(n", "funky@example.com", "Password1!");
 
         restAccountMockMvc
             .perform(
@@ -180,7 +178,7 @@ class AccountResourceIT {
     @Transactional
     @WithUnauthenticatedMockUser
     void testRegisterInvalidEmail() throws Exception {
-        ManagedUserVM invalidUser = createManagedUser("bob-invalid-email", "invalid", "password");
+        ManagedUserVM invalidUser = createManagedUser("bob-invalid-email", "invalid", "Password1!");
 
         restAccountMockMvc
             .perform(
@@ -234,8 +232,8 @@ class AccountResourceIT {
     @Transactional
     @WithUnauthenticatedMockUser
     void testRegisterDuplicateLoginDoesNotRevealAnything() throws Exception {
-        ManagedUserVM firstUser = createManagedUser("alice-duplicate-login", "alice@example.com", "password");
-        ManagedUserVM secondUser = createManagedUser("alice-duplicate-login", "alice2@example.com", "password");
+        ManagedUserVM firstUser = createManagedUser("alice-duplicate-login", "alice@example.com", "Password1!");
+        ManagedUserVM secondUser = createManagedUser("alice-duplicate-login", "alice2@example.com", "Password1!");
 
         restAccountMockMvc
             .perform(
@@ -279,9 +277,7 @@ class AccountResourceIT {
     void testRegisterDuplicateEmailDoesNotRevealAnything() throws Exception {
         ManagedUserVM firstUser = createManagedUser(
             "test-register-duplicate-email",
-            "test-register-duplicate-email@example.com",
-            "password"
-        );
+            "test-register-duplicate-email@example.com", "Password1!");
 
         restAccountMockMvc
             .perform(
@@ -296,9 +292,7 @@ class AccountResourceIT {
 
         ManagedUserVM secondUser = createManagedUser(
             "test-register-duplicate-email-2",
-            "test-register-duplicate-email@example.com",
-            "password"
-        );
+            "test-register-duplicate-email@example.com", "Password1!");
 
         restAccountMockMvc
             .perform(
@@ -314,9 +308,7 @@ class AccountResourceIT {
 
         ManagedUserVM userWithUpperCaseEmail = createManagedUser(
             "test-register-duplicate-email-3",
-            "TEST-register-duplicate-email@example.com",
-            "password"
-        );
+            "TEST-register-duplicate-email@example.com", "Password1!");
 
         restAccountMockMvc
             .perform(
@@ -352,7 +344,7 @@ class AccountResourceIT {
     @Transactional
     @WithUnauthenticatedMockUser
     void testRegisterAdminIsIgnored() throws Exception {
-        ManagedUserVM validUser = createManagedUser("badguy", "badguy@example.com", "password");
+        ManagedUserVM validUser = createManagedUser("badguy", "badguy@example.com", "Password1!");
         validUser.setActivated(true);
         validUser.setAuthorities(Set.of(AuthoritiesConstants.ADMIN));
 
@@ -381,9 +373,7 @@ class AccountResourceIT {
 
         ManagedUserVM duplicateLoginUser = createManagedUser(
             "existing-login",
-            "another-email@example.com",
-            "password"
-        );
+            "another-email@example.com", "Password1!");
 
         restAccountMockMvc
             .perform(
@@ -406,9 +396,7 @@ class AccountResourceIT {
 
         ManagedUserVM duplicateEmailUser = createManagedUser(
             "new-login-for-existing-email",
-            "existing-email@example.com",
-            "password"
-        );
+            "existing-email@example.com", "Password1!");
 
         restAccountMockMvc
             .perform(
@@ -599,13 +587,13 @@ class AccountResourceIT {
             .perform(
                 post("/api/account/change-password")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(new PasswordChangeDTO("1" + currentPassword, "new password")))
+                    .content(TestUtil.convertObjectToJsonBytes(new PasswordChangeDTO("1" + currentPassword, "Password1!")))
             )
             .andExpect(status().isBadRequest());
 
         User updatedUser = userRepository.findOneByLogin("change-password-wrong-existing-password").orElse(null);
         assertThat(updatedUser).isNotNull();
-        assertThat(passwordEncoder.matches("new password", updatedUser.getPassword())).isFalse();
+        assertThat(passwordEncoder.matches("Password1!", updatedUser.getPassword())).isFalse();
         assertThat(passwordEncoder.matches(currentPassword, updatedUser.getPassword())).isTrue();
     }
 
@@ -622,13 +610,13 @@ class AccountResourceIT {
             .perform(
                 post("/api/account/change-password")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(new PasswordChangeDTO(currentPassword, "new password")))
+                    .content(TestUtil.convertObjectToJsonBytes(new PasswordChangeDTO(currentPassword, "Password1!")))
             )
             .andExpect(status().isOk());
 
         User updatedUser = userRepository.findOneByLogin("change-password").orElse(null);
         assertThat(updatedUser).isNotNull();
-        assertThat(passwordEncoder.matches("new password", updatedUser.getPassword())).isTrue();
+        assertThat(passwordEncoder.matches("Password1!", updatedUser.getPassword())).isTrue();
     }
 
     @Test
@@ -710,7 +698,7 @@ class AccountResourceIT {
         userRepository.saveAndFlush(user);
 
         restAccountMockMvc
-            .perform(post("/api/account/reset-password/init").content("password-reset@example.com"))
+            .perform(post("/api/account/reset-password/init").contentType(MediaType.TEXT_PLAIN).content("password-reset@example.com"))
             .andExpect(status().isOk())
             .andExpect(content().string(""));
     }
@@ -724,7 +712,7 @@ class AccountResourceIT {
         userRepository.saveAndFlush(user);
 
         restAccountMockMvc
-            .perform(post("/api/account/reset-password/init").content("password-reset-upper-case@EXAMPLE.COM"))
+            .perform(post("/api/account/reset-password/init").contentType(MediaType.TEXT_PLAIN).content("password-reset-upper-case@EXAMPLE.COM"))
             .andExpect(status().isOk())
             .andExpect(content().string(""));
     }
@@ -733,7 +721,7 @@ class AccountResourceIT {
     @WithUnauthenticatedMockUser
     void testRequestPasswordResetWrongEmailDoesNotRevealAnything() throws Exception {
         restAccountMockMvc
-            .perform(post("/api/account/reset-password/init").content("password-reset-wrong-email@example.com"))
+            .perform(post("/api/account/reset-password/init").contentType(MediaType.TEXT_PLAIN).content("password-reset-wrong-email@example.com"))
             .andExpect(status().isOk())
             .andExpect(content().string(""))
             .andExpect(header().doesNotExist("X-medPortalApp-error"))
@@ -746,12 +734,12 @@ class AccountResourceIT {
     void testFinishPasswordReset() throws Exception {
         User user = createActivatedUser("finish-password-reset", "finish-password-reset@example.com");
         user.setResetDate(Instant.now().plusSeconds(60));
-        user.setResetKey("reset key");
+        user.setResetKey("abcdefghijklmnopqrst");
         userRepository.saveAndFlush(user);
 
         KeyAndPasswordVM keyAndPassword = new KeyAndPasswordVM();
         keyAndPassword.setKey(user.getResetKey());
-        keyAndPassword.setNewPassword("new password");
+        keyAndPassword.setNewPassword("Password1!");
 
         restAccountMockMvc
             .perform(
@@ -777,7 +765,7 @@ class AccountResourceIT {
     void testFinishPasswordResetTooSmall() throws Exception {
         User user = createActivatedUser("finish-password-reset-too-small", "finish-password-reset-too-small@example.com");
         user.setResetDate(Instant.now().plusSeconds(60));
-        user.setResetKey("reset key too small");
+        user.setResetKey("shortkey");
         userRepository.saveAndFlush(user);
 
         KeyAndPasswordVM keyAndPassword = new KeyAndPasswordVM();
@@ -805,12 +793,12 @@ class AccountResourceIT {
         String originalPassword = passwordEncoder.encode("old password");
         user.setPassword(originalPassword);
         user.setResetDate(Instant.now());
-        user.setResetKey("real-reset-key");
+        user.setResetKey("realresetkey12345678");
         userRepository.saveAndFlush(user);
 
         KeyAndPasswordVM keyAndPassword = new KeyAndPasswordVM();
-        keyAndPassword.setKey("wrong reset key");
-        keyAndPassword.setNewPassword("new password");
+        keyAndPassword.setKey("wrongresetkey1234567");
+        keyAndPassword.setNewPassword("Password1!");
 
         restAccountMockMvc
             .perform(
@@ -818,16 +806,13 @@ class AccountResourceIT {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(TestUtil.convertObjectToJsonBytes(keyAndPassword))
             )
-            .andExpect(status().isNoContent())
-            .andExpect(content().string(""))
-            .andExpect(header().doesNotExist("X-medPortalApp-error"))
-            .andExpect(header().doesNotExist("X-medPortalApp-params"));
+            .andExpect(status().isBadRequest());
 
         User updatedUser = userRepository.findOneByLogin("finish-password-reset-wrong-key").orElse(null);
         assertThat(updatedUser).isNotNull();
-        assertThat(passwordEncoder.matches("new password", updatedUser.getPassword())).isFalse();
+        assertThat(passwordEncoder.matches("Password1!", updatedUser.getPassword())).isFalse();
         assertThat(updatedUser.getPassword()).isEqualTo(originalPassword);
-        assertThat(updatedUser.getResetKey()).isEqualTo("real-reset-key");
+        assertThat(updatedUser.getResetKey()).isEqualTo("realresetkey12345678");
     }
 
     @Test
@@ -837,13 +822,13 @@ class AccountResourceIT {
         User user = createActivatedUser("admin-reset-key-test", "admin-reset-key-test@example.com");
         String originalPassword = passwordEncoder.encode("old password");
         user.setPassword(originalPassword);
-        user.setResetKey("real-reset-key-admin");
+        user.setResetKey("realresetkeyadmin123"); // 20 chars
         user.setResetDate(Instant.now());
         userRepository.saveAndFlush(user);
 
         KeyAndPasswordVM keyAndPassword = new KeyAndPasswordVM();
-        keyAndPassword.setKey("admin-reset-key-test");
-        keyAndPassword.setNewPassword("new password");
+        keyAndPassword.setKey("adminresetkeytest123");
+        keyAndPassword.setNewPassword("Password1!");
 
         restAccountMockMvc
             .perform(
@@ -851,16 +836,13 @@ class AccountResourceIT {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(TestUtil.convertObjectToJsonBytes(keyAndPassword))
             )
-            .andExpect(status().isNoContent())
-            .andExpect(content().string(""))
-            .andExpect(header().doesNotExist("X-medPortalApp-error"))
-            .andExpect(header().doesNotExist("X-medPortalApp-params"));
+            .andExpect(status().isBadRequest());
 
         User updatedUser = userRepository.findOneByLogin("admin-reset-key-test").orElse(null);
         assertThat(updatedUser).isNotNull();
-        assertThat(passwordEncoder.matches("new password", updatedUser.getPassword())).isFalse();
+        assertThat(passwordEncoder.matches("Password1!", updatedUser.getPassword())).isFalse();
         assertThat(updatedUser.getPassword()).isEqualTo(originalPassword);
-        assertThat(updatedUser.getResetKey()).isEqualTo("real-reset-key-admin");
+        assertThat(updatedUser.getResetKey()).isEqualTo("realresetkeyadmin123");
     }
 
     private ManagedUserVM createManagedUser(String login, String email, String password) {

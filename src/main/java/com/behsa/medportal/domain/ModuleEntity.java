@@ -11,7 +11,7 @@ import jakarta.validation.constraints.*;
  * A ModuleEntity.
  */
 @Entity
-@Table(name = "MEDIATION.tbl_modules")
+@Table(schema = "MEDIATION", name = "TBL_MODULES")
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class ModuleEntity implements Serializable {
 
@@ -19,7 +19,7 @@ public class ModuleEntity implements Serializable {
 
     @Id
     @GeneratedValue(generator = "AUTR_SEQ_GENERATOR")
-    @SequenceGenerator(name = "AUTR_SEQ_GENERATOR", sequenceName = "MODULES_SEQ", allocationSize = 0)
+    @SequenceGenerator(name = "AUTR_SEQ_GENERATOR", sequenceName = "MODULES_SEQ", schema = "MEDIATION", allocationSize = 1)
     @Column(name = "module_key")
     private Long id;
 

@@ -1,12 +1,23 @@
-version: '3'
+# MedPortal local/CI compose (Java 25 runtime image)
+# Secrets via environment only — never commit real JWT secrets.
 services:
-  angular-app:
-    build: .
+  medportal:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: med-portal:upgrade
     ports:
-      - '9000:9000'
-    volumes:
-      - .:/app
-      - /app/node_modules
+      - "8080:8080"
     environment:
-      - CHOKIDAR_USEPOLLING=true
-    command: ['npm', 'run', 'start']
+      SPRING_PROFILES_ACTIVE: prod,api-docs
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:oracle:thin:@//oracle:1521/FREEPDB1}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-medportal}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-changeme}
+      JHIPSTER_SECURITY_AUTHENTICATION_JWT_BASE64_SECRET: ${JHIPSTER_SECURITY_AUTHENTICATION_JWT_BASE64_SECRET}
+      JAVA_OPTS: "-XX:MaxRAMPercentage=75.0"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf \"GET /management/health HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n\" >&3 && cat <&3 | head -n1 | grep -Eq \"200|401|403\"'"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 90s

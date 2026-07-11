@@ -27,6 +27,7 @@ describe('MainComponent', () => {
   class MockRouter {
     events = routerEventsSubject;
     routerState = routerState;
+    url = '/';
   }
 
   beforeEach(async () => {

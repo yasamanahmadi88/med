@@ -11,7 +11,7 @@ import jakarta.validation.constraints.*;
  * A ProductEntity.
  */
 @Entity
-@Table(name = "MEDIATION.tbl_products")
+@Table(schema = "MEDIATION", name = "TBL_PRODUCTS")
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class ProductEntity implements Serializable {
 
@@ -19,7 +19,7 @@ public class ProductEntity implements Serializable {
 
     @Id
     @GeneratedValue(generator = "AUTR_SEQ_GENERATOR")
-    @SequenceGenerator(name = "AUTR_SEQ_GENERATOR", sequenceName = "MEDIATION.PRODUCTS_SEQ", allocationSize = 0)
+    @SequenceGenerator(name = "AUTR_SEQ_GENERATOR", sequenceName = "PRODUCTS_SEQ", schema = "MEDIATION", allocationSize = 1)
     @Column(name = "product_key")
     private Long id;
 

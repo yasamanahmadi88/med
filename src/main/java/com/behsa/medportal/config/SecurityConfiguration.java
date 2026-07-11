@@ -6,45 +6,41 @@ import com.behsa.medportal.security.jwt.JWTConfigurer;
 import com.behsa.medportal.security.jwt.TokenProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport;
 import tech.jhipster.config.JHipsterProperties;
 
 import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
-@Import(SecurityProblemSupport.class)
 public class SecurityConfiguration {
 
     private final JHipsterProperties jHipsterProperties;
     private final TokenProvider tokenProvider;
     private final CorsFilter corsFilter;
-    private final SecurityProblemSupport problemSupport;
     private final SecurityCache securityCache;
 
     public SecurityConfiguration(
         TokenProvider tokenProvider,
         CorsFilter corsFilter,
         JHipsterProperties jHipsterProperties,
-        SecurityProblemSupport problemSupport,
         SecurityCache securityCache
     ) {
         this.tokenProvider = tokenProvider;
         this.corsFilter = corsFilter;
-        this.problemSupport = problemSupport;
         this.jHipsterProperties = jHipsterProperties;
         this.securityCache = securityCache;
     }
@@ -104,8 +100,10 @@ public class SecurityConfiguration {
             .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
             .exceptionHandling(exceptions ->
                 exceptions
-                    .authenticationEntryPoint(problemSupport)
-                    .accessDeniedHandler(problemSupport)
+                    .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                    .accessDeniedHandler((request, response, accessDeniedException) -> {
+                        response.sendError(HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN.getReasonPhrase());
+                    })
             )
             .headers(headers ->
                 headers
@@ -125,22 +123,18 @@ public class SecurityConfiguration {
             .authorizeHttpRequests(authz ->
                 authz
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                    .requestMatchers("/app/**/*.{js,html}").permitAll()
+                    // PathPatternParser forbids ** in the middle; permit the whole /app tree.
+                    .requestMatchers("/app/**").permitAll()
                     .requestMatchers("/i18n/**").permitAll()
                     .requestMatchers("/content/bpmnjs/**").authenticated()
                     .requestMatchers("/content/**").permitAll()
                     .requestMatchers("/test/**").permitAll()
                     .requestMatchers("/api/authenticate").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/captcha-endpoint").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/captcha.png").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/register").denyAll()
-                    .requestMatchers(
-                        HttpMethod.POST,
-                        "/api/account/reset-password/init",
-                        "/api/account/reset-password/finish"
-                    ).permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/activate").permitAll()
+                    .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers("/api/captcha-endpoint", "/api/captcha.png").permitAll()
+                    .requestMatchers("/api/register").permitAll()
+                    .requestMatchers("/api/activate").permitAll()
+                    .requestMatchers("/api/account/reset-password/**").permitAll()
                     .requestMatchers(
                         "/swagger-ui/**",
                         "/swagger-ui.html",

@@ -19,7 +19,17 @@ import org.springframework.core.env.Environment;
 import tech.jhipster.config.DefaultProfileUtil;
 import tech.jhipster.config.JHipsterConstants;
 
-@SpringBootApplication
+@SpringBootApplication(
+    excludeName = {
+        // problem-spring-web 0.29.x is not Spring Boot 4 / Security 7 compatible
+        // (NoSuchMethodError on HttpSecurity.exceptionHandling). Security entry points
+        // are configured manually in SecurityConfiguration.
+        "org.zalando.problem.spring.web.autoconfigure.security.ProblemSecurityAutoConfiguration",
+        // Jackson 2 Problem modules conflict with Boot 4 / Jackson 3 JsonMapper Instant handling.
+        "org.zalando.problem.spring.web.autoconfigure.ProblemJacksonAutoConfiguration",
+        "org.zalando.problem.spring.web.autoconfigure.ProblemJacksonWebMvcAutoConfiguration",
+    }
+)
 @EnableConfigurationProperties({ LiquibaseProperties.class, ApplicationProperties.class })
 public class MedPortalApp {
 

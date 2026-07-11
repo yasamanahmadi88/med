@@ -9,22 +9,14 @@
 | npm | 10.9.7 |
 | Maven Wrapper | 3.9.16 |
 | Docker | **Not installed** in agent environment |
-| Oracle DB | Not reachable (internal host in YAML) |
+| Oracle DB | Not reachable locally (use CI Testcontainers) |
 
-## Commands executed (selected)
+## Commands executed (this continuation)
 
 ```bash
-./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -DskipTests compile
-./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -Dtest=TokenProviderSecurityTest,WebConfigurerTest test
-./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -Dtest=TokenProviderSecurityTest,JWTFilterTest,ResourceSecuredAuthorizationManagerTest test
-./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -DskipTests test-compile
-./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -DskipTests package
-npx playwright test
-npm install --no-fund --no-audit
-npm run lint
-npx ng test --watch=false --coverage=false
-npm run webapp:build:prod
-npx vitest run src/main/webapp/app/core/theme/theme.service.spec.ts --config vitest-base.config.ts --environment jsdom
+npx ng test --watch=false --coverage=false --include='**/main.component.spec.ts'
+./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -Dtest=TokenProviderSecurityTest,JWTFilterTest,ResourceSecuredAuthorizationManagerTest,WebConfigurerTest test
+./mvnw -ntp -Dskip.installnodenpm -Dskip.npm test-compile failsafe:integration-test failsafe:verify -Dit.test=AccountResourceIT
 ```
 
 ## Results
@@ -32,18 +24,34 @@ npx vitest run src/main/webapp/app/core/theme/theme.service.spec.ts --config vit
 | Check | Result | Notes |
 |-------|--------|-------|
 | Backend compile (Java 25, Boot 4.0.6) | **PASS** | MapStruct unmapped warnings only |
-| Security unit tests (27) | **PASS** | `TokenProviderSecurityTest`, `JWTFilterTest`, `ResourceSecuredAuthorizationManagerTest` |
-| `WebConfigurerTest` (5) | **PASS** | Tomcat factory API updated |
-| Backend Modernizer | **PASS** without skip | `./mvnw modernizer:modernizer` and package without `-Dmodernizer.skip` |
-| Frontend `npm install` | **PASS** | Public npm registry (private Artifactory unavailable) |
-| Frontend lint | **PASS** | `npm run lint` |
-| Full Angular/Vitest suite | **PASS** | 629 passed, 0 failed, 0 skipped |
-| Frontend production build | **PASS** | `npm run webapp:build:prod`; Sass deprecation warnings may remain |
-| Playwright E2E | **PASS locally (14)** | `npx playwright test`; also wired in CI |
-| IntegrationTest / Failsafe (local H2) | **Blocked** | Context reaches Hibernate validation, then fails because local `schema-test.sql` lacks `MEDIATION.TBL_FLOWS` and related mapped tables |
-| Oracle Testcontainers | **Configured; CI required** | Local agent has no Docker; CI runner must execute `./mvnw -Poracle-testcontainers verify` |
-| Docker image build | **Configured; CI required** | Local agent has no Docker; workflow builds when `Dockerfile` exists |
-| Live login smoke | **Blocked** | No DB |
+| Security unit tests (32) | **PASS** | TokenProvider + JWTFilter + ResourceSecuredAuthorizationManager + WebConfigurer |
+| Backend Modernizer | **PASS** without skip | Previously fixed; still required in CI |
+| Frontend MainComponent Vitest | **PASS** | 10/10 after null-safe `router.url` |
+| Full Angular/Vitest suite (prior) | **PASS** | 629 passed, 0 failed, 0 skipped |
+| Frontend lint / prod build (prior) | **PASS** | |
+| Playwright E2E (prior) | **PASS locally (14)** | Wired in CI |
+| `AccountResourceIT` (H2) | **PASS** | 32/32 after schema mapping, seed data, security PathPattern, password policy, Jackson Instant |
+| Full Failsafe suite (all `*IT`) | **Not fully re-run this turn** | `AccountResourceIT` green; remaining ITs should run in CI `maven-h2-it` / Oracle jobs |
+| Oracle Testcontainers | **CI required** | No Docker in agent |
+| Docker image build | **CI required** | Dockerfile fixed (webpack `package.json` overwrite) |
+
+## Fixes in this continuation
+
+1. **MainComponent** — `updateLayoutState` null-safe; MockRouter provides `url`.
+2. **Dockerfile** — do not `COPY webpack` into WORKDIR (overwrote root `package.json` with `{"type":"commonjs"}`).
+3. **JPA `@Table`** — use `schema = "MEDIATION", name = "TBL_*"`; H2 URL `INIT=CREATE SCHEMA IF NOT EXISTS MEDIATION`; test DDL `create-drop` + `test-data.sql`.
+4. **Security** — PathPattern-safe `/app/**`; public register/reset/auth; exclude Zalando Problem security/Jackson autoconfig incompatible with Boot 4 / Security 7.
+5. **AccountResourceIT** — passwords meet policy; reset keys 20-char alnum; reset-init reads raw body; invalid reset key expects 400 per controller contract.
+6. **CI** — split unit+modernizer vs H2 failsafe vs Oracle Testcontainers vs Docker.
+
+## Residual merge risk (do not claim full success until CI green)
+
+| Gap | Why | Command / infra |
+|-----|-----|------------------|
+| Full `./mvnw clean verify` locally | Agent has no Oracle; full IT matrix not re-executed end-to-end this turn | CI `maven-h2-it` + `oracle-testcontainers` |
+| Docker build/compose smoke | No Docker daemon | CI `docker-image` job |
+| Oracle Liquibase on real XE/Free | Needs Testcontainers pull | `./mvnw -Poracle-testcontainers verify` on runner with Docker |
+| PR Ready for Review | Requires all workflow jobs green | Watch Actions on PR #2 |
 
 ## Version verification
 
@@ -53,9 +61,3 @@ npx vitest run src/main/webapp/app/core/theme/theme.service.spec.ts --config vit
 | `java.version` | 25 |
 | `@angular/core` | 21.2.14 |
 | `@angular/cli` | 21.2.12 |
-
-## Pre-existing vs upgrade-induced
-
-- Missing original `package.json` on `main` — reconstructed then replaced by Angular 21 lockfile
-- Modernizer violations largely in legacy IT code carried from prior upgrade attempt
-- bpmn-js vendor TS under `content/bpmnjs` excluded from unit-test tsconfig

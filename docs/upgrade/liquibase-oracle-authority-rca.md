@@ -28,8 +28,16 @@ Splitting into `jhi_authority` (name PK) + `jhi_med_authority` would require dup
 1. Keep historical `00000000000000_initial_schema.xml` unchanged.
 2. `20260711_001_align_authority_numeric_pk.xml` migrates name-PK → id-PK and `authority_name` → `authority_id`.
 3. `20260711_002_domain_schema.xml` creates resources, audit, MEDIATION `TBL_*`, sequences.
-4. `20260711_003_test_accounts.xml` (context `test`) seeds `liquibaseit` for verification only.
+4. `20260711_003_test_accounts.xml` (context `test`) seeds `liquibaseit` / password `user` for verification only.
 5. Profile `oracle-liquibase-testcontainers`: Liquibase ON, `ddl-auto=none`.
+
+## Oracle Instant / ORA-18716
+
+Hibernate 6 defaults Instant → TIMESTAMPTZ semantics; Liquibase columns are plain `TIMESTAMP`.
+Mitigations applied:
+
+- `hibernate.type.preferred_instant_jdbc_type: TIMESTAMP` (application.yml + oracleliquibase profile)
+- `oracle.jdbc.timezoneAsRegion=false` (Hikari data-source-properties + Failsafe/Compose JVM flags)
 
 ## Upgrade / rollback notes
 

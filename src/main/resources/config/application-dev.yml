@@ -38,6 +38,8 @@ spring:
     hikari:
       poolName: Hikari
       auto-commit: false
+      data-source-properties:
+        oracle.jdbc.timezoneAsRegion: false
   jpa:
     show-sql: true
   liquibase:

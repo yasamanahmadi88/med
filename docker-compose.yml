@@ -34,7 +34,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-MEDIATION}
       JHIPSTER_SECURITY_AUTHENTICATION_JWT_BASE64_SECRET: ${JHIPSTER_SECURITY_AUTHENTICATION_JWT_BASE64_SECRET}
       CAPTCHA_ENABLED: ${CAPTCHA_ENABLED:-true}
-      JAVA_OPTS: "-XX:MaxRAMPercentage=75.0"
+      JAVA_OPTS: "${JAVA_OPTS:--XX:MaxRAMPercentage=75.0 -Doracle.jdbc.timezoneAsRegion=false}"
+      SPRING_JPA_PROPERTIES_HIBERNATE_TYPE_PREFERRED_INSTANT_JDBC_TYPE: TIMESTAMP
     healthcheck:
       test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf \"GET /management/health HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n\" >&3 && cat <&3 | head -n1 | grep -Eq \"200|401|403\"'"]
       interval: 30s

@@ -50,15 +50,15 @@
         <renameTable oldTableName="jhi_authority" newTableName="jhi_authority_legacy"/>
     </changeSet>
 
-    <!-- Oracle keeps PK constraint names across renameTable; free PK_JHI_AUTHORITY for the new table. -->
-    <changeSet id="20260711-04b-drop-legacy-authority-pk" author="upgrade" dbms="oracle">
+    <!-- Free PK constraint names after rename (Oracle/H2 keep names across renameTable). -->
+    <changeSet id="20260711-04b-drop-legacy-authority-pk" author="upgrade">
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="jhi_authority_legacy"/>
         </preConditions>
         <dropPrimaryKey tableName="jhi_authority_legacy"/>
     </changeSet>
 
-    <changeSet id="20260711-04c-drop-legacy-user-authority-pk" author="upgrade" dbms="oracle">
+    <changeSet id="20260711-04c-drop-legacy-user-authority-pk" author="upgrade">
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="jhi_user_authority_legacy"/>
         </preConditions>

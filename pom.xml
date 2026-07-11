@@ -1102,6 +1102,7 @@
                                 <include>**/OracleLiquibase*IT.java</include>
                             </includes>
                             <excludes combine.self="override"/>
+                            <argLine>@{argLine} -Dspring.profiles.active=${profile.test} -Doracle.jdbc.timezoneAsRegion=false -Duser.timezone=UTC</argLine>
                         </configuration>
                     </plugin>
                 </plugins>

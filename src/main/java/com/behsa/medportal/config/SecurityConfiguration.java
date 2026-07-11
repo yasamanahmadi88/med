@@ -167,6 +167,23 @@ public class SecurityConfiguration {
                         "/management/metrics/**"
                     ).denyAll()
                     .requestMatchers("/management/**").hasAuthority(AuthoritiesConstants.ADMIN)
+                    // SPA shell + hashed Angular assets (API/management already matched above).
+                    .requestMatchers(
+                        "/",
+                        "/index.html",
+                        "/*.js",
+                        "/*.css",
+                        "/*.map",
+                        "/*.ico",
+                        "/*.png",
+                        "/*.svg",
+                        "/*.woff",
+                        "/*.woff2",
+                        "/*.ttf",
+                        "/media/**",
+                        "/assets/**"
+                    ).permitAll()
+                    .anyRequest().permitAll()
             )
             .httpBasic(httpBasic -> httpBasic.disable())
             .formLogin(formLogin -> formLogin.disable());

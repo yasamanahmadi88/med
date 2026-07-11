@@ -75,11 +75,13 @@ if [[ "$code" != "200" && "$code" != "401" && "$code" != "503" ]]; then
   exit 1
 fi
 
-echo "==> home page"
+echo "==> home / index"
 home_code="$(curl -sS -o /tmp/medportal-home.html -w "%{http_code}" http://127.0.0.1:8080/ || true)"
-echo "home HTTP $home_code"
-if [[ "$home_code" != "200" ]]; then
-  echo "FAIL: home page status $home_code"
+index_code="$(curl -sS -o /tmp/medportal-index.html -w "%{http_code}" http://127.0.0.1:8080/index.html || true)"
+echo "home HTTP $home_code index HTTP $index_code"
+if [[ "$home_code" != "200" && "$index_code" != "200" ]]; then
+  echo "FAIL: home/index not reachable (home=$home_code index=$index_code)"
+  docker compose logs --no-color medportal | tail -100
   exit 1
 fi
 

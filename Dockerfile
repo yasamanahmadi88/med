@@ -36,4 +36,5 @@ USER medportal
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
   CMD bash -c 'exec 3<>/dev/tcp/127.0.0.1:8080 && printf "GET /management/health HTTP/1.0\r\nHost: localhost\r\n\r\n" >&3 && cat <&3 | head -n1 | grep -q "200\|401\|403"'
-ENTRYPOINT ["java","-XX:MaxRAMPercentage=75.0","-jar","/app/app.jar"]
+# JAVA_OPTS is honored so Compose/CI can pass Oracle JDBC timezone flags.
+ENTRYPOINT ["bash","-c","exec java ${JAVA_OPTS:--XX:MaxRAMPercentage=75.0} -jar /app/app.jar"]

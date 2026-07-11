@@ -36,6 +36,17 @@ git revert --no-commit HEAD~N..HEAD   # choose range after baseline
 2. Keep DB migrations forward-only; do not edit old changelogs
 3. Rotate JWT secret if a leaked build config was deployed
 
+### E. Database backup before Liquibase authority alignment
+
+Before applying `20260711_001` / `002` / `003` on a non-empty Oracle:
+
+1. Take RMAN or `expdp` of the application schema (include `JHI_*`, `TBL_*`, sequences)
+2. Store the dump outside the app host with retention matching change window
+3. If upgrade fails mid-flight: restore dump, redeploy previous app version
+4. Do **not** hand-edit `DATABASECHANGELOG` or reverse-engineer dropped legacy tables
+
+See also `docs/upgrade/liquibase-oracle-authority-rca.md`.
+
 ## Compatibility notes
 
 - Spring Boot 4 / Jakarta binaries are not hot-swappable with Boot 2.7 artifacts

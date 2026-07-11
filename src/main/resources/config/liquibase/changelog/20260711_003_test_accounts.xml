@@ -6,8 +6,9 @@
                         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
     <!--
-      Test-only activated account for Oracle Liquibase verification.
-      Password is the well-known JHipster test hash for "admin" — never used in prod context.
+      Test-only activated account for Oracle Liquibase / Compose verification.
+      Password hash matches liquibase data/user.csv "user" row (plaintext: user).
+      Never included when spring.liquibase.contexts excludes "test".
     -->
     <changeSet id="20260711-60-test-liquibase-user" author="upgrade" context="test">
         <preConditions onFail="MARK_RAN">
@@ -23,7 +24,9 @@
             <column name="activated" valueBoolean="true"/>
             <column name="lang_key" value="en"/>
             <column name="created_by" value="system"/>
-            <column name="created_date" valueDate="${now}"/>
+            <!-- Prefer TIMESTAMP over Oracle DATE(sysdate) for Instant mapping. -->
+            <column name="created_date" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="last_modified_date" valueComputed="CURRENT_TIMESTAMP"/>
         </insert>
         <insert tableName="jhi_user_authority">
             <column name="user_id" valueNumeric="9001"/>

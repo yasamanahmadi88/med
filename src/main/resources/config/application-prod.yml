@@ -43,6 +43,8 @@ spring:
     hikari:
       poolName: Hikari
       auto-commit: false
+      data-source-properties:
+        oracle.jdbc.timezoneAsRegion: false
   jpa:
   # Replace by 'prod, faker' to add the faker context and have sample data loaded in production
   liquibase:

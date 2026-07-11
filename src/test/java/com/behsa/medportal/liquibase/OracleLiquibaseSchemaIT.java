@@ -95,6 +95,13 @@ class OracleLiquibaseSchemaIT {
         assertThat(authorityRepository.findByName("ROLE_ADMIN")).isPresent();
         assertThat(medAuthorityRepository.findByNameIn(List.of("ROLE_USER", "ROLE_ADMIN"))).hasSize(2);
         assertThat(resourceRepository.count()).isGreaterThan(0);
+
+        Integer liquibaseItUsers = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM jhi_user WHERE login = ?",
+            Integer.class,
+            "liquibaseit"
+        );
+        assertThat(liquibaseItUsers).isEqualTo(1);
         assertThat(userRepository.findOneByLogin("liquibaseit")).isPresent();
     }
 

@@ -19,6 +19,9 @@ spring:
       maximum-pool-size: 10
       minimum-idle: 2
       connection-timeout: 10000
+      data-source-properties:
+        # Avoid ORA-18716 when reading DATE/TIMESTAMP into Instant on ojdbc 21+.
+        oracle.jdbc.timezoneAsRegion: false
   jpa:
     database-platform: org.hibernate.dialect.OracleDialect
     open-in-view: false
@@ -36,6 +39,7 @@ spring:
       hibernate.cache.use_query_cache: false
       hibernate.generate_statistics: false
       hibernate.jdbc.time_zone: UTC
+      hibernate.type.preferred_instant_jdbc_type: TIMESTAMP
       hibernate.query.fail_on_pagination_over_collection_fetch: true
   liquibase:
     enabled: true

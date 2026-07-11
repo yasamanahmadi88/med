@@ -1,16 +1,18 @@
 # Oracle Testcontainers Verification
 
 ```bash
-./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -Poracle-testcontainers verify
+./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -Dskip.unit.tests=true -Poracle-testcontainers verify
 ```
 
 Activates Spring profiles `test,testcontainers`. `@EmbeddedSQL` ITs start `gvenzl/oracle-free:slim` when Docker is available.
 
 ## Schema strategy (IT only)
 
-Oracle ITs intentionally **disable Liquibase** and use Hibernate `create-drop` + `test-data.sql`, matching the H2 path.
+Oracle ITs intentionally **disable Liquibase** and use Hibernate `ddl-auto=update` + deferred `test-data.sql`.
 
-Reason: Liquibase’s legacy `jhi_authority` (name as PK) conflicts with `MedAuthorityEntity` (numeric `id`) when Hibernate `ddl-auto=update` tries to alter the Liquibase table (`ORA-01758` / `ORA-02267`).
+Reason: Liquibase’s legacy `jhi_authority` (name as PK) conflicts with `MedAuthorityEntity` (numeric `id`) when Hibernate alters the Liquibase table (`ORA-01758` / `ORA-02267`).
+
+The Oracle Free container is a **JVM-scoped singleton** so `@DirtiesContext(AFTER_CLASS)` does not restart Docker for every IT class.
 
 This still validates:
 

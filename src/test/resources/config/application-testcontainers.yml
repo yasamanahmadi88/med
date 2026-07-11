@@ -4,8 +4,12 @@
 # Activate through Maven with:
 #   ./mvnw verify -Poracle-testcontainers
 #
-# The Oracle container is started by TestContainersSpringContextCustomizerFactory
-# when Docker is available and an @EmbeddedSQL integration test runs.
+# Schema strategy (aligned with H2 testdev ITs):
+#   - Liquibase OFF for ITs: legacy jhi_authority (name PK) conflicts with
+#     MedAuthorityEntity (numeric id) when Hibernate ddl-auto=update runs after Liquibase.
+#   - Hibernate create-drop builds the entity schema for Oracle dialect validation.
+#   - test-data.sql seeds authorities/resources after schema create.
+# Production continues to use Liquibase; full Liquibase↔entity alignment is separate work.
 # ===================================================================
 
 spring:
@@ -20,16 +24,14 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.OracleDialect
     open-in-view: false
-    defer-datasource-initialization: false
+    defer-datasource-initialization: true
     hibernate:
-      # Liquibase creates JHipster core objects; Hibernate then creates MEDIATION
-      # entity tables/sequences (USER_SEQ, FLOWS_SEQ, TBL_*, …) not present in Liquibase.
-      ddl-auto: update
+      ddl-auto: create-drop
       naming:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
         implicit-strategy: org.springframework.boot.hibernate.SpringImplicitNamingStrategy
     properties:
-      hibernate.hbm2ddl.auto: update
+      hibernate.hbm2ddl.auto: create-drop
       hibernate.id.new_generator_mappings: true
       hibernate.connection.provider_disables_autocommit: true
       hibernate.cache.use_second_level_cache: false
@@ -38,12 +40,10 @@ spring:
       hibernate.jdbc.time_zone: UTC
       hibernate.query.fail_on_pagination_over_collection_fetch: true
   liquibase:
-    enabled: true
-    # Fresh schema each context so createSequence sequence_generator cannot hit ORA-00955
-    # from a prior Hibernate/Liquibase partial run on a reused container.
-    drop-first: true
+    enabled: false
     contexts: test
   sql:
     init:
-      # Seed via OracleTestDataLoader after Hibernate ddl (sql.init is too early here).
-      mode: never
+      mode: always
+      continue-on-error: false
+      data-locations: classpath:test-data.sql

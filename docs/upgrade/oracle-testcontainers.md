@@ -6,13 +6,19 @@
 
 Activates Spring profiles `test,testcontainers`. `@EmbeddedSQL` ITs start `gvenzl/oracle-free:slim` when Docker is available.
 
-## Schema strategy
+## Schema strategy (IT only)
 
-`application-testcontainers.yml`:
+Oracle ITs intentionally **disable Liquibase** and use Hibernate `create-drop` + `test-data.sql`, matching the H2 path.
 
-- `spring.liquibase.enabled=true`
-- `spring.liquibase.drop-first=true` — clean schema so `sequence_generator` create cannot hit ORA-00955
-- `spring.jpa.hibernate.ddl-auto=update` — after Liquibase, Hibernate creates MEDIATION entity tables/sequences (`USER_SEQ`, `FLOWS_SEQ`, `TBL_*`, …) that are not in Liquibase changelogs
+Reason: Liquibase’s legacy `jhi_authority` (name as PK) conflicts with `MedAuthorityEntity` (numeric `id`) when Hibernate `ddl-auto=update` tries to alter the Liquibase table (`ORA-01758` / `ORA-02267`).
+
+This still validates:
+
+- Oracle Free Testcontainers startup
+- Oracle dialect / JDBC
+- Entity mappings and Failsafe ITs on Oracle
+
+It does **not** yet prove full production Liquibase changelogs apply cleanly on Oracle. That requires a dedicated Liquibase↔entity schema alignment (out of scope for the stack upgrade gate).
 
 ## Local agent limitation
 

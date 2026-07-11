@@ -45,7 +45,7 @@
 7. **ConfigDTO** — `@JsonProperty("pValue")` for Jackson 3 bean naming.
 8. **DomainUserDetailsService** — restore `UserNotActivatedException`; IT emails use valid domains for commons-validator.
 9. **MailServiceIT** — explicit `ArgumentCaptor` (Boot 4 `@Captor` not processed with `@MockitoBean`).
-10. **HibernateTimeZoneIT** — normalize H2 ISO timestamp strings.
+10. **HibernateTimeZoneIT** — H2 keeps SqlRowSet/`Timestamp` reads; Oracle uses `TO_CHAR` (avoids TIMESTAMPTZ `Invalid SQL type`); OffsetTime expectation is UTC on Oracle and wall-clock on H2.
 11. **Dockerfile** — copy `sonar-project.properties` for `properties-maven-plugin`.
 12. **bucket4j / user-session** — shared defaults in test `application.yml`.
 

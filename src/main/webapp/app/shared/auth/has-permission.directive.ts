@@ -61,11 +61,11 @@ export class HasPermissionDirective implements OnDestroy {
     const resourceAuthorities = this.accountService.loggedInUser?.resourceAuthorities || [];
 
     const checks = this.permissions.map(([resourceName, verb]) =>
-      resourceAuthorities.some(
-        resourceAuthority =>
-          resourceAuthority.resource?.name?.toUpperCase() === resourceName.toUpperCase() &&
-          resourceAuthority.verb?.toUpperCase() === verb.toUpperCase(),
-      ),
+      resourceAuthorities.some(resourceAuthority => {
+        const name = resourceAuthority.resource?.name;
+        const authorityVerb = String(resourceAuthority.verb ?? '');
+        return !!name && name.toUpperCase() === resourceName.toUpperCase() && authorityVerb.toUpperCase() === verb.toUpperCase();
+      }),
     );
 
     return this.operator === 'OR' ? checks.some(Boolean) : checks.every(Boolean);

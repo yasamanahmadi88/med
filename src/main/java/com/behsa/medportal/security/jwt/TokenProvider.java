@@ -100,8 +100,9 @@ public class TokenProvider {
         }
 
         PortalUser myUser = (PortalUser) authentication.getPrincipal();
-        Map<String, Object> claims = new HashMap<String, Object>();
-        claims.put(PARTY_ID_KEY, myUser.getPartyId());
+        // Always emit PartyId (empty string when unset). Null party_id is common for seeded users;
+        // omitting the claim made validateToken() fail and broke every authenticated API/menu load.
+        String partyId = myUser.getPartyId() != null ? myUser.getPartyId() : "";
 
         return Jwts
             .builder()
@@ -111,7 +112,7 @@ public class TokenProvider {
             .and()
             .subject(authentication.getName())
             .claim(AUTHORITIES_KEY, authorities)
-            .claims(claims)
+            .claim(PARTY_ID_KEY, partyId)
             .signWith(key, Jwts.SIG.HS512)
             .expiration(validity)
             .compact();
@@ -161,6 +162,7 @@ public class TokenProvider {
 
         List<ResourceAuthorityDTO> resourceAuthorities = fetchResourceAuthorities(authorities);
 
+        String partyId = user.getPartyId() != null ? user.getPartyId() : "";
         PortalUser principal = new PortalUser(
             user.getLogin(),
             "",
@@ -169,9 +171,9 @@ public class TokenProvider {
             true,
             true,
             authorities,
-            user.getPartyId(),
+            partyId,
             resourceAuthorities,
-            null
+            user
         );
 
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
@@ -215,9 +217,10 @@ public class TokenProvider {
     }
 
     private boolean hasRequiredClaims(Claims claims) {
+        // PartyId may be blank for users without a party binding, but the claim must be present.
         return StringUtils.hasText(claims.getSubject()) &&
             StringUtils.hasText(claims.get(AUTHORITIES_KEY, String.class)) &&
-            StringUtils.hasText(claims.get(PARTY_ID_KEY, String.class));
+            claims.get(PARTY_ID_KEY) != null;
     }
 
     private List<ResourceAuthorityDTO> fetchResourceAuthorities(Collection<? extends GrantedAuthority> authorities) {

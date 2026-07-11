@@ -108,6 +108,8 @@ public class DomainUserDetailsService implements UserDetailsService {
 
         List<ResourceAuthorityDTO> resources = resourceAuthorityQueryService.findByAuthorities(ids, Pageable.unpaged()).getContent();
 
+        String partyId = user.getPartyId() != null ? user.getPartyId() : "";
+
         return new PortalUser(
             user.getLogin(),
             user.getPassword(),
@@ -116,7 +118,7 @@ public class DomainUserDetailsService implements UserDetailsService {
             true,
             true,
             grantedAuthorities,
-            user.getPartyId() + "",
+            partyId,
             resources,
             user
         );

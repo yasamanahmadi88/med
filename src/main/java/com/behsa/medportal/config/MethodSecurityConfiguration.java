@@ -18,6 +18,9 @@ import org.springframework.security.authorization.method.AuthorizationIntercepto
  * <p>Uses a custom {@link AuthorizationManager} so {@code @Secured("resourceName")} continues to
  * enforce resource+verb checks (legacy {@code CustomAccessDecisionManager} behavior) on Spring
  * Security 6+/7, while {@code @Secured("ROLE_*")} keeps standard role checks.
+ *
+ * <p>{@code securedEnabled} stays false to avoid registering Spring's default Secured advisor
+ * alongside this custom one (double evaluation). The custom advisor below is the sole @Secured enforcer.
  */
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = false)

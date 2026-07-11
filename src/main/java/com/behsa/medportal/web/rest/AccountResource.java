@@ -6,10 +6,12 @@ import com.behsa.medportal.security.AuthoritiesConstants;
 import com.behsa.medportal.security.SecurityUtils;
 import com.behsa.medportal.service.EmailAlreadyUsedException;
 import com.behsa.medportal.service.MailService;
+import com.behsa.medportal.service.ResourceAuthorityQueryService;
 import com.behsa.medportal.service.UserService;
 import com.behsa.medportal.service.UsernameAlreadyUsedException;
 import com.behsa.medportal.service.dto.AdminUserDTO;
 import com.behsa.medportal.service.dto.PasswordChangeDTO;
+import com.behsa.medportal.service.dto.ResourceAuthorityDTO;
 import com.behsa.medportal.service.dto.UserDTO;
 import com.behsa.medportal.vaidators.PasswordValidator;
 import com.behsa.medportal.vaidators.dto.PasswordValidationDto;
@@ -20,6 +22,7 @@ import com.behsa.medportal.web.rest.vm.ManagedUserVM;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -33,8 +36,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * REST controller for managing the current user's account.
@@ -60,16 +66,20 @@ public class AccountResource {
 
     private final PasswordValidator passwordValidator;
 
+    private final ResourceAuthorityQueryService resourceAuthorityQueryService;
+
     public AccountResource(
         UserRepository userRepository,
         UserService userService,
         MailService mailService,
-        PasswordValidator passwordValidator
+        PasswordValidator passwordValidator,
+        ResourceAuthorityQueryService resourceAuthorityQueryService
     ) {
         this.userRepository = userRepository;
         this.userService = userService;
         this.mailService = mailService;
         this.passwordValidator = passwordValidator;
+        this.resourceAuthorityQueryService = resourceAuthorityQueryService;
     }
 
     /**
@@ -138,10 +148,17 @@ public class AccountResource {
             .map(AdminUserDTO::new)
             .orElseThrow(() -> new AccountResourceException("User could not be found"));
 
-        SecurityUtils.getCurrentUser().ifPresent(portalUser -> {
-            userDto.setPartyId(portalUser.getPartyId());
-            userDto.setResourceAuthorities(portalUser.getResourceAuthorities());
-        });
+        SecurityUtils.getCurrentUser().ifPresentOrElse(
+            portalUser -> {
+                userDto.setPartyId(portalUser.getPartyId());
+                if (portalUser.getResourceAuthorities() != null && !portalUser.getResourceAuthorities().isEmpty()) {
+                    userDto.setResourceAuthorities(portalUser.getResourceAuthorities());
+                } else {
+                    userDto.setResourceAuthorities(loadResourceAuthorities(userDto.getAuthorities()));
+                }
+            },
+            () -> userDto.setResourceAuthorities(loadResourceAuthorities(userDto.getAuthorities()))
+        );
 
         return userDto;
     }
@@ -292,5 +309,14 @@ public class AccountResource {
         if (!validation.isValid()) {
             throw new InvalidPasswordException(validation.getValidationException());
         }
+    }
+
+    private List<ResourceAuthorityDTO> loadResourceAuthorities(Set<String> authorities) {
+        if (authorities == null || authorities.isEmpty()) {
+            return List.of();
+        }
+        return resourceAuthorityQueryService
+            .findByAuthorities(new ArrayList<>(authorities), Pageable.unpaged())
+            .getContent();
     }
 }

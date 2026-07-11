@@ -1,5 +1,6 @@
 package com.behsa.medportal.web.rest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -117,6 +118,57 @@ class SecurityAuthorizationIT {
         mockMvc
             .perform(post("/api/authenticate").contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(login)))
             .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @Transactional
+    void loginAndAccountWorkWhenPartyIdIsNull() throws Exception {
+        User user = new User();
+        user.setLogin("sec-null-party");
+        user.setEmail("sec-null-party@example.com");
+        user.setActivated(true);
+        user.setPartyId(null);
+        user.setPassword(passwordEncoder.encode("test"));
+        Authority roleUser = getAuthority(AuthoritiesConstants.USER);
+        user.setAuthorities(new HashSet<>(Set.of(roleUser)));
+        userRepository.saveAndFlush(user);
+
+        doNothing().when(captchaValidationService).validate(anyString(), anyString(), anyString());
+
+        LoginVM login = new LoginVM();
+        login.setUsername("sec-null-party");
+        login.setPassword("test");
+        login.setCaptchaId(TEST_CAPTCHA_ID);
+        login.setCaptchaToken(TEST_CAPTCHA_TOKEN);
+
+        String token = mockMvc
+            .perform(post("/api/authenticate").contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(login)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id_token").isString())
+            .andReturn()
+            .getResponse()
+            .getHeader(HttpHeaders.AUTHORIZATION);
+
+        assertThat(token).startsWith("Bearer ");
+
+        mockMvc
+            .perform(get("/api/account").header(HttpHeaders.AUTHORIZATION, token))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.login").value("sec-null-party"))
+            .andExpect(jsonPath("$.resourceAuthorities").isArray());
+    }
+
+    @Test
+    @Transactional
+    void userWithResourcePermissionReceivesAuthoritiesOnAccount() throws Exception {
+        String token = tokenFor("sec-module-user", AuthoritiesConstants.USER);
+        mockMvc
+            .perform(get("/api/account").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.login").value("sec-module-user"))
+            .andExpect(jsonPath("$.resourceAuthorities").isArray())
+            .andExpect(jsonPath("$.resourceAuthorities[0].resource.name").isString())
+            .andExpect(jsonPath("$.resourceAuthorities[0].verb").isString());
     }
 
     @Test

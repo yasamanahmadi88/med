@@ -69,6 +69,29 @@ class TokenProviderSecurityTest {
     }
 
     @Test
+    void nullPartyIdStillProducesValidToken() {
+        PortalUser principal = new PortalUser(
+            "noparty",
+            "",
+            true,
+            true,
+            true,
+            true,
+            List.of(new SimpleGrantedAuthority(AuthoritiesConstants.USER)),
+            null,
+            List.of(),
+            null
+        );
+        String token = tokenProvider.createToken(
+            new UsernamePasswordAuthenticationToken(principal, "", principal.getAuthorities()),
+            false
+        );
+        assertThat(tokenProvider.validateToken(token)).isTrue();
+        var claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+        assertThat(claims.get("PartyId")).isEqualTo("");
+    }
+
+    @Test
     void validTokenIsAccepted() {
         String token = tokenProvider.createToken(createAuthentication("admin"), false);
         assertThat(tokenProvider.validateToken(token)).isTrue();

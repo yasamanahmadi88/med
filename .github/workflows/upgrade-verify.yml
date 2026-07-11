@@ -89,7 +89,8 @@ jobs:
       - name: Maven verify with Oracle Free Testcontainers
         env:
           TESTCONTAINERS_ORACLE_IMAGE: gvenzl/oracle-free:slim
-        run: ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -Poracle-testcontainers verify
+        # Unit tests already run in maven-default; focus this job on Failsafe + Oracle.
+        run: ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -Dskip.unit.tests=true -Poracle-testcontainers verify
 
   docker-image:
     name: Docker image build

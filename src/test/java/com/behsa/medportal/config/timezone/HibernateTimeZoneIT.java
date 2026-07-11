@@ -149,18 +149,15 @@ class HibernateTimeZoneIT {
     }
 
     private String generateSqlRequest(String fieldName, long id) {
-        return "SELECT %s FROM jhi_date_time_wrapper where id=%d".formatted(fieldName, id);
+        // Oracle TIMESTAMPTZ / TIMESTAMP WITH TIME ZONE cannot be read via SqlRowSet.getString/getObject
+        // on all JDBC drivers ("Invalid SQL type for column"). Cast to varchar for portable asserts.
+        return "SELECT CAST(%s AS varchar(100)) FROM jhi_date_time_wrapper where id=%d".formatted(fieldName, id);
     }
 
     private void assertThatDateStoredValueIsEqualToInsertDateValueOnGMTTimeZone(SqlRowSet sqlRowSet, String expectedValue) {
         while (sqlRowSet.next()) {
-            // Oracle TIMESTAMPTZ / TIMESTAMP WITH LOCAL TIME ZONE cannot always be read via getString.
-            Object raw = sqlRowSet.getObject(1);
-            assertThat(raw).isNotNull();
-            String dbValue = raw instanceof java.sql.Timestamp timestamp
-                ? timestamp.toString()
-                : String.valueOf(raw);
-
+            String dbValue = sqlRowSet.getString(1);
+            assertThat(dbValue).isNotNull();
             assertThat(normalizeStoredDateTimeValue(dbValue)).isEqualTo(normalizeStoredDateTimeValue(expectedValue));
         }
     }

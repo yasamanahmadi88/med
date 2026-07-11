@@ -126,23 +126,13 @@ class HibernateTimeZoneIT {
         dateTimeWrapperRepository.saveAndFlush(dateTimeWrapper);
 
         String dbValue = readStoredColumn("offset_time", dateTimeWrapper.getId());
-        String expectedValue;
-        if (isOracle()) {
-            // Oracle persists OffsetTime as an absolute instant in hibernate.jdbc.time_zone (UTC).
-            expectedValue = dateTimeWrapper
-                .getOffsetTime()
-                .withOffsetSameInstant(ZoneOffset.UTC)
-                .toLocalTime()
-                .format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-        } else {
-            // H2 keeps the wall-clock local time of OffsetTime (JHipster historical expectation).
-            expectedValue = dateTimeWrapper
-                .getOffsetTime()
-                .toLocalTime()
-                .atDate(LocalDate.of(1970, Month.JANUARY, 1))
-                .atZone(ZoneId.systemDefault())
-                .format(timeFormatter);
-        }
+        // Wall-clock local time of OffsetTime (H2 and Oracle TO_CHAR HH24:MI:SS both expose 14:30).
+        String expectedValue = dateTimeWrapper
+            .getOffsetTime()
+            .toLocalTime()
+            .atDate(LocalDate.of(1970, Month.JANUARY, 1))
+            .atZone(ZoneId.systemDefault())
+            .format(timeFormatter);
 
         assertStoredValueEquals(dbValue, expectedValue);
     }
@@ -161,7 +151,9 @@ class HibernateTimeZoneIT {
     private String readStoredColumn(String fieldName, long id) {
         if (isOracle()) {
             // Avoid Oracle TIMESTAMPTZ "Invalid SQL type for column" on SqlRowSet getters.
-            String sql = "SELECT TO_CHAR(%s) FROM jhi_date_time_wrapper WHERE id = ?".formatted(fieldName);
+            // Always pass an explicit format — default TO_CHAR uses NLS (e.g. 12-NOV-14).
+            String expression = oracleToCharExpression(fieldName);
+            String sql = "SELECT %s FROM jhi_date_time_wrapper WHERE id = ?".formatted(expression);
             return jdbcTemplate.query(
                 sql,
                 rs -> {
@@ -181,6 +173,16 @@ class HibernateTimeZoneIT {
             return timestamp.toString();
         }
         return String.valueOf(raw);
+    }
+
+    private String oracleToCharExpression(String fieldName) {
+        return switch (fieldName) {
+            case "local_date" -> "TO_CHAR(%s, 'YYYY-MM-DD')".formatted(fieldName);
+            case "local_time", "offset_time" -> "TO_CHAR(%s, 'HH24:MI:SS')".formatted(fieldName);
+            case "instant", "offset_date_time", "zoned_date_time" ->
+                "TO_CHAR(%s AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.FF1')".formatted(fieldName);
+            default -> "TO_CHAR(%s, 'YYYY-MM-DD HH24:MI:SS.FF1')".formatted(fieldName);
+        };
     }
 
     private boolean isOracle() {

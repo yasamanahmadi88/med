@@ -16,6 +16,9 @@ public class TestContainersSpringContextCustomizerFactory implements ContextCust
 
     private Logger log = LoggerFactory.getLogger(TestContainersSpringContextCustomizerFactory.class);
 
+    /** One wrapper per JVM so DirtiesContext does not restart Oracle Free repeatedly. */
+    private static final OracleSqlTestContainer SHARED_ORACLE = new OracleSqlTestContainer();
+
     @Override
     public ContextCustomizer createContextCustomizer(Class<?> testClass, List<ContextConfigurationAttributes> configAttributes) {
         return (context, mergedConfig) -> {
@@ -27,10 +30,11 @@ public class TestContainersSpringContextCustomizerFactory implements ContextCust
                 log.info("Warming up the sql database");
             }
             if (null != sqlAnnotation && context.getEnvironment().acceptsProfiles(Profiles.of("testcontainers"))) {
-                OracleSqlTestContainer oracle = new OracleSqlTestContainer();
-                oracle.afterPropertiesSet();
-                JdbcDatabaseContainer<?> container = oracle.getTestContainer();
-                beanFactory.registerSingleton("oracleSqlTestContainer", oracle);
+                SHARED_ORACLE.afterPropertiesSet();
+                JdbcDatabaseContainer<?> container = SHARED_ORACLE.getTestContainer();
+                if (!beanFactory.containsSingleton("oracleSqlTestContainer")) {
+                    beanFactory.registerSingleton("oracleSqlTestContainer", SHARED_ORACLE);
+                }
                 testValues = TestPropertyValues.of(
                     "spring.datasource.url=" + container.getJdbcUrl(),
                     "spring.datasource.username=" + container.getUsername(),

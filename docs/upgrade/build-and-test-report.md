@@ -53,9 +53,9 @@
 
 | Gap | Why | Command / infra |
 |-----|-----|------------------|
-| Oracle Testcontainers verify | Agent has no Docker | CI job `oracle-testcontainers`: `./mvnw -Poracle-testcontainers verify` |
-| Docker image build + compose smoke | No Docker daemon | CI `docker-image`; locally `docker build` / `docker compose up` |
-| Full `./mvnw clean verify` without split | Same as unit+IT above; Oracle profile separate | Run both CI Maven jobs green |
+| Oracle Testcontainers verify | Agent has no Docker; CI must pass | CI job `oracle-testcontainers` |
+| Production Liquibase on Oracle | IT profile uses Hibernate create-drop (Liquibase↔MedAuthority PK conflict) | Separate schema-alignment work; see `oracle-testcontainers.md` |
+| Docker compose smoke | No Docker daemon in agent | CI `docker-image` builds image; compose smoke still manual/CI follow-up |
 | PR Ready for Review | Requires **all** workflow jobs green | Watch Actions on PR #2; then undraft |
 
 ## Policy

@@ -173,6 +173,16 @@ class HibernateTimeZoneIT {
             "$1"
         );
 
+        // Oracle often returns TIME as epoch date + time: "1970-01-01 14:30:00"
+        if (normalized.matches("1970-01-01 \\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?")) {
+            normalized = normalized.substring("1970-01-01 ".length());
+        }
+
+        // Oracle DATE may render as "2016-09-10 00:00:00" for a LocalDate column
+        if (normalized.matches("\\d{4}-\\d{2}-\\d{2} 00:00:00(?:\\.\\d+)?")) {
+            normalized = normalized.substring(0, 10);
+        }
+
         if (normalized.matches("(?:\\d{4}-\\d{2}-\\d{2} )?\\d{2}:\\d{2}")) {
             normalized += ":00";
         }

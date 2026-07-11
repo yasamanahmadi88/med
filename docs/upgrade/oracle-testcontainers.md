@@ -6,14 +6,13 @@
 
 Activates Spring profiles `test,testcontainers`. `@EmbeddedSQL` ITs start `gvenzl/oracle-free:slim` when Docker is available.
 
-## Schema ownership
+## Schema strategy
 
-`application-testcontainers.yml` sets:
+`application-testcontainers.yml`:
 
-- `spring.jpa.hibernate.ddl-auto=none`
 - `spring.liquibase.enabled=true`
-
-Hibernate must **not** create sequences/tables before Liquibase (otherwise `ORA-00955` on `sequence_generator`).
+- `spring.liquibase.drop-first=true` — clean schema so `sequence_generator` create cannot hit ORA-00955
+- `spring.jpa.hibernate.ddl-auto=update` — after Liquibase, Hibernate creates MEDIATION entity tables/sequences (`USER_SEQ`, `FLOWS_SEQ`, `TBL_*`, …) that are not in Liquibase changelogs
 
 ## Local agent limitation
 

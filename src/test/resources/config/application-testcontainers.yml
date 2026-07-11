@@ -20,16 +20,17 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.OracleDialect
     open-in-view: false
-    # Liquibase owns the schema on Oracle; do not let Hibernate create sequences/tables first
-    # (that causes ORA-00955 when Liquibase runs createSequence sequence_generator).
-    defer-datasource-initialization: false
+    # Liquibase → Hibernate schema update → test-data.sql
+    defer-datasource-initialization: true
     hibernate:
-      ddl-auto: none
+      # Liquibase creates JHipster core objects; Hibernate then creates MEDIATION
+      # entity tables/sequences (USER_SEQ, FLOWS_SEQ, TBL_*, …) not present in Liquibase.
+      ddl-auto: update
       naming:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
         implicit-strategy: org.springframework.boot.hibernate.SpringImplicitNamingStrategy
     properties:
-      hibernate.hbm2ddl.auto: none
+      hibernate.hbm2ddl.auto: update
       hibernate.id.new_generator_mappings: true
       hibernate.connection.provider_disables_autocommit: true
       hibernate.cache.use_second_level_cache: false
@@ -39,7 +40,12 @@ spring:
       hibernate.query.fail_on_pagination_over_collection_fetch: true
   liquibase:
     enabled: true
+    # Fresh schema each context so createSequence sequence_generator cannot hit ORA-00955
+    # from a prior Hibernate/Liquibase partial run on a reused container.
+    drop-first: true
     contexts: test
   sql:
     init:
-      mode: never
+      mode: always
+      continue-on-error: false
+      data-locations: classpath:test-data.sql

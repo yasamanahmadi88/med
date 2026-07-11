@@ -20,7 +20,7 @@ public class OracleSqlTestContainer implements SqlTestContainer {
         oracleContainer = new OracleContainer(DockerImageName.parse(image))
             .withUsername("MEDIATION")
             .withPassword("MEDIATION")
-            .withReuse(true);
+            .withReuse(false);
     }
 
     @Override

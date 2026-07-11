@@ -28,7 +28,6 @@ import jakarta.mail.internet.MimeMultipart;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.mail.MailSendException;
@@ -55,7 +54,6 @@ class MailServiceIT {
     @MockitoBean
     private JavaMailSender javaMailSender;
 
-    @Captor
     private ArgumentCaptor<MimeMessage> messageCaptor;
 
     @Autowired
@@ -63,6 +61,8 @@ class MailServiceIT {
 
     @BeforeEach
     public void setup() {
+        // Spring Boot 4 / MockitoBean does not process @Captor; create the captor explicitly.
+        messageCaptor = ArgumentCaptor.forClass(MimeMessage.class);
         doNothing().when(javaMailSender).send(any(MimeMessage.class));
         when(javaMailSender.createMimeMessage()).thenReturn(new MimeMessage((Session) null));
     }

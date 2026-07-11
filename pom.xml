@@ -66,6 +66,9 @@
         <profile.no-liquibase/>
         <profile.test/>
         <profile.tls/>
+        <!-- Allow CI to run Failsafe without Surefire: -Dskip.unit.tests=true -->
+        <skip.unit.tests>false</skip.unit.tests>
+        <skip.integration.tests>false</skip.integration.tests>
         <properties-maven-plugin.version>1.3.0</properties-maven-plugin.version>
         <resource.delimiter>@</resource.delimiter>
         <sonar-maven-plugin.version>5.6.0.6792</sonar-maven-plugin.version>
@@ -559,6 +562,7 @@
                         <!-- Force alphabetical order to have a reproducible build -->
                         <classesDirectory>${project.build.outputDirectory}</classesDirectory>
                         <runOrder>alphabetical</runOrder>
+                        <skipITs>${skip.integration.tests}</skipITs>
                         <includes>
                             <include>**/*IT*</include>
                             <include>**/*IntTest*</include>
@@ -597,6 +601,7 @@
                     <configuration>
                         <!-- Force alphabetical order to have a reproducible build -->
                         <runOrder>alphabetical</runOrder>
+                        <skipTests>${skip.unit.tests}</skipTests>
                         <excludes>
                             <exclude>**/*IT*</exclude>
                             <exclude>**/*IntTest*</exclude>

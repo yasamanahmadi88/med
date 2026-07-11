@@ -1,5 +1,7 @@
 package com.behsa.medportal.web.rest;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -15,12 +17,14 @@ import com.behsa.medportal.repository.UserRepository;
 import com.behsa.medportal.security.AuthoritiesConstants;
 import com.behsa.medportal.security.SecurityCache;
 import com.behsa.medportal.security.PortalUser;
+import com.behsa.medportal.security.captcha.CaptchaValidationService;
 import com.behsa.medportal.security.jwt.TokenProvider;
 import com.behsa.medportal.web.rest.vm.LoginVM;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -29,6 +33,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +43,9 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureMockMvc
 @IntegrationTest
 class SecurityAuthorizationIT {
+
+    private static final String TEST_CAPTCHA_ID = "security-authorization-it-captcha-id";
+    private static final String TEST_CAPTCHA_TOKEN = "security-authorization-it-captcha-token";
 
     @Autowired
     private MockMvc mockMvc;
@@ -57,6 +65,14 @@ class SecurityAuthorizationIT {
     @Autowired
     private SecurityCache securityCache;
 
+    @MockitoBean
+    private CaptchaValidationService captchaValidationService;
+
+    @BeforeEach
+    void stubCaptcha() {
+        doNothing().when(captchaValidationService).validate(anyString(), anyString(), anyString());
+    }
+
     @Test
     void missingTokenReturnsUnauthorizedForProtectedApi() throws Exception {
         mockMvc.perform(get("/api/account")).andExpect(status().isUnauthorized());
@@ -75,6 +91,8 @@ class SecurityAuthorizationIT {
         LoginVM login = new LoginVM();
         login.setUsername("sec-wrong-pass");
         login.setPassword("incorrect");
+        login.setCaptchaId(TEST_CAPTCHA_ID);
+        login.setCaptchaToken(TEST_CAPTCHA_TOKEN);
         mockMvc
             .perform(post("/api/authenticate").contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(login)))
             .andExpect(status().isUnauthorized())
@@ -94,6 +112,8 @@ class SecurityAuthorizationIT {
         LoginVM login = new LoginVM();
         login.setUsername("sec-inactive");
         login.setPassword("test");
+        login.setCaptchaId(TEST_CAPTCHA_ID);
+        login.setCaptchaToken(TEST_CAPTCHA_TOKEN);
         mockMvc
             .perform(post("/api/authenticate").contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(login)))
             .andExpect(status().isUnauthorized());

@@ -1,6 +1,7 @@
 package com.behsa.medportal.service.dto;
 
 import com.behsa.medportal.domain.ConfigEntity;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -32,6 +33,7 @@ public class ConfigDTO implements Serializable {
     @NotNull
     @Size(max = 300)
     @Pattern(regexp = PLAIN_TEXT_PATTERN, message = PLAIN_TEXT_MESSAGE)
+    @JsonProperty("pValue")
     private String pValue;
 
     @Size(max = 200)
@@ -56,10 +58,12 @@ public class ConfigDTO implements Serializable {
         this.property = property;
     }
 
+    @JsonProperty("pValue")
     public String getpValue() {
         return pValue;
     }
 
+    @JsonProperty("pValue")
     public void setpValue(String pValue) {
         this.pValue = pValue;
     }

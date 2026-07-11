@@ -14,7 +14,9 @@ spring:
     hikari:
       auto-commit: false
       poolName: Hikari
-      maximum-pool-size: 4
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 10000
   jpa:
     database-platform: org.hibernate.dialect.OracleDialect
     open-in-view: false

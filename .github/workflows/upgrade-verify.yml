@@ -68,7 +68,8 @@ jobs:
           cache: maven
 
       - name: Failsafe integration tests on H2
-        run: ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -Dsurefire.skip=true verify
+        # skip.unit.tests skips Surefire only; Failsafe still runs with profile.test=test,testdev
+        run: ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -Dskip.unit.tests=true verify
 
   oracle-testcontainers:
     name: Oracle Testcontainers Maven verify

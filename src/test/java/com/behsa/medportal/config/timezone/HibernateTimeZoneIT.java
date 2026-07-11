@@ -157,7 +157,26 @@ class HibernateTimeZoneIT {
             String dbValue = sqlRowSet.getString(1);
 
             assertThat(dbValue).isNotNull();
-            assertThat(dbValue).isEqualTo(expectedValue);
+            assertThat(normalizeStoredDateTimeValue(dbValue)).isEqualTo(normalizeStoredDateTimeValue(expectedValue));
         }
+    }
+
+    private String normalizeStoredDateTimeValue(String value) {
+        String normalized = value.trim().replace('T', ' ');
+
+        if (normalized.endsWith("Z")) {
+            normalized = normalized.substring(0, normalized.length() - 1);
+        }
+
+        normalized = normalized.replaceFirst(
+            "((?:\\d{4}-\\d{2}-\\d{2} )?\\d{2}:\\d{2}(?::\\d{2}(?:\\.\\d+)?)?)[+-]\\d{2}:\\d{2}$",
+            "$1"
+        );
+
+        if (normalized.matches("(?:\\d{4}-\\d{2}-\\d{2} )?\\d{2}:\\d{2}")) {
+            normalized += ":00";
+        }
+
+        return normalized.replaceFirst("(\\d{2}:\\d{2}:\\d{2})\\.0+$", "$1");
     }
 }

@@ -19,6 +19,8 @@ FROM eclipse-temurin:25-jdk-noble AS backend
 WORKDIR /workspace
 COPY mvnw pom.xml ./
 COPY .mvn ./.mvn
+# properties-maven-plugin reads this during the package lifecycle
+COPY sonar-project.properties ./
 COPY src ./src
 # Prebuilt SPA assets from the frontend stage
 COPY --from=frontend /workspace/target/classes/static ./src/main/resources/static

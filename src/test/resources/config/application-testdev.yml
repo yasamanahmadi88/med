@@ -17,7 +17,9 @@ spring:
     hikari:
       auto-commit: false
       poolName: Hikari
-      maximum-pool-size: 1
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 10000
   jpa:
     open-in-view: false
     hibernate:

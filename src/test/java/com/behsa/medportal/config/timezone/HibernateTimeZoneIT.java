@@ -154,9 +154,13 @@ class HibernateTimeZoneIT {
 
     private void assertThatDateStoredValueIsEqualToInsertDateValueOnGMTTimeZone(SqlRowSet sqlRowSet, String expectedValue) {
         while (sqlRowSet.next()) {
-            String dbValue = sqlRowSet.getString(1);
+            // Oracle TIMESTAMPTZ / TIMESTAMP WITH LOCAL TIME ZONE cannot always be read via getString.
+            Object raw = sqlRowSet.getObject(1);
+            assertThat(raw).isNotNull();
+            String dbValue = raw instanceof java.sql.Timestamp timestamp
+                ? timestamp.toString()
+                : String.valueOf(raw);
 
-            assertThat(dbValue).isNotNull();
             assertThat(normalizeStoredDateTimeValue(dbValue)).isEqualTo(normalizeStoredDateTimeValue(expectedValue));
         }
     }

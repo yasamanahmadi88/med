@@ -6,10 +6,10 @@
 #
 # Schema strategy (aligned with H2 testdev ITs):
 #   - Liquibase OFF for ITs: legacy jhi_authority (name PK) conflicts with
-#     MedAuthorityEntity (numeric id) when Hibernate ddl-auto=update runs after Liquibase.
-#   - Hibernate create-drop builds the entity schema for Oracle dialect validation.
-#   - test-data.sql seeds authorities/resources after schema create.
-# Production continues to use Liquibase; full Liquibase↔entity alignment is separate work.
+#     MedAuthorityEntity (numeric id) when Hibernate alters Liquibase tables.
+#   - Hibernate ddl-auto=update builds/keeps entity schema across DirtiesContext
+#     restarts (create-drop per class is too slow on Oracle Free).
+#   - test-data.sql seeds authorities/resources after schema is ready.
 # ===================================================================
 
 spring:
@@ -26,12 +26,12 @@ spring:
     open-in-view: false
     defer-datasource-initialization: true
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
       naming:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
         implicit-strategy: org.springframework.boot.hibernate.SpringImplicitNamingStrategy
     properties:
-      hibernate.hbm2ddl.auto: create-drop
+      hibernate.hbm2ddl.auto: update
       hibernate.id.new_generator_mappings: true
       hibernate.connection.provider_disables_autocommit: true
       hibernate.cache.use_second_level_cache: false

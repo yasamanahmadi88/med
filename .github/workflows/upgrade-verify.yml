@@ -74,6 +74,7 @@ jobs:
   oracle-testcontainers:
     name: Oracle Testcontainers Maven verify
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
 

@@ -1,11 +1,13 @@
 # ===================================================================
-# Oracle Testcontainers integration-test profile (entity ITs).
+# Oracle + Liquibase production-schema verification profile.
 #
-# For Liquibase + ddl-auto=none verification use profile
-# oracle-liquibase-testcontainers + application-oracleliquibase.yml.
+# Activate:
+#   ./mvnw verify -Dskip.unit.tests=true -Poracle-liquibase-testcontainers
 #
-# This profile keeps Liquibase OFF and Hibernate ddl-auto=update for the
-# large Failsafe suite performance path.
+# Rules:
+#   - Liquibase ON (full master.xml)
+#   - Hibernate ddl-auto=none (no schema generation)
+#   - No test-data.sql Hibernate init
 # ===================================================================
 
 spring:
@@ -20,14 +22,14 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.OracleDialect
     open-in-view: false
-    defer-datasource-initialization: true
+    defer-datasource-initialization: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
       naming:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
         implicit-strategy: org.springframework.boot.hibernate.SpringImplicitNamingStrategy
     properties:
-      hibernate.hbm2ddl.auto: update
+      hibernate.hbm2ddl.auto: none
       hibernate.id.new_generator_mappings: true
       hibernate.connection.provider_disables_autocommit: true
       hibernate.cache.use_second_level_cache: false
@@ -36,10 +38,8 @@ spring:
       hibernate.jdbc.time_zone: UTC
       hibernate.query.fail_on_pagination_over_collection_fetch: true
   liquibase:
-    enabled: false
+    enabled: true
     contexts: test
   sql:
     init:
-      mode: always
-      continue-on-error: false
-      data-locations: classpath:test-data.sql
+      mode: never

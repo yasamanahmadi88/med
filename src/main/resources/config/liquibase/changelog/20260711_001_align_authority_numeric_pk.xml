@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+      Align legacy JHipster jhi_authority (name PK) with the application's evolved model:
+      - Spring Security roles (ROLE_*) and MedAuthorityEntity share jhi_authority rows
+      - Numeric id is the primary key; name remains unique for role lookup
+      - jhi_user_authority uses authority_id → jhi_authority.id
+
+      Forward-only: does not edit 00000000000000_initial_schema.xml.
+    -->
+
+    <changeSet id="20260711-01-drop-fk-authority-name" author="upgrade">
+        <preConditions onFail="MARK_RAN">
+            <foreignKeyConstraintExists foreignKeyTableName="jhi_user_authority" foreignKeyName="fk_authority_name"/>
+        </preConditions>
+        <dropForeignKeyConstraint baseTableName="jhi_user_authority" constraintName="fk_authority_name"/>
+    </changeSet>
+
+    <changeSet id="20260711-02-drop-fk-user-id" author="upgrade">
+        <preConditions onFail="MARK_RAN">
+            <foreignKeyConstraintExists foreignKeyTableName="jhi_user_authority" foreignKeyName="fk_user_id"/>
+        </preConditions>
+        <dropForeignKeyConstraint baseTableName="jhi_user_authority" constraintName="fk_user_id"/>
+    </changeSet>
+
+    <changeSet id="20260711-03-rename-legacy-user-authority" author="upgrade">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="jhi_user_authority"/>
+                <columnExists tableName="jhi_user_authority" columnName="authority_name"/>
+            </and>
+        </preConditions>
+        <renameTable oldTableName="jhi_user_authority" newTableName="jhi_user_authority_legacy"/>
+    </changeSet>
+
+    <changeSet id="20260711-04-rename-legacy-authority" author="upgrade">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="jhi_authority"/>
+                <not>
+                    <columnExists tableName="jhi_authority" columnName="id"/>
+                </not>
+            </and>
+        </preConditions>
+        <renameTable oldTableName="jhi_authority" newTableName="jhi_authority_legacy"/>
+    </changeSet>
+
+    <changeSet id="20260711-05-create-authority-numeric" author="upgrade">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="jhi_authority"/>
+            </not>
+        </preConditions>
+        <createTable tableName="jhi_authority">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(50)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="ux_authority_name"/>
+            </column>
+            <column name="display_name" type="varchar(500)"/>
+            <column name="parent_id" type="bigint"/>
+        </createTable>
+        <addForeignKeyConstraint
+            baseTableName="jhi_authority"
+            baseColumnNames="parent_id"
+            referencedTableName="jhi_authority"
+            referencedColumnNames="id"
+            constraintName="fk_authority_parent"/>
+    </changeSet>
+
+    <changeSet id="20260711-06-create-user-authority-numeric" author="upgrade">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="jhi_user_authority"/>
+            </not>
+        </preConditions>
+        <createTable tableName="jhi_user_authority">
+            <column name="user_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="authority_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="jhi_user_authority" columnNames="user_id, authority_id"/>
+        <addForeignKeyConstraint
+            baseTableName="jhi_user_authority"
+            baseColumnNames="user_id"
+            referencedTableName="jhi_user"
+            referencedColumnNames="id"
+            constraintName="fk_user_authority_user"/>
+        <addForeignKeyConstraint
+            baseTableName="jhi_user_authority"
+            baseColumnNames="authority_id"
+            referencedTableName="jhi_authority"
+            referencedColumnNames="id"
+            constraintName="fk_user_authority_authority"/>
+    </changeSet>
+
+    <changeSet id="20260711-07-migrate-authority-rows" author="upgrade">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="jhi_authority_legacy"/>
+        </preConditions>
+        <sql>
+            INSERT INTO jhi_authority (id, name, display_name, parent_id)
+            SELECT
+                CASE name
+                    WHEN 'ROLE_USER' THEN 1
+                    WHEN 'ROLE_ADMIN' THEN 2
+                    ELSE ROW_NUMBER() OVER (ORDER BY name) + 100
+                END,
+                name,
+                name,
+                NULL
+            FROM jhi_authority_legacy
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260711-08-migrate-user-authority-rows" author="upgrade">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="jhi_user_authority_legacy"/>
+        </preConditions>
+        <sql>
+            INSERT INTO jhi_user_authority (user_id, authority_id)
+            SELECT l.user_id, a.id
+            FROM jhi_user_authority_legacy l
+            INNER JOIN jhi_authority a ON a.name = l.authority_name
+        </sql>
+    </changeSet>
+
+    <changeSet id="20260711-09-drop-legacy-user-authority" author="upgrade">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="jhi_user_authority_legacy"/>
+        </preConditions>
+        <dropTable tableName="jhi_user_authority_legacy"/>
+    </changeSet>
+
+    <changeSet id="20260711-10-drop-legacy-authority" author="upgrade">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="jhi_authority_legacy"/>
+        </preConditions>
+        <dropTable tableName="jhi_authority_legacy"/>
+    </changeSet>
+
+    <changeSet id="20260711-11-seed-role-authorities-if-empty" author="upgrade">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM jhi_authority</sqlCheck>
+        </preConditions>
+        <insert tableName="jhi_authority">
+            <column name="id" valueNumeric="1"/>
+            <column name="name" value="ROLE_USER"/>
+            <column name="display_name" value="User"/>
+        </insert>
+        <insert tableName="jhi_authority">
+            <column name="id" valueNumeric="2"/>
+            <column name="name" value="ROLE_ADMIN"/>
+            <column name="display_name" value="Admin"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20260711-12-add-party-id" author="upgrade">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="jhi_user" columnName="party_id"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="jhi_user">
+            <column name="party_id" type="varchar(250)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

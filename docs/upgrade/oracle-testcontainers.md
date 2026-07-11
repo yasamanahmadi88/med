@@ -1,33 +1,33 @@
 # Oracle Testcontainers Verification
 
+## Entity IT profile (Hibernate schema)
+
 ```bash
 ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -Dskip.unit.tests=true -Poracle-testcontainers verify
 ```
 
-Activates Spring profiles `test,testcontainers`. `@EmbeddedSQL` ITs start `gvenzl/oracle-free:slim` when Docker is available.
+Profiles: `test,testcontainers`. Liquibase off; Hibernate `ddl-auto=update` + `test-data.sql`. Shared Oracle Free container across DirtiesContext.
 
-## Schema strategy (IT only)
+## Liquibase production-schema profile
 
-Oracle ITs intentionally **disable Liquibase** and use Hibernate `ddl-auto=update` + deferred `test-data.sql`.
+```bash
+./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -Dskip.unit.tests=true -Poracle-liquibase-testcontainers verify
+```
 
-Reason: Liquibase’s legacy `jhi_authority` (name as PK) conflicts with `MedAuthorityEntity` (numeric `id`) when Hibernate alters the Liquibase table (`ORA-01758` / `ORA-02267`).
+Profiles: `test,testcontainers,oracleliquibase`.
 
-The Oracle Free container is a **JVM-scoped singleton** so `@DirtiesContext(AFTER_CLASS)` does not restart Docker for every IT class.
+- Liquibase **enabled** (full `master.xml`)
+- Hibernate `ddl-auto=none`
+- Failsafe includes only `OracleLiquibase*IT`
 
-This still validates:
-
-- Oracle Free Testcontainers startup
-- Oracle dialect / JDBC
-- Entity mappings and Failsafe ITs on Oracle
-
-It does **not** yet prove full production Liquibase changelogs apply cleanly on Oracle. That requires a dedicated Liquibase↔entity schema alignment (out of scope for the stack upgrade gate).
+See `docs/upgrade/liquibase-oracle-authority-rca.md`.
 
 ## Local agent limitation
 
-This agent VM has **no Docker**. Oracle verification runs only in GitHub Actions job `oracle-testcontainers`.
+This agent VM has **no Docker**. Oracle + Compose verification runs in GitHub Actions.
 
 ## Override image
 
 ```bash
-TESTCONTAINERS_ORACLE_IMAGE=gvenzl/oracle-free:slim ./mvnw -Poracle-testcontainers verify
+TESTCONTAINERS_ORACLE_IMAGE=gvenzl/oracle-free:slim ./mvnw -Poracle-liquibase-testcontainers verify
 ```

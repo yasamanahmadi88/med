@@ -20,8 +20,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.OracleDialect
     open-in-view: false
-    # Liquibase → Hibernate schema update → test-data.sql
-    defer-datasource-initialization: true
+    defer-datasource-initialization: false
     hibernate:
       # Liquibase creates JHipster core objects; Hibernate then creates MEDIATION
       # entity tables/sequences (USER_SEQ, FLOWS_SEQ, TBL_*, …) not present in Liquibase.
@@ -46,6 +45,5 @@ spring:
     contexts: test
   sql:
     init:
-      mode: always
-      continue-on-error: false
-      data-locations: classpath:test-data.sql
+      # Seed via OracleTestDataLoader after Hibernate ddl (sql.init is too early here).
+      mode: never

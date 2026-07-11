@@ -14,8 +14,9 @@ without `*jhiHasPermission` remained visible.
    → `*ngSwitchCase="true"` menus hidden → `UserRouteAccessService` sent entity routes back to login
    → remaining calls looked like "empty backend data".
 
-2. **Report-logs menu permission** — navbar gated `/reportLogs` on `['config', 'view']` instead of
-   `['log', 'view']`.
+2. **Report-logs menu permission** — navbar had gated `/reportLogs` on a resource permission
+   (previously even the wrong resource `config`). Entity menus are now consistent: visible when
+   authenticated; page-level `*jhiHasPermission` still guards actions inside list/detail views.
 
 3. **Account resource authorities** — `/api/account` now always hydrates `resourceAuthorities` for
    `*jhiHasPermission` (fallback query when PortalUser list is empty).

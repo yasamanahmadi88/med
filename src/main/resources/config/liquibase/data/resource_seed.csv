@@ -1,0 +1,13 @@
+id;name;display_name;api_uri;resource_type
+1;version;Version;/api/versions;ENTITY
+2;product;Product;/api/products;ENTITY
+3;module;Module;/api/modules;ENTITY
+4;flow;Flow;/api/flows;ENTITY
+5;instance;Instance;/api/instances;ENTITY
+6;config;Config;/api/configs;ENTITY
+7;log;Log;/api/logs;ENTITY
+8;userManagement;User Management;/api/admin/users;ENTITY
+9;resource;Resource;/api/resources;ENTITY
+10;resourceAuthority;Resource Authority;/api/resource-authorities;ENTITY
+11;medAuthority;Med Authority;/api/med-authorities;ENTITY
+12;customAuditEvent;Custom Audit Event;/api/custom-audit-events;ENTITY

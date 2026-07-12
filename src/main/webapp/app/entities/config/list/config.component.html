@@ -1,0 +1,129 @@
+<div>
+  <h2 id="page-heading" data-cy="ConfigHeading">
+    <span jhiTranslate="medPortalApp.config.home.title">Configs</span>
+
+    <div class="d-flex justify-content-end">
+      <button class="btn btn-info me-2" (click)="load()" [disabled]="isLoading">
+        <fa-icon icon="sync" [animation]="isLoading ? 'spin' : undefined"></fa-icon>
+        <span jhiTranslate="medPortalApp.config.home.refreshListLabel">Refresh list</span>
+      </button>
+
+      <button
+        id="jh-create-entity"
+        data-cy="entityCreateButton"
+        class="btn btn-primary jh-create-entity create-config"
+        [routerLink]="['/config/new']"
+        *jhiHasPermission="['config', 'create']; op: 'OR'"
+      >
+        <!--        *jhiHasPermission="[['config', 'create'], ['config', 'edit']]; op: 'OR'"-->
+
+        <fa-icon icon="plus"></fa-icon>
+        <span jhiTranslate="medPortalApp.config.home.createLabel"> Create a new Config </span>
+      </button>
+    </div>
+  </h2>
+
+  <jhi-alert-error></jhi-alert-error>
+
+  <jhi-alert></jhi-alert>
+
+  <jhi-filter [filters]="filters"></jhi-filter>
+
+  <div class="alert alert-warning" id="no-result" *ngIf="configs?.length === 0">
+    <span jhiTranslate="medPortalApp.config.home.notFound">No Configs found</span>
+  </div>
+
+  <div class="table-responsive table-entities" id="entities" *ngIf="configs && configs.length > 0">
+    <table class="table table-striped" aria-describedby="page-heading">
+      <thead>
+        <tr jhiSort [(predicate)]="predicate" [(ascending)]="ascending" (sortChange)="navigateToWithComponentValues()">
+          <th scope="col" jhiSortBy="property">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.config.property">Property</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="pValue">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.config.pValue">P Value</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="commentDesc">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.config.commentDesc">Comment Desc</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="module.id">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.config.module">Module</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let config of configs; trackBy: trackId" data-cy="entityTable">
+          <td>{{ config.property }}</td>
+          <td>{{ config.pValue }}</td>
+          <td>{{ config.commentDesc }}</td>
+          <td>
+            <div *ngIf="config.module">
+              <a [routerLink]="['/module', config.module.id, 'view']">{{ config.module.moduleName }}</a>
+            </div>
+          </td>
+          <td class="text-end">
+            <div class="btn-group">
+              <button type="submit" [routerLink]="['/config', config.id, 'view']" class="btn btn-info btn-sm" data-cy="entityDetailsButton">
+                <fa-icon icon="eye"></fa-icon>
+                <span class="d-none d-md-inline" jhiTranslate="entity.action.view">View</span>
+              </button>
+
+              <button
+                type="submit"
+                [routerLink]="['/config', config.id, 'edit']"
+                class="btn btn-primary btn-sm"
+                data-cy="entityEditButton"
+                *jhiHasPermission="['config', 'edit']; op: 'OR'"
+              >
+                <fa-icon icon="pencil-alt"></fa-icon>
+                <span class="d-none d-md-inline" jhiTranslate="entity.action.edit">Edit</span>
+              </button>
+
+              <button
+                type="submit"
+                (click)="delete(config)"
+                class="btn btn-danger btn-sm"
+                data-cy="entityDeleteButton"
+                *jhiHasPermission="['config', 'delete']; op: 'OR'"
+              >
+                <fa-icon icon="times"></fa-icon>
+                <span class="d-none d-md-inline" jhiTranslate="entity.action.delete">Delete</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="configs && configs.length > 0">
+    <div class="d-flex justify-content-center">
+      <jhi-item-count [params]="{ page: page, totalItems: totalItems, itemsPerPage: itemsPerPage }"></jhi-item-count>
+    </div>
+
+    <div class="d-flex justify-content-center">
+      <ngb-pagination
+        [collectionSize]="totalItems"
+        [page]="page"
+        [pageSize]="itemsPerPage"
+        [maxSize]="5"
+        [rotate]="true"
+        [boundaryLinks]="true"
+        (pageChange)="navigateToPage($event)"
+      ></ngb-pagination>
+    </div>
+  </div>
+</div>

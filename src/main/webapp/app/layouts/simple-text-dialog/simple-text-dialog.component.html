@@ -1,0 +1,6 @@
+<textarea [ngClass]="text == null ? 'text-muted' : 'text-dark'" placeholder="--- empty ---" disabled>{{ text }}</textarea>
+<div class="modal-footer">
+  <button type="button" class="btn btn-danger" data-dismiss="modal" (click)="close()">
+    <fa-icon icon="times"></fa-icon>&nbsp;<span jhiTranslate="entity.action.close">close</span>
+  </button>
+</div>

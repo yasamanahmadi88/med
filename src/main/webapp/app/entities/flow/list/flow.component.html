@@ -1,0 +1,138 @@
+<div>
+  <h2 id="page-heading" data-cy="FlowHeading">
+    <span jhiTranslate="medPortalApp.flow.home.title">Flows</span>
+
+    <div class="d-flex justify-content-end">
+      <button class="btn btn-info me-2" (click)="load()" [disabled]="isLoading">
+        <fa-icon icon="sync" [animation]="isLoading ? 'spin' : undefined"></fa-icon>
+        <span jhiTranslate="medPortalApp.flow.home.refreshListLabel">Refresh list</span>
+      </button>
+
+      <button
+        id="jh-create-entity"
+        data-cy="entityCreateButton"
+        class="btn btn-primary jh-create-entity create-flow"
+        *jhiHasPermission="['flow', 'create']; op: 'OR'"
+        (click)="routeToNewFlow()"
+      >
+        <fa-icon icon="plus"></fa-icon>
+        <span jhiTranslate="medPortalApp.flow.home.createLabel"> Create a new Flow </span>
+      </button>
+    </div>
+  </h2>
+
+  <jhi-alert-error></jhi-alert-error>
+
+  <jhi-alert></jhi-alert>
+
+  <div class="alert alert-warning" id="no-result" *ngIf="flows?.length === 0">
+    <span jhiTranslate="medPortalApp.flow.home.notFound">No Flows found</span>
+  </div>
+
+  <div class="table-responsive table-entities" id="entities" *ngIf="flows && flows.length > 0">
+    <table class="table table-striped" aria-describedby="page-heading">
+      <thead>
+        <tr jhiSort [(predicate)]="predicate" [(ascending)]="ascending" (sortChange)="navigateToWithComponentValues()">
+          <th scope="col" jhiSortBy="id">
+            <div class="d-flex">
+              <span jhiTranslate="global.field.id">ID</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="flowName">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.flow.flowName">Flow Name</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="flowDesc">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.flow.flowDesc">Flow Desc</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="product.id">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.flow.product">Product</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="flow">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.flow.flow">Flow</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let flow of flows; trackBy: trackId" data-cy="entityTable">
+          <td>
+            <a [routerLink]="['/flow', flow.id, 'view']">{{ flow.id }}</a>
+          </td>
+          <td>{{ flow.flowName }}</td>
+          <td>{{ flow.flowDesc }}</td>
+          <td>
+            <div *ngIf="flow.product">
+              <a [routerLink]="['/product', flow.product.id, 'view']">{{ flow.product.productName }}</a>
+            </div>
+          </td>
+          <td style="padding: 0">
+            <button type="submit" class="btn btn-sm" (click)="openBPMNPage(flow.id)" style="padding: 0">
+              <img src="../../../../content/images/bpmn-icon.png" style="height: 40px; width: auto; padding: 0" />
+            </button>
+          </td>
+          <td class="text-end">
+            <div class="btn-group">
+              <button type="submit" [routerLink]="['/flow', flow.id, 'view']" class="btn btn-info btn-sm" data-cy="entityDetailsButton">
+                <fa-icon icon="eye"></fa-icon>
+                <span class="d-none d-md-inline" jhiTranslate="entity.action.view">View</span>
+              </button>
+
+              <button
+                type="submit"
+                [routerLink]="['/flow', flow.id, 'edit']"
+                class="btn btn-primary btn-sm"
+                data-cy="entityEditButton"
+                *jhiHasPermission="['flow', 'edit']; op: 'OR'"
+              >
+                <fa-icon icon="pencil-alt"></fa-icon>
+                <span class="d-none d-md-inline" jhiTranslate="entity.action.edit">Edit</span>
+              </button>
+
+              <button
+                type="submit"
+                (click)="delete(flow)"
+                class="btn btn-danger btn-sm"
+                data-cy="entityDeleteButton"
+                *jhiHasPermission="['flow', 'delete']; op: 'OR'"
+              >
+                <fa-icon icon="times"></fa-icon>
+                <span class="d-none d-md-inline" jhiTranslate="entity.action.delete">Delete</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="flows && flows.length > 0">
+    <div class="d-flex justify-content-center">
+      <jhi-item-count [params]="{ page: page, totalItems: totalItems, itemsPerPage: itemsPerPage }"></jhi-item-count>
+    </div>
+
+    <div class="d-flex justify-content-center">
+      <ngb-pagination
+        [collectionSize]="totalItems"
+        [page]="page"
+        [pageSize]="itemsPerPage"
+        [maxSize]="5"
+        [rotate]="true"
+        [boundaryLinks]="true"
+        (pageChange)="navigateToPage($event)"
+      ></ngb-pagination>
+    </div>
+  </div>
+</div>

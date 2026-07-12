@@ -1,0 +1,155 @@
+name: Upgrade verification
+
+on:
+  push:
+    branches:
+      - upgrade/angular21-java25-springboot-4.0.6
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: upgrade-verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  unicode-security-scan:
+    name: Unicode bidi and invisible control scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Scan for dangerous Unicode controls
+        run: |
+          chmod +x scripts/unicode-security-scan.sh
+          ./scripts/unicode-security-scan.sh
+
+  frontend-and-playwright:
+    name: Angular lint, unit, prod build, Playwright
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npx ng test --watch=false --coverage=false
+
+      - run: npm run webapp:build:prod
+
+      - run: npx playwright install --with-deps chromium
+
+      - run: npm run e2e:playwright
+
+  maven-default:
+    name: Java 25 Maven unit tests and modernizer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: maven
+
+      - run: ./mvnw -version
+
+      - name: Modernizer (no skip)
+        run: ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -DskipTests modernizer:modernizer
+
+      - name: Unit tests (Surefire; ITs run in oracle-testcontainers job)
+        run: ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm test
+
+  maven-h2-it:
+    name: Java 25 H2 integration tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: maven
+
+      - name: Failsafe integration tests on H2
+        run: ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -Dskip.unit.tests=true verify
+
+  oracle-testcontainers:
+    name: Oracle Testcontainers Maven verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: maven
+
+      - run: ./mvnw -version
+
+      - name: Maven verify with Oracle Free Testcontainers
+        env:
+          TESTCONTAINERS_ORACLE_IMAGE: gvenzl/oracle-free:slim
+        run: ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -Dskip.unit.tests=true -Poracle-testcontainers verify
+
+  oracle-liquibase:
+    name: Oracle Liquibase production-schema verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: maven
+
+      - run: ./mvnw -version
+
+      - name: Liquibase ON + ddl-auto=none on Oracle Free
+        env:
+          TESTCONTAINERS_ORACLE_IMAGE: gvenzl/oracle-free:slim
+        run: ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm -Dskip.unit.tests=true -Poracle-liquibase-testcontainers verify
+
+  docker-image:
+    name: Docker image build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Docker build
+        run: |
+          if [ ! -f Dockerfile ]; then
+            echo "FAIL: Dockerfile is required for acceptance"
+            exit 1
+          fi
+          docker build -t medportal-upgrade-verify:${{ github.sha }} .
+
+  docker-compose-smoke:
+    name: Docker Compose smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Compose config, up, health, login, JWT
+        env:
+          JHIPSTER_SECURITY_AUTHENTICATION_JWT_BASE64_SECRET: bXktc2VjcmV0LWtleS13aGljaC1zaG91bGQtYmUtYXQtbGVhc3QtNjQtY2hhcmFjdGVycy1sb25nLWZvci1ocy01MTI=
+          SPRING_LIQUIBASE_CONTEXTS: prod,test
+          CAPTCHA_ENABLED: "false"
+        run: |
+          chmod +x scripts/docker-compose-smoke.sh
+          ./scripts/docker-compose-smoke.sh

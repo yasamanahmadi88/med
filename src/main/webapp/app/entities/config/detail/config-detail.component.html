@@ -1,0 +1,46 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <div *ngIf="config">
+      <h2 data-cy="configDetailsHeading"><span jhiTranslate="medPortalApp.config.detail.title">Config</span></h2>
+
+      <hr />
+
+      <jhi-alert-error></jhi-alert-error>
+
+      <jhi-alert></jhi-alert>
+
+      <dl class="row-md jh-entity-details">
+        <dt><span jhiTranslate="global.field.id">ID</span></dt>
+        <dd>
+          <span>{{ config.id }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.config.property">Property</span></dt>
+        <dd>
+          <span>{{ config.property }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.config.pValue">P Value</span></dt>
+        <dd>
+          <span>{{ config.pValue }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.config.commentDesc">Comment Desc</span></dt>
+        <dd>
+          <span>{{ config.commentDesc }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.config.module">Module</span></dt>
+        <dd>
+          <div *ngIf="config.module">
+            <a [routerLink]="['/module', config.module.id, 'view']">{{ config.module.id }}</a>
+          </div>
+        </dd>
+      </dl>
+
+      <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+        <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Back</span>
+      </button>
+
+      <button type="button" [routerLink]="['/config', config.id, 'edit']" class="btn btn-primary">
+        <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Edit</span>
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,92 @@
+<div>
+  <h2 id="page-heading" data-cy="CustomAuditEventHeading">
+    <span jhiTranslate="medPortalApp.customAuditEvent.home.title">Custom Audit Events</span>
+
+    <div class="d-flex justify-content-end">
+      <button class="btn btn-info me-2" (click)="load()" [disabled]="isLoading">
+        <fa-icon icon="sync" [animation]="isLoading ? 'spin' : undefined"></fa-icon>
+        <span jhiTranslate="medPortalApp.customAuditEvent.home.refreshListLabel">Refresh list</span>
+      </button>
+    </div>
+  </h2>
+
+  <jhi-alert-error></jhi-alert-error>
+
+  <jhi-alert></jhi-alert>
+
+  <jhi-filter [filters]="filters"></jhi-filter>
+
+  <div class="alert alert-warning" id="no-result" *ngIf="customAuditEvents?.length === 0">
+    <span jhiTranslate="medPortalApp.customAuditEvent.home.notFound">No Custom Audit Events found</span>
+  </div>
+
+  <div class="table-responsive table-entities" id="entities" *ngIf="customAuditEvents && customAuditEvents.length > 0">
+    <table class="table table-striped" aria-describedby="page-heading">
+      <thead>
+        <tr jhiSort [(predicate)]="predicate" [(ascending)]="ascending" (sortChange)="navigateToWithComponentValues()">
+          <th scope="col" jhiSortBy="principal">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.customAuditEvent.principal">Principal</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="eventDate">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.customAuditEvent.eventDate">Event Date</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="eventType">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.customAuditEvent.eventType">Event Type</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let customAuditEvent of customAuditEvents; trackBy: trackId" data-cy="entityTable">
+          <td>{{ customAuditEvent.principal }}</td>
+          <td>{{ customAuditEvent.eventDate | formatMediumDatetime }}</td>
+          <td>{{ customAuditEvent.eventType }}</td>
+          <td class="text-end">
+            <div class="btn-group">
+              <button type="submit" class="btn btn-sm goldenButton" (click)="showMoreData(customAuditEvent.data)">
+                <fa-icon icon="eye"></fa-icon>
+                <span class="d-none d-md-inline" jhiTranslate="medPortalApp.customAuditEvent.moreData">More data</span>
+              </button>
+              <button
+                type="submit"
+                [routerLink]="['/custom-audit-event', customAuditEvent.id, 'view']"
+                class="btn btn-info btn-sm"
+                data-cy="entityDetailsButton"
+              >
+                <fa-icon icon="eye"></fa-icon>
+                <span class="d-none d-md-inline" jhiTranslate="entity.action.view">View</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="customAuditEvents && customAuditEvents.length > 0">
+    <div class="d-flex justify-content-center">
+      <jhi-item-count [params]="{ page: page, totalItems: totalItems, itemsPerPage: itemsPerPage }"></jhi-item-count>
+    </div>
+
+    <div class="d-flex justify-content-center">
+      <ngb-pagination
+        [collectionSize]="totalItems"
+        [page]="page"
+        [pageSize]="itemsPerPage"
+        [maxSize]="5"
+        [rotate]="true"
+        [boundaryLinks]="true"
+        (pageChange)="navigateToPage($event)"
+      ></ngb-pagination>
+    </div>
+  </div>
+</div>

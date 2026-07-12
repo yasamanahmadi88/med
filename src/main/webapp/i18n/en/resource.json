@@ -1,0 +1,28 @@
+{
+  "medPortalApp": {
+    "resource": {
+      "home": {
+        "title": "Resources",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Resource",
+        "createOrEditLabel": "Create or edit a Resource",
+        "notFound": "No Resources found"
+      },
+      "created": "A new Resource is created",
+      "updated": "A Resource is updated",
+      "deleted": "A Resource is deleted",
+      "delete": {
+        "question": "Are you sure you want to delete this Resource?"
+      },
+      "detail": {
+        "title": "Resource"
+      },
+      "id": "ID",
+      "name": "Name",
+      "displayName": "Display Name",
+      "apiUri": "Api Uri",
+      "resourceType": "Resource Type",
+      "resourceAuthorities": "Resource Authorities"
+    }
+  }
+}

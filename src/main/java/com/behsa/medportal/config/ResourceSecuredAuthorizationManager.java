@@ -1,5 +1,6 @@
 package com.behsa.medportal.config;
 
+import com.behsa.medportal.security.AuthoritiesConstants;
 import com.behsa.medportal.service.ResourceAuthorityQueryService;
 import com.behsa.medportal.service.dto.ResourceAuthorityDTO;
 import java.lang.reflect.Method;
@@ -102,6 +103,12 @@ public class ResourceSecuredAuthorizationManager implements AuthorizationManager
     private boolean decideResourceAccess(Authentication authentication, MethodInvocation methodInvocation, List<String> resourceNames) {
         if (!isAuthenticated(authentication)) {
             return false;
+        }
+
+        // Admins retain full resource access so entity forms keep working when RBAC rows
+        // are missing or incomplete after an upgrade (matches operator expectation).
+        if (hasAnyAuthority(authentication, List.of(AuthoritiesConstants.ADMIN))) {
+            return true;
         }
 
         String verb = resolveVerb(methodInvocation.getMethod());

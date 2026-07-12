@@ -24,9 +24,9 @@ without `*jhiHasPermission` remained visible.
 ## Fixes
 
 - Emit `PartyId` as `""` when null; accept blank but present claim
-- Correct navbar permission for report logs
+- Keep entity navbar items visible for any authenticated user (align Report logs with Module/Config/…)
 - Account endpoint fallback for resource authorities
-- IT: null-`party_id` login + `/api/account`; ROLE_USER can `GET /api/modules`
+- IT: null-`party_id` login + `/api/account` resourceAuthorities hydration
 
 ## Note on NPG "File Report Generation Logs"
 

@@ -42,6 +42,10 @@ spring:
         oracle.jdbc.timezoneAsRegion: false
   jpa:
     show-sql: true
+    properties:
+      # Domain tables live in MEDIATION; JDBC user may be medportal with SELECT grants.
+      # Override with MEDPORTAL_DB_SCHEMA= (empty) when the JDBC user owns TBL_* directly.
+      hibernate.default_schema: ${MEDPORTAL_DB_SCHEMA:MEDIATION}
   liquibase:
     # Remove 'faker' if you do not want the sample data to be loaded automatically
     contexts: dev

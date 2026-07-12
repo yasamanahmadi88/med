@@ -9,7 +9,7 @@ import jakarta.validation.constraints.*;
  * A InstanceEntity.
  */
 @Entity
-@Table(schema = "MEDIATION", name = "TBL_INSTANCES")
+@Table(name = "TBL_INSTANCES")
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class InstanceEntity implements Serializable {
 

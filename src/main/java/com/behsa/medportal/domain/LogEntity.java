@@ -9,7 +9,7 @@ import jakarta.validation.constraints.*;
  * A LogEntity.
  */
 @Entity
-@Table(schema = "MEDIATION", name = "TBL_LOGS")
+@Table(name = "TBL_LOGS")
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class LogEntity implements Serializable {
 
@@ -17,7 +17,7 @@ public class LogEntity implements Serializable {
 
     @Id
     @GeneratedValue(generator = "LOG_SEQ_GENERATOR")
-    @SequenceGenerator(name = "LOG_SEQ_GENERATOR", sequenceName = "LOG_SEQ", schema = "MEDIATION", allocationSize = 1)
+    @SequenceGenerator(name = "LOG_SEQ_GENERATOR", sequenceName = "LOG_SEQ", allocationSize = 1)
     @Column(name = "log_key")
     private Long id;
 

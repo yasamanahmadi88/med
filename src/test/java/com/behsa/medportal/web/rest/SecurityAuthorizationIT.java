@@ -172,6 +172,15 @@ class SecurityAuthorizationIT {
     }
 
     @Test
+    @Transactional
+    void adminBypassesMissingResourcePermissionsForEntityApi() throws Exception {
+        String token = tokenFor("sec-admin-entity", AuthoritiesConstants.ADMIN);
+        mockMvc
+            .perform(get("/api/modules").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+            .andExpect(status().isOk());
+    }
+
+    @Test
     void userTokenCannotAccessAdminApi() throws Exception {
         String token = tokenFor("user", AuthoritiesConstants.USER);
         mockMvc

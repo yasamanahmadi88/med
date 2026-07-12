@@ -9,7 +9,7 @@ import jakarta.validation.constraints.*;
  * A FlowEntity.
  */
 @Entity
-@Table(schema = "MEDIATION", name = "TBL_FLOWS")
+@Table(name = "TBL_FLOWS")
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class FlowEntity implements Serializable {
 
@@ -17,7 +17,7 @@ public class FlowEntity implements Serializable {
 
     @Id
     @GeneratedValue(generator = "AUTR_SEQ_GENERATOR")
-    @SequenceGenerator(name = "AUTR_SEQ_GENERATOR", sequenceName = "FLOWS_SEQ", schema = "MEDIATION", allocationSize = 1)
+    @SequenceGenerator(name = "AUTR_SEQ_GENERATOR", sequenceName = "FLOWS_SEQ", allocationSize = 1)
     @Column(name = "flow_key")
     private Long id;
 

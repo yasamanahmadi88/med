@@ -9,7 +9,7 @@ import jakarta.validation.constraints.*;
  * A ConfigEntity.
  */
 @Entity
-@Table(schema = "MEDIATION", name = "TBL_CONFIGS")
+@Table(name = "TBL_CONFIGS")
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class ConfigEntity implements Serializable {
 
@@ -17,7 +17,7 @@ public class ConfigEntity implements Serializable {
 
     @Id
     @GeneratedValue(generator = "AUTR_SEQ_GENERATOR")
-    @SequenceGenerator(name = "AUTR_SEQ_GENERATOR", sequenceName = "CONFIGS_SEQ", schema = "MEDIATION", allocationSize = 1)
+    @SequenceGenerator(name = "AUTR_SEQ_GENERATOR", sequenceName = "CONFIGS_SEQ", allocationSize = 1)
     @Column(name = "config_key")
     private Long id;
 

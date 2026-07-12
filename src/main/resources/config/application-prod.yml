@@ -46,6 +46,8 @@ spring:
       data-source-properties:
         oracle.jdbc.timezoneAsRegion: false
   jpa:
+    properties:
+      hibernate.default_schema: ${MEDPORTAL_DB_SCHEMA:MEDIATION}
   # Replace by 'prod, faker' to add the faker context and have sample data loaded in production
   liquibase:
     contexts: prod

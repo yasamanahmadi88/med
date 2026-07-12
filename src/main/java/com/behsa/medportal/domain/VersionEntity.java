@@ -8,7 +8,7 @@ import jakarta.validation.constraints.*;
  * A VersionEntity.
  */
 @Entity
-@Table(schema = "MEDIATION", name = "TBL_VERSIONS")
+@Table(name = "TBL_VERSIONS")
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class VersionEntity implements Serializable {
 

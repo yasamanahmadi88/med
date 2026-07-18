@@ -20,6 +20,11 @@ import java.util.stream.Collectors;
 public class SecurityCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(SecurityCache.class);
 
+    /** Default server-side inactivity window (minutes). */
+    public static final long DEFAULT_INACTIVITY_MINUTES = 30L;
+    /** Remember-me server-side inactivity window: 7 days. */
+    public static final long REMEMBER_ME_INACTIVITY_MINUTES = 7L * 24L * 60L;
+
     @Value("${bucket4j.get.bucket-size}")
     long bucketSizeForGet;
 
@@ -32,7 +37,7 @@ public class SecurityCache {
     @Value("${bucket4j.post.token-per-minute}")
     long tokenPerMinuteForPost;
 
-    @Value("${user-session.expire.per-minute}")
+    @Value("${user-session.expire.per-minute:30}")
     long sessionExpirePerMinute;
 
 
@@ -54,6 +59,33 @@ public class SecurityCache {
         LocalDateTime logout,
         Boolean validToken
     ) {
+        storeSession(
+            principal,
+            sessionId,
+            ip,
+            username,
+            token,
+            userAgent,
+            login,
+            logout,
+            validToken,
+            resolveDefaultInactivityMinutes()
+        );
+    }
+
+    public void storeSession(
+        Object principal,
+        String sessionId,
+        String ip,
+        String username,
+        String token,
+        String userAgent,
+        LocalDateTime login,
+        LocalDateTime logout,
+        Boolean validToken,
+        long inactivityMinutes
+    ) {
+        long minutes = inactivityMinutes > 0 ? inactivityMinutes : resolveDefaultInactivityMinutes();
         sessionInfos.put(
             token,
             new SessionInfo(
@@ -68,9 +100,14 @@ public class SecurityCache {
                 validToken,
                 login,
                 createNewBucket("get"),
-                createNewBucket("post")
+                createNewBucket("post"),
+                minutes
             )
         );
+    }
+
+    private long resolveDefaultInactivityMinutes() {
+        return sessionExpirePerMinute > 0 ? sessionExpirePerMinute : DEFAULT_INACTIVITY_MINUTES;
     }
 
 
@@ -169,7 +206,10 @@ public class SecurityCache {
     }
 
     private boolean isTokenExpired(SessionInfo sessionInfo) {
-        return sessionInfo.getLastActionDate().isBefore(LocalDateTime.now().minusMinutes(sessionExpirePerMinute)); //token inactivity expiration time in minutes
+        long inactivityLimit = sessionInfo.getInactivityMinutes() > 0
+            ? sessionInfo.getInactivityMinutes()
+            : resolveDefaultInactivityMinutes();
+        return sessionInfo.getLastActionDate().isBefore(LocalDateTime.now().minusMinutes(inactivityLimit));
     }
 
     private Bucket createNewBucket(String reqType) {

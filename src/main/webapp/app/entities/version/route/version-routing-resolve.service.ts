@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
-import { Resolve, ActivatedRouteSnapshot, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import { Observable, of, EMPTY } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
 
@@ -8,10 +8,10 @@ import { IVersion } from '../version.model';
 import { VersionService } from '../service/version.service';
 
 @Injectable({ providedIn: 'root' })
-export class VersionRoutingResolveService implements Resolve<IVersion | null> {
+export class VersionRoutingResolveService  {
   constructor(protected service: VersionService, protected router: Router) {}
 
-  resolve(route: ActivatedRouteSnapshot): Observable<IVersion | null | never> {
+  resolve(route: ActivatedRouteSnapshot): Observable<IVersion | null> {
     const id = route.params['id'];
     if (id) {
       return this.service.find(id).pipe(

@@ -37,7 +37,8 @@ describe('Directive: SortByDirective', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [TestSortByDirectiveComponent, SortDirective, SortByDirective, FaIconComponent],
+      declarations: [TestSortByDirectiveComponent, SortDirective, SortByDirective],
+      imports: [FaIconComponent],
     });
     fixture = TestBed.createComponent(TestSortByDirectiveComponent);
     component = fixture.componentInstance;

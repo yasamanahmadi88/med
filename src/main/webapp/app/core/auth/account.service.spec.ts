@@ -6,7 +6,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { TestBed } from '@angular/core/testing';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
-import { NgxWebstorageModule, SessionStorageService } from 'ngx-webstorage';
+import { provideNgxWebstorage, SessionStorageService, withLocalStorage, withNgxWebstorageConfig, withSessionStorage } from 'ngx-webstorage';
 
 import { Account } from 'app/core/auth/account.model';
 import { Authority } from 'app/config/authority.constants';
@@ -39,8 +39,17 @@ describe('Account Service', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, RouterTestingModule.withRoutes([]), TranslateModule.forRoot(), NgxWebstorageModule.forRoot()],
-      providers: [StateStorageService],
+      imports: [HttpClientTestingModule, RouterTestingModule.withRoutes([]), TranslateModule.forRoot()],
+      providers: [
+        provideNgxWebstorage(
+          withNgxWebstorageConfig({
+            prefix: 'jhi',
+            separator: '-',
+            caseSensitive: true,
+          }),
+          withLocalStorage(),
+          withSessionStorage(),
+        ),StateStorageService],
     });
 
     service = TestBed.inject(AccountService);

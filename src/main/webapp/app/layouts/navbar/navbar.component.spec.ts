@@ -4,7 +4,7 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
-import { NgxWebstorageModule } from 'ngx-webstorage';
+import { provideNgxWebstorage, withLocalStorage, withNgxWebstorageConfig, withSessionStorage } from 'ngx-webstorage';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { ProfileInfo } from 'app/layouts/profiles/profile-info.model';
@@ -33,9 +33,18 @@ describe('Navbar Component', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, RouterTestingModule.withRoutes([]), TranslateModule.forRoot(), NgxWebstorageModule.forRoot()],
+      imports: [HttpClientTestingModule, RouterTestingModule.withRoutes([]), TranslateModule.forRoot()],
       declarations: [NavbarComponent],
-      providers: [LoginService],
+      providers: [
+        provideNgxWebstorage(
+          withNgxWebstorageConfig({
+            prefix: 'jhi',
+            separator: '-',
+            caseSensitive: true,
+          }),
+          withLocalStorage(),
+          withSessionStorage(),
+        ),LoginService],
     })
       .overrideTemplate(NavbarComponent, '')
       .compileComponents();

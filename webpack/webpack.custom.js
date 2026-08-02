@@ -162,7 +162,6 @@ const path = require('path');
 const { hashElement } = require('folder-hash');
 const MergeJsonWebpackPlugin = require('merge-jsons-webpack-plugin');
 const postcssRTLCSS = require('postcss-rtlcss');
-const BrowserSyncPlugin = require('browser-sync-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const WebpackNotifierPlugin = require('webpack-notifier');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
@@ -207,42 +206,7 @@ module.exports = async (config, options, targetOptions) => {
     };
   }
 
-  if (targetOptions.target === 'serve' || config.watch) {
-    config.plugins.push(
-      new BrowserSyncPlugin(
-        {
-          host: 'localhost',
-          port: 9000,
-          https: tls,
-          proxy: {
-            target: `http${tls ? 's' : ''}://localhost:${targetOptions.target === 'serve' ? '4200' : '8080'}`,
-            ws: true,
-            proxyOptions: {
-              changeOrigin: false,
-            },
-          },
-          socket: {
-            clients: {
-              heartbeatTimeout: 60000,
-            },
-          },
-          /*
-          ghostMode: {
-            clicks: false,
-            location: false,
-            forms: false,
-            scroll: false,
-          },
-          */
-        },
-        {
-          reload: targetOptions.target === 'build',
-        }
-      )
-    );
-  }
-
-  if (config.mode === 'production') {
+    if (config.mode === 'production') {
     config.plugins.push(
       new BundleAnalyzerPlugin({
         analyzerMode: 'static',

@@ -4,7 +4,7 @@ import com.behsa.medportal.domain.enumeration.Verb;
 
 import java.io.Serializable;
 import java.util.Objects;
-import javax.validation.constraints.*;
+import jakarta.validation.constraints.*;
 
 /**
  * A DTO for the {@link com.behsa.medportal.domain.ResourceAuthorityEntity} entity.

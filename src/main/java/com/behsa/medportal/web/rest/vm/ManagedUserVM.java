@@ -1,8 +1,8 @@
 package com.behsa.medportal.web.rest.vm;
 
 import com.behsa.medportal.service.dto.AdminUserDTO;
-import javax.validation.constraints.Size;
-import javax.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 
 /**
  * View Model extending the AdminUserDTO, which is meant to be used in the user management UI.

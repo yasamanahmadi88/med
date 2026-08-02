@@ -24,11 +24,12 @@ import org.springframework.transaction.annotation.Transactional;
 class DomainUserDetailsServiceIT {
 
     private static final String USER_ONE_LOGIN = "test-user-one";
-    private static final String USER_ONE_EMAIL = "test-user-one@localhost";
+    // commons-validator rejects bare @localhost; use a valid domain so email-login path is exercised.
+    private static final String USER_ONE_EMAIL = "test-user-one@localhost.com";
     private static final String USER_TWO_LOGIN = "test-user-two";
-    private static final String USER_TWO_EMAIL = "test-user-two@localhost";
+    private static final String USER_TWO_EMAIL = "test-user-two@localhost.com";
     private static final String USER_THREE_LOGIN = "test-user-three";
-    private static final String USER_THREE_EMAIL = "test-user-three@localhost";
+    private static final String USER_THREE_EMAIL = "test-user-three@localhost.com";
 
     @Autowired
     private UserRepository userRepository;

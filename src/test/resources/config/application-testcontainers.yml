@@ -1,0 +1,48 @@
+# ===================================================================
+# Oracle Testcontainers integration-test profile (entity ITs).
+#
+# For Liquibase + ddl-auto=none verification use profile
+# oracle-liquibase-testcontainers + application-oracleliquibase.yml.
+#
+# This profile keeps Liquibase OFF and Hibernate ddl-auto=update for the
+# large Failsafe suite performance path.
+# ===================================================================
+
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      auto-commit: false
+      poolName: Hikari
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 10000
+      data-source-properties:
+        oracle.jdbc.timezoneAsRegion: false
+  jpa:
+    database-platform: org.hibernate.dialect.OracleDialect
+    open-in-view: false
+    defer-datasource-initialization: true
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+        implicit-strategy: org.springframework.boot.hibernate.SpringImplicitNamingStrategy
+    properties:
+      hibernate.hbm2ddl.auto: update
+      hibernate.id.new_generator_mappings: true
+      hibernate.connection.provider_disables_autocommit: true
+      hibernate.cache.use_second_level_cache: false
+      hibernate.cache.use_query_cache: false
+      hibernate.generate_statistics: false
+      hibernate.jdbc.time_zone: UTC
+      hibernate.type.preferred_instant_jdbc_type: TIMESTAMP
+      hibernate.query.fail_on_pagination_over_collection_fetch: true
+  liquibase:
+    enabled: false
+    contexts: test
+  sql:
+    init:
+      mode: always
+      continue-on-error: false
+      data-locations: classpath:test-data.sql

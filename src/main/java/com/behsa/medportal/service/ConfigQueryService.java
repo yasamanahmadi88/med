@@ -6,7 +6,7 @@ import com.behsa.medportal.service.criteria.ConfigCriteria;
 import com.behsa.medportal.service.dto.ConfigDTO;
 import com.behsa.medportal.service.mapper.ConfigMapper;
 import java.util.List;
-import javax.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.JoinType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -80,7 +80,7 @@ public class ConfigQueryService extends QueryService<ConfigEntity> {
      * @return the matching {@link Specification} of the entity.
      */
     protected Specification<ConfigEntity> createSpecification(ConfigCriteria criteria) {
-        Specification<ConfigEntity> specification = Specification.where(null);
+        Specification<ConfigEntity> specification = (root, query, criteriaBuilder) -> null;
         if (criteria != null) {
             // This has to be called first, because the distinct method returns null
             if (criteria.getDistinct() != null) {

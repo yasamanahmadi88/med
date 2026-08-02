@@ -12,8 +12,8 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -162,7 +162,7 @@ public class InstanceResource {
     @Secured(ENTITY_NAME)
     public ResponseEntity<List<InstanceDTO>> getAllInstances(
         InstanceCriteria criteria,
-        @org.springdoc.api.annotations.ParameterObject Pageable pageable
+        @org.springdoc.core.annotations.ParameterObject Pageable pageable
     ) {
         log.debug("REST request to get Instances by criteria: {}", criteria);
         Page<InstanceDTO> page = instanceQueryService.findByCriteria(criteria, pageable);

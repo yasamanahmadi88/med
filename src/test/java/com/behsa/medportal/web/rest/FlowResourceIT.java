@@ -14,11 +14,11 @@ import com.behsa.medportal.service.mapper.FlowMapper;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -526,7 +526,7 @@ class FlowResourceIT {
         int databaseSizeBeforeUpdate = flowRepository.findAll().size();
 
         // Update the flow
-        FlowEntity updatedFlowEntity = flowRepository.findById(flowEntity.getId()).get();
+        FlowEntity updatedFlowEntity = flowRepository.findById(flowEntity.getId()).orElseThrow();
         // Disconnect from session so that the updates on updatedFlowEntity are not directly saved in db
         em.detach(updatedFlowEntity);
         updatedFlowEntity.flowName(UPDATED_FLOW_NAME).flowDesc(UPDATED_FLOW_DESC).flow(UPDATED_FLOW);

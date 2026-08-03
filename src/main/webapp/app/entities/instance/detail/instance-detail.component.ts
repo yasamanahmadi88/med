@@ -6,6 +6,7 @@ import { IInstance } from '../instance.model';
 @Component({
   selector: 'jhi-instance-detail',
   templateUrl: './instance-detail.component.html',
+  standalone: false,
 })
 export class InstanceDetailComponent implements OnInit {
   instance: IInstance | null = null;

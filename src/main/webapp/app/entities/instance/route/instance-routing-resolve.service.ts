@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
-import { ActivatedRouteSnapshot, Router } from '@angular/router';
+import { Resolve, ActivatedRouteSnapshot, Router } from '@angular/router';
 import { Observable, of, EMPTY } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
 
@@ -8,10 +8,13 @@ import { IInstance } from '../instance.model';
 import { InstanceService } from '../service/instance.service';
 
 @Injectable({ providedIn: 'root' })
-export class InstanceRoutingResolveService  {
-  constructor(protected service: InstanceService, protected router: Router) {}
+export class InstanceRoutingResolveService implements Resolve<IInstance | null> {
+  constructor(
+    protected service: InstanceService,
+    protected router: Router,
+  ) {}
 
-  resolve(route: ActivatedRouteSnapshot): Observable<IInstance | null> {
+  resolve(route: ActivatedRouteSnapshot): Observable<IInstance | null | never> {
     const id = route.params['id'];
     if (id) {
       return this.service.find(id).pipe(
@@ -22,7 +25,7 @@ export class InstanceRoutingResolveService  {
             this.router.navigate(['404']);
             return EMPTY;
           }
-        })
+        }),
       );
     }
     return of(null);

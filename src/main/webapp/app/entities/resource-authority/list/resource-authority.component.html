@@ -69,7 +69,9 @@
           <td>{{ resourceAuthority.verb }}</td>
           <td>
             <div *ngIf="resourceAuthority.medAuthority">
-              <a [routerLink]="['/med-authority', resourceAuthority.medAuthority.id, 'view']">{{ resourceAuthority.medAuthority.displayName }}</a>
+              <a [routerLink]="['/med-authority', resourceAuthority.medAuthority.id, 'view']">{{
+                resourceAuthority.medAuthority.displayName
+              }}</a>
             </div>
           </td>
           <td>

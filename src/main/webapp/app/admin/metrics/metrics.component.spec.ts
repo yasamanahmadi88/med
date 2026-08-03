@@ -1,4 +1,5 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { vi } from 'vitest';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { of } from 'rxjs';
 
@@ -11,14 +12,14 @@ describe('MetricsComponent', () => {
   let fixture: ComponentFixture<MetricsComponent>;
   let service: MetricsService;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       declarations: [MetricsComponent],
     })
       .overrideTemplate(MetricsComponent, '')
       .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(MetricsComponent);
@@ -29,7 +30,7 @@ describe('MetricsComponent', () => {
   describe('refresh', () => {
     it('should call refresh on init', () => {
       // GIVEN
-      jest.spyOn(service, 'getMetrics').mockReturnValue(of({} as Metrics));
+      vi.spyOn(service, 'getMetrics').mockReturnValue(of({} as Metrics));
 
       // WHEN
       comp.ngOnInit();

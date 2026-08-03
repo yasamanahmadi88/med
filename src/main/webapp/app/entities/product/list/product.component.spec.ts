@@ -1,20 +1,20 @@
+import { vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpHeaders, HttpResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
 
 import { ProductService } from '../service/product.service';
 
 import { ProductComponent } from './product.component';
-import SpyInstance = jest.SpyInstance;
 
 describe('Product Management Component', () => {
   let comp: ProductComponent;
   let fixture: ComponentFixture<ProductComponent>;
   let service: ProductService;
-  let routerNavigateSpy: SpyInstance<Promise<boolean>>;
+  let routerNavigateSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -28,12 +28,12 @@ describe('Product Management Component', () => {
               defaultSort: 'id,asc',
             }),
             queryParamMap: of(
-              jest.requireActual('@angular/router').convertToParamMap({
+              convertToParamMap({
                 page: '1',
                 size: '1',
                 sort: 'id,desc',
                 'filter[someId.in]': 'dc4279ea-cfb9-11ec-9d64-0242ac120002',
-              })
+              }),
             ),
             snapshot: { queryParams: {} },
           },
@@ -46,16 +46,16 @@ describe('Product Management Component', () => {
     fixture = TestBed.createComponent(ProductComponent);
     comp = fixture.componentInstance;
     service = TestBed.inject(ProductService);
-    routerNavigateSpy = jest.spyOn(comp.router, 'navigate');
+    routerNavigateSpy = vi.spyOn(comp.router, 'navigate');
 
     const headers = new HttpHeaders();
-    jest.spyOn(service, 'query').mockReturnValue(
+    vi.spyOn(service, 'query').mockReturnValue(
       of(
         new HttpResponse({
           body: [{ id: 123 }],
           headers,
-        })
-      )
+        }),
+      ),
     );
   });
 
@@ -71,7 +71,7 @@ describe('Product Management Component', () => {
   describe('trackId', () => {
     it('Should forward to productService', () => {
       const entity = { id: 123 };
-      jest.spyOn(service, 'getProductIdentifier');
+      vi.spyOn(service, 'getProductIdentifier');
       const id = comp.trackId(0, entity);
       expect(service.getProductIdentifier).toHaveBeenCalledWith(entity);
       expect(id).toBe(entity.id);
@@ -108,7 +108,7 @@ describe('Product Management Component', () => {
         queryParams: expect.objectContaining({
           sort: ['name,asc'],
         }),
-      })
+      }),
     );
   });
 

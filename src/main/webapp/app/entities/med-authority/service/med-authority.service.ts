@@ -16,7 +16,10 @@ export type EntityArrayResponseType = HttpResponse<IMedAuthority[]>;
 export class MedAuthorityService {
   protected resourceUrl = this.applicationConfigService.getEndpointFor('api/med-authorities');
 
-  constructor(protected http: HttpClient, protected applicationConfigService: ApplicationConfigService) {}
+  constructor(
+    protected http: HttpClient,
+    protected applicationConfigService: ApplicationConfigService,
+  ) {}
 
   create(medAuthority: NewMedAuthority): Observable<EntityResponseType> {
     return this.http.post<IMedAuthority>(this.resourceUrl, medAuthority, { observe: 'response' });
@@ -61,8 +64,8 @@ export class MedAuthorityService {
   ): Type[] {
     const medAuthorities: Type[] = medAuthoritiesToCheck.filter(isPresent);
     if (medAuthorities.length > 0) {
-      const medAuthorityCollectionIdentifiers = medAuthorityCollection.map(
-        medAuthorityItem => this.getMedAuthorityIdentifier(medAuthorityItem)!
+      const medAuthorityCollectionIdentifiers = medAuthorityCollection.map(medAuthorityItem =>
+        this.getMedAuthorityIdentifier(medAuthorityItem),
       );
       const medAuthoritiesToAdd = medAuthorities.filter(medAuthorityItem => {
         const medAuthorityIdentifier = this.getMedAuthorityIdentifier(medAuthorityItem);

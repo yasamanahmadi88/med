@@ -13,7 +13,7 @@
         data-cy="entityCreateButton"
         class="btn btn-primary jh-create-entity create-module"
         [routerLink]="['/module/new']"
-        *jhiHasPermission="['module','create'];op 'OR'"
+        *jhiHasPermission="['module', 'create']; op: 'OR'"
       >
         <fa-icon icon="plus"></fa-icon>
         <span jhiTranslate="medPortalApp.module.home.createLabel"> Create a new Module </span>
@@ -89,7 +89,7 @@
           <td *ngIf="module.status == 1" jhiTranslate="medPortalApp.module.notActive">Not active</td>
           <td>{{ module.loggingMode }}</td>
           <td>
-            <button type="submit"  class="btn btn-sm" (click)="showLoggingFilterDialog(module.loggingFilter)">
+            <button type="submit" class="btn btn-sm" (click)="showLoggingFilterDialog(module.loggingFilter)">
               <fa-icon icon="eye"></fa-icon>
             </button>
           </td>
@@ -113,14 +113,27 @@
               </button>
 
               <button type="submit" [routerLink]="['./', module.id, 'view']" class="btn btn-info btn-sm" title="View">
-                <fa-icon [icon]="faEye" style="color:white"></fa-icon>
+                <fa-icon [icon]="faEye" style="color: white"></fa-icon>
               </button>
 
-              <button type="submit" [routerLink]="['./', module.id, 'edit']" queryParamsHandling="merge" class="btn btn-primary btn-sm" title="Edit" *jhiHasPermission="['module','edit'];op 'OR'">
-                <fa-icon [icon]="faPencil" style="color:white"></fa-icon>
+              <button
+                type="submit"
+                [routerLink]="['./', module.id, 'edit']"
+                queryParamsHandling="merge"
+                class="btn btn-primary btn-sm"
+                title="Edit"
+                *jhiHasPermission="['module', 'edit']; op: 'OR'"
+              >
+                <fa-icon [icon]="faPencil" style="color: white"></fa-icon>
               </button>
 
-              <button type="submit" (click)="delete(module)" class="btn btn-danger btn-sm" data-cy="entityDeleteButton" *jhiHasPermission="['module','delete'];op 'OR'">
+              <button
+                type="submit"
+                (click)="delete(module)"
+                class="btn btn-danger btn-sm"
+                data-cy="entityDeleteButton"
+                *jhiHasPermission="['module', 'delete']; op: 'OR'"
+              >
                 <fa-icon [icon]="faTrash"></fa-icon>
               </button>
             </div>

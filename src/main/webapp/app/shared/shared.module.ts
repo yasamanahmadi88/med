@@ -30,7 +30,7 @@ import { HasPermissionDirective } from './auth/has-permission.directive';
     SortDirective,
     ItemCountComponent,
     FilterComponent,
-    HasPermissionDirective
+    HasPermissionDirective,
   ],
   exports: [
     SharedLibsModule,
@@ -46,7 +46,7 @@ import { HasPermissionDirective } from './auth/has-permission.directive';
     SortDirective,
     ItemCountComponent,
     FilterComponent,
-    HasPermissionDirective
+    HasPermissionDirective,
   ],
 })
 export class SharedModule {}

@@ -5,6 +5,7 @@ import { Services } from 'app/admin/metrics/metrics.model';
 @Component({
   selector: 'jhi-metrics-endpoints-requests',
   templateUrl: './metrics-endpoints-requests.component.html',
+  standalone: false,
 })
 export class MetricsEndpointsRequestsComponent {
   /**

@@ -1,6 +1,6 @@
-import { Component, OnInit, RendererFactory2, Renderer2 } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, RendererFactory2, Renderer2 } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import {Router, ActivatedRouteSnapshot, NavigationEnd, NavigationStart} from '@angular/router';
+import { Router, ActivatedRouteSnapshot, NavigationEnd, NavigationStart } from '@angular/router';
 import { TranslateService, LangChangeEvent } from '@ngx-translate/core';
 import dayjs from 'dayjs/esm';
 
@@ -11,12 +11,12 @@ import { FindLanguageFromKeyPipe } from 'app/shared/language/find-language-from-
   selector: 'jhi-main',
   templateUrl: './main.component.html',
   styleUrls: ['./main.component.scss'],
-
+  standalone: false,
 })
 export class MainComponent implements OnInit {
   private renderer: Renderer2;
-  fullScreen:any = false;
-  isLoginPage:any = false;
+  fullScreen: any = false;
+  isLoginPage: any = false;
 
   constructor(
     private accountService: AccountService,
@@ -24,7 +24,8 @@ export class MainComponent implements OnInit {
     private router: Router,
     private findLanguageFromKeyPipe: FindLanguageFromKeyPipe,
     private translateService: TranslateService,
-    rootRenderer: RendererFactory2
+    private changeDetector: ChangeDetectorRef,
+    rootRenderer: RendererFactory2,
   ) {
     this.renderer = rootRenderer.createRenderer(document.querySelector('html'), null);
   }
@@ -47,15 +48,21 @@ export class MainComponent implements OnInit {
       this.updatePageDirection();
     });
 
-
+    this.updateLayoutState(this.router.url);
     this.router.events.subscribe(value => {
-      if (value instanceof NavigationStart)
-        this.fullScreen = value.url.includes("/bpmn");
+      if (value instanceof NavigationStart) {
+        this.updateLayoutState(value.url);
+      }
+    });
+  }
 
-      if (value instanceof NavigationStart)
-        this.isLoginPage = value.url.includes("/login");
-
-    })
+  private updateLayoutState(url: string | null | undefined): void {
+    const path = url ?? '';
+    setTimeout(() => {
+      this.fullScreen = path.includes('/bpmn');
+      this.isLoginPage = path.includes('/login');
+      this.changeDetector.detectChanges();
+    });
   }
 
   private getPageTitle(routeSnapshot: ActivatedRouteSnapshot): string {
@@ -78,7 +85,7 @@ export class MainComponent implements OnInit {
     this.renderer.setAttribute(
       document.querySelector('html'),
       'dir',
-      this.findLanguageFromKeyPipe.isRTL(this.translateService.currentLang) ? 'rtl' : 'ltr'
+      this.findLanguageFromKeyPipe.isRTL(this.translateService.currentLang) ? 'rtl' : 'ltr',
     );
   }
 }

@@ -24,7 +24,7 @@ describe('Resource Form Service', () => {
             displayName: expect.any(Object),
             apiUri: expect.any(Object),
             resourceType: expect.any(Object),
-          })
+          }),
         );
       });
 
@@ -38,14 +38,13 @@ describe('Resource Form Service', () => {
             displayName: expect.any(Object),
             apiUri: expect.any(Object),
             resourceType: expect.any(Object),
-          })
+          }),
         );
       });
     });
 
     describe('getResource', () => {
       it('should return NewResource for default Resource initial value', () => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const formGroup = service.createResourceFormGroup(sampleWithNewData);
 
         const resource = service.getResource(formGroup) as any;

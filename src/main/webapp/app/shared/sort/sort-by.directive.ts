@@ -8,6 +8,7 @@ import { SortDirective } from './sort.directive';
 
 @Directive({
   selector: '[jhiSortBy]',
+  standalone: false,
 })
 export class SortByDirective<T> implements AfterContentInit, OnDestroy {
   @Input() jhiSortBy!: T;
@@ -48,8 +49,7 @@ export class SortByDirective<T> implements AfterContentInit, OnDestroy {
       if (this.sort.predicate === this.jhiSortBy) {
         icon = this.sort.ascending ? this.sortAscIcon : this.sortDescIcon;
       }
-      this.iconComponent.icon = icon.iconName;
-      this.iconComponent.render();
+      (this.iconComponent as unknown as { icon: IconDefinition }).icon = icon;
     }
   }
 }

@@ -1,0 +1,13 @@
+<li class="nav-item">
+  <button
+    type="button"
+    class="nav-link btn btn-link theme-toggle"
+    data-cy="themeToggle"
+    [attr.aria-label]="ariaLabel"
+    [attr.title]="tooltip"
+    (click)="toggle()"
+  >
+    <fa-icon [icon]="theme === 'dark' ? 'sun' : 'moon'"></fa-icon>
+    <span class="d-md-none ms-1">{{ theme === 'dark' ? 'Light' : 'Dark' }}</span>
+  </button>
+</li>

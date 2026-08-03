@@ -1,4 +1,4 @@
-import { Component, ViewChild, OnInit, AfterViewInit, ElementRef } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild, OnInit, AfterViewInit, ElementRef } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -7,11 +7,13 @@ import { LoginService } from 'app/login/login.service';
 import { AccountService } from 'app/core/auth/account.service';
 import { LocalStorageService } from 'ngx-webstorage';
 import { Login } from './login.model';
+import { StateStorageService } from 'app/core/auth/state-storage.service';
 
 @Component({
   selector: 'jhi-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
+  standalone: false,
 })
 export class LoginComponent implements OnInit, AfterViewInit {
   @ViewChild('username', { static: false }) username!: ElementRef;
@@ -35,7 +37,9 @@ export class LoginComponent implements OnInit, AfterViewInit {
     private accountService: AccountService,
     private loginService: LoginService,
     private router: Router,
-    private http: HttpClient
+    private http: HttpClient,
+    private stateStorageService: StateStorageService,
+    private changeDetector: ChangeDetectorRef,
   ) {
     this.backUrl = this.localStorageService.retrieve('backendUrl') || '';
   }
@@ -63,14 +67,14 @@ export class LoginComponent implements OnInit, AfterViewInit {
         this.captchaId = response.captchaId;
         this.captchaImageUrl = this.backUrl + response.captchaImageUrl;
         this.loginForm.patchValue({ userCaptchaInput: '' });
-        this.isLoading = false;
+        this.stopLoading();
       },
       error: () => {
         this.captchaId = '';
         this.captchaImageUrl = '';
         this.captchaLoadError = true;
         this.authenticationError = true;
-        this.isLoading = false;
+        this.stopLoading();
       },
     });
   }
@@ -88,6 +92,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
     }
 
     const formValue = this.loginForm.getRawValue();
+    const redirectUrl = this.stateStorageService.getUrl();
 
     this.authenticationError = false;
     this.captchaLoadError = false;
@@ -98,21 +103,29 @@ export class LoginComponent implements OnInit, AfterViewInit {
       formValue.password,
       formValue.rememberMe,
       this.captchaId,
-      formValue.userCaptchaInput
+      formValue.userCaptchaInput,
     );
 
     this.loginService.login(credentials).subscribe({
-      next: () => {
+      next: account => {
+        if (!account || !this.accountService.isAuthenticated()) {
+          this.authenticationError = true;
+          this.stopLoading();
+          setTimeout(() => this.loadCaptcha());
+          return;
+        }
         this.authenticationError = false;
-        this.isLoading = false;
-        void this.router.navigate(['']);
+        this.stopLoading();
+        if (!redirectUrl) {
+          void this.router.navigate(['']);
+        }
       },
       error: () => {
         this.authenticationError = true;
-        this.isLoading = false;
+        this.stopLoading();
 
         // Captcha is one-time. Reload it after every failed login attempt.
-        this.loadCaptcha();
+        setTimeout(() => this.loadCaptcha());
       },
     });
   }
@@ -129,5 +142,10 @@ export class LoginComponent implements OnInit, AfterViewInit {
       this.captchaLoadError = false;
       this.loadCaptcha();
     }
+  }
+
+  private stopLoading(): void {
+    this.isLoading = false;
+    this.changeDetector.detectChanges();
   }
 }

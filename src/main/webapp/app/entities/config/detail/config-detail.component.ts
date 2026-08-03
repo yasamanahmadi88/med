@@ -6,6 +6,7 @@ import { IConfig } from '../config.model';
 @Component({
   selector: 'jhi-config-detail',
   templateUrl: './config-detail.component.html',
+  standalone: false,
 })
 export class ConfigDetailComponent implements OnInit {
   config: IConfig | null = null;

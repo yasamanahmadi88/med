@@ -1,4 +1,5 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { vi } from 'vitest';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { of, throwError } from 'rxjs';
@@ -12,14 +13,14 @@ describe('HealthComponent', () => {
   let fixture: ComponentFixture<HealthComponent>;
   let service: HealthService;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       declarations: [HealthComponent],
     })
       .overrideTemplate(HealthComponent, '')
       .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(HealthComponent);
@@ -40,7 +41,7 @@ describe('HealthComponent', () => {
     it('should call refresh on init', () => {
       // GIVEN
       const health: Health = { status: 'UP', components: { mail: { status: 'UP', details: { mailDetail: 'mail' } } } };
-      jest.spyOn(service, 'checkHealth').mockReturnValue(of(health));
+      vi.spyOn(service, 'checkHealth').mockReturnValue(of(health));
 
       // WHEN
       comp.ngOnInit();
@@ -53,7 +54,7 @@ describe('HealthComponent', () => {
     it('should handle a 503 on refreshing health data', () => {
       // GIVEN
       const health: Health = { status: 'DOWN', components: { mail: { status: 'DOWN' } } };
-      jest.spyOn(service, 'checkHealth').mockReturnValue(throwError(new HttpErrorResponse({ status: 503, error: health })));
+      vi.spyOn(service, 'checkHealth').mockReturnValue(throwError(new HttpErrorResponse({ status: 503, error: health })));
 
       // WHEN
       comp.refresh();

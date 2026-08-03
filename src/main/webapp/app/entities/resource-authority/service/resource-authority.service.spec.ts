@@ -37,7 +37,6 @@ describe('ResourceAuthority Service', () => {
     });
 
     it('should create a ResourceAuthority', () => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const resourceAuthority = { ...sampleWithNewData };
       const returnedFromService = { ...requireRestSample };
       const expected = { ...sampleWithRequiredData };

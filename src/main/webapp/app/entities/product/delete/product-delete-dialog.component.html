@@ -7,7 +7,11 @@
 
   <div class="modal-body">
     <jhi-alert-error></jhi-alert-error>
-    <p id="jhi-delete-product-heading" jhiTranslate="medPortalApp.product.delete.question" [translateValues]="{ name: product.productName }">
+    <p
+      id="jhi-delete-product-heading"
+      jhiTranslate="medPortalApp.product.delete.question"
+      [translateValues]="{ name: product.productName }"
+    >
       Are you sure you want to delete Product {{ product.productName }}?
     </p>
   </div>

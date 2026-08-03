@@ -8,10 +8,11 @@ import { ProfileService } from './profile.service';
   selector: 'jhi-page-ribbon',
   template: `
     <div class="ribbon" *ngIf="ribbonEnv$ | async as ribbonEnv">
-      <a href="" jhiTranslate="global.ribbon.{{ ribbonEnv }}">{{ ribbonEnv === 'dev' ? 'Development' : '' }}</a>
+      <a href="" jhiTranslate="global.ribbon.{{ ribbonEnv }}">{{ { dev: 'Development' }[ribbonEnv] || '' }}</a>
     </div>
   `,
   styleUrls: ['./page-ribbon.component.scss'],
+  standalone: false,
 })
 export class PageRibbonComponent implements OnInit {
   ribbonEnv$?: Observable<string | undefined>;

@@ -6,6 +6,7 @@ import { HealthKey, HealthDetails } from '../health.model';
 @Component({
   selector: 'jhi-health-modal',
   templateUrl: './health-modal.component.html',
+  standalone: false,
 })
 export class HealthModalComponent {
   health?: { key: HealthKey; value: HealthDetails };

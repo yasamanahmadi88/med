@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+      Test-only activated account for Oracle Liquibase / Compose verification.
+      Password hash matches liquibase data/user.csv "user" row (plaintext: user).
+      Never included when spring.liquibase.contexts excludes "test".
+    -->
+    <changeSet id="20260711-60-test-liquibase-user" author="upgrade" context="test">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM jhi_user WHERE login = 'liquibaseit'</sqlCheck>
+        </preConditions>
+        <insert tableName="jhi_user">
+            <column name="id" valueNumeric="9001"/>
+            <column name="login" value="liquibaseit"/>
+            <column name="password_hash" value="$2a$10$VEjxo0jq2YG9Rbk2HmX9S.k1uZBGYUHdUcid3g/vfiEl7lwWgOH/K"/>
+            <column name="first_name" value="Liquibase"/>
+            <column name="last_name" value="IT"/>
+            <column name="email" value="liquibaseit@localhost.com"/>
+            <column name="activated" valueBoolean="true"/>
+            <column name="lang_key" value="en"/>
+            <column name="created_by" value="system"/>
+            <!-- Prefer TIMESTAMP over Oracle DATE(sysdate) for Instant mapping. -->
+            <column name="created_date" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="last_modified_date" valueComputed="CURRENT_TIMESTAMP"/>
+        </insert>
+        <insert tableName="jhi_user_authority">
+            <column name="user_id" valueNumeric="9001"/>
+            <column name="authority_id" valueNumeric="1"/>
+        </insert>
+        <insert tableName="jhi_user_authority">
+            <column name="user_id" valueNumeric="9001"/>
+            <column name="authority_id" valueNumeric="2"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

@@ -37,7 +37,7 @@ export class ProductFormService {
         {
           nonNullable: true,
           validators: [Validators.required],
-        }
+        },
       ),
       productName: new FormControl(productRawValue.productName, {
         validators: [Validators.required, Validators.maxLength(3)],
@@ -49,7 +49,7 @@ export class ProductFormService {
   }
 
   getProduct(form: ProductFormGroup): IProduct | NewProduct {
-    return form.getRawValue() as IProduct | NewProduct;
+    return form.getRawValue();
   }
 
   resetForm(form: ProductFormGroup, product: ProductFormGroupInput): void {
@@ -58,7 +58,7 @@ export class ProductFormService {
       {
         ...productRawValue,
         id: { value: productRawValue.id, disabled: true },
-      } as any /* cast to workaround https://github.com/angular/angular/issues/46458 */
+      } /* cast to workaround https://github.com/angular/angular/issues/46458 */,
     );
   }
 

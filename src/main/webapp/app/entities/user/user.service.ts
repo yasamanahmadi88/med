@@ -12,7 +12,10 @@ import { IUser, getUserIdentifier } from './user.model';
 export class UserService {
   private resourceUrl = this.applicationConfigService.getEndpointFor('api/users');
 
-  constructor(private http: HttpClient, private applicationConfigService: ApplicationConfigService) {}
+  constructor(
+    private http: HttpClient,
+    private applicationConfigService: ApplicationConfigService,
+  ) {}
 
   query(req?: Pagination): Observable<HttpResponse<IUser[]>> {
     const options = createRequestOption(req);
@@ -29,7 +32,7 @@ export class UserService {
   ): IUser[] {
     const users: Type[] = usersToCheck.filter(isPresent);
     if (users.length > 0) {
-      const userCollectionIdentifiers = userCollection.map(userItem => getUserIdentifier(userItem)!);
+      const userCollectionIdentifiers = userCollection.map(userItem => getUserIdentifier(userItem));
       const usersToAdd = users.filter(userItem => {
         const userIdentifier = getUserIdentifier(userItem);
         if (userCollectionIdentifiers.includes(userIdentifier)) {

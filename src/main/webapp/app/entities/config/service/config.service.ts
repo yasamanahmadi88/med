@@ -16,7 +16,10 @@ export type EntityArrayResponseType = HttpResponse<IConfig[]>;
 export class ConfigService {
   protected resourceUrl = this.applicationConfigService.getEndpointFor('api/configs');
 
-  constructor(protected http: HttpClient, protected applicationConfigService: ApplicationConfigService) {}
+  constructor(
+    protected http: HttpClient,
+    protected applicationConfigService: ApplicationConfigService,
+  ) {}
 
   create(config: NewConfig): Observable<EntityResponseType> {
     return this.http.post<IConfig>(this.resourceUrl, config, { observe: 'response' });
@@ -57,7 +60,7 @@ export class ConfigService {
   ): Type[] {
     const configs: Type[] = configsToCheck.filter(isPresent);
     if (configs.length > 0) {
-      const configCollectionIdentifiers = configCollection.map(configItem => this.getConfigIdentifier(configItem)!);
+      const configCollectionIdentifiers = configCollection.map(configItem => this.getConfigIdentifier(configItem));
       const configsToAdd = configs.filter(configItem => {
         const configIdentifier = this.getConfigIdentifier(configItem);
         if (configCollectionIdentifiers.includes(configIdentifier)) {

@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
@@ -60,9 +61,9 @@ describe('MedAuthority Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<IMedAuthority>>();
       const medAuthority = { id: 123 };
-      jest.spyOn(medAuthorityFormService, 'getMedAuthority').mockReturnValue(medAuthority);
-      jest.spyOn(medAuthorityService, 'update').mockReturnValue(saveSubject);
-      jest.spyOn(comp, 'previousState');
+      vi.spyOn(medAuthorityFormService, 'getMedAuthority').mockReturnValue(medAuthority);
+      vi.spyOn(medAuthorityService, 'update').mockReturnValue(saveSubject);
+      vi.spyOn(comp, 'previousState');
       activatedRoute.data = of({ medAuthority });
       comp.ngOnInit();
 
@@ -83,9 +84,9 @@ describe('MedAuthority Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<IMedAuthority>>();
       const medAuthority = { id: 123 };
-      jest.spyOn(medAuthorityFormService, 'getMedAuthority').mockReturnValue({ id: null });
-      jest.spyOn(medAuthorityService, 'create').mockReturnValue(saveSubject);
-      jest.spyOn(comp, 'previousState');
+      vi.spyOn(medAuthorityFormService, 'getMedAuthority').mockReturnValue({ id: null });
+      vi.spyOn(medAuthorityService, 'create').mockReturnValue(saveSubject);
+      vi.spyOn(comp, 'previousState');
       activatedRoute.data = of({ medAuthority: null });
       comp.ngOnInit();
 
@@ -106,8 +107,8 @@ describe('MedAuthority Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<IMedAuthority>>();
       const medAuthority = { id: 123 };
-      jest.spyOn(medAuthorityService, 'update').mockReturnValue(saveSubject);
-      jest.spyOn(comp, 'previousState');
+      vi.spyOn(medAuthorityService, 'update').mockReturnValue(saveSubject);
+      vi.spyOn(comp, 'previousState');
       activatedRoute.data = of({ medAuthority });
       comp.ngOnInit();
 

@@ -10,12 +10,12 @@ import { AccountService } from 'app/core/auth/account.service';
 import { LoginService } from 'app/login/login.service';
 import { ProfileService } from 'app/layouts/profiles/profile.service';
 import { EntityNavbarItems } from 'app/entities/entity-navbar-items';
-import { faHistory } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'jhi-navbar',
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss'],
+  standalone: false,
 })
 export class NavbarComponent implements OnInit {
   inProduction?: boolean;
@@ -26,15 +26,13 @@ export class NavbarComponent implements OnInit {
   account: Account | null = null;
   entitiesNavbarItems: any[] = [];
 
-  faHistory = faHistory;
-
   constructor(
     private loginService: LoginService,
     private translateService: TranslateService,
     private sessionStorageService: SessionStorageService,
     private accountService: AccountService,
     private profileService: ProfileService,
-    private router: Router
+    private router: Router,
   ) {
     if (VERSION) {
       this.version = VERSION.toLowerCase().startsWith('v') ? VERSION : `v${VERSION}`;

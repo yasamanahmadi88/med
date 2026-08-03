@@ -16,7 +16,10 @@ export type EntityArrayResponseType = HttpResponse<IResourceAuthority[]>;
 export class ResourceAuthorityService {
   protected resourceUrl = this.applicationConfigService.getEndpointFor('api/resource-authorities');
 
-  constructor(protected http: HttpClient, protected applicationConfigService: ApplicationConfigService) {}
+  constructor(
+    protected http: HttpClient,
+    protected applicationConfigService: ApplicationConfigService,
+  ) {}
 
   create(resourceAuthority: NewResourceAuthority): Observable<EntityResponseType> {
     return this.http.post<IResourceAuthority>(this.resourceUrl, resourceAuthority, { observe: 'response' });
@@ -26,7 +29,7 @@ export class ResourceAuthorityService {
     return this.http.put<IResourceAuthority>(
       `${this.resourceUrl}/${this.getResourceAuthorityIdentifier(resourceAuthority)}`,
       resourceAuthority,
-      { observe: 'response' }
+      { observe: 'response' },
     );
   }
 
@@ -34,7 +37,7 @@ export class ResourceAuthorityService {
     return this.http.patch<IResourceAuthority>(
       `${this.resourceUrl}/${this.getResourceAuthorityIdentifier(resourceAuthority)}`,
       resourceAuthority,
-      { observe: 'response' }
+      { observe: 'response' },
     );
   }
 
@@ -65,8 +68,8 @@ export class ResourceAuthorityService {
   ): Type[] {
     const resourceAuthorities: Type[] = resourceAuthoritiesToCheck.filter(isPresent);
     if (resourceAuthorities.length > 0) {
-      const resourceAuthorityCollectionIdentifiers = resourceAuthorityCollection.map(
-        resourceAuthorityItem => this.getResourceAuthorityIdentifier(resourceAuthorityItem)!
+      const resourceAuthorityCollectionIdentifiers = resourceAuthorityCollection.map(resourceAuthorityItem =>
+        this.getResourceAuthorityIdentifier(resourceAuthorityItem),
       );
       const resourceAuthoritiesToAdd = resourceAuthorities.filter(resourceAuthorityItem => {
         const resourceAuthorityIdentifier = this.getResourceAuthorityIdentifier(resourceAuthorityItem);

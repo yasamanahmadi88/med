@@ -37,7 +37,6 @@ describe('Resource Service', () => {
     });
 
     it('should create a Resource', () => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const resource = { ...sampleWithNewData };
       const returnedFromService = { ...requireRestSample };
       const expected = { ...sampleWithRequiredData };

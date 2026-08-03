@@ -37,7 +37,6 @@ describe('MedAuthority Service', () => {
     });
 
     it('should create a MedAuthority', () => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const medAuthority = { ...sampleWithNewData };
       const returnedFromService = { ...requireRestSample };
       const expected = { ...sampleWithRequiredData };

@@ -5,7 +5,9 @@ import com.behsa.medportal.domain.User;
 import com.behsa.medportal.service.dto.AdminUserDTO;
 import com.behsa.medportal.service.dto.UserDTO;
 
+import java.util.Set;
 import java.util.*;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapping;
@@ -104,7 +106,7 @@ public class UserMapper {
     @Mapping(target = "id", source = "id")
     public Set<UserDTO> toDtoIdSet(Set<User> users) {
         if (users == null) {
-            return Collections.emptySet();
+            return Set.of();
         }
 
         Set<UserDTO> userSet = new HashSet<>();
@@ -135,7 +137,7 @@ public class UserMapper {
     @Mapping(target = "login", source = "login")
     public Set<UserDTO> toDtoLoginSet(Set<User> users) {
         if (users == null) {
-            return Collections.emptySet();
+            return Set.of();
         }
 
         Set<UserDTO> userSet = new HashSet<>();

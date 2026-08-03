@@ -7,7 +7,7 @@ import com.behsa.medportal.service.criteria.ResourceCriteria;
 import com.behsa.medportal.service.dto.ResourceDTO;
 import com.behsa.medportal.service.mapper.ResourceMapper;
 import java.util.List;
-import javax.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.JoinType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -81,7 +81,7 @@ public class ResourceQueryService extends QueryService<ResourceEntity> {
      * @return the matching {@link Specification} of the entity.
      */
     protected Specification<ResourceEntity> createSpecification(ResourceCriteria criteria) {
-        Specification<ResourceEntity> specification = Specification.where(null);
+        Specification<ResourceEntity> specification = (root, query, criteriaBuilder) -> null;
         if (criteria != null) {
             // This has to be called first, because the distinct method returns null
             if (criteria.getDistinct() != null) {

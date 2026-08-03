@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, Routes } from '@angular/router';
+import { Resolve, ActivatedRouteSnapshot, Routes } from '@angular/router';
 import { Observable, of } from 'rxjs';
 
 import { IUser } from './user-management.model';
@@ -9,7 +9,7 @@ import { UserManagementDetailComponent } from './detail/user-management-detail.c
 import { UserManagementUpdateComponent } from './update/user-management-update.component';
 
 @Injectable({ providedIn: 'root' })
-export class UserManagementResolve  {
+export class UserManagementResolve implements Resolve<IUser | null> {
   constructor(private service: UserManagementService) {}
 
   resolve(route: ActivatedRouteSnapshot): Observable<IUser | null> {

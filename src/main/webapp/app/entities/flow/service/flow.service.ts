@@ -16,9 +16,12 @@ export type EntityArrayResponseType = HttpResponse<IFlow[]>;
 export class FlowService {
   protected resourceUrl = this.applicationConfigService.getEndpointFor('api/flows');
 
-  public xmlTemp = "";
+  public xmlTemp = '';
 
-  constructor(protected http: HttpClient, protected applicationConfigService: ApplicationConfigService) {}
+  constructor(
+    protected http: HttpClient,
+    protected applicationConfigService: ApplicationConfigService,
+  ) {}
 
   create(flow: NewFlow): Observable<EntityResponseType> {
     return this.http.post<IFlow>(this.resourceUrl, flow, { observe: 'response' });
@@ -54,11 +57,11 @@ export class FlowService {
   }
 
   saveFlow(xml: string): Observable<HttpResponse<any>> {
-    return this.http.post(`${this.resourceUrl}/save`, xml,{ observe: 'response' });
+    return this.http.post(`${this.resourceUrl}/save`, xml, { observe: 'response' });
   }
 
   isFlowNameValid(flowName: any): Observable<HttpResponse<any>> {
-    return this.http.post(`${this.resourceUrl}/isFlowNameValid`, flowName,{ observe: 'response' });
+    return this.http.post(`${this.resourceUrl}/isFlowNameValid`, flowName, { observe: 'response' });
   }
 
   addFlowToCollectionIfMissing<Type extends Pick<IFlow, 'id'>>(
@@ -67,7 +70,7 @@ export class FlowService {
   ): Type[] {
     const flows: Type[] = flowsToCheck.filter(isPresent);
     if (flows.length > 0) {
-      const flowCollectionIdentifiers = flowCollection.map(flowItem => this.getFlowIdentifier(flowItem)!);
+      const flowCollectionIdentifiers = flowCollection.map(flowItem => this.getFlowIdentifier(flowItem));
       const flowsToAdd = flows.filter(flowItem => {
         const flowIdentifier = this.getFlowIdentifier(flowItem);
         if (flowCollectionIdentifiers.includes(flowIdentifier)) {

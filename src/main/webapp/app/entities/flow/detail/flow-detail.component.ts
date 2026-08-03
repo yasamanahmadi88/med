@@ -6,6 +6,7 @@ import { IFlow } from '../flow.model';
 @Component({
   selector: 'jhi-flow-detail',
   templateUrl: './flow-detail.component.html',
+  standalone: false,
 })
 export class FlowDetailComponent implements OnInit {
   flow: IFlow | null = null;

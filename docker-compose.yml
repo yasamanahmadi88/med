@@ -1,12 +1,46 @@
-version: '3'
+# MedPortal local/CI compose (Java 25 runtime image + Oracle Free)
+# Secrets via environment only — never commit real JWT secrets.
 services:
-  angular-app:
-    build: .
-    ports:
-      - '9000:9000'
-    volumes:
-      - .:/app
-      - /app/node_modules
+  oracle:
+    image: gvenzl/oracle-free:slim
     environment:
-      - CHOKIDAR_USEPOLLING=true
-    command: ['npm', 'run', 'start']
+      ORACLE_PASSWORD: ${ORACLE_PASSWORD:-MedPortal_Oracle_ChangeMe}
+      APP_USER: ${SPRING_DATASOURCE_USERNAME:-MEDIATION}
+      APP_USER_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-MEDIATION}
+    ports:
+      - "1521:1521"
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+
+  medportal:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: med-portal:upgrade
+    depends_on:
+      oracle:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod,api-docs
+      SPRING_LIQUIBASE_CONTEXTS: ${SPRING_LIQUIBASE_CONTEXTS:-prod}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:oracle:thin:@//oracle:1521/FREEPDB1}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-MEDIATION}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-MEDIATION}
+      # Must match application-prod.yml: jhipster.security.authentication.jwt.base64-secret
+      SECURITY_AUTHENTICATION_JWT_BASE64_SECRET: ${SECURITY_AUTHENTICATION_JWT_BASE64_SECRET:?set JWT secret}
+      JHIPSTER_SECURITY_AUTHENTICATION_JWT_BASE64_SECRET: ${SECURITY_AUTHENTICATION_JWT_BASE64_SECRET}
+      CAPTCHA_ENABLED: ${CAPTCHA_ENABLED:-true}
+      JAVA_OPTS: "${JAVA_OPTS:--XX:MaxRAMPercentage=75.0 -Doracle.jdbc.timezoneAsRegion=false}"
+      SPRING_JPA_PROPERTIES_HIBERNATE_TYPE_PREFERRED_INSTANT_JDBC_TYPE: TIMESTAMP
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf \"GET /management/health HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n\" >&3 && cat <&3 | head -n1 | grep -Eq \"200|401|403\"'"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 180s

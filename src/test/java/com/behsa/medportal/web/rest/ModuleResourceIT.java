@@ -15,11 +15,11 @@ import com.behsa.medportal.service.mapper.ModuleMapper;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -890,7 +890,7 @@ class ModuleResourceIT {
         int databaseSizeBeforeUpdate = moduleRepository.findAll().size();
 
         // Update the module
-        ModuleEntity updatedModuleEntity = moduleRepository.findById(moduleEntity.getId()).get();
+        ModuleEntity updatedModuleEntity = moduleRepository.findById(moduleEntity.getId()).orElseThrow();
         // Disconnect from session so that the updates on updatedModuleEntity are not directly saved in db
         em.detach(updatedModuleEntity);
         updatedModuleEntity

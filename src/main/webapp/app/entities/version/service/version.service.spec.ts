@@ -37,7 +37,6 @@ describe('Version Service', () => {
     });
 
     it('should create a Version', () => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const version = { ...sampleWithNewData };
       const returnedFromService = { ...requireRestSample };
       const expected = { ...sampleWithRequiredData };

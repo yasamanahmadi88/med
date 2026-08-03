@@ -9,11 +9,15 @@ import { HealthModalComponent } from './modal/health-modal.component';
 @Component({
   selector: 'jhi-health',
   templateUrl: './health.component.html',
+  standalone: false,
 })
 export class HealthComponent implements OnInit {
   health?: Health;
 
-  constructor(private modalService: NgbModal, private healthService: HealthService) {}
+  constructor(
+    private modalService: NgbModal,
+    private healthService: HealthService,
+  ) {}
 
   ngOnInit(): void {
     this.refresh();

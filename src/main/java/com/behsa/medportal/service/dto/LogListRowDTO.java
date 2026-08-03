@@ -3,7 +3,7 @@ package com.behsa.medportal.service.dto;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
-import javax.validation.constraints.*;
+import jakarta.validation.constraints.*;
 
 /**
  * A DTO for log list rows (summary projection).

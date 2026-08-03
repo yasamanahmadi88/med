@@ -6,6 +6,7 @@ import { LogsService } from './logs.service';
 @Component({
   selector: 'jhi-logs',
   templateUrl: './logs.component.html',
+  standalone: false,
 })
 export class LogsComponent implements OnInit {
   loggers?: Log[];
@@ -26,7 +27,7 @@ export class LogsComponent implements OnInit {
 
   filterAndSort(): void {
     this.filteredAndOrderedLoggers = this.loggers!.filter(
-      logger => !this.filter || logger.name.toLowerCase().includes(this.filter.toLowerCase())
+      logger => !this.filter || logger.name.toLowerCase().includes(this.filter.toLowerCase()),
     ).sort((a, b) => {
       if (a[this.orderProp] < b[this.orderProp]) {
         return this.ascending ? -1 : 1;

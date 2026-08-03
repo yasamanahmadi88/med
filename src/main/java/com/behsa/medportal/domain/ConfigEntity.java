@@ -2,14 +2,14 @@ package com.behsa.medportal.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.Serializable;
-import javax.persistence.*;
-import javax.validation.constraints.*;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 /**
  * A ConfigEntity.
  */
 @Entity
-@Table(name = "MEDIATION.tbl_configs")
+@Table(name = "TBL_CONFIGS")
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class ConfigEntity implements Serializable {
 
@@ -17,7 +17,7 @@ public class ConfigEntity implements Serializable {
 
     @Id
     @GeneratedValue(generator = "AUTR_SEQ_GENERATOR")
-    @SequenceGenerator(name = "AUTR_SEQ_GENERATOR", sequenceName = "CONFIGS_SEQ", allocationSize = 0)
+    @SequenceGenerator(name = "AUTR_SEQ_GENERATOR", sequenceName = "CONFIGS_SEQ", allocationSize = 1)
     @Column(name = "config_key")
     private Long id;
 

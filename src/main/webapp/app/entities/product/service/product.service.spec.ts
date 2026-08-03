@@ -37,7 +37,6 @@ describe('Product Service', () => {
     });
 
     it('should create a Product', () => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const product = { ...sampleWithNewData };
       const returnedFromService = { ...requireRestSample };
       const expected = { ...sampleWithRequiredData };

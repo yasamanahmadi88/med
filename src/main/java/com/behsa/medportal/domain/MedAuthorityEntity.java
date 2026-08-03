@@ -4,11 +4,15 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.*;
-import javax.validation.constraints.*;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 /**
- * A MedAuthorityEntity.
+ * Mediation resource-authorization authority (hierarchical, display name, resource grants).
+ *
+ * <p>Shares table {@code jhi_authority} with {@link Authority}: Spring Security roles are the same
+ * rows (matched by {@code name}). This is intentional product design, not a mistaken duplicate
+ * mapping of two independent concepts onto one physical table without shared identity.
  */
 @Entity
 @Table(name = "jhi_authority")

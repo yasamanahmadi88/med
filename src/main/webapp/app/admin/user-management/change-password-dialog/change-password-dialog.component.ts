@@ -1,19 +1,19 @@
-import {Component, EventEmitter, OnInit, Output, ViewChild} from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { UserService } from 'app/entities/user/user.service';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { PasswordService } from 'app/account/password/password.service';
 import { Account } from 'app/core/auth/account.model';
 import { LoginService } from '../../../login/login.service';
-import {TranslateService} from "@ngx-translate/core";
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'jhi-change-password-dialog',
   templateUrl: './change-password-dialog.component.html',
   styleUrls: ['./change-password-dialog.component.scss'],
+  standalone: false,
 })
 export class ChangePasswordDialogComponent implements OnInit {
-
   @Output() result: EventEmitter<any> = new EventEmitter();
 
   user!: Account;
@@ -30,7 +30,7 @@ export class ChangePasswordDialogComponent implements OnInit {
     public activeModal: NgbActiveModal,
     private fb: FormBuilder,
     protected loginService: LoginService,
-    protected passwordService: PasswordService
+    protected passwordService: PasswordService,
   ) {}
 
   ngOnInit(): void {
@@ -52,19 +52,19 @@ export class ChangePasswordDialogComponent implements OnInit {
       if (!this.user.login) {
         return;
       }
-        this.passwordService.resetPasswordByAdmin(this.user.login, newLocalPass).subscribe(
+      this.passwordService.resetPasswordByAdmin(this.user.login, newLocalPass).subscribe(
         () => {
           this.error = null;
           this.success = 'OK';
           this.clear();
-          this.result.emit("success");
+          this.result.emit('success');
         },
         () => {
           this.success = null;
           this.error = 'ERROR';
           this.clear();
-          this.result.emit("error");
-        }
+          this.result.emit('error');
+        },
       );
     }
   }

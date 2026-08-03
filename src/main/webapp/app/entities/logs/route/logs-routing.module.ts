@@ -4,8 +4,8 @@ import { RouterModule, Routes } from '@angular/router';
 import { UserRouteAccessService } from 'app/core/auth/user-route-access.service';
 import { LogsComponent } from '../list/logs.component';
 import { ASC } from 'app/config/navigation.constants';
-import {LogsDetailComponent} from "../detail/logs-detail.component";
-import {LogsRoutingResolveService} from "./logs-routing-resolve.service";
+import { LogsDetailComponent } from '../detail/logs-detail.component';
+import { LogsRoutingResolveService } from './logs-routing-resolve.service';
 
 const flowRoute: Routes = [
   {

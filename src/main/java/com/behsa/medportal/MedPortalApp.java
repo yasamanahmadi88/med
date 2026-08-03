@@ -7,19 +7,29 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
+import org.springframework.boot.liquibase.autoconfigure.LiquibaseProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.core.env.Environment;
 import tech.jhipster.config.DefaultProfileUtil;
 import tech.jhipster.config.JHipsterConstants;
 
-@SpringBootApplication
+@SpringBootApplication(
+    excludeName = {
+        // problem-spring-web 0.29.x is not Spring Boot 4 / Security 7 compatible
+        // (NoSuchMethodError on HttpSecurity.exceptionHandling). Security entry points
+        // are configured manually in SecurityConfiguration.
+        "org.zalando.problem.spring.web.autoconfigure.security.ProblemSecurityAutoConfiguration",
+        // Jackson 2 Problem modules conflict with Boot 4 / Jackson 3 JsonMapper Instant handling.
+        "org.zalando.problem.spring.web.autoconfigure.ProblemJacksonAutoConfiguration",
+        "org.zalando.problem.spring.web.autoconfigure.ProblemJacksonWebMvcAutoConfiguration",
+    }
+)
 @EnableConfigurationProperties({ LiquibaseProperties.class, ApplicationProperties.class })
 public class MedPortalApp {
 

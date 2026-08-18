@@ -1,5 +1,15 @@
 # CHANGELOG — Platform Upgrade
 
+## [cursor/medportal-complete-b7d5] — 2026-07-18
+
+### Security & login hardening
+
+- Deny public `/api/register`; require env for prod DB credentials and JWT secret
+- Docker Compose requires JWT/DB secrets (no baked production secrets)
+- Remember-me extends both JWT TTL and server-side session inactivity (7 days)
+- Angular: clear auth on `/api/account` failure; admin RBAC bypass in `*jhiHasPermission`; refuse login navigation without account
+- Docs: `docs/upgrade/complete-branch-security-login.md`
+
 ## [upgrade/angular21-java25-springboot-4.0.6] — 2026-07-10
 
 ### Platform

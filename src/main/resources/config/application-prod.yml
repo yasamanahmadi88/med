@@ -37,9 +37,9 @@ spring:
       enabled: false
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:oracle:thin:@//172.18.50.50:1521/IXPDB
-    username: medportal
-    password: 'pass#1401'
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     hikari:
       poolName: Hikari
       auto-commit: false

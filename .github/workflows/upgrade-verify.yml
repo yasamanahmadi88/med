@@ -3,7 +3,8 @@ name: Upgrade verification
 on:
   push:
     branches:
-      - upgrade/angular21-java25-springboot-4.0.6
+      - cursor/medportal-complete-b7d5
+      - main
   pull_request:
     branches:
       - main
@@ -147,6 +148,7 @@ jobs:
 
       - name: Compose config, up, health, login, JWT
         env:
+          SECURITY_AUTHENTICATION_JWT_BASE64_SECRET: bXktc2VjcmV0LWtleS13aGljaC1zaG91bGQtYmUtYXQtbGVhc3QtNjQtY2hhcmFjdGVycy1sb25nLWZvci1ocy01MTI=
           JHIPSTER_SECURITY_AUTHENTICATION_JWT_BASE64_SECRET: bXktc2VjcmV0LWtleS13aGljaC1zaG91bGQtYmUtYXQtbGVhc3QtNjQtY2hhcmFjdGVycy1sb25nLWZvci1ocy01MTI=
           SPRING_LIQUIBASE_CONTEXTS: prod,test
           CAPTCHA_ENABLED: "false"

@@ -86,10 +86,11 @@ public class AuthResource {
                 log.info("Existing admin sessions removed for user: {}", username);
             }
 
-            String jwt = tokenProvider.createToken(
-                authentication,
-                Boolean.TRUE.equals(loginVM.getRememberMe())
-            );
+            boolean rememberMe = Boolean.TRUE.equals(loginVM.getRememberMe());
+            String jwt = tokenProvider.createToken(authentication, rememberMe);
+            long inactivityMinutes = rememberMe
+                ? SecurityCache.REMEMBER_ME_INACTIVITY_MINUTES
+                : securityCache.getDefaultInactivityMinutes();
 
             securityCache.storeSession(
                 authentication.getPrincipal(),
@@ -100,7 +101,8 @@ public class AuthResource {
                 request.getHeader("User-Agent"),
                 LocalDateTime.now(),
                 null,
-                Boolean.TRUE
+                Boolean.TRUE,
+                inactivityMinutes
             );
 
             HttpHeaders httpHeaders = new HttpHeaders();

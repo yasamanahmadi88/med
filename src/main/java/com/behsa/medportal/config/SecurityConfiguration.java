@@ -131,8 +131,11 @@ public class SecurityConfiguration {
                     .requestMatchers("/test/**").permitAll()
                     .requestMatchers("/api/authenticate").permitAll()
                     .requestMatchers("/api/auth/**").permitAll()
-                    .requestMatchers("/api/captcha-endpoint", "/api/captcha-validate", "/api/captcha.png").permitAll()
-                    .requestMatchers("/api/register").permitAll()
+                    //.requestMatchers("/api/captcha-endpoint", "/api/captcha-validate", "/api/captcha.png").permitAll()
+                    .requestMatchers("/api/captcha-endpoint").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/captcha.png").permitAll()
+                    // Public self-registration is disabled for this deployment.
+                    .requestMatchers("/api/register").denyAll()
                     .requestMatchers("/api/activate").permitAll()
                     .requestMatchers("/api/account/reset-password/**").permitAll()
                     .requestMatchers(

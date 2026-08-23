@@ -124,8 +124,8 @@ bucket4j:
     bucket-size: 5
     token-per-minute: 5
   get:
-    bucket-size: 10
-    token-per-minute: 10
+    bucket-size: 1000
+    token-per-minute: 100
   post:
     bucket-size: 5
     token-per-minute: 5

@@ -19,10 +19,10 @@ public class LoginVM {
 
     private Boolean rememberMe;
 
-    @NotBlank
+    
     private String captchaId;
 
-    @NotBlank
+    
     private String captchaToken;
 
     public String getUsername() {

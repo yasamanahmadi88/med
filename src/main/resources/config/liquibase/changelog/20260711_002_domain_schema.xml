@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+      Domain / RBAC / audit schema required by JPA entities with ddl-auto=none.
+      MEDIATION schema tables use unqualified names when the DB user is MEDIATION
+      (Oracle Free Testcontainers / typical production schema owner).
+    -->
+
+    <changeSet id="20260711-20-sequences" author="upgrade">
+        <preConditions onFail="MARK_RAN">
+            <not><sequenceExists sequenceName="USER_SEQ"/></not>
+        </preConditions>
+        <createSequence sequenceName="USER_SEQ" startValue="1000" incrementBy="1"/>
+    </changeSet>
+    <changeSet id="20260711-21-auth-seq" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><sequenceExists sequenceName="AUTH_SEQ"/></not></preConditions>
+        <createSequence sequenceName="AUTH_SEQ" startValue="1000" incrementBy="1"/>
+    </changeSet>
+    <changeSet id="20260711-22-resrc-seq" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><sequenceExists sequenceName="RESRC_SEQ"/></not></preConditions>
+        <createSequence sequenceName="RESRC_SEQ" startValue="1000" incrementBy="1"/>
+    </changeSet>
+    <changeSet id="20260711-23-res-auth-seq" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><sequenceExists sequenceName="RES_AUTH_SEQ"/></not></preConditions>
+        <createSequence sequenceName="RES_AUTH_SEQ" startValue="1000" incrementBy="1"/>
+    </changeSet>
+    <changeSet id="20260711-24-adt-evt-seq" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><sequenceExists sequenceName="ADT_EVT_SEQ"/></not></preConditions>
+        <createSequence sequenceName="ADT_EVT_SEQ" startValue="1000" incrementBy="1"/>
+    </changeSet>
+    <changeSet id="20260711-25-products-seq" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><sequenceExists sequenceName="PRODUCTS_SEQ"/></not></preConditions>
+        <createSequence sequenceName="PRODUCTS_SEQ" startValue="1000" incrementBy="1"/>
+    </changeSet>
+    <changeSet id="20260711-26-flows-seq" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><sequenceExists sequenceName="FLOWS_SEQ"/></not></preConditions>
+        <createSequence sequenceName="FLOWS_SEQ" startValue="1000" incrementBy="1"/>
+    </changeSet>
+    <changeSet id="20260711-27-modules-seq" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><sequenceExists sequenceName="MODULES_SEQ"/></not></preConditions>
+        <createSequence sequenceName="MODULES_SEQ" startValue="1000" incrementBy="1"/>
+    </changeSet>
+    <changeSet id="20260711-28-configs-seq" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><sequenceExists sequenceName="CONFIGS_SEQ"/></not></preConditions>
+        <createSequence sequenceName="CONFIGS_SEQ" startValue="1000" incrementBy="1"/>
+    </changeSet>
+    <changeSet id="20260711-29-log-seq" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><sequenceExists sequenceName="LOG_SEQ"/></not></preConditions>
+        <createSequence sequenceName="LOG_SEQ" startValue="1000" incrementBy="1"/>
+    </changeSet>
+
+    <changeSet id="20260711-30-jhi-resource" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><tableExists tableName="jhi_resource"/></not></preConditions>
+        <createTable tableName="jhi_resource">
+            <column name="id" type="bigint"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="name" type="varchar(200)"><constraints nullable="false"/></column>
+            <column name="display_name" type="varchar(300)"><constraints nullable="false"/></column>
+            <column name="api_uri" type="varchar(1000)"><constraints nullable="false"/></column>
+            <column name="resource_type" type="varchar(255)"><constraints nullable="false"/></column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20260711-31-jhi-resource-authority" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><tableExists tableName="jhi_resource_authority"/></not></preConditions>
+        <createTable tableName="jhi_resource_authority">
+            <column name="id" type="bigint"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="verb" type="varchar(255)"><constraints nullable="false"/></column>
+            <column name="authority_id" type="bigint"><constraints nullable="false"/></column>
+            <column name="resource_id" type="bigint"><constraints nullable="false"/></column>
+        </createTable>
+        <addForeignKeyConstraint
+            baseTableName="jhi_resource_authority" baseColumnNames="authority_id"
+            referencedTableName="jhi_authority" referencedColumnNames="id"
+            constraintName="fk_res_auth_authority"/>
+        <addForeignKeyConstraint
+            baseTableName="jhi_resource_authority" baseColumnNames="resource_id"
+            referencedTableName="jhi_resource" referencedColumnNames="id"
+            constraintName="fk_res_auth_resource"/>
+    </changeSet>
+
+    <changeSet id="20260711-32-audit-event" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><tableExists tableName="jhi_audit_event"/></not></preConditions>
+        <createTable tableName="jhi_audit_event">
+            <column name="event_id" type="bigint"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="principal" type="varchar(255)"><constraints nullable="false"/></column>
+            <column name="event_date" type="timestamp"/>
+            <column name="event_type" type="varchar(255)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20260711-33-audit-event-data" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><tableExists tableName="jhi_audit_event_data"/></not></preConditions>
+        <createTable tableName="jhi_audit_event_data">
+            <column name="event_id" type="bigint"><constraints nullable="false"/></column>
+            <column name="name" type="varchar(255)"><constraints nullable="false"/></column>
+            <column name="value" type="varchar(255)"/>
+        </createTable>
+        <addForeignKeyConstraint
+            baseTableName="jhi_audit_event_data" baseColumnNames="event_id"
+            referencedTableName="jhi_audit_event" referencedColumnNames="event_id"
+            constraintName="fk_audit_event_data"/>
+    </changeSet>
+
+    <changeSet id="20260711-40-tbl-products" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><tableExists tableName="tbl_products"/></not></preConditions>
+        <createTable tableName="tbl_products">
+            <column name="product_key" type="bigint"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="product_name" type="varchar(255)"/>
+            <column name="product_desc" type="varchar(255)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20260711-41-tbl-modules" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><tableExists tableName="tbl_modules"/></not></preConditions>
+        <createTable tableName="tbl_modules">
+            <column name="module_key" type="bigint"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="module_name" type="varchar(50)"><constraints nullable="false"/></column>
+            <column name="default_port" type="varchar(4)"><constraints nullable="false"/></column>
+            <column name="redis_key_prefix" type="varchar(5)"><constraints nullable="false"/></column>
+            <column name="status" type="bigint"><constraints nullable="false"/></column>
+            <column name="logging_mode" type="varchar(255)"><constraints nullable="false"/></column>
+            <column name="logging_filter" type="varchar(500)"/>
+            <column name="dns_name" type="varchar(100)"><constraints nullable="false"/></column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20260711-42-tbl-flows" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><tableExists tableName="tbl_flows"/></not></preConditions>
+        <createTable tableName="tbl_flows">
+            <column name="flow_key" type="bigint"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="flow_name" type="varchar(255)"/>
+            <column name="flow_desc" type="varchar(255)"/>
+            <column name="flow" type="${clobType}"/>
+            <column name="product_name" type="varchar(255)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20260711-43-tbl-configs" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><tableExists tableName="tbl_configs"/></not></preConditions>
+        <createTable tableName="tbl_configs">
+            <column name="config_key" type="bigint"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="property" type="varchar(255)"/>
+            <column name="p_value" type="varchar(255)"/>
+            <column name="comment_desc" type="varchar(255)"/>
+            <column name="module_name" type="varchar(255)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20260711-44-tbl-versions" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><tableExists tableName="tbl_versions"/></not></preConditions>
+        <createTable tableName="tbl_versions">
+            <column name="version_key" type="bigint"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="table_name" type="varchar(255)"/>
+            <column name="module_name" type="varchar(255)"/>
+            <column name="table_version" type="bigint"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20260711-45-tbl-instances" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><tableExists tableName="tbl_instances"/></not></preConditions>
+        <createTable tableName="tbl_instances">
+            <column name="instance_key" type="bigint"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="module_name" type="varchar(255)"/>
+            <column name="port" type="varchar(255)"/>
+            <column name="module_status" type="varchar(255)"/>
+            <column name="last_update_date" type="date"/>
+            <column name="thread_pool_queue_size" type="bigint"/>
+            <column name="module_start_time" type="bigint"/>
+            <column name="total_processed_work" type="bigint"/>
+            <column name="total_processed_task" type="bigint"/>
+            <column name="processed_statistics" type="varchar(255)"/>
+            <column name="host_name" type="varchar(255)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20260711-46-tbl-logs" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><tableExists tableName="tbl_logs"/></not></preConditions>
+        <createTable tableName="tbl_logs">
+            <column name="log_key" type="bigint"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="log_type" type="varchar(100)"/>
+            <column name="msg_type" type="varchar(100)"/>
+            <column name="correlation_id" type="varchar(100)"/>
+            <column name="send_id" type="varchar(50)"/>
+            <column name="reference_type" type="varchar(100)"/>
+            <column name="reference" type="varchar(100)"/>
+            <column name="is_validate" type="bigint"/>
+            <column name="initial_date" type="timestamp"/>
+            <column name="create_date" type="timestamp"/>
+            <column name="expire_date" type="timestamp"/>
+            <column name="module_source" type="varchar(50)"/>
+            <column name="module_destination" type="varchar(50)"/>
+            <column name="source_instance" type="varchar(300)"/>
+            <column name="destination_instance" type="varchar(100)"/>
+            <column name="error" type="varchar(200)"/>
+            <column name="business_error_desc" type="varchar(300)"/>
+            <column name="backend_error_desc" type="varchar(300)"/>
+            <column name="error_details" type="varchar(4000)"/>
+            <column name="check_flag" type="bigint"/>
+            <column name="insert_date" type="timestamp"/>
+            <column name="properties" type="${clobType}"/>
+            <column name="req_message" type="${clobType}"/>
+            <column name="res_message" type="${clobType}"/>
+            <column name="retry_mode" type="varchar(100)"/>
+            <column name="retry_count" type="bigint"/>
+            <column name="retry_destination_module" type="varchar(50)"/>
+            <column name="comment_desc" type="varchar(200)"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Minimal secured resources so ResourceSecuredAuthorizationManager works after Liquibase-only boot. -->
+    <changeSet id="20260711-50-seed-resources" author="upgrade" context="test,dev">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM jhi_resource</sqlCheck>
+        </preConditions>
+        <loadData
+            file="config/liquibase/data/resource_seed.csv"
+            separator=";"
+            tableName="jhi_resource"
+            usePreparedStatements="true">
+            <column name="id" type="numeric"/>
+            <column name="name" type="string"/>
+            <column name="display_name" type="string"/>
+            <column name="api_uri" type="string"/>
+            <column name="resource_type" type="string"/>
+        </loadData>
+    </changeSet>
+
+    <changeSet id="20260711-51-seed-resource-authorities" author="upgrade" context="test,dev">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM jhi_resource_authority</sqlCheck>
+        </preConditions>
+        <loadData
+            file="config/liquibase/data/resource_authority_seed.csv"
+            separator=";"
+            tableName="jhi_resource_authority"
+            usePreparedStatements="true">
+            <column name="id" type="numeric"/>
+            <column name="verb" type="string"/>
+            <column name="authority_id" type="numeric"/>
+            <column name="resource_id" type="numeric"/>
+        </loadData>
+    </changeSet>
+
+</databaseChangeLog>

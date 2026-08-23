@@ -1,0 +1,92 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <form name="editForm" role="form" novalidate (ngSubmit)="save()" [formGroup]="editForm">
+      <h2
+        id="jhi-custom-audit-event-heading"
+        data-cy="CustomAuditEventCreateUpdateHeading"
+        jhiTranslate="medPortalApp.customAuditEvent.home.createOrEditLabel"
+      >
+        Create or edit a Custom Audit Event
+      </h2>
+
+      <div>
+        <jhi-alert-error></jhi-alert-error>
+
+        <div class="row mb-3" *ngIf="editForm.controls.id.value !== null">
+          <label class="form-label" jhiTranslate="global.field.id" for="field_id">ID</label>
+          <input type="number" class="form-control" name="id" id="field_id" data-cy="id" formControlName="id" [readonly]="true" />
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.customAuditEvent.principal" for="field_principal">Principal</label>
+          <input type="text" class="form-control" name="principal" id="field_principal" data-cy="principal" formControlName="principal" />
+          <div *ngIf="editForm.get('principal')!.invalid && (editForm.get('principal')!.dirty || editForm.get('principal')!.touched)">
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('principal')?.errors?.required"
+              jhiTranslate="entity.validation.required"
+            >
+              This field is required.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('principal')?.errors?.maxlength"
+              jhiTranslate="entity.validation.maxlength"
+              [translateValues]="{ max: 50 }"
+            >
+              This field cannot be longer than 50 characters.
+            </small>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.customAuditEvent.eventDate" for="field_eventDate">Event Date</label>
+          <div class="input-group">
+            <input
+              id="field_eventDate"
+              data-cy="eventDate"
+              type="text"
+              class="form-control"
+              name="eventDate"
+              ngbDatepicker
+              #eventDateDp="ngbDatepicker"
+              formControlName="eventDate"
+            />
+            <button type="button" class="btn btn-secondary" (click)="eventDateDp.toggle()"><fa-icon icon="calendar-alt"></fa-icon></button>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.customAuditEvent.eventType" for="field_eventType">Event Type</label>
+          <input type="text" class="form-control" name="eventType" id="field_eventType" data-cy="eventType" formControlName="eventType" />
+          <div *ngIf="editForm.get('eventType')!.invalid && (editForm.get('eventType')!.dirty || editForm.get('eventType')!.touched)">
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('eventType')?.errors?.maxlength"
+              jhiTranslate="entity.validation.maxlength"
+              [translateValues]="{ max: 255 }"
+            >
+              This field cannot be longer than 255 characters.
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <button type="button" id="cancel-save" data-cy="entityCreateCancelButton" class="btn btn-secondary" (click)="previousState()">
+          <fa-icon icon="ban"></fa-icon>&nbsp;<span jhiTranslate="entity.action.cancel">Cancel</span>
+        </button>
+
+        <button
+          type="submit"
+          id="save-entity"
+          data-cy="entityCreateSaveButton"
+          [disabled]="editForm.invalid || isSaving"
+          class="btn btn-primary"
+        >
+          <fa-icon icon="save"></fa-icon>&nbsp;<span jhiTranslate="entity.action.save">Save</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

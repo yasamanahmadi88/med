@@ -1,0 +1,42 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <div *ngIf="customAuditEvent">
+      <h2 data-cy="customAuditEventDetailsHeading">
+        <span jhiTranslate="medPortalApp.customAuditEvent.detail.title">Custom Audit Event</span>
+      </h2>
+
+      <hr />
+
+      <jhi-alert-error></jhi-alert-error>
+
+      <jhi-alert></jhi-alert>
+
+      <dl class="row-md jh-entity-details">
+        <dt><span jhiTranslate="global.field.id">ID</span></dt>
+        <dd>
+          <span>{{ customAuditEvent.id }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.customAuditEvent.principal">Principal</span></dt>
+        <dd>
+          <span>{{ customAuditEvent.principal }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.customAuditEvent.eventDate">Event Date</span></dt>
+        <dd>
+          <span>{{ customAuditEvent.eventDate | formatMediumDate }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.customAuditEvent.eventType">Event Type</span></dt>
+        <dd>
+          <span>{{ customAuditEvent.eventType }}</span>
+        </dd>
+      </dl>
+
+      <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+        <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Back</span>
+      </button>
+
+      <button type="button" [routerLink]="['/custom-audit-event', customAuditEvent.id, 'edit']" class="btn btn-primary">
+        <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Edit</span>
+      </button>
+    </div>
+  </div>
+</div>

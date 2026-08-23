@@ -1,0 +1,46 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <div *ngIf="flow">
+      <h2 data-cy="flowDetailsHeading"><span jhiTranslate="medPortalApp.flow.detail.title">Flow</span></h2>
+
+      <hr />
+
+      <jhi-alert-error></jhi-alert-error>
+
+      <jhi-alert></jhi-alert>
+
+      <dl class="row-md jh-entity-details">
+        <dt><span jhiTranslate="global.field.id">ID</span></dt>
+        <dd>
+          <span>{{ flow.id }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.flow.flowName">Flow Name</span></dt>
+        <dd>
+          <span>{{ flow.flowName }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.flow.flowDesc">Flow Desc</span></dt>
+        <dd>
+          <span>{{ flow.flowDesc }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.flow.flow">Flow</span></dt>
+        <dd>
+          <span>{{ flow.flow }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.flow.product">Product</span></dt>
+        <dd>
+          <div *ngIf="flow.product">
+            <a [routerLink]="['/product', flow.product.id, 'view']">{{ flow.product.id }}</a>
+          </div>
+        </dd>
+      </dl>
+
+      <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+        <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Back</span>
+      </button>
+
+      <button type="button" [routerLink]="['/flow', flow.id, 'edit']" class="btn btn-primary">
+        <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Edit</span>
+      </button>
+    </div>
+  </div>
+</div>

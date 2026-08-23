@@ -1,0 +1,21 @@
+{
+  "medPortalApp": {
+    "reportLogs": {
+      "msgType": "Message Type",
+      "correlationId": "Correlation Id",
+      "referenceType": "Reference Type",
+      "reference": "Reference",
+      "moduleSource": "Module Source",
+      "moduleDestination":"Module Destination",
+      "properties": "Properties",
+      "reqMessage":"Request Message",
+      "resMessage": "Response Message",
+      "error":"Error",
+      "errorDetails": "Error Details",
+      "initialDate":"Initial Date",
+      "createDate": "Create Date",
+      "logType":"Log Type",
+      "detail.title": "جزئیات گزارش لاگ"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "MedPortalApp": {
+    "ResourceType": {
+      "null": "",
+      "DOMAIN": "DOMAIN",
+      "COMPONENT": "COMPONENT",
+      "PAGE_URL": "PAGE_URL"
+    }
+  }
+}

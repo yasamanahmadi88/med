@@ -1,0 +1,111 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <form name="editForm" role="form" novalidate (ngSubmit)="save()" [formGroup]="editForm">
+      <h2 id="jhi-config-heading" data-cy="ConfigCreateUpdateHeading" jhiTranslate="medPortalApp.config.home.createOrEditLabel">
+        Create or edit a Config
+      </h2>
+
+      <div>
+        <jhi-alert-error></jhi-alert-error>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.config.property" for="field_property">Property</label>
+          <input type="text" class="form-control" name="property" id="field_property" data-cy="property" formControlName="property" />
+          <div *ngIf="editForm.get('property')!.invalid && (editForm.get('property')!.dirty || editForm.get('property')!.touched)">
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('property')?.errors?.required"
+              jhiTranslate="entity.validation.required"
+            >
+              This field is required.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('property')?.errors?.maxlength"
+              jhiTranslate="entity.validation.maxlength"
+              [translateValues]="{ max: 100 }"
+            >
+              This field cannot be longer than 100 characters.
+            </small>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.config.pValue" for="field_pValue">P Value</label>
+          <input type="text" class="form-control" name="pValue" id="field_pValue" data-cy="pValue" formControlName="pValue" />
+          <div *ngIf="editForm.get('pValue')!.invalid && (editForm.get('pValue')!.dirty || editForm.get('pValue')!.touched)">
+            <small class="form-text text-danger" *ngIf="editForm.get('pValue')?.errors?.required" jhiTranslate="entity.validation.required">
+              This field is required.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('pValue')?.errors?.maxlength"
+              jhiTranslate="entity.validation.maxlength"
+              [translateValues]="{ max: 300 }"
+            >
+              This field cannot be longer than 300 characters.
+            </small>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.config.commentDesc" for="field_commentDesc">Comment Desc</label>
+          <input
+            type="text"
+            class="form-control"
+            name="commentDesc"
+            id="field_commentDesc"
+            data-cy="commentDesc"
+            formControlName="commentDesc"
+          />
+          <div *ngIf="editForm.get('commentDesc')!.invalid && (editForm.get('commentDesc')!.dirty || editForm.get('commentDesc')!.touched)">
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('commentDesc')?.errors?.maxlength"
+              jhiTranslate="entity.validation.maxlength"
+              [translateValues]="{ max: 200 }"
+            >
+              This field cannot be longer than 200 characters.
+            </small>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.config.module" for="field_module">Module</label>
+          <select
+            class="form-control"
+            id="field_module"
+            data-cy="module"
+            name="module"
+            formControlName="module"
+            [compareWith]="compareModule"
+          >
+            <option *ngIf="editForm.get(['module'])!.value == null" [ngValue]="null" selected></option>
+            <option [ngValue]="moduleOption" *ngFor="let moduleOption of modulesSharedCollection">{{ moduleOption.moduleName }}</option>
+          </select>
+        </div>
+        <div *ngIf="editForm.get(['module'])!.invalid && (editForm.get(['module'])!.dirty || editForm.get(['module'])!.touched)">
+          <small class="form-text text-danger" *ngIf="editForm.get(['module'])?.errors?.required" jhiTranslate="entity.validation.required">
+            This field is required.
+          </small>
+        </div>
+      </div>
+
+      <div>
+        <button type="button" id="cancel-save" data-cy="entityCreateCancelButton" class="btn btn-secondary" (click)="previousState()">
+          <fa-icon icon="ban"></fa-icon>&nbsp;<span jhiTranslate="entity.action.cancel">Cancel</span>
+        </button>
+
+        <button
+          type="submit"
+          id="save-entity"
+          data-cy="entityCreateSaveButton"
+          [disabled]="editForm.invalid || isSaving"
+          class="btn btn-primary"
+        >
+          <fa-icon icon="save"></fa-icon>&nbsp;<span jhiTranslate="entity.action.save">Save</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

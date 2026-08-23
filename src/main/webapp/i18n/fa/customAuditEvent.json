@@ -1,0 +1,27 @@
+{
+  "medPortalApp": {
+    "customAuditEvent": {
+      "home": {
+        "title": "لاگ ممیزی",
+        "refreshListLabel": "به روز رسانی",
+        "createLabel": "Create a new Custom Audit Event",
+        "createOrEditLabel": "Create or edit a Custom Audit Event",
+        "notFound": "موردی یافت نشد"
+      },
+      "created": "A new Custom Audit Event is created with identifier {{ param }}",
+      "updated": "A Custom Audit Event is updated with identifier {{ param }}",
+      "deleted": "A Custom Audit Event is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Custom Audit Event {{ id }}?"
+      },
+      "detail": {
+        "title": "لاگ ممیزی"
+      },
+      "id": "شناسه",
+      "principal": "کاربر",
+      "eventDate": "زمان",
+      "eventType": "نوع رویداد",
+      "moreData": "اطلاعات بیشتر"
+    }
+  }
+}

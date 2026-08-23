@@ -1,0 +1,11 @@
+{
+  "MedPortalApp": {
+    "Verb": {
+      "null": "",
+      "VIEW": "مشاهده",
+      "CREATE": "ایجاد",
+      "EDIT": "ویرایش",
+      "DELETE": "حذف"
+    }
+  }
+}

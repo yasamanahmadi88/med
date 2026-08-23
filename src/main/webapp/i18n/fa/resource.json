@@ -1,0 +1,28 @@
+{
+  "medPortalApp": {
+    "resource": {
+      "home": {
+        "title": "منابع",
+        "refreshListLabel": "به روز رسانی",
+        "createLabel": "ایجاد منبع جدید",
+        "createOrEditLabel": "منبع",
+        "notFound": "موردی یافت نشد"
+      },
+      "created": "مورد {{ param }} ایجاد شد",
+      "updated": "مورد {{ param }} به روز شد",
+      "deleted": "مورد {{ param }} حذف گردید",
+      "delete": {
+        "question": "ایا از حذف {{ id }} مطمئن هستید؟"
+      },
+      "detail": {
+        "title": "منبع"
+      },
+      "id": "شناسه",
+      "name": "نام",
+      "displayName": "نام نمایشی",
+      "apiUri": "آدرس وب سرویس",
+      "resourceType": "نوع منبع",
+      "resourceAuthorities": "مجوز منبع"
+    }
+  }
+}

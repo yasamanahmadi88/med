@@ -1,0 +1,113 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <form name="editForm" role="form" novalidate (ngSubmit)="save()" [formGroup]="editForm">
+      <h2
+        id="jhi-resource-authority-heading"
+        data-cy="ResourceAuthorityCreateUpdateHeading"
+        jhiTranslate="medPortalApp.resourceAuthority.home.createOrEditLabel"
+      >
+        Create or edit a Resource Authority
+      </h2>
+
+      <div>
+        <jhi-alert-error></jhi-alert-error>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.resourceAuthority.verb" for="field_verb">Verb</label>
+          <select class="form-control" name="verb" formControlName="verb" id="field_verb" data-cy="verb">
+            <option [ngValue]="null">{{ 'MedPortalApp.Verb.null' | translate }}</option>
+            <option value="VIEW">{{ 'MedPortalApp.Verb.VIEW' | translate }}</option>
+            <option value="CREATE">{{ 'MedPortalApp.Verb.CREATE' | translate }}</option>
+            <option value="EDIT">{{ 'MedPortalApp.Verb.EDIT' | translate }}</option>
+            <option value="DELETE">{{ 'MedPortalApp.Verb.DELETE' | translate }}</option>
+          </select>
+          <div *ngIf="editForm.get('verb')!.invalid && (editForm.get('verb')!.dirty || editForm.get('verb')!.touched)">
+            <small class="form-text text-danger" *ngIf="editForm.get('verb')?.errors?.required" jhiTranslate="entity.validation.required">
+              This field is required.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('verb')?.errors?.maxlength"
+              jhiTranslate="entity.validation.maxlength"
+              [translateValues]="{ max: 255 }"
+            >
+              This field cannot be longer than 255 characters.
+            </small>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.resourceAuthority.medAuthority" for="field_medAuthority"
+            >Med Authority</label
+          >
+          <select
+            class="form-control"
+            id="field_medAuthority"
+            data-cy="medAuthority"
+            name="medAuthority"
+            formControlName="medAuthority"
+            [compareWith]="compareMedAuthority"
+          >
+            <option *ngIf="editForm.get(['medAuthority'])!.value == null" [ngValue]="null" selected></option>
+            <option [ngValue]="medAuthorityOption" *ngFor="let medAuthorityOption of medAuthoritiesSharedCollection">
+              {{ medAuthorityOption.displayName }}
+            </option>
+          </select>
+        </div>
+        <div
+          *ngIf="
+            editForm.get(['medAuthority'])!.invalid && (editForm.get(['medAuthority'])!.dirty || editForm.get(['medAuthority'])!.touched)
+          "
+        >
+          <small
+            class="form-text text-danger"
+            *ngIf="editForm.get(['medAuthority'])?.errors?.required"
+            jhiTranslate="entity.validation.required"
+          >
+            This field is required.
+          </small>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.resourceAuthority.resource" for="field_resource">Resource</label>
+          <select
+            class="form-control"
+            id="field_resource"
+            data-cy="resource"
+            name="resource"
+            formControlName="resource"
+            [compareWith]="compareResource"
+          >
+            <option *ngIf="editForm.get(['resource'])!.value == null" [ngValue]="null" selected></option>
+            <option [ngValue]="resourceOption" *ngFor="let resourceOption of resourcesSharedCollection">{{ resourceOption.displayName }}</option>
+          </select>
+        </div>
+        <div *ngIf="editForm.get(['resource'])!.invalid && (editForm.get(['resource'])!.dirty || editForm.get(['resource'])!.touched)">
+          <small
+            class="form-text text-danger"
+            *ngIf="editForm.get(['resource'])?.errors?.required"
+            jhiTranslate="entity.validation.required"
+          >
+            This field is required.
+          </small>
+        </div>
+      </div>
+
+      <div>
+        <button type="button" id="cancel-save" data-cy="entityCreateCancelButton" class="btn btn-secondary" (click)="previousState()">
+          <fa-icon icon="ban"></fa-icon>&nbsp;<span jhiTranslate="entity.action.cancel">Cancel</span>
+        </button>
+
+        <button
+          type="submit"
+          id="save-entity"
+          data-cy="entityCreateSaveButton"
+          [disabled]="editForm.invalid || isSaving"
+          class="btn btn-primary"
+        >
+          <fa-icon icon="save"></fa-icon>&nbsp;<span jhiTranslate="entity.action.save">Save</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

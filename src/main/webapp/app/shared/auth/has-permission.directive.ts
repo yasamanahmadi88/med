@@ -54,8 +54,13 @@ export class HasPermissionDirective implements OnDestroy {
   }
 
   private checkPermission(): boolean {
-    if (!this.permissions.length) {
+    if (!this.accountService.isAuthenticated() || !this.permissions.length) {
       return false;
+    }
+
+    // Align with backend ResourceSecuredAuthorizationManager: ROLE_ADMIN bypasses RBAC rows.
+    if (this.accountService.isAdmin()) {
+      return true;
     }
 
     const resourceAuthorities = this.accountService.loggedInUser?.resourceAuthorities || [];
@@ -85,6 +90,4 @@ export class HasPermissionDirective implements OnDestroy {
         Array.isArray(permission) && permission.length === 2 && typeof permission[0] === 'string' && typeof permission[1] === 'string',
     );
   }
-
-  // for use ->     *jhiHasPermission="[['config', 'create'], ['config', 'edit']]; op: 'OR'"
 }

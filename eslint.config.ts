@@ -1,7 +1,6 @@
 import eslint from '@eslint/js';
 import angular from 'angular-eslint';
 import { defineConfig } from 'eslint/config';
-import cypress from 'eslint-plugin-cypress';
 import prettier from 'eslint-plugin-prettier/recommended';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
@@ -149,23 +148,6 @@ export default defineConfig(
       '@angular-eslint/template/label-has-associated-control': 'off',
       '@angular-eslint/template/alt-text': 'off',
       '@angular-eslint/no-empty-lifecycle-method': 'off',
-    },
-  },
-  {
-    files: ['src/test/javascript/cypress/**/*.ts'],
-    extends: [...tseslint.configs.recommendedTypeChecked, cypress.configs.recommended],
-    languageOptions: {
-      parserOptions: {
-        project: ['./src/test/javascript/cypress/tsconfig.json'],
-      },
-    },
-    rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-unsafe-argument': 'off',
-      '@typescript-eslint/no-unsafe-assignment': 'off',
-      '@typescript-eslint/no-unsafe-call': 'off',
-      '@typescript-eslint/no-unsafe-member-access': 'off',
-      '@typescript-eslint/unbound-method': 'off',
     },
   },
   // jhipster-needle-eslint-add-config - JHipster will add additional config here

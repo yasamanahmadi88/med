@@ -107,7 +107,13 @@ export class LoginComponent implements OnInit, AfterViewInit {
     );
 
     this.loginService.login(credentials).subscribe({
-      next: () => {
+      next: account => {
+        if (!account || !this.accountService.isAuthenticated()) {
+          this.authenticationError = true;
+          this.stopLoading();
+          setTimeout(() => this.loadCaptcha());
+          return;
+        }
         this.authenticationError = false;
         this.stopLoading();
         if (!redirectUrl) {

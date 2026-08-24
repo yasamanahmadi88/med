@@ -1,0 +1,235 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <form name="editForm" role="form" novalidate (ngSubmit)="save()" [formGroup]="editForm">
+      <h2 id="jhi-module-heading" data-cy="ModuleCreateUpdateHeading" jhiTranslate="medPortalApp.module.home.createOrEditLabel">
+        Create or edit a Module
+      </h2>
+
+      <div>
+        <jhi-alert-error></jhi-alert-error>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.module.moduleName" for="field_moduleName">Module Name</label>
+          <input
+            type="text"
+            class="form-control"
+            name="moduleName"
+            id="field_moduleName"
+            data-cy="moduleName"
+            formControlName="moduleName"
+          />
+          <div *ngIf="editForm.get('moduleName')!.invalid && (editForm.get('moduleName')!.dirty || editForm.get('moduleName')!.touched)">
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('moduleName')?.errors?.required"
+              jhiTranslate="entity.validation.required"
+            >
+              This field is required.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('moduleName')?.errors?.maxlength"
+              jhiTranslate="entity.validation.maxlength"
+              [translateValues]="{ max: 50 }"
+            >
+              This field cannot be longer than 50 characters.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('moduleName')?.errors?.pattern"
+              jhiTranslate="entity.validation.smallLettersAndDashOnly"
+            >
+              This field can only contain small letters and dashes ( - ).
+            </small>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.module.defaultPort" for="field_defaultPort">Default Port</label>
+          <input
+            type="text"
+            class="form-control"
+            name="defaultPort"
+            id="field_defaultPort"
+            data-cy="defaultPort"
+            formControlName="defaultPort"
+          />
+          <div *ngIf="editForm.get('defaultPort')!.invalid && (editForm.get('defaultPort')!.dirty || editForm.get('defaultPort')!.touched)">
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('defaultPort')?.errors?.required"
+              jhiTranslate="entity.validation.required"
+            >
+              This field is required.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('defaultPort')?.errors?.minlength"
+              jhiTranslate="entity.validation.minlength"
+              [translateValues]="{ min: 4 }"
+            >
+              This field is required to be at least 4 characters.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('defaultPort')?.errors?.maxlength"
+              jhiTranslate="entity.validation.maxlength"
+              [translateValues]="{ max: 4 }"
+            >
+              This field cannot be longer than 4 characters.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('defaultPort')?.errors?.pattern"
+              jhiTranslate="entity.validation.numbersOnly"
+            >
+              This field can only contain numbers.
+            </small>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.module.redisKeyPrefix" for="field_redisKeyPrefix">Redis Key Prefix</label>
+          <input
+            type="text"
+            class="form-control"
+            name="redisKeyPrefix"
+            id="field_redisKeyPrefix"
+            data-cy="redisKeyPrefix"
+            formControlName="redisKeyPrefix"
+          />
+          <div
+            *ngIf="
+              editForm.get('redisKeyPrefix')!.invalid && (editForm.get('redisKeyPrefix')!.dirty || editForm.get('redisKeyPrefix')!.touched)
+            "
+          >
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('redisKeyPrefix')?.errors?.required"
+              jhiTranslate="entity.validation.required"
+            >
+              This field is required.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('redisKeyPrefix')?.errors?.minlength"
+              jhiTranslate="entity.validation.minlength"
+              [translateValues]="{ min: 5 }"
+            >
+              This field is required to be at least 5 characters.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('redisKeyPrefix')?.errors?.maxlength"
+              jhiTranslate="entity.validation.maxlength"
+              [translateValues]="{ max: 5 }"
+            >
+              This field cannot be longer than 5 characters.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('redisKeyPrefix')?.errors?.pattern"
+              jhiTranslate="entity.validation.capitalLettersOnly"
+            >
+              This field can only contain capital letters.
+            </small>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.module.loggingMode" for="field_loggingMode">Logging Mode</label>
+          <select class="form-control" id="field_loggingMode" name="loggingMode" data-cy="loggingMode" formControlName="loggingMode">
+            <option *ngIf="editForm.get(['loggingMode'])!.value == null" [ngValue]="null" selected></option>
+            <option [ngValue]="modesOption" *ngFor="let modesOption of loggingModes">{{ modesOption }}</option>
+          </select>
+          <div *ngIf="editForm.get('loggingMode')!.invalid && (editForm.get('loggingMode')!.dirty || editForm.get('loggingMode')!.touched)">
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('loggingMode')?.errors?.required"
+              jhiTranslate="entity.validation.required"
+            >
+              This field is required.
+            </small>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.module.dnsName" for="field_dnsName">Dns Name</label>
+          <input type="text" class="form-control" name="dnsName" id="field_dnsName" data-cy="dnsName" formControlName="dnsName" />
+          <div *ngIf="editForm.get('dnsName')!.invalid && (editForm.get('dnsName')!.dirty || editForm.get('dnsName')!.touched)">
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('dnsName')?.errors?.required"
+              jhiTranslate="entity.validation.required"
+            >
+              This field is required.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('dnsName')?.errors?.maxlength"
+              jhiTranslate="entity.validation.maxlength"
+              [translateValues]="{ max: 100 }"
+            >
+              This field cannot be longer than 100 characters.
+            </small>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.module.loggingFilter" for="field_loggingFilter">Logging Filter</label>
+          <textarea
+            type="textarea"
+            class="form-control"
+            name="loggingFilter"
+            id="field_loggingFilter"
+            data-cy="loggingFilter"
+            formControlName="loggingFilter"
+            rows="7"
+          ></textarea>
+          <div
+            *ngIf="
+              editForm.get('loggingFilter')!.invalid && (editForm.get('loggingFilter')!.dirty || editForm.get('loggingFilter')!.touched)
+            "
+          >
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('loggingFilter')?.errors?.maxlength"
+              jhiTranslate="entity.validation.maxlength"
+              [translateValues]="{ max: 500 }"
+            >
+              This field cannot be longer than 500 characters.
+            </small>
+          </div>
+        </div>
+
+        <div class="form-check pb-5">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="field_status"
+            name="status"
+            formControlName="status"
+            (change)="checkboxChange($event)"
+          />
+          <span jhiTranslate="medPortalApp.module.active">Active</span>
+        </div>
+      </div>
+
+      <div>
+        <button type="button" id="cancel-save" data-cy="entityCreateCancelButton" class="btn btn-secondary" (click)="previousState()">
+          <fa-icon icon="ban"></fa-icon>&nbsp;<span jhiTranslate="entity.action.cancel">Cancel</span>
+        </button>
+
+        <button
+          type="submit"
+          id="save-entity"
+          data-cy="entityCreateSaveButton"
+          [disabled]="editForm.invalid || isSaving"
+          class="btn btn-primary"
+        >
+          <fa-icon icon="save"></fa-icon>&nbsp;<span jhiTranslate="entity.action.save">Save</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

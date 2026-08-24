@@ -1,0 +1,236 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <form name="editForm" role="form" novalidate (ngSubmit)="save()" [formGroup]="editForm">
+      <h2 id="jhi-instance-heading" data-cy="InstanceCreateUpdateHeading" jhiTranslate="medPortalApp.instance.home.createOrEditLabel">
+        Create or edit a Instance
+      </h2>
+
+      <div>
+        <jhi-alert-error></jhi-alert-error>
+
+        <div class="row mb-3" *ngIf="editForm.controls.id.value !== null">
+          <label class="form-label" jhiTranslate="global.field.id" for="field_id">ID</label>
+          <input type="number" class="form-control" name="id" id="field_id" data-cy="id" formControlName="id" [readonly]="true" />
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.instance.moduleName" for="field_moduleName">Module Name</label>
+          <input
+            type="text"
+            class="form-control"
+            name="moduleName"
+            id="field_moduleName"
+            data-cy="moduleName"
+            formControlName="moduleName"
+          />
+          <div *ngIf="editForm.get('moduleName')!.invalid && (editForm.get('moduleName')!.dirty || editForm.get('moduleName')!.touched)">
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('moduleName')?.errors?.required"
+              jhiTranslate="entity.validation.required"
+            >
+              This field is required.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('moduleName')?.errors?.maxlength"
+              jhiTranslate="entity.validation.maxlength"
+              [translateValues]="{ max: 50 }"
+            >
+              This field cannot be longer than 50 characters.
+            </small>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.instance.port" for="field_port">Port</label>
+          <input type="text" class="form-control" name="port" id="field_port" data-cy="port" formControlName="port" />
+          <div *ngIf="editForm.get('port')!.invalid && (editForm.get('port')!.dirty || editForm.get('port')!.touched)">
+            <small class="form-text text-danger" *ngIf="editForm.get('port')?.errors?.required" jhiTranslate="entity.validation.required">
+              This field is required.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('port')?.errors?.maxlength"
+              jhiTranslate="entity.validation.maxlength"
+              [translateValues]="{ max: 10 }"
+            >
+              This field cannot be longer than 10 characters.
+            </small>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.instance.moduleStatus" for="field_moduleStatus">Module Status</label>
+          <input
+            type="text"
+            class="form-control"
+            name="moduleStatus"
+            id="field_moduleStatus"
+            data-cy="moduleStatus"
+            formControlName="moduleStatus"
+          />
+          <div
+            *ngIf="editForm.get('moduleStatus')!.invalid && (editForm.get('moduleStatus')!.dirty || editForm.get('moduleStatus')!.touched)"
+          >
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('moduleStatus')?.errors?.required"
+              jhiTranslate="entity.validation.required"
+            >
+              This field is required.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('moduleStatus')?.errors?.maxlength"
+              jhiTranslate="entity.validation.maxlength"
+              [translateValues]="{ max: 50 }"
+            >
+              This field cannot be longer than 50 characters.
+            </small>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.instance.lastUpdateDate" for="field_lastUpdateDate">Last Update Date</label>
+          <div class="input-group">
+            <input
+              id="field_lastUpdateDate"
+              data-cy="lastUpdateDate"
+              type="text"
+              class="form-control"
+              name="lastUpdateDate"
+              ngbDatepicker
+              #lastUpdateDateDp="ngbDatepicker"
+              formControlName="lastUpdateDate"
+            />
+            <button type="button" class="btn btn-secondary" (click)="lastUpdateDateDp.toggle()">
+              <fa-icon icon="calendar-alt"></fa-icon>
+            </button>
+          </div>
+          <div
+            *ngIf="
+              editForm.get('lastUpdateDate')!.invalid && (editForm.get('lastUpdateDate')!.dirty || editForm.get('lastUpdateDate')!.touched)
+            "
+          >
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('lastUpdateDate')?.errors?.required"
+              jhiTranslate="entity.validation.required"
+            >
+              This field is required.
+            </small>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.instance.threadPoolQueueSize" for="field_threadPoolQueueSize"
+            >Thread Pool Queue Size</label
+          >
+          <input
+            type="number"
+            class="form-control"
+            name="threadPoolQueueSize"
+            id="field_threadPoolQueueSize"
+            data-cy="threadPoolQueueSize"
+            formControlName="threadPoolQueueSize"
+          />
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.instance.moduleStartTime" for="field_moduleStartTime"
+            >Module Start Time</label
+          >
+          <input
+            type="number"
+            class="form-control"
+            name="moduleStartTime"
+            id="field_moduleStartTime"
+            data-cy="moduleStartTime"
+            formControlName="moduleStartTime"
+          />
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.instance.totalProcessedWork" for="field_totalProcessedWork"
+            >Total Processed Work</label
+          >
+          <input
+            type="number"
+            class="form-control"
+            name="totalProcessedWork"
+            id="field_totalProcessedWork"
+            data-cy="totalProcessedWork"
+            formControlName="totalProcessedWork"
+          />
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.instance.totalProcessedTask" for="field_totalProcessedTask"
+            >Total Processed Task</label
+          >
+          <input
+            type="number"
+            class="form-control"
+            name="totalProcessedTask"
+            id="field_totalProcessedTask"
+            data-cy="totalProcessedTask"
+            formControlName="totalProcessedTask"
+          />
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.instance.processedStatistics" for="field_processedStatistics"
+            >Processed Statistics</label
+          >
+          <input
+            type="text"
+            class="form-control"
+            name="processedStatistics"
+            id="field_processedStatistics"
+            data-cy="processedStatistics"
+            formControlName="processedStatistics"
+          />
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label" jhiTranslate="medPortalApp.instance.hostName" for="field_hostName">Host Name</label>
+          <input type="text" class="form-control" name="hostName" id="field_hostName" data-cy="hostName" formControlName="hostName" />
+          <div *ngIf="editForm.get('hostName')!.invalid && (editForm.get('hostName')!.dirty || editForm.get('hostName')!.touched)">
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('hostName')?.errors?.required"
+              jhiTranslate="entity.validation.required"
+            >
+              This field is required.
+            </small>
+            <small
+              class="form-text text-danger"
+              *ngIf="editForm.get('hostName')?.errors?.maxlength"
+              jhiTranslate="entity.validation.maxlength"
+              [translateValues]="{ max: 50 }"
+            >
+              This field cannot be longer than 50 characters.
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <button type="button" id="cancel-save" data-cy="entityCreateCancelButton" class="btn btn-secondary" (click)="previousState()">
+          <fa-icon icon="ban"></fa-icon>&nbsp;<span jhiTranslate="entity.action.cancel">Cancel</span>
+        </button>
+
+        <button
+          type="submit"
+          id="save-entity"
+          data-cy="entityCreateSaveButton"
+          [disabled]="editForm.invalid || isSaving"
+          class="btn btn-primary"
+        >
+          <fa-icon icon="save"></fa-icon>&nbsp;<span jhiTranslate="entity.action.save">Save</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,26 @@
+{
+  "medPortalApp": {
+    "config": {
+      "home": {
+        "title": "Configs",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Config",
+        "createOrEditLabel": "Create or edit a Config",
+        "notFound": "No Configs found"
+      },
+      "created": "A new Config is created with identifier {{ param }}",
+      "updated": "A Config is updated with identifier {{ param }}",
+      "deleted": "A Config is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "آیا از حذف این تنظیم مطمئن هستید؟"      },
+      "detail": {
+        "title": "Config"
+      },
+      "id": "ID",
+      "property": "Property",
+      "pValue": "P Value",
+      "commentDesc": "Comment Desc",
+      "module": "Module"
+    }
+  }
+}

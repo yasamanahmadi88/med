@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20260517-01-disable-sample-user" author="security">
+        <update tableName="jhi_user">
+            <column name="activated" valueBoolean="false"/>
+            <where>login = 'user'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="20260517-02-update-admin-email" author="security">
+        <update tableName="jhi_user">
+            <column name="email" value="med-portal-admin@behsa.com"/>
+            <where>login = 'admin' AND email = 'admin@localhost'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="20260517-03-disable-default-admin-password" author="security">
+        <comment>
+            Prevent production use of the seeded JHipster admin password without editing the historical seed migration.
+            Environments that already rotated the admin password are not affected.
+        </comment>
+        <update tableName="jhi_user">
+            <column name="activated" valueBoolean="false"/>
+            <column name="reset_key" value="ROTATE_ADMIN_SECRET"/>
+            <where>login = 'admin' AND password_hash = '$2a$10$gSAhZrxMllrbgj/kkK9UceBPpChGWJA7SYIb1Mqo.n5aNLq1/oRrC'</where>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>

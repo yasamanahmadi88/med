@@ -1,0 +1,139 @@
+<div>
+  <h2 id="page-heading" data-cy="MedAuthorityHeading">
+    <span jhiTranslate="medPortalApp.medAuthority.home.title">Med Authorities</span>
+
+    <div class="d-flex justify-content-end">
+      <button class="btn btn-info me-2" (click)="load()" [disabled]="isLoading">
+        <fa-icon icon="sync" [animation]="isLoading ? 'spin' : undefined"></fa-icon>
+        <span jhiTranslate="medPortalApp.medAuthority.home.refreshListLabel">Refresh list</span>
+      </button>
+
+      <button
+        id="jh-create-entity"
+        data-cy="entityCreateButton"
+        class="btn btn-primary jh-create-entity create-med-authority"
+        [routerLink]="['/med-authority/new']"
+      >
+        <fa-icon icon="plus"></fa-icon>
+        <span jhiTranslate="medPortalApp.medAuthority.home.createLabel"> Create a new Med Authority </span>
+      </button>
+    </div>
+  </h2>
+
+  <jhi-alert-error></jhi-alert-error>
+
+  <jhi-alert></jhi-alert>
+
+  <jhi-filter [filters]="filters"></jhi-filter>
+
+  <div class="alert alert-warning" id="no-result" *ngIf="medAuthorities?.length === 0">
+    <span jhiTranslate="medPortalApp.medAuthority.home.notFound">No Med Authorities found</span>
+  </div>
+
+  <div class="table-responsive table-entities" id="entities" *ngIf="medAuthorities && medAuthorities.length > 0">
+    <table class="table table-striped" aria-describedby="page-heading">
+      <thead>
+        <tr jhiSort [(predicate)]="predicate" [(ascending)]="ascending" (sortChange)="navigateToWithComponentValues()">
+          <th scope="col" jhiSortBy="id">
+            <div class="d-flex">
+              <span jhiTranslate="global.field.id">ID</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="name">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.medAuthority.name">Name</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="displayName">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.medAuthority.displayName">Display Name</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col" jhiSortBy="parentId">
+            <div class="d-flex">
+              <span jhiTranslate="medPortalApp.medAuthority.parentId">Parent Id</span>
+              <fa-icon class="p-1" icon="sort"></fa-icon>
+            </div>
+          </th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let medAuthority of medAuthorities; trackBy: trackId" data-cy="entityTable">
+          <td>
+            <a [routerLink]="['/med-authority', medAuthority.id, 'view']">{{ medAuthority.id }}</a>
+          </td>
+          <td>{{ medAuthority.name }}</td>
+          <td>{{ medAuthority.displayName }}</td>
+          <td>
+            <a [routerLink]="['/med-authority', medAuthority.parentId, 'view']">{{ medAuthority.parentDisplayName }}</a>
+          </td>
+          <td class="text-end">
+            <div class="btn-group">
+              <button
+                type="submit"
+                [routerLink]="['/resource-authority']"
+                [queryParams]="{ 'filter[medAuthorityId.in]': medAuthority.id }"
+                class="btn btn-info btn-sm"
+                data-cy="filterOtherEntityButton"
+              >
+                <fa-icon icon="eye"></fa-icon>
+                <span
+                  class="d-none d-md-inline"
+                  jhiTranslate="entity.action.show"
+                  [translateValues]="{ otherEntity: ('medPortalApp.medAuthority.resourceAuthorities' | translate) }"
+                  >Show Resource Authority</span
+                >
+              </button>
+              <button
+                type="submit"
+                [routerLink]="['/med-authority', medAuthority.id, 'view']"
+                class="btn btn-info btn-sm"
+                data-cy="entityDetailsButton"
+              >
+                <fa-icon icon="eye"></fa-icon>
+                <span class="d-none d-md-inline" jhiTranslate="entity.action.view">View</span>
+              </button>
+
+              <button
+                type="submit"
+                [routerLink]="['/med-authority', medAuthority.id, 'edit']"
+                class="btn btn-primary btn-sm"
+                data-cy="entityEditButton"
+              >
+                <fa-icon icon="pencil-alt"></fa-icon>
+                <span class="d-none d-md-inline" jhiTranslate="entity.action.edit">Edit</span>
+              </button>
+
+              <button type="submit" (click)="delete(medAuthority)" class="btn btn-danger btn-sm" data-cy="entityDeleteButton">
+                <fa-icon icon="times"></fa-icon>
+                <span class="d-none d-md-inline" jhiTranslate="entity.action.delete">Delete</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="medAuthorities && medAuthorities.length > 0">
+    <div class="d-flex justify-content-center">
+      <jhi-item-count [params]="{ page: page, totalItems: totalItems, itemsPerPage: itemsPerPage }"></jhi-item-count>
+    </div>
+
+    <div class="d-flex justify-content-center">
+      <ngb-pagination
+        [collectionSize]="totalItems"
+        [page]="page"
+        [pageSize]="itemsPerPage"
+        [maxSize]="5"
+        [rotate]="true"
+        [boundaryLinks]="true"
+        (pageChange)="navigateToPage($event)"
+      ></ngb-pagination>
+    </div>
+  </div>
+</div>

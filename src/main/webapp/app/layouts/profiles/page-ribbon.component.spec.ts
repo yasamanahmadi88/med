@@ -1,0 +1,41 @@
+import { vi } from 'vitest';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { of } from 'rxjs';
+
+import { ProfileInfo } from 'app/layouts/profiles/profile-info.model';
+import { ProfileService } from 'app/layouts/profiles/profile.service';
+
+import { PageRibbonComponent } from './page-ribbon.component';
+
+describe('Page Ribbon Component', () => {
+  let comp: PageRibbonComponent;
+  let fixture: ComponentFixture<PageRibbonComponent>;
+  let profileService: ProfileService;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      declarations: [PageRibbonComponent],
+    })
+      .overrideTemplate(PageRibbonComponent, '')
+      .compileComponents();
+  });
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(PageRibbonComponent);
+    comp = fixture.componentInstance;
+    profileService = TestBed.inject(ProfileService);
+  });
+
+  it('Should call profileService.getProfileInfo on init', () => {
+    // GIVEN
+    vi.spyOn(profileService, 'getProfileInfo').mockReturnValue(of(new ProfileInfo()));
+
+    // WHEN
+    comp.ngOnInit();
+
+    // THEN
+    expect(profileService.getProfileInfo).toHaveBeenCalled();
+  });
+});

@@ -1,0 +1,27 @@
+<!--<div-->
+<!--  [ngStyle]="{'background': isLoginPage ? 'linear-gradient(0deg, rgba(166,45,76,1) 0%, rgba(129,64,113,1) 25%, rgba(103,96,162,1) 100%)' : '', 'height':'100vh'}">-->
+<!--  <div>-->
+<!--    <router-outlet name="navbar"></router-outlet>-->
+<!--  </div>-->
+
+<!--  <div [ngClass]="fullScreen? '' : 'container-fluid'">-->
+<!--    <div  [ngClass]="fullScreen? 'card' : isLoginPage? 'jh-card' : 'card jh-card'">-->
+<!--      <router-outlet></router-outlet>-->
+<!--    </div>-->
+
+<!--    <jhi-footer *ngIf="!fullScreen"></jhi-footer>-->
+<!--  </div>-->
+<!--</div>-->
+<div class="app-root" [class.login-mode]="isLoginPage">
+  <ng-container *ngIf="!isLoginPage">
+    <router-outlet name="navbar"></router-outlet>
+  </ng-container>
+
+  <main [ngClass]="isLoginPage ? 'login-route-host' : fullScreen ? '' : 'container-fluid'">
+    <div [ngClass]="isLoginPage ? '' : fullScreen ? 'card' : 'card jh-card'">
+      <router-outlet></router-outlet>
+    </div>
+
+    <jhi-footer *ngIf="!fullScreen && !isLoginPage"></jhi-footer>
+  </main>
+</div>

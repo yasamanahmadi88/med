@@ -1,0 +1,56 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <div *ngIf="module">
+      <h2 data-cy="moduleDetailsHeading"><span jhiTranslate="medPortalApp.module.detail.title">Module</span></h2>
+
+      <hr />
+
+      <jhi-alert-error></jhi-alert-error>
+
+      <jhi-alert></jhi-alert>
+
+      <dl class="row-md jh-entity-details">
+        <dt><span jhiTranslate="global.field.id">ID</span></dt>
+        <dd>
+          <span>{{ module.id }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.module.moduleName">Module Name</span></dt>
+        <dd>
+          <span>{{ module.moduleName }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.module.defaultPort">Default Port</span></dt>
+        <dd>
+          <span>{{ module.defaultPort }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.module.redisKeyPrefix">Redis Key Prefix</span></dt>
+        <dd>
+          <span>{{ module.redisKeyPrefix }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.module.status">Status</span></dt>
+        <dd>
+          <span>{{ module.status }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.module.loggingMode">Logging Mode</span></dt>
+        <dd>
+          <span>{{ module.loggingMode }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.module.loggingFilter">Logging Filter</span></dt>
+        <dd>
+          <span>{{ module.loggingFilter }}</span>
+        </dd>
+        <dt><span jhiTranslate="medPortalApp.module.dnsName">Dns Name</span></dt>
+        <dd>
+          <span>{{ module.dnsName }}</span>
+        </dd>
+      </dl>
+
+      <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+        <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Back</span>
+      </button>
+
+      <button type="button" [routerLink]="['/module', module.id, 'edit']" class="btn btn-primary">
+        <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Edit</span>
+      </button>
+    </div>
+  </div>
+</div>

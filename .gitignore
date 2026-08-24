@@ -1,0 +1,41 @@
+######################
+# Node
+######################
+/node/
+node_modules/
+
+######################
+# Build / target / Angular
+######################
+/target/
+/build/
+/dist/
+.angular/
+coverage/
+/out-tsc/
+
+######################
+# IDE
+######################
+.idea/
+*.iml
+.vscode/
+*.swp
+
+######################
+# OS
+######################
+.DS_Store
+Thumbs.db
+
+######################
+# Logs / temp
+######################
+*.log
+/extracted/
+*.tmp
+
+######################
+# Source archive (extracted into src/)
+######################
+/src-for-medPortal.rar

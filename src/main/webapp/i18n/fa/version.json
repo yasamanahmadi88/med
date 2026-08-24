@@ -1,0 +1,26 @@
+{
+  "medPortalApp": {
+    "version": {
+      "home": {
+        "title": "Versions",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Version",
+        "createOrEditLabel": "Create or edit a Version",
+        "notFound": "No Versions found"
+      },
+      "created": "A new Version is created with identifier {{ param }}",
+      "updated": "A Version is updated with identifier {{ param }}",
+      "deleted": "A Version is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Version {{ id }}?"
+      },
+      "detail": {
+        "title": "Version"
+      },
+      "id": "ID",
+      "tableName": "Table Name",
+      "moduleName": "Module Name",
+      "tableVersion": "Table Version"
+    }
+  }
+}

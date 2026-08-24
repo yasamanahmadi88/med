@@ -1,0 +1,29 @@
+{
+  "medPortalApp": {
+    "medAuthority": {
+      "home": {
+        "title": "دسترسی ها",
+        "refreshListLabel": "به روز رسانی",
+        "createLabel": "ایجاد دسترسی جدید",
+        "createOrEditLabel": "دسترسی",
+        "notFound": "موردی یافت نشد"
+      },
+      "created": "مورد {{ param }} ایجاد شد",
+      "updated": "مورد {{ param }} به روز شد",
+      "deleted": "مورد {{ param }} حذف گردید",
+      "delete": {
+        "question": "ایا از حذف {{ id }} مطمئن هستید؟"
+      },
+      "detail": {
+        "title": "دسترسی"
+      },
+      "id": "شناسه",
+      "name": "نام",
+      "displayName": "نام نمایشی",
+      "parentId": "والد",
+      "resourceAuthorities": "مجوز منبع"
+    }
+  }
+}
+
+

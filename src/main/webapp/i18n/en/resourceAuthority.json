@@ -1,0 +1,26 @@
+{
+  "medPortalApp": {
+    "resourceAuthority": {
+      "home": {
+        "title": "Resource Authorities",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Resource Authority",
+        "createOrEditLabel": "Create or edit a Resource Authority",
+        "notFound": "No Resource Authorities found"
+      },
+      "created": "A new Resource Authority is created",
+      "updated": "A Resource Authority is updated",
+      "deleted": "A Resource Authority is deleted",
+      "delete": {
+        "question": "Are you sure you want to delete this Resource Authority?"
+      },
+      "detail": {
+        "title": "Resource Authority"
+      },
+      "id": "ID",
+      "verb": "Verb",
+      "medAuthority": "Authority",
+      "resource": "Resource"
+    }
+  }
+}

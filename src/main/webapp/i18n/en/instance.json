@@ -1,0 +1,33 @@
+{
+  "medPortalApp": {
+    "instance": {
+      "home": {
+        "title": "Instances",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Instance",
+        "createOrEditLabel": "Create or edit a Instance",
+        "notFound": "No Instances found"
+      },
+      "created": "A new Instance is created with identifier {{ param }}",
+      "updated": "A Instance is updated with identifier {{ param }}",
+      "deleted": "A Instance is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Instance {{ id }}?"
+      },
+      "detail": {
+        "title": "Instance"
+      },
+      "id": "ID",
+      "moduleName": "Module Name",
+      "port": "Port",
+      "moduleStatus": "Module Status",
+      "lastUpdateDate": "Last Update Date",
+      "threadPoolQueueSize": "Thread Pool Queue Size",
+      "moduleStartTime": "Module Start Time",
+      "totalProcessedWork": "Total Processed Work",
+      "totalProcessedTask": "Total Processed Task",
+      "processedStatistics": "Processed Statistics",
+      "hostName": "Host Name"
+    }
+  }
+}

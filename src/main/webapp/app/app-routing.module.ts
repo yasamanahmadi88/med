@@ -7,7 +7,6 @@ import { DEBUG_INFO_ENABLED } from 'app/app.constants';
 import { Authority } from 'app/config/authority.constants';
 
 import { UserRouteAccessService } from 'app/core/auth/user-route-access.service';
-import {BpmnComponent} from "./entities/bpmn/bpmn.component";
 
 @NgModule({
   imports: [
@@ -34,8 +33,8 @@ import {BpmnComponent} from "./entities/bpmn/bpmn.component";
           loadChildren: () => import(`./entities/entity-routing.module`).then(m => m.EntityRoutingModule),
         },
         {
-          path: 'bpmn',
-          component: BpmnComponent
+          path: 'bpmn-editor',
+          loadChildren: () => import('./bpmn-editor/bpmn-editor.module').then(m => m.BpmnEditorModule),
         },
         navbarRoute,
         ...errorRoute,

@@ -1,0 +1,56 @@
+<div class="settings-container">
+  <button class="settings-toggle" (click)="toggleSettings()" title="Settings">
+    <i class="fas fa-cog"></i>
+  </button>
+
+  <div class="settings-panel" *ngIf="showSettings">
+    <div class="settings-header">
+      <h3>Settings</h3>
+      <button class="close-btn" (click)="closeSettings()">×</button>
+    </div>
+
+    <div class="settings-content">
+      <div class="setting-item">
+        <label>Language:</label>
+        <select
+          [value]="localSettings?.language"
+          (change)="onSettingChange('language', $event)">
+          <option value="zh_CN">中文</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+
+      <div class="setting-item">
+        <label>Background:</label>
+        <select
+          [value]="localSettings?.bg"
+          (change)="onSettingChange('bg', $event)">
+          <option value="white">White</option>
+          <option value="grid">Grid</option>
+          <option value="grid-image">Grid Image</option>
+          <option value="image">Image</option>
+        </select>
+      </div>
+
+      <div class="setting-item">
+        <label>
+          <input
+            type="checkbox"
+            [checked]="localSettings?.toolbar"
+            (change)="onSettingChange('toolbar', $event)">
+          Show Toolbar
+        </label>
+      </div>
+
+      <div class="setting-item">
+        <label>
+          <input
+            type="checkbox"
+            [checked]="localSettings?.miniMap"
+            (change)="onSettingChange('miniMap', $event)">
+          Show Mini Map
+        </label>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,15 @@
+{
+  "name": "FileTransmitter",
+  "prefix": "FileTransmitter",
+  "uri": "FileTransmitter",
+  "xml": {
+    "tagAlias": "lowerCase"
+  },
+  "associations": [],
+  "types": [
+    {
+      "name": "FileTransmitter",
+      "superClass": ["bpmn:Task"]
+    }
+  ]
+}

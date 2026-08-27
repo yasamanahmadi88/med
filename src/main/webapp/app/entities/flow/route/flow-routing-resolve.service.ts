@@ -9,7 +9,10 @@ import { FlowService } from '../service/flow.service';
 
 @Injectable({ providedIn: 'root' })
 export class FlowRoutingResolveService implements Resolve<IFlow | null> {
-  constructor(protected service: FlowService, protected router: Router) {}
+  constructor(
+    protected service: FlowService,
+    protected router: Router,
+  ) {}
 
   resolve(route: ActivatedRouteSnapshot): Observable<IFlow | null | never> {
     const id = route.params['id'];
@@ -22,7 +25,7 @@ export class FlowRoutingResolveService implements Resolve<IFlow | null> {
             this.router.navigate(['404']);
             return EMPTY;
           }
-        })
+        }),
       );
     }
     return of(null);

@@ -4,7 +4,7 @@
 
     <div class="d-flex justify-content-end">
       <button class="btn btn-info me-2" (click)="load()" [disabled]="isLoading">
-        <fa-icon icon="sync" [spin]="isLoading"></fa-icon>
+        <fa-icon icon="sync" [animation]="isLoading ? 'spin' : undefined"></fa-icon>
         <span jhiTranslate="medPortalApp.product.home.refreshListLabel">Refresh list</span>
       </button>
 
@@ -13,7 +13,7 @@
         data-cy="entityCreateButton"
         class="btn btn-primary jh-create-entity create-product"
         [routerLink]="['/product/new']"
-        *jhiHasPermission="['product','create'];op 'OR'"
+        *jhiHasPermission="['product', 'create']; op: 'OR'"
       >
         <fa-icon icon="plus"></fa-icon>
         <span jhiTranslate="medPortalApp.product.home.createLabel"> Create a new Product </span>
@@ -30,8 +30,7 @@
   <div>
     <form name="searchForm" class="form-inline">
       <div class="input-group w-100 mb-3">
-        <input type="text" class="form-control" [(ngModel)]="searchText" id="currentSearch"
-               name="currentSearch">
+        <input type="text" class="form-control" [(ngModel)]="searchText" id="currentSearch" name="currentSearch" />
         <button class="input-group-append btn btn-info" (click)="search(searchText)">
           <fa-icon [icon]="'search'"></fa-icon>
         </button>
@@ -74,10 +73,11 @@
               <button
                 type="submit"
                 [routerLink]="['/flow/new']"
-                [queryParams]="{ 'productId': product.id }"
+                [queryParams]="{ productId: product.id }"
                 class="btn goldenButton btn-sm"
                 style="margin-inline-end: 10px"
-                data-cy="filterOtherEntityButton">
+                data-cy="filterOtherEntityButton"
+              >
                 <fa-icon icon="plus"></fa-icon>
                 <span class="d-none d-md-inline" jhiTranslate="medPortalApp.product.addFlow">Add Flow</span>
               </button>
@@ -103,7 +103,7 @@
                 class="btn btn-info btn-sm"
                 data-cy="entityDetailsButton"
               >
-                <fa-icon [icon]="faEye" style="color:white"></fa-icon>
+                <fa-icon [icon]="faEye" style="color: white"></fa-icon>
               </button>
 
               <button
@@ -111,13 +111,19 @@
                 [routerLink]="['/product', product.id, 'edit']"
                 class="btn btn-primary btn-sm"
                 data-cy="entityEditButton"
-                *jhiHasPermission="['product','edit'];op 'OR'"
+                *jhiHasPermission="['product', 'edit']; op: 'OR'"
               >
-                <fa-icon [icon]="faPencil" style="color:white"></fa-icon>
+                <fa-icon [icon]="faPencil" style="color: white"></fa-icon>
               </button>
 
-              <button type="submit" (click)="delete(product)" class="btn btn-danger btn-sm" data-cy="entityDeleteButton" *jhiHasPermission="['product','delete'];op 'OR'">
-                <fa-icon [icon]="faTrash" style="color:white"></fa-icon>
+              <button
+                type="submit"
+                (click)="delete(product)"
+                class="btn btn-danger btn-sm"
+                data-cy="entityDeleteButton"
+                *jhiHasPermission="['product', 'delete']; op: 'OR'"
+              >
+                <fa-icon [icon]="faTrash" style="color: white"></fa-icon>
               </button>
             </div>
           </td>

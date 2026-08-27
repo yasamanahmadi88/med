@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
@@ -29,6 +30,7 @@ describe('Module Management Update Component', () => {
           provide: ActivatedRoute,
           useValue: {
             params: from([{}]),
+            data: of({ module: null }),
           },
         },
       ],
@@ -60,9 +62,9 @@ describe('Module Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<IModule>>();
       const module = { id: 123 };
-      jest.spyOn(moduleFormService, 'getModule').mockReturnValue(module);
-      jest.spyOn(moduleService, 'update').mockReturnValue(saveSubject);
-      jest.spyOn(comp, 'previousState');
+      vi.spyOn(moduleFormService, 'getModule').mockReturnValue(module);
+      vi.spyOn(moduleService, 'update').mockReturnValue(saveSubject);
+      vi.spyOn(comp, 'previousState');
       activatedRoute.data = of({ module });
       comp.ngOnInit();
 
@@ -83,9 +85,9 @@ describe('Module Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<IModule>>();
       const module = { id: 123 };
-      jest.spyOn(moduleFormService, 'getModule').mockReturnValue({ id: null });
-      jest.spyOn(moduleService, 'create').mockReturnValue(saveSubject);
-      jest.spyOn(comp, 'previousState');
+      vi.spyOn(moduleFormService, 'getModule').mockReturnValue({ id: null });
+      vi.spyOn(moduleService, 'create').mockReturnValue(saveSubject);
+      vi.spyOn(comp, 'previousState');
       activatedRoute.data = of({ module: null });
       comp.ngOnInit();
 
@@ -106,8 +108,8 @@ describe('Module Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<IModule>>();
       const module = { id: 123 };
-      jest.spyOn(moduleService, 'update').mockReturnValue(saveSubject);
-      jest.spyOn(comp, 'previousState');
+      vi.spyOn(moduleService, 'update').mockReturnValue(saveSubject);
+      vi.spyOn(comp, 'previousState');
       activatedRoute.data = of({ module });
       comp.ngOnInit();
 

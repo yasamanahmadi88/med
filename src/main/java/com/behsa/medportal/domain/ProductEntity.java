@@ -4,14 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.*;
-import javax.validation.constraints.*;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 /**
  * A ProductEntity.
  */
 @Entity
-@Table(name = "MEDIATION.tbl_products")
+@Table(name = "TBL_PRODUCTS")
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class ProductEntity implements Serializable {
 
@@ -19,7 +19,7 @@ public class ProductEntity implements Serializable {
 
     @Id
     @GeneratedValue(generator = "AUTR_SEQ_GENERATOR")
-    @SequenceGenerator(name = "AUTR_SEQ_GENERATOR", sequenceName = "MEDIATION.PRODUCTS_SEQ", allocationSize = 0)
+    @SequenceGenerator(name = "AUTR_SEQ_GENERATOR", sequenceName = "PRODUCTS_SEQ", allocationSize = 1)
     @Column(name = "product_key")
     private Long id;
 

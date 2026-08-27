@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import {HttpHeaders, HttpResponse} from '@angular/common/http';
+import { HttpHeaders, HttpResponse } from '@angular/common/http';
 import { ActivatedRoute, Data, ParamMap, Router } from '@angular/router';
 import { combineLatest, filter, Observable, switchMap, tap } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -16,6 +16,7 @@ import { faRandom, faTrash, faEye, faPencil } from '@fortawesome/free-solid-svg-
 @Component({
   selector: 'jhi-product',
   templateUrl: './product.component.html',
+  standalone: false,
 })
 export class ProductComponent implements OnInit {
   products?: IProduct[];
@@ -26,7 +27,7 @@ export class ProductComponent implements OnInit {
   faEye = faEye;
   faPencil = faPencil;
 
-  searchText!: string ;
+  searchText!: string;
   reverse = false;
 
   predicate = 'id';
@@ -41,7 +42,7 @@ export class ProductComponent implements OnInit {
     protected productService: ProductService,
     protected activatedRoute: ActivatedRoute,
     public router: Router,
-    protected modalService: NgbModal
+    protected modalService: NgbModal,
   ) {}
 
   trackId = (_index: number, item: IProduct): number => this.productService.getProductIdentifier(item);
@@ -59,7 +60,7 @@ export class ProductComponent implements OnInit {
     modalRef.closed
       .pipe(
         filter(reason => reason === ITEM_DELETED_EVENT),
-        switchMap(() => this.loadFromBackendWithRouteInformations())
+        switchMap(() => this.loadFromBackendWithRouteInformations()),
       )
       .subscribe({
         next: (res: EntityArrayResponseType) => {
@@ -99,7 +100,7 @@ export class ProductComponent implements OnInit {
   protected loadFromBackendWithRouteInformations(): Observable<EntityArrayResponseType> {
     return combineLatest([this.activatedRoute.queryParamMap, this.activatedRoute.data]).pipe(
       tap(([params, data]) => this.fillComponentAttributeFromRoute(params, data)),
-      switchMap(() => this.queryBackend(this.page, this.predicate, this.ascending, this.filters.filterOptions))
+      switchMap(() => this.queryBackend(this.page, this.predicate, this.ascending, this.filters.filterOptions)),
     );
   }
 
@@ -130,7 +131,7 @@ export class ProductComponent implements OnInit {
     page?: number,
     predicate?: string,
     ascending?: boolean,
-    filterOptions?: IFilterOption[]
+    filterOptions?: IFilterOption[],
   ): Observable<EntityArrayResponseType> {
     this.isLoading = true;
     const pageToLoad: number = page ?? 1;
@@ -142,7 +143,7 @@ export class ProductComponent implements OnInit {
     filterOptions?.forEach(filterOption => {
       queryObject[filterOption.name] = filterOption.values;
     });
-    return this.productService.query(queryObject).pipe(finalize(() => (this.isLoading = false)));
+    return this.productService.query(queryObject).pipe(tap(() => (this.isLoading = false)));
   }
 
   protected handleNavigation(page = this.page, predicate?: string, ascending?: boolean, filterOptions?: IFilterOption[]): void {

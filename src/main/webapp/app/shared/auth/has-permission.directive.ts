@@ -6,6 +6,7 @@ type PermissionOperator = 'AND' | 'OR';
 
 @Directive({
   selector: '[jhiHasPermission]',
+  standalone: false,
 })
 export class HasPermissionDirective implements OnDestroy {
   private permissions: string[][] = [];
@@ -16,11 +17,9 @@ export class HasPermissionDirective implements OnDestroy {
   constructor(
     private accountService: AccountService,
     private templateRef: TemplateRef<unknown>,
-    private viewContainerRef: ViewContainerRef
+    private viewContainerRef: ViewContainerRef,
   ) {
-    this.authenticationSubscription = this.accountService
-      .getAuthenticationState()
-      .subscribe(() => this.updateView());
+    this.authenticationSubscription = this.accountService.getAuthenticationState().subscribe(() => this.updateView());
   }
 
   @Input()
@@ -55,18 +54,23 @@ export class HasPermissionDirective implements OnDestroy {
   }
 
   private checkPermission(): boolean {
-    if (!this.permissions.length) {
+    if (!this.accountService.isAuthenticated() || !this.permissions.length) {
       return false;
+    }
+
+    // Align with backend ResourceSecuredAuthorizationManager: ROLE_ADMIN bypasses RBAC rows.
+    if (this.accountService.isAdmin()) {
+      return true;
     }
 
     const resourceAuthorities = this.accountService.loggedInUser?.resourceAuthorities || [];
 
     const checks = this.permissions.map(([resourceName, verb]) =>
-      resourceAuthorities.some(
-        resourceAuthority =>
-          resourceAuthority.resource?.name?.toUpperCase() === resourceName.toUpperCase() &&
-          resourceAuthority.verb?.toUpperCase() === verb.toUpperCase()
-      )
+      resourceAuthorities.some(resourceAuthority => {
+        const name = resourceAuthority.resource?.name;
+        const authorityVerb = String(resourceAuthority.verb ?? '');
+        return !!name && name.toUpperCase() === resourceName.toUpperCase() && authorityVerb.toUpperCase() === verb.toUpperCase();
+      }),
     );
 
     return this.operator === 'OR' ? checks.some(Boolean) : checks.every(Boolean);
@@ -83,14 +87,7 @@ export class HasPermissionDirective implements OnDestroy {
 
     return (value as string[][]).filter(
       permission =>
-        Array.isArray(permission) &&
-        permission.length === 2 &&
-        typeof permission[0] === 'string' &&
-        typeof permission[1] === 'string'
+        Array.isArray(permission) && permission.length === 2 && typeof permission[0] === 'string' && typeof permission[1] === 'string',
     );
   }
-
-
-     // for use ->     *jhiHasPermission="[['config', 'create'], ['config', 'edit']]; op: 'OR'"
-
 }

@@ -11,6 +11,7 @@ import { InstanceService } from '../service/instance.service';
 @Component({
   selector: 'jhi-instance-update',
   templateUrl: './instance-update.component.html',
+  standalone: false,
 })
 export class InstanceUpdateComponent implements OnInit {
   isSaving = false;
@@ -21,7 +22,7 @@ export class InstanceUpdateComponent implements OnInit {
   constructor(
     protected instanceService: InstanceService,
     protected instanceFormService: InstanceFormService,
-    protected activatedRoute: ActivatedRoute
+    protected activatedRoute: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {

@@ -5,7 +5,7 @@ import com.behsa.medportal.domain.LogEntity;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
-import javax.validation.constraints.*;
+import jakarta.validation.constraints.*;
 
 /**
  * A DTO for the {@link LogEntity} entity.

@@ -2,6 +2,10 @@
   "compilerOptions": {
     "baseUrl": "src/main/webapp/",
     "outDir": "./target/out-tsc/root",
+    // Declaration files are not type-checked: bpmn-editor/types/declares/* are hand-written
+    // ambient shims for untyped bpmn-js/diagram-js internals, and diagram-js ships its own
+    // .d.ts that trips noImplicitAny. This is the Angular CLI default.
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "strictNullChecks": true,

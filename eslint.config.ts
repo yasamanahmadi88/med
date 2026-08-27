@@ -138,6 +138,17 @@ export default defineConfig(
     },
   },
   {
+    // Hand-written ambient shims describing bpmn-js/diagram-js internals, which ship no types of
+    // their own. They model untyped JS callbacks as `Function` and mirror the libraries' generic
+    // signatures, so these two rules fire throughout without pointing at anything fixable.
+    // Scoped to the declaration files: the editor's own code is linted under the full rule set.
+    files: ['src/main/webapp/app/bpmn-editor/types/**/*.d.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-function-type': 'off',
+      '@typescript-eslint/no-unnecessary-type-parameters': 'off',
+    },
+  },
+  {
     files: ['src/main/webapp/**/*.html'],
     extends: [...angular.configs.templateRecommended, ...angular.configs.templateAccessibility],
     rules: {

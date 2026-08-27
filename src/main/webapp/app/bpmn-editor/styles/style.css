@@ -1,0 +1,39 @@
+html, body {
+    touch-action: manipulation;
+}
+.djs-palette-entries{
+    /*background: #FFFFFF fixed center;*/
+    /*background-size: cover;*/
+    /*overflow: inherit !important;*/
+    /*margin: 0;*/
+    /*padding: 0;*/
+    /*top: 0;*/
+}
+
+
+
+
+@media (min-resolution: 0.1dppx) {
+    body {
+        background: transparent;
+    }
+    .djs-container {
+        overflow: auto !important;
+    }
+
+
+}
+
+/* Styles for standard resolution displays */
+@media (max-resolution: 1dppx) {
+    body {
+        background: transparent;
+    }
+    .djs-container {
+        overflow: hidden !important;
+    }
+}
+
+.bjs-breadcrumbs{
+    display: none;
+}

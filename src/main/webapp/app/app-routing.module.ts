@@ -37,6 +37,11 @@ import { BpmnComponent } from './entities/bpmn/bpmn.component';
           path: 'bpmn',
           component: BpmnComponent,
         },
+        {
+          path: 'bpmn-editor',
+          canActivate: [UserRouteAccessService],
+          loadChildren: () => import('./bpmn-editor/bpmn-editor.module').then(m => m.BpmnEditorModule),
+        },
         navbarRoute,
         ...errorRoute,
       ],

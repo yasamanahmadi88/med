@@ -12,6 +12,7 @@ import { ASC, DESC, SORT, DEFAULT_SORT_DATA } from 'app/config/navigation.consta
 import { EntityArrayResponseType, LogReportService } from '../service/logs.service';
 import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/filter.model';
 import { IProduct } from '../../product/product.model';
+import {finalize} from "rxjs/operators";
 
 @Component({
   selector: 'jhi-flow',
@@ -126,7 +127,7 @@ export class LogsComponent implements OnInit {
     filterOptions?.forEach(filterOption => {
       queryObject[filterOption.name] = filterOption.values;
     });
-    return this.logReportService.query(queryObject).pipe(tap(() => (this.isLoading = false)));
+    return this.logReportService.query(queryObject).pipe(finalize(() => (this.isLoading = false)));
   }
 
   protected handleNavigation(page = this.page, predicate?: string, ascending?: boolean, filterOptions?: IFilterOption[]): void {

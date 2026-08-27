@@ -11,6 +11,7 @@ import { ASC, DESC, SORT, ITEM_DELETED_EVENT, DEFAULT_SORT_DATA } from 'app/conf
 import { EntityArrayResponseType, VersionService } from '../service/version.service';
 import { VersionDeleteDialogComponent } from '../delete/version-delete-dialog.component';
 import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/filter.model';
+import {finalize} from "rxjs/operators";
 
 @Component({
   selector: 'jhi-version',
@@ -132,7 +133,7 @@ export class VersionComponent implements OnInit, OnDestroy {
     filterOptions?.forEach(filterOption => {
       queryObject[filterOption.name] = filterOption.values;
     });
-    return this.versionService.query(queryObject).pipe(tap(() => (this.isLoading = false)));
+    return this.versionService.query(queryObject).pipe(finalize(() => (this.isLoading = false)));
   }
 
   protected handleNavigation(page = this.page, predicate?: string, ascending?: boolean, filterOptions?: IFilterOption[]): void {

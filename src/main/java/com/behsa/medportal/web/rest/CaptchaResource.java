@@ -35,14 +35,14 @@ public class CaptchaResource {
         );
     }
 
-    @PostMapping("/captcha-validate")
-    public Map<String, Boolean> validateCaptcha(@RequestBody CaptchaValidateRequest request) {
-        boolean valid = request != null
-            && request.captchaId() != null
-            && localCaptchaService.verifyAndConsume(request.captchaId(), request.userInput());
-
-        return Map.of("valid", valid);
-    }
+//    @PostMapping("/captcha-validate")
+//    public Map<String, Boolean> validateCaptcha(@RequestBody CaptchaValidateRequest request) {
+//        boolean valid = request != null
+//            && request.captchaId() != null
+//            && localCaptchaService.verifyAndConsume(request.captchaId(), request.userInput());
+//
+//        return Map.of("valid", valid);
+//    }
 
     @GetMapping(value = "/captcha.png", produces = MediaType.IMAGE_PNG_VALUE)
     public ResponseEntity<byte[]> image(@RequestParam("cid") String captchaId) {

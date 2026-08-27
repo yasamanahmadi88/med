@@ -135,7 +135,7 @@ public class SecurityConfiguration {
                     .requestMatchers("/api/captcha-endpoint").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/captcha.png").permitAll()
                     // Public self-registration is disabled for this deployment.
-                    .requestMatchers("/api/register").denyAll()
+                    .requestMatchers("/api/register").hasAuthority(AuthoritiesConstants.ADMIN)
                     .requestMatchers("/api/activate").permitAll()
                     .requestMatchers("/api/account/reset-password/**").permitAll()
                     .requestMatchers(
@@ -168,7 +168,7 @@ public class SecurityConfiguration {
                         "/management/loggers/**",
                         "/management/metrics",
                         "/management/metrics/**"
-                    ).denyAll()
+                    ).hasAuthority(AuthoritiesConstants.ADMIN)
                     .requestMatchers("/management/**").hasAuthority(AuthoritiesConstants.ADMIN)
                     // SPA shell + hashed Angular assets (API/management already matched above).
                     .requestMatchers(

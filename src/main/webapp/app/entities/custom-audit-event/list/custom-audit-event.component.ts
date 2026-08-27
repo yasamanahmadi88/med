@@ -12,6 +12,7 @@ import { EntityArrayResponseType, CustomAuditEventService } from '../service/cus
 import { CustomAuditEventDeleteDialogComponent } from '../delete/custom-audit-event-delete-dialog.component';
 import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/filter.model';
 import { SimpleTextDialogService } from '../../../layouts/simple-text-dialog/simple-text-dialog.service';
+import {finalize} from "rxjs/operators";
 
 @Component({
   selector: 'jhi-custom-audit-event',
@@ -124,7 +125,7 @@ export class CustomAuditEventComponent implements OnInit {
     filterOptions?.forEach(filterOption => {
       queryObject[filterOption.name] = filterOption.values;
     });
-    return this.customAuditEventService.query(queryObject).pipe(tap(() => (this.isLoading = false)));
+    return this.customAuditEventService.query(queryObject).pipe(finalize(() => (this.isLoading = false)));
   }
 
   protected handleNavigation(page = this.page, predicate?: string, ascending?: boolean, filterOptions?: IFilterOption[]): void {

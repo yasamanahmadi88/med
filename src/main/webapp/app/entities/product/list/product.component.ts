@@ -12,6 +12,7 @@ import { EntityArrayResponseType, ProductService } from '../service/product.serv
 import { ProductDeleteDialogComponent } from '../delete/product-delete-dialog.component';
 import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/filter.model';
 import { faRandom, faTrash, faEye, faPencil } from '@fortawesome/free-solid-svg-icons';
+import {finalize} from "rxjs/operators";
 
 @Component({
   selector: 'jhi-product',
@@ -143,7 +144,7 @@ export class ProductComponent implements OnInit {
     filterOptions?.forEach(filterOption => {
       queryObject[filterOption.name] = filterOption.values;
     });
-    return this.productService.query(queryObject).pipe(tap(() => (this.isLoading = false)));
+    return this.productService.query(queryObject).pipe(finalize(() => (this.isLoading = false)));
   }
 
   protected handleNavigation(page = this.page, predicate?: string, ascending?: boolean, filterOptions?: IFilterOption[]): void {

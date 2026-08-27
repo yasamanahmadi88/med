@@ -12,6 +12,7 @@ import { EntityArrayResponseType, InstanceService } from '../service/instance.se
 import { InstanceDeleteDialogComponent } from '../delete/instance-delete-dialog.component';
 import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/filter.model';
 import { SimpleTextDialogService } from '../../../layouts/simple-text-dialog/simple-text-dialog.service';
+import {finalize} from "rxjs/operators";
 
 @Component({
   selector: 'jhi-instance',
@@ -134,7 +135,7 @@ export class InstanceComponent implements OnInit, OnDestroy {
     filterOptions?.forEach(filterOption => {
       queryObject[filterOption.name] = filterOption.values;
     });
-    return this.instanceService.query(queryObject).pipe(tap(() => (this.isLoading = false)));
+    return this.instanceService.query(queryObject).pipe(finalize(() => (this.isLoading = false)));
   }
 
   protected handleNavigation(page = this.page, predicate?: string, ascending?: boolean, filterOptions?: IFilterOption[]): void {

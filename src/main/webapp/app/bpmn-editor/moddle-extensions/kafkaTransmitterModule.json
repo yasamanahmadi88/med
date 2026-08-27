@@ -1,0 +1,15 @@
+{
+  "name": "KafkaTransmitter",
+  "prefix": "KafkaTransmitter",
+  "uri": "KafkaTransmitter",
+  "xml": {
+    "tagAlias": "lowerCase"
+  },
+  "associations": [],
+  "types": [
+    {
+      "name": "KafkaTransmitter",
+      "superClass": ["bpmn:Task"]
+    }
+  ]
+}

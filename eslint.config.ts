@@ -149,6 +149,21 @@ export default defineConfig(
     },
   },
   {
+    // The palette providers, element factory and renderers are carried over from the upstream
+    // open-source editor and drive bpmn-js/diagram-js internals that ship no types. These rules
+    // fire on that house style — `a && b()` guards, labels built by concatenating `any` values,
+    // a `@ts-ignore` over the didi `$inject` statics — rather than on defects. Correctness rules
+    // stay on, and the editor's Angular components are linted under the full rule set.
+    files: ['src/main/webapp/app/bpmn-editor/additional-modules/**/*.ts'],
+    rules: {
+      '@typescript-eslint/ban-ts-comment': 'off',
+      '@typescript-eslint/no-shadow': 'off',
+      '@typescript-eslint/no-unnecessary-type-parameters': 'off',
+      '@typescript-eslint/no-unused-expressions': 'off',
+      '@typescript-eslint/restrict-plus-operands': 'off',
+    },
+  },
+  {
     files: ['src/main/webapp/**/*.html'],
     extends: [...angular.configs.templateRecommended, ...angular.configs.templateAccessibility],
     rules: {

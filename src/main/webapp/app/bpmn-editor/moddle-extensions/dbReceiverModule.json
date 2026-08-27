@@ -1,0 +1,15 @@
+{
+  "name": "DbReceiver",
+  "prefix": "DbReceiver",
+  "uri": "DbReceiver",
+  "xml": {
+    "tagAlias": "lowerCase"
+  },
+  "associations": [],
+  "types": [
+    {
+      "name": "DbReceiver",
+      "superClass": ["bpmn:Task"]
+    }
+  ]
+}

@@ -12,8 +12,3 @@ declare module 'bpmn-js-properties-panel' {
   /** Adds the Camunda 7 groups; needs the camunda moddle extension registered alongside it. */
   export const CamundaPlatformPropertiesProviderModule: ModuleDeclaration;
 }
-
-declare module 'camunda-bpmn-moddle/resources/camunda.json' {
-  const descriptor: Record<string, unknown>;
-  export default descriptor;
-}

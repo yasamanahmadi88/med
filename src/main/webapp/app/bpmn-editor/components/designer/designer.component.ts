@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
 import BpmnModeler from 'bpmn-js/lib/Modeler';
 import { BpmnPropertiesPanelModule, BpmnPropertiesProviderModule, CamundaPlatformPropertiesProviderModule } from 'bpmn-js-properties-panel';
-import camundaModdleDescriptor from 'camunda-bpmn-moddle/resources/camunda.json';
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
+import { additionalModulesFor, moddleExtensions } from '../../additional-modules';
 
 @Component({
   selector: 'jhi-designer',
@@ -46,6 +46,14 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
     }
 
     const panelParent = this.bpmnEditorService.getPropertiesPanelParent();
+    const settings = this.bpmnEditorService.getEditorSettings();
+
+    // The palette and renderer modules the settings select, plus the properties panel's own
+    // modules when a parent element exists for it to render into.
+    const modules: unknown[] = additionalModulesFor(settings);
+    if (panelParent) {
+      modules.push(BpmnPropertiesPanelModule, BpmnPropertiesProviderModule, CamundaPlatformPropertiesProviderModule);
+    }
 
     try {
       this.bpmnModeler = new BpmnModeler({
@@ -56,15 +64,14 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
           // key events `window` did.
           bindTo: document.documentElement,
         },
-        // The panel modules read `propertiesPanel.parent`, so they are only registered when a
-        // parent exists — the editor can be configured without the custom panel.
-        ...(panelParent
-          ? {
-              propertiesPanel: { parent: panelParent },
-              additionalModules: [BpmnPropertiesPanelModule, BpmnPropertiesProviderModule, CamundaPlatformPropertiesProviderModule],
-              moddleExtensions: { camunda: camundaModdleDescriptor },
-            }
-          : {}),
+        // The moddle extensions define the namespaces the custom palette builds shapes with, so
+        // they are always registered; without them elementFactory.createShape would fail on the
+        // integration-module types.
+        moddleExtensions,
+        additionalModules: modules,
+        // The panel modules read `propertiesPanel.parent`, so it is only set when a parent
+        // exists — the editor can be configured without the custom panel.
+        ...(panelParent ? { propertiesPanel: { parent: panelParent } } : {}),
       });
 
       this.bpmnEditorService.setBpmnModeler(this.bpmnModeler);

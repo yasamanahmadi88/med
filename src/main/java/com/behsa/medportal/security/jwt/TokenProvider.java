@@ -9,9 +9,9 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.crypto.SecretKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +21,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import tech.jhipster.config.JHipsterProperties;
 import com.behsa.medportal.repository.UserRepository;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -33,10 +34,12 @@ public class TokenProvider {
 
     private static final String AUTHORITIES_KEY = "auth";
     private static final String PARTY_ID_KEY = "PartyId";
+    static final String TOKEN_ISSUER = "MedPortal";
+    static final String TOKEN_AUDIENCE = "medportal-api";
 
     private static final String INVALID_JWT_TOKEN = "Invalid JWT token.";
 
-    private final Key key;
+    private final SecretKey key;
 
     private final JwtParser jwtParser;
 
@@ -70,7 +73,14 @@ public class TokenProvider {
             keyBytes = secret.getBytes(StandardCharsets.UTF_8);
         }
         key = Keys.hmacShaKeyFor(keyBytes);
-        jwtParser = Jwts.parserBuilder().setSigningKey(key).build();
+        // verifyWith binds an HMAC key so alg=none / asymmetric alg confusion is rejected.
+        jwtParser = Jwts
+            .parser()
+            .verifyWith(key)
+            .requireIssuer(TOKEN_ISSUER)
+            .requireAudience(TOKEN_AUDIENCE)
+            .clockSkewSeconds(30)
+            .build();
         this.tokenValidityInMilliseconds = 1000 * jHipsterProperties.getSecurity().getAuthentication().getJwt().getTokenValidityInSeconds();
         this.tokenValidityInMillisecondsForRememberMe =
             1000 * jHipsterProperties.getSecurity().getAuthentication().getJwt().getTokenValidityInSecondsForRememberMe();
@@ -90,21 +100,26 @@ public class TokenProvider {
         }
 
         PortalUser myUser = (PortalUser) authentication.getPrincipal();
-        Map<String, Object> claims = new HashMap<String, Object>();
-        claims.put(PARTY_ID_KEY, myUser.getPartyId());
+        // Always emit PartyId (empty string when unset). Null party_id is common for seeded users;
+        // omitting the claim made validateToken() fail and broke every authenticated API/menu load.
+        String partyId = myUser.getPartyId() != null ? myUser.getPartyId() : "";
 
         return Jwts
             .builder()
-            .setSubject(authentication.getName())
+            .issuer(TOKEN_ISSUER)
+            .audience()
+            .add(TOKEN_AUDIENCE)
+            .and()
+            .subject(authentication.getName())
             .claim(AUTHORITIES_KEY, authorities)
-            .addClaims(claims)
-            .signWith(key, SignatureAlgorithm.HS512)
-            .setExpiration(validity)
+            .claim(PARTY_ID_KEY, partyId)
+            .signWith(key, Jwts.SIG.HS512)
+            .expiration(validity)
             .compact();
     }
 
 //    public Authentication getAuthentication(String token) {
-//        Claims claims = jwtParser.parseClaimsJws(token).getBody();
+//        Claims claims = jwtParser.parseSignedClaims(token).getPayload();
 //
 //        Collection<? extends GrantedAuthority> authorities = Arrays
 //            .stream(claims.get(AUTHORITIES_KEY).toString().split(","))
@@ -130,7 +145,7 @@ public class TokenProvider {
 //    }
 
     public Authentication getAuthentication(String token) {
-        Claims claims = jwtParser.parseClaimsJws(token).getBody();
+        Claims claims = jwtParser.parseSignedClaims(token).getPayload();
 
         String login = claims.getSubject();
 
@@ -147,6 +162,7 @@ public class TokenProvider {
 
         List<ResourceAuthorityDTO> resourceAuthorities = fetchResourceAuthorities(authorities);
 
+        String partyId = user.getPartyId() != null ? user.getPartyId() : "";
         PortalUser principal = new PortalUser(
             user.getLogin(),
             "",
@@ -155,17 +171,24 @@ public class TokenProvider {
             true,
             true,
             authorities,
-            user.getPartyId(),
+            partyId,
             resourceAuthorities,
-            null
+            user
         );
 
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
 
     public boolean validateToken(String authToken) {
+        if (authToken == null || authToken.isBlank()) {
+            return false;
+        }
         try {
-            jwtParser.parseClaimsJws(authToken);
+            Claims claims = jwtParser.parseSignedClaims(authToken).getPayload();
+            if (!hasRequiredClaims(claims)) {
+                log.trace("Invalid JWT token because required claims are missing.");
+                return false;
+            }
 
             return true;
         } catch (ExpiredJwtException e) {
@@ -184,11 +207,20 @@ public class TokenProvider {
             this.securityMetersService.trackTokenInvalidSignature();
 
             log.trace(INVALID_JWT_TOKEN, e);
-        } catch (IllegalArgumentException e) { // TODO: should we let it bubble (no catch), to avoid defensive programming and follow the fail-fast principle?
+        } catch (JwtException e) {
+            log.trace(INVALID_JWT_TOKEN, e);
+        } catch (IllegalArgumentException e) {
             log.error("Token validation error {}", e.getMessage());
         }
 
         return false;
+    }
+
+    private boolean hasRequiredClaims(Claims claims) {
+        // PartyId may be blank for users without a party binding, but the claim must be present.
+        return StringUtils.hasText(claims.getSubject()) &&
+            StringUtils.hasText(claims.get(AUTHORITIES_KEY, String.class)) &&
+            claims.get(PARTY_ID_KEY) != null;
     }
 
     private List<ResourceAuthorityDTO> fetchResourceAuthorities(Collection<? extends GrantedAuthority> authorities) {

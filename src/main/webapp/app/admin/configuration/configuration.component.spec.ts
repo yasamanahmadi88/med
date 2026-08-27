@@ -1,4 +1,5 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { vi } from 'vitest';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { of } from 'rxjs';
 
@@ -11,15 +12,15 @@ describe('ConfigurationComponent', () => {
   let fixture: ComponentFixture<ConfigurationComponent>;
   let service: ConfigurationService;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       declarations: [ConfigurationComponent],
       providers: [ConfigurationService],
     })
       .overrideTemplate(ConfigurationComponent, '')
       .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ConfigurationComponent);
@@ -50,8 +51,8 @@ describe('ConfigurationComponent', () => {
           },
         },
       ];
-      jest.spyOn(service, 'getBeans').mockReturnValue(of(beans));
-      jest.spyOn(service, 'getPropertySources').mockReturnValue(of(propertySources));
+      vi.spyOn(service, 'getBeans').mockReturnValue(of(beans));
+      vi.spyOn(service, 'getPropertySources').mockReturnValue(of(propertySources));
 
       // WHEN
       comp.ngOnInit();

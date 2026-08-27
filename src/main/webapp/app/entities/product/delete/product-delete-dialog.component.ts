@@ -7,11 +7,15 @@ import { ITEM_DELETED_EVENT } from 'app/config/navigation.constants';
 
 @Component({
   templateUrl: './product-delete-dialog.component.html',
+  standalone: false,
 })
 export class ProductDeleteDialogComponent {
   product?: IProduct;
 
-  constructor(protected productService: ProductService, protected activeModal: NgbActiveModal) {}
+  constructor(
+    protected productService: ProductService,
+    protected activeModal: NgbActiveModal,
+  ) {}
 
   cancel(): void {
     this.activeModal.dismiss();

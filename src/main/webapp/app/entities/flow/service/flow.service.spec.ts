@@ -37,7 +37,6 @@ describe('Flow Service', () => {
     });
 
     it('should create a Flow', () => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const flow = { ...sampleWithNewData };
       const returnedFromService = { ...requireRestSample };
       const expected = { ...sampleWithRequiredData };

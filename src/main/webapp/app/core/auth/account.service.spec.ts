@@ -1,4 +1,5 @@
-jest.mock('app/core/auth/state-storage.service');
+import { vi } from 'vitest';
+vi.mock('app/core/auth/state-storage.service');
 
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -6,7 +7,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { TestBed } from '@angular/core/testing';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
-import { NgxWebstorageModule, SessionStorageService } from 'ngx-webstorage';
+import { provideNgxWebstorage, withNgxWebstorageConfig, withLocalStorage, withSessionStorage, SessionStorageService } from 'ngx-webstorage';
 
 import { Account } from 'app/core/auth/account.model';
 import { Authority } from 'app/config/authority.constants';
@@ -39,8 +40,11 @@ describe('Account Service', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, RouterTestingModule.withRoutes([]), TranslateModule.forRoot(), NgxWebstorageModule.forRoot()],
-      providers: [StateStorageService],
+      imports: [HttpClientTestingModule, RouterTestingModule.withRoutes([]), TranslateModule.forRoot()],
+      providers: [
+        provideNgxWebstorage(withNgxWebstorageConfig({ prefix: 'jhi', separator: '-' }), withLocalStorage(), withSessionStorage()),
+        StateStorageService,
+      ],
     });
 
     service = TestBed.inject(AccountService);
@@ -48,10 +52,12 @@ describe('Account Service', () => {
     httpMock = TestBed.inject(HttpTestingController);
     mockStorageService = TestBed.inject(StateStorageService);
     mockRouter = TestBed.inject(Router);
-    jest.spyOn(mockRouter, 'navigateByUrl').mockImplementation(() => Promise.resolve(true));
+    vi.spyOn(mockRouter, 'navigateByUrl').mockImplementation(() => Promise.resolve(true));
+    vi.spyOn(mockStorageService, 'getUrl').mockReturnValue(null);
+    vi.spyOn(mockStorageService, 'clearUrl').mockImplementation(() => undefined);
 
     mockTranslateService = TestBed.inject(TranslateService);
-    jest.spyOn(mockTranslateService, 'use').mockImplementation(() => of(''));
+    vi.spyOn(mockTranslateService, 'use').mockImplementation(() => of({}));
     sessionStorageService = TestBed.inject(SessionStorageService);
   });
 
@@ -136,7 +142,7 @@ describe('Account Service', () => {
     describe('should change the language on authentication if necessary', () => {
       it('should change language if user has not changed language manually', () => {
         // GIVEN
-        sessionStorageService.retrieve = jest.fn(key => (key === 'locale' ? undefined : 'otherSessionStorageValue'));
+        sessionStorageService.retrieve = vi.fn(key => (key === 'locale' ? undefined : 'otherSessionStorageValue'));
 
         // WHEN
         service.identity().subscribe();
@@ -148,7 +154,7 @@ describe('Account Service', () => {
 
       it('should not change language if user has changed language manually', () => {
         // GIVEN
-        sessionStorageService.retrieve = jest.fn(key => (key === 'locale' ? 'sessionLang' : undefined));
+        sessionStorageService.retrieve = vi.fn(key => (key === 'locale' ? 'sessionLang' : undefined));
 
         // WHEN
         service.identity().subscribe();
@@ -162,7 +168,7 @@ describe('Account Service', () => {
     describe('navigateToStoredUrl', () => {
       it('should navigate to the previous stored url post successful authentication', () => {
         // GIVEN
-        mockStorageService.getUrl = jest.fn(() => 'admin/users?page=0');
+        vi.mocked(mockStorageService.getUrl).mockReturnValue('admin/users?page=0');
 
         // WHEN
         service.identity().subscribe();
@@ -187,7 +193,7 @@ describe('Account Service', () => {
 
       it('should not navigate to the previous stored url when no such url exists post successful authentication', () => {
         // GIVEN
-        mockStorageService.getUrl = jest.fn(() => null);
+        vi.mocked(mockStorageService.getUrl).mockReturnValue(null);
 
         // WHEN
         service.identity().subscribe();

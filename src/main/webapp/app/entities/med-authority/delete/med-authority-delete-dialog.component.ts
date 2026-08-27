@@ -7,11 +7,15 @@ import { ITEM_DELETED_EVENT } from 'app/config/navigation.constants';
 
 @Component({
   templateUrl: './med-authority-delete-dialog.component.html',
+  standalone: false,
 })
 export class MedAuthorityDeleteDialogComponent {
   medAuthority?: IMedAuthority;
 
-  constructor(protected medAuthorityService: MedAuthorityService, protected activeModal: NgbActiveModal) {}
+  constructor(
+    protected medAuthorityService: MedAuthorityService,
+    protected activeModal: NgbActiveModal,
+  ) {}
 
   cancel(): void {
     this.activeModal.dismiss();

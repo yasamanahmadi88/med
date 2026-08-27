@@ -6,6 +6,7 @@ import { IResource } from '../resource.model';
 @Component({
   selector: 'jhi-resource-detail',
   templateUrl: './resource-detail.component.html',
+  standalone: false,
 })
 export class ResourceDetailComponent implements OnInit {
   resource: IResource | null = null;

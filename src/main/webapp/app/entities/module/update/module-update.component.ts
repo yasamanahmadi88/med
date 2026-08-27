@@ -11,30 +11,39 @@ import { ModuleService } from '../service/module.service';
 @Component({
   selector: 'jhi-module-update',
   templateUrl: './module-update.component.html',
+  standalone: false,
 })
 export class ModuleUpdateComponent implements OnInit {
   isSaving = false;
   module: IModule | null = null;
 
-  loggingModes: String[] = ['OFF', 'ERRORS', 'TOTAL', 'WHITE_LIST_MSG_TYPE', 'BLACK_LIST_MSG_TYPE', 'WHITE_LIST_LOG_TYPE', 'BLACK_LIST_LOG_TYPE'];
+  loggingModes: string[] = [
+    'OFF',
+    'ERRORS',
+    'TOTAL',
+    'WHITE_LIST_MSG_TYPE',
+    'BLACK_LIST_MSG_TYPE',
+    'WHITE_LIST_LOG_TYPE',
+    'BLACK_LIST_LOG_TYPE',
+  ];
 
   editForm: ModuleFormGroup = this.moduleFormService.createModuleFormGroup();
 
   constructor(
     protected moduleService: ModuleService,
     protected moduleFormService: ModuleFormService,
-    protected activatedRoute: ActivatedRoute
+    protected activatedRoute: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
     this.activatedRoute.data.subscribe(({ module }) => {
       this.module = module;
-      if(module.status === 0){
-        module.status = true;
-      }else if(module.status === 1){
-        module.status = false;
-      }
       if (module) {
+        if (module.status === 0) {
+          module.status = true;
+        } else if (module.status === 1) {
+          module.status = false;
+        }
         this.updateForm(module);
       }
     });
@@ -47,12 +56,11 @@ export class ModuleUpdateComponent implements OnInit {
   save(): void {
     this.isSaving = true;
     const module = this.moduleFormService.getModule(this.editForm);
-    if(module.status === true){
+    if (module.status === true) {
       module.status = 0;
-    }else if(module.status === false || module.status == null){
+    } else if (module.status === false || module.status == null) {
       module.status = 1;
     }
-    debugger;
     if (module.id !== null) {
       this.subscribeToSaveResponse(this.moduleService.update(module));
     } else {
@@ -84,7 +92,7 @@ export class ModuleUpdateComponent implements OnInit {
     this.moduleFormService.resetForm(this.editForm, module);
   }
 
-  checkboxChange(event: any) {
-    console.log(event?.target?.checked);
+  checkboxChange(_event: any): void {
+    // reserved for future checkbox side-effects
   }
 }

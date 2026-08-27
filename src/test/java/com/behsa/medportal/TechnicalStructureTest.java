@@ -19,6 +19,7 @@ class TechnicalStructureTest {
     // prettier-ignore
     @ArchTest
     static final ArchRule respectsTechnicalArchitectureLayers = layeredArchitecture()
+        .consideringAllDependencies()
         .layer("Config").definedBy("..config..")
         .layer("Web").definedBy("..web..")
         .optionalLayer("Service").definedBy("..service..")
@@ -41,8 +42,6 @@ class TechnicalStructureTest {
 
         // Existing exception:
         // UserLoginPolicy is inside security package, but it currently throws a web-layer exception.
-        // This keeps the architecture rule strict for Web layer in general,
-        // while allowing only this known dependency.
         .ignoreDependency(
             belongToAnyOf(UserLoginPolicy.class),
             belongToAnyOf(BadRequestAlertException.class)

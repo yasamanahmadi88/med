@@ -4,8 +4,8 @@ import { HttpClientModule } from '@angular/common/http';
 import locale from '@angular/common/locales/en';
 import { BrowserModule, Title } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
-import {FaIconLibrary, FontAwesomeModule} from '@fortawesome/angular-fontawesome';
-import { NgxWebstorageModule } from 'ngx-webstorage';
+import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { provideNgxWebstorage, withLocalStorage, withNgxWebstorageConfig, withSessionStorage } from 'ngx-webstorage';
 import dayjs from 'dayjs/esm';
 import { NgbDateAdapter, NgbDatepickerConfig } from '@ng-bootstrap/ng-bootstrap';
 
@@ -26,9 +26,11 @@ import { FooterComponent } from './layouts/footer/footer.component';
 import { PageRibbonComponent } from './layouts/profiles/page-ribbon.component';
 import { ActiveMenuDirective } from './layouts/navbar/active-menu.directive';
 import { ErrorComponent } from './layouts/error/error.component';
-import {ToastrModule} from "ngx-toastr";
+import { ToastrModule } from 'ngx-toastr';
 import { SimpleTextDialogComponent } from './layouts/simple-text-dialog/simple-text-dialog.component';
 import { BpmnComponent } from './entities/bpmn/bpmn.component';
+import { ThemeToggleComponent } from './core/theme/theme-toggle.component';
+import { ThemeService } from './core/theme/theme.service';
 
 @NgModule({
   imports: [
@@ -40,7 +42,6 @@ import { BpmnComponent } from './entities/bpmn/bpmn.component';
     // Set this to true to enable service worker (PWA)
     ServiceWorkerModule.register('ngsw-worker.js', { enabled: false }),
     HttpClientModule,
-    NgxWebstorageModule.forRoot({ prefix: 'jhi', separator: '-', caseSensitive: true }),
     TranslationModule,
     FontAwesomeModule,
     ToastrModule.forRoot({
@@ -54,17 +55,37 @@ import { BpmnComponent } from './entities/bpmn/bpmn.component';
     }),
   ],
   providers: [
+    provideNgxWebstorage(
+      withNgxWebstorageConfig({ prefix: 'jhi', separator: '-', caseSensitive: true }),
+      withLocalStorage(),
+      withSessionStorage(),
+    ),
     Title,
     { provide: LOCALE_ID, useValue: 'en' },
     { provide: NgbDateAdapter, useClass: NgbDateDayjsAdapter },
     FindLanguageFromKeyPipe,
     httpInterceptorProviders,
   ],
-  declarations: [MainComponent, NavbarComponent, ErrorComponent, PageRibbonComponent, ActiveMenuDirective, FooterComponent, SimpleTextDialogComponent, BpmnComponent],
+  declarations: [
+    MainComponent,
+    NavbarComponent,
+    ErrorComponent,
+    PageRibbonComponent,
+    ActiveMenuDirective,
+    FooterComponent,
+    SimpleTextDialogComponent,
+    BpmnComponent,
+    ThemeToggleComponent,
+  ],
   bootstrap: [MainComponent],
 })
 export class AppModule {
-  constructor(applicationConfigService: ApplicationConfigService, iconLibrary: FaIconLibrary, dpConfig: NgbDatepickerConfig) {
+  constructor(
+    applicationConfigService: ApplicationConfigService,
+    iconLibrary: FaIconLibrary,
+    dpConfig: NgbDatepickerConfig,
+    _themeService: ThemeService,
+  ) {
     applicationConfigService.setEndpointPrefix(SERVER_API_URL);
     registerLocaleData(locale);
     iconLibrary.addIcons(...fontAwesomeIcons);

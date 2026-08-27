@@ -16,7 +16,10 @@ export type EntityArrayResponseType = HttpResponse<IVersion[]>;
 export class VersionService {
   protected resourceUrl = this.applicationConfigService.getEndpointFor('api/versions');
 
-  constructor(protected http: HttpClient, protected applicationConfigService: ApplicationConfigService) {}
+  constructor(
+    protected http: HttpClient,
+    protected applicationConfigService: ApplicationConfigService,
+  ) {}
 
   create(version: NewVersion): Observable<EntityResponseType> {
     return this.http.post<IVersion>(this.resourceUrl, version, { observe: 'response' });
@@ -57,7 +60,7 @@ export class VersionService {
   ): Type[] {
     const versions: Type[] = versionsToCheck.filter(isPresent);
     if (versions.length > 0) {
-      const versionCollectionIdentifiers = versionCollection.map(versionItem => this.getVersionIdentifier(versionItem)!);
+      const versionCollectionIdentifiers = versionCollection.map(versionItem => this.getVersionIdentifier(versionItem));
       const versionsToAdd = versions.filter(versionItem => {
         const versionIdentifier = this.getVersionIdentifier(versionItem);
         if (versionCollectionIdentifiers.includes(versionIdentifier)) {

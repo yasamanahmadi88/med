@@ -2,14 +2,14 @@ package com.behsa.medportal.domain;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import javax.persistence.*;
-import javax.validation.constraints.*;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 /**
  * A InstanceEntity.
  */
 @Entity
-@Table(name = "MEDIATION.TBL_INSTANCES")
+@Table(name = "TBL_INSTANCES")
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class InstanceEntity implements Serializable {
 

@@ -39,7 +39,6 @@ describe('CustomAuditEvent Service', () => {
     });
 
     it('should create a CustomAuditEvent', () => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const customAuditEvent = { ...sampleWithNewData };
       const returnedFromService = { ...requireRestSample };
       const expected = { ...sampleWithRequiredData };

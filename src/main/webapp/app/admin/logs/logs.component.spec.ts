@@ -1,4 +1,5 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { vi } from 'vitest';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { of } from 'rxjs';
 
@@ -11,15 +12,15 @@ describe('LogsComponent', () => {
   let fixture: ComponentFixture<LogsComponent>;
   let service: LogsService;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       declarations: [LogsComponent],
       providers: [LogsService],
     })
       .overrideTemplate(LogsComponent, '')
       .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(LogsComponent);
@@ -37,14 +38,14 @@ describe('LogsComponent', () => {
     it('Should call load all on init', () => {
       // GIVEN
       const log = new Log('main', 'WARN');
-      jest.spyOn(service, 'findAll').mockReturnValue(
+      vi.spyOn(service, 'findAll').mockReturnValue(
         of({
           loggers: {
             main: {
               effectiveLevel: 'WARN',
             },
           },
-        } as unknown as LoggersResponse)
+        } as unknown as LoggersResponse),
       );
 
       // WHEN
@@ -60,15 +61,15 @@ describe('LogsComponent', () => {
     it('should change log level correctly', () => {
       // GIVEN
       const log = new Log('main', 'ERROR');
-      jest.spyOn(service, 'changeLevel').mockReturnValue(of({}));
-      jest.spyOn(service, 'findAll').mockReturnValue(
+      vi.spyOn(service, 'changeLevel').mockReturnValue(of({}));
+      vi.spyOn(service, 'findAll').mockReturnValue(
         of({
           loggers: {
             main: {
               effectiveLevel: 'ERROR',
             },
           },
-        } as unknown as LoggersResponse)
+        } as unknown as LoggersResponse),
       );
 
       // WHEN

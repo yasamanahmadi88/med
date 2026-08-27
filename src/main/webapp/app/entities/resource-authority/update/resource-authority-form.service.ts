@@ -38,7 +38,7 @@ export class ResourceAuthorityFormService {
         {
           nonNullable: true,
           validators: [Validators.required],
-        }
+        },
       ),
       verb: new FormControl(resourceAuthorityRawValue.verb, {
         validators: [Validators.required, Validators.maxLength(255)],
@@ -53,7 +53,7 @@ export class ResourceAuthorityFormService {
   }
 
   getResourceAuthority(form: ResourceAuthorityFormGroup): IResourceAuthority | NewResourceAuthority {
-    return form.getRawValue() as IResourceAuthority | NewResourceAuthority;
+    return form.getRawValue();
   }
 
   resetForm(form: ResourceAuthorityFormGroup, resourceAuthority: ResourceAuthorityFormGroupInput): void {
@@ -62,7 +62,7 @@ export class ResourceAuthorityFormService {
       {
         ...resourceAuthorityRawValue,
         id: { value: resourceAuthorityRawValue.id, disabled: true },
-      } as any /* cast to workaround https://github.com/angular/angular/issues/46458 */
+      } /* cast to workaround https://github.com/angular/angular/issues/46458 */,
     );
   }
 

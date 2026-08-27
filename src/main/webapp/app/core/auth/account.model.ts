@@ -1,4 +1,4 @@
-import {IResourceAuthority} from "../../entities/resource-authority/resource-authority.model";
+import { IResourceAuthority } from '../../entities/resource-authority/resource-authority.model';
 
 export class Account {
   constructor(
@@ -10,6 +10,6 @@ export class Account {
     public lastName: string | null,
     public login: string,
     public imageUrl: string | null,
-    public resourceAuthorities?: IResourceAuthority[]
+    public resourceAuthorities?: IResourceAuthority[],
   ) {}
 }

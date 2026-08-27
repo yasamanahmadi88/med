@@ -42,16 +42,16 @@ export class ModuleFormService {
         {
           nonNullable: true,
           validators: [Validators.required],
-        }
+        },
       ),
       moduleName: new FormControl(moduleRawValue.moduleName, {
-        validators: [Validators.required, Validators.maxLength(50), Validators.pattern("[a-z\-]+")],
+        validators: [Validators.required, Validators.maxLength(50), Validators.pattern('[a-z-]+')],
       }),
       defaultPort: new FormControl(moduleRawValue.defaultPort, {
-        validators: [Validators.required, Validators.minLength(4), Validators.maxLength(4), Validators.pattern("[0-9]+")],
+        validators: [Validators.required, Validators.minLength(4), Validators.maxLength(4), Validators.pattern('[0-9]+')],
       }),
       redisKeyPrefix: new FormControl(moduleRawValue.redisKeyPrefix, {
-        validators: [Validators.required, Validators.minLength(5), Validators.maxLength(5), Validators.pattern("[A-Z]+")],
+        validators: [Validators.required, Validators.minLength(5), Validators.maxLength(5), Validators.pattern('[A-Z]+')],
       }),
       status: new FormControl(moduleRawValue.status, {
         validators: [],
@@ -69,7 +69,7 @@ export class ModuleFormService {
   }
 
   getModule(form: ModuleFormGroup): IModule | NewModule {
-    return form.getRawValue() as IModule | NewModule;
+    return form.getRawValue();
   }
 
   resetForm(form: ModuleFormGroup, module: ModuleFormGroupInput): void {
@@ -78,7 +78,7 @@ export class ModuleFormService {
       {
         ...moduleRawValue,
         id: { value: moduleRawValue.id, disabled: true },
-      } as any /* cast to workaround https://github.com/angular/angular/issues/46458 */
+      } /* cast to workaround https://github.com/angular/angular/issues/46458 */,
     );
   }
 

@@ -2,14 +2,14 @@ package com.behsa.medportal.domain;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import javax.persistence.*;
-import javax.validation.constraints.*;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 /**
  * A LogEntity.
  */
 @Entity
-@Table(name = "MEDIATION.tbl_logs") // keep same style as your VersionEntity
+@Table(name = "TBL_LOGS")
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class LogEntity implements Serializable {
 
@@ -17,7 +17,7 @@ public class LogEntity implements Serializable {
 
     @Id
     @GeneratedValue(generator = "LOG_SEQ_GENERATOR")
-    @SequenceGenerator(name = "LOG_SEQ_GENERATOR", sequenceName = "LOG_SEQ", allocationSize = 0)
+    @SequenceGenerator(name = "LOG_SEQ_GENERATOR", sequenceName = "LOG_SEQ", allocationSize = 1)
     @Column(name = "log_key")
     private Long id;
 

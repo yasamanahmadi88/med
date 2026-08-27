@@ -11,6 +11,7 @@ import { MedAuthorityService } from '../service/med-authority.service';
 @Component({
   selector: 'jhi-med-authority-update',
   templateUrl: './med-authority-update.component.html',
+  standalone: false,
 })
 export class MedAuthorityUpdateComponent implements OnInit {
   isSaving = false;
@@ -22,7 +23,7 @@ export class MedAuthorityUpdateComponent implements OnInit {
   constructor(
     protected medAuthorityService: MedAuthorityService,
     protected medAuthorityFormService: MedAuthorityFormService,
-    protected activatedRoute: ActivatedRoute
+    protected activatedRoute: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {

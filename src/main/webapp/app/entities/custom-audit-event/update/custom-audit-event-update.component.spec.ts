@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
@@ -60,9 +61,9 @@ describe('CustomAuditEvent Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<ICustomAuditEvent>>();
       const customAuditEvent = { id: 123 };
-      jest.spyOn(customAuditEventFormService, 'getCustomAuditEvent').mockReturnValue(customAuditEvent);
-      jest.spyOn(customAuditEventService, 'update').mockReturnValue(saveSubject);
-      jest.spyOn(comp, 'previousState');
+      vi.spyOn(customAuditEventFormService, 'getCustomAuditEvent').mockReturnValue(customAuditEvent);
+      vi.spyOn(customAuditEventService, 'update').mockReturnValue(saveSubject);
+      vi.spyOn(comp, 'previousState');
       activatedRoute.data = of({ customAuditEvent });
       comp.ngOnInit();
 
@@ -83,9 +84,9 @@ describe('CustomAuditEvent Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<ICustomAuditEvent>>();
       const customAuditEvent = { id: 123 };
-      jest.spyOn(customAuditEventFormService, 'getCustomAuditEvent').mockReturnValue({ id: null });
-      jest.spyOn(customAuditEventService, 'create').mockReturnValue(saveSubject);
-      jest.spyOn(comp, 'previousState');
+      vi.spyOn(customAuditEventFormService, 'getCustomAuditEvent').mockReturnValue({ id: null });
+      vi.spyOn(customAuditEventService, 'create').mockReturnValue(saveSubject);
+      vi.spyOn(comp, 'previousState');
       activatedRoute.data = of({ customAuditEvent: null });
       comp.ngOnInit();
 
@@ -106,8 +107,8 @@ describe('CustomAuditEvent Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<ICustomAuditEvent>>();
       const customAuditEvent = { id: 123 };
-      jest.spyOn(customAuditEventService, 'update').mockReturnValue(saveSubject);
-      jest.spyOn(comp, 'previousState');
+      vi.spyOn(customAuditEventService, 'update').mockReturnValue(saveSubject);
+      vi.spyOn(comp, 'previousState');
       activatedRoute.data = of({ customAuditEvent });
       comp.ngOnInit();
 

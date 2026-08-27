@@ -4,6 +4,7 @@ import { IFilterOptions } from './filter.model';
 @Component({
   selector: 'jhi-filter',
   templateUrl: './filter.component.html',
+  standalone: false,
 })
 export class FilterComponent {
   @Input() filters!: IFilterOptions;

@@ -4,7 +4,7 @@
 
     <div class="d-flex justify-content-end">
       <button class="btn btn-info me-2" (click)="load()" [disabled]="isLoading">
-        <fa-icon icon="sync" [spin]="isLoading"></fa-icon>
+        <fa-icon icon="sync" [animation]="isLoading ? 'spin' : undefined"></fa-icon>
         <span jhiTranslate="medPortalApp.instance.home.refreshListLabel">Refresh list</span>
       </button>
     </div>
@@ -87,7 +87,11 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let instance of instances; trackBy: trackId" data-cy="entityTable" [ngClass]="instance.moduleStatus != 'OK'? 'table-danger': ''">
+        <tr
+          *ngFor="let instance of instances; trackBy: trackId"
+          data-cy="entityTable"
+          [ngClass]="instance.moduleStatus !== 'OK' ? 'table-danger' : ''"
+        >
           <td>{{ instance.moduleName }}</td>
           <td>{{ instance.hostName }}</td>
           <td>{{ instance.port }}</td>
@@ -98,7 +102,7 @@
           <td>{{ instance.totalProcessedWork }}</td>
           <td>{{ instance.totalProcessedTask }}</td>
           <td>
-            <button type="submit"  class="btn btn-sm" (click)="showLoggingFilterDialog(instance.processedStatistics)">
+            <button type="submit" class="btn btn-sm" (click)="showLoggingFilterDialog(instance.processedStatistics)">
               <fa-icon icon="eye"></fa-icon>
             </button>
           </td>

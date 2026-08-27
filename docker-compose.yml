@@ -8,7 +8,10 @@ services:
       APP_USER: ${SPRING_DATASOURCE_USERNAME:-MEDIATION}
       APP_USER_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-MEDIATION}
     ports:
-      - "1521:1521"
+      # Loopback only: this container runs with a default password, and the app reaches it over
+      # the compose network at oracle:1521, so the published port exists purely for a local SQL
+      # client. Publishing on every interface would expose it to anything that can reach the host.
+      - "127.0.0.1:1521:1521"
     healthcheck:
       test: ["CMD", "healthcheck.sh"]
       interval: 30s

@@ -131,8 +131,8 @@ public class SecurityConfiguration {
                     .requestMatchers("/test/**").permitAll()
                     .requestMatchers("/api/authenticate").permitAll()
                     .requestMatchers("/api/auth/**").permitAll()
-                    //.requestMatchers("/api/captcha-endpoint", "/api/captcha-validate", "/api/captcha.png").permitAll()
-                    .requestMatchers("/api/captcha-endpoint").permitAll()
+                    // The captcha guards the login form, so its whole flow runs before authentication.
+                    .requestMatchers("/api/captcha-endpoint", "/api/captcha-validate").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/captcha.png").permitAll()
                     // Public self-registration is disabled for this deployment.
                     .requestMatchers("/api/register").denyAll()

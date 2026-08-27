@@ -4,6 +4,7 @@ import { BpmnPropertiesPanelModule, BpmnPropertiesProviderModule, CamundaPlatfor
 import { BpmnEditorComponent } from './bpmn-editor.component';
 import { PanelComponent } from './panel/panel.component';
 import { BpmnEditorService } from '../services/bpmn-editor.service';
+import { additionalModulesFor } from '../additional-modules';
 
 /**
  * bpmn-js renders through the SVG DOM, which jsdom does not implement, so the modeler is stubbed
@@ -71,11 +72,15 @@ describe('BpmnEditorComponent', () => {
   });
 
   it('registers the properties panel and provider modules', () => {
-    expect(created[0].options.additionalModules).toEqual([
-      BpmnPropertiesPanelModule,
-      BpmnPropertiesProviderModule,
-      CamundaPlatformPropertiesProviderModule,
-    ]);
+    // Alongside whatever palette and renderer modules the settings select, which
+    // additional-modules/index.spec.ts covers.
+    expect(created[0].options.additionalModules).toContain(BpmnPropertiesPanelModule);
+    expect(created[0].options.additionalModules).toContain(BpmnPropertiesProviderModule);
+    expect(created[0].options.additionalModules).toContain(CamundaPlatformPropertiesProviderModule);
+  });
+
+  it('registers the palette and renderer modules the settings select', () => {
+    expect(created[0].options.additionalModules).toEqual(expect.arrayContaining(additionalModulesFor(service.getEditorSettings())));
   });
 
   it('registers the camunda moddle extension the Camunda provider needs', () => {

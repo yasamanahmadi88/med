@@ -16,10 +16,7 @@ export type EntityArrayResponseType = HttpResponse<IProduct[]>;
 export class ProductService {
   protected resourceUrl = this.applicationConfigService.getEndpointFor('api/products');
 
-  constructor(
-    protected http: HttpClient,
-    protected applicationConfigService: ApplicationConfigService,
-  ) {}
+  constructor(protected http: HttpClient, protected applicationConfigService: ApplicationConfigService) {}
 
   create(product: NewProduct): Observable<EntityResponseType> {
     return this.http.post<IProduct>(this.resourceUrl, product, { observe: 'response' });
@@ -48,7 +45,7 @@ export class ProductService {
 
   search(req?: any): Observable<EntityArrayResponseType> {
     const options = createRequestOption(req);
-    return this.http.get<IProduct[]>(this.resourceUrl + '/search', { params: options, observe: 'response' });
+    return this.http.get<IProduct[]>(this.resourceUrl + "/search", { params: options, observe: 'response' });
   }
 
   getProductIdentifier(product: Pick<IProduct, 'id'>): number {
@@ -65,7 +62,7 @@ export class ProductService {
   ): Type[] {
     const products: Type[] = productsToCheck.filter(isPresent);
     if (products.length > 0) {
-      const productCollectionIdentifiers = productCollection.map(productItem => this.getProductIdentifier(productItem));
+      const productCollectionIdentifiers = productCollection.map(productItem => this.getProductIdentifier(productItem)!);
       const productsToAdd = products.filter(productItem => {
         const productIdentifier = this.getProductIdentifier(productItem);
         if (productCollectionIdentifiers.includes(productIdentifier)) {

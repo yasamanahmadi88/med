@@ -6,7 +6,6 @@ import { IResourceAuthority } from '../resource-authority.model';
 @Component({
   selector: 'jhi-resource-authority-detail',
   templateUrl: './resource-authority-detail.component.html',
-  standalone: false,
 })
 export class ResourceAuthorityDetailComponent implements OnInit {
   resourceAuthority: IResourceAuthority | null = null;

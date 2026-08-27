@@ -39,6 +39,7 @@ describe('Instance Service', () => {
     });
 
     it('should create a Instance', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const instance = { ...sampleWithNewData };
       const returnedFromService = { ...requireRestSample };
       const expected = { ...sampleWithRequiredData };

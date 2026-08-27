@@ -2,7 +2,7 @@ package com.behsa.medportal.service.dto;
 
 import java.io.Serializable;
 import java.util.Objects;
-import jakarta.validation.constraints.*;
+import javax.validation.constraints.*;
 
 /**
  * A DTO for the {@link com.behsa.medportal.domain.MedAuthorityEntity} entity.

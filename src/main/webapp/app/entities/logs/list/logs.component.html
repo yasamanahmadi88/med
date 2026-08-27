@@ -1,9 +1,10 @@
-<div *jhiHasPermission="['log', 'view']">
+<div *jhiHasPermission="['log','view']">
   <jhi-filter [filters]="filters"></jhi-filter>
   <div>
     <form name="searchForm" class="form-inline">
       <div class="input-group w-100 mb-3">
-        <input type="text" class="form-control" [(ngModel)]="searchText" id="currentSearch" name="currentSearch" />
+        <input type="text" class="form-control" [(ngModel)]="searchText" id="currentSearch"
+               name="currentSearch">
         <button class="input-group-append btn btn-info" (click)="search(searchText)">
           <fa-icon [icon]="'search'"></fa-icon>
         </button>
@@ -21,54 +22,61 @@
   <div class="table-responsive table-entities" id="entities" *ngIf="logs && logs.length > 0">
     <table class="table table-striped" aria-describedby="page-heading">
       <thead>
-        <tr jhiSort [(predicate)]="predicate" [(ascending)]="reverse" (sortChange)="navigateToWithComponentValues()">
-          <th scope="col" jhiSortBy="msgType">
-            <div class="d-flex">
-              <span jhiTranslate="medPortalApp.reportLogs.msgType">msgType</span>
-              <fa-icon class="p-1" icon="sort"></fa-icon>
-            </div>
-          </th>
-          <th scope="col" jhiSortBy="correlationId">
-            <div class="d-flex">
-              <span jhiTranslate="medPortalApp.reportLogs.correlationId">correlationId</span>
-              <fa-icon class="p-1" icon="sort"></fa-icon>
-            </div>
-          </th>
-          <th scope="col" jhiSortBy="referenceType">
-            <div class="d-flex">
-              <span jhiTranslate="medPortalApp.reportLogs.referenceType">referenceType</span>
-              <fa-icon class="p-1" icon="sort"></fa-icon>
-            </div>
-          </th>
-          <th scope="col" jhiSortBy="reference">
-            <div class="d-flex">
-              <span jhiTranslate="medPortalApp.reportLogs.reference">reference</span>
-              <fa-icon class="p-1" icon="sort"></fa-icon>
-            </div>
-          </th>
-          <th scope="col" jhiSortBy="errorDetails">
-            <div class="d-flex">
-              <span jhiTranslate="medPortalApp.reportLogs.errorDetails">errorDetails</span>
-              <fa-icon class="p-1" icon="sort"></fa-icon>
-            </div>
-          </th>
-          <th scope="col"></th>
-        </tr>
+      <tr jhiSort [(predicate)]="predicate" [(ascending)]="reverse" (sortChange)="navigateToWithComponentValues()">
+        <th scope="col" jhiSortBy="msgType">
+          <div class="d-flex">
+            <span jhiTranslate="medPortalApp.reportLogs.msgType">msgType</span>
+            <fa-icon class="p-1" icon="sort"></fa-icon>
+          </div>
+        </th>
+        <th scope="col" jhiSortBy="correlationId">
+          <div class="d-flex">
+            <span jhiTranslate="medPortalApp.reportLogs.correlationId">correlationId</span>
+            <fa-icon class="p-1" icon="sort"></fa-icon>
+          </div>
+        </th>
+        <th scope="col" jhiSortBy="referenceType">
+          <div class="d-flex">
+            <span jhiTranslate="medPortalApp.reportLogs.referenceType">referenceType</span>
+            <fa-icon class="p-1" icon="sort"></fa-icon>
+          </div>
+        </th>
+        <th scope="col" jhiSortBy="reference">
+          <div class="d-flex">
+            <span jhiTranslate="medPortalApp.reportLogs.reference">reference</span>
+            <fa-icon class="p-1" icon="sort"></fa-icon>
+          </div>
+        </th>
+        <th scope="col" jhiSortBy="errorDetails">
+          <div class="d-flex">
+            <span jhiTranslate="medPortalApp.reportLogs.errorDetails">errorDetails</span>
+            <fa-icon class="p-1" icon="sort"></fa-icon>
+          </div>
+        </th>
+        <th scope="col"></th>
+      </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let log of logs; trackBy: trackId" data-cy="entityTable">
-          <td>{{ log.msgType }}</td>
-          <td>{{ log.correlationId }}</td>
-          <td>{{ log.referenceType }}</td>
-          <td>{{ log.reference }}</td>
-          <td>{{ log.errorDetails }}</td>
-          <td class="text-end">
-            <div class="btn-group"></div>
-            <button type="submit" [routerLink]="['/reportLogs', log.id, 'view']" class="btn btn-info btn-sm" data-cy="entityDetailsButton">
-              <fa-icon [icon]="faEye" style="color: white"></fa-icon>
-            </button>
-          </td>
-        </tr>
+      <tr *ngFor="let log of logs;trackBy: trackId" data-cy="entityTable">
+        <td>{{ log.msgType }}</td>
+        <td>{{ log.correlationId }}</td>
+        <td>{{ log.referenceType }}</td>
+        <td>{{ log.reference }}</td>
+        <td>{{ log.errorDetails }}</td>
+        <td class="text-end">
+          <div class="btn-group">
+
+          </div>
+          <button
+            type="submit"
+            [routerLink]="['/reportLogs', log.id, 'view']"
+            class="btn btn-info btn-sm"
+            data-cy="entityDetailsButton"
+          >
+            <fa-icon [icon]="faEye" style="color:white"></fa-icon>
+          </button>
+        </td>
+      </tr>
       </tbody>
     </table>
   </div>

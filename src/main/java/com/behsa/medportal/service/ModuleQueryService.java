@@ -7,7 +7,7 @@ import com.behsa.medportal.service.criteria.ModuleCriteria;
 import com.behsa.medportal.service.dto.ModuleDTO;
 import com.behsa.medportal.service.mapper.ModuleMapper;
 import java.util.List;
-import jakarta.persistence.criteria.JoinType;
+import javax.persistence.criteria.JoinType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -81,7 +81,7 @@ public class ModuleQueryService extends QueryService<ModuleEntity> {
      * @return the matching {@link Specification} of the entity.
      */
     protected Specification<ModuleEntity> createSpecification(ModuleCriteria criteria) {
-        Specification<ModuleEntity> specification = (root, query, criteriaBuilder) -> null;
+        Specification<ModuleEntity> specification = Specification.where(null);
         if (criteria != null) {
             // This has to be called first, because the distinct method returns null
             if (criteria.getDistinct() != null) {

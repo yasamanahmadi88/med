@@ -32,20 +32,14 @@ spring:
       indent-output: true
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: ${SPRING_DATASOURCE_URL:jdbc:oracle:thin:@//localhost:1521/FREEPDB1}
-    username: ${SPRING_DATASOURCE_USERNAME:MEDIATION}
-    password: ${SPRING_DATASOURCE_PASSWORD:MEDIATION}
+    url: jdbc:oracle:thin:@//172.18.50.50:1521/IXPDB
+    username: medportal
+    password: 'pass#1401'
     hikari:
       poolName: Hikari
       auto-commit: false
-      data-source-properties:
-        oracle.jdbc.timezoneAsRegion: false
   jpa:
     show-sql: true
-    properties:
-      # Domain tables live in MEDIATION; JDBC user may be medportal with SELECT grants.
-      # Override with MEDPORTAL_DB_SCHEMA= (empty) when the JDBC user owns TBL_* directly.
-      hibernate.default_schema: ${MEDPORTAL_DB_SCHEMA:MEDIATION}
   liquibase:
     # Remove 'faker' if you do not want the sample data to be loaded automatically
     contexts: dev
@@ -87,9 +81,8 @@ jhipster:
   security:
     authentication:
       jwt:
-        # Prefer SECURITY_AUTHENTICATION_JWT_BASE64_SECRET. Local default is for isolated dev only — never reuse in shared/prod.
-        # Generate with: openssl rand -base64 64
-        base64-secret: ${SECURITY_AUTHENTICATION_JWT_BASE64_SECRET:MTgwNmJkMzY5YjY5NWU4YzQ4NGFkMzFhYmMyNTRkYzk3MWUzYzZiZThmYzdmYTFkYzZjNGJmNTU3ZGVlODEyMTYxNmI4NzNhNzA2N2Q2YWEwNDExYmJiMGJkMDMzM2VhZWE5MGMxNjUxZDc1ZjE4MjY1NWViYWY1MjFhNWI0NjI=}
+        # This token must be encoded using Base64 and be at least 256 bits long (you can type `openssl rand -base64 64` on your command line to generate a 512 bits one)
+        base64-secret: MTgwNmJkMzY5YjY5NWU4YzQ4NGFkMzFhYmMyNTRkYzk3MWUzYzZiZThmYzdmYTFkYzZjNGJmNTU3ZGVlODEyMTYxNmI4NzNhNzA2N2Q2YWEwNDExYmJiMGJkMDMzM2VhZWE5MGMxNjUxZDc1ZjE4MjY1NWViYWY1MjFhNWI0NjI=
         # Token is valid 24 hours
         token-validity-in-seconds: 86400
         token-validity-in-seconds-for-remember-me: 2592000
@@ -101,6 +94,7 @@ jhipster:
       enabled: false
       host: localhost
       port: 5000
+      queue-size: 512
 # ===================================================================
 # Application specific properties
 # Add your own application properties here, see the ApplicationProperties class
@@ -130,8 +124,8 @@ bucket4j:
     bucket-size: 5
     token-per-minute: 5
   get:
-    bucket-size: 10
-    token-per-minute: 10
+    bucket-size: 1000
+    token-per-minute: 100
   post:
     bucket-size: 5
     token-per-minute: 5

@@ -12,15 +12,14 @@ import com.behsa.medportal.web.rest.vm.KeyAndPasswordVM;
 import com.behsa.medportal.web.rest.vm.LoginVM;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Set;
 import java.util.Collections;
 import java.util.HashSet;
 
@@ -56,7 +55,7 @@ class AuthResourceIT {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @MockitoBean
+    @MockBean
     private CaptchaValidationService captchaValidationService;
 
     @Autowired
@@ -136,7 +135,7 @@ class AuthResourceIT {
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(rawPassword));
         user.setActivated(true);
-        user.setAuthorities(new HashSet<>(Set.of(getAuthority(AuthoritiesConstants.USER))));
+        user.setAuthorities(new HashSet<>(Collections.singleton(getAuthority(AuthoritiesConstants.USER))));
 
         userRepository.saveAndFlush(user);
     }

@@ -38,7 +38,7 @@ export class MedAuthorityFormService {
         {
           nonNullable: true,
           validators: [Validators.required],
-        },
+        }
       ),
       name: new FormControl(medAuthorityRawValue.name, {
         validators: [Validators.required, Validators.maxLength(50)],
@@ -51,7 +51,7 @@ export class MedAuthorityFormService {
   }
 
   getMedAuthority(form: MedAuthorityFormGroup): IMedAuthority | NewMedAuthority {
-    return form.getRawValue();
+    return form.getRawValue() as IMedAuthority | NewMedAuthority;
   }
 
   resetForm(form: MedAuthorityFormGroup, medAuthority: MedAuthorityFormGroupInput): void {
@@ -60,7 +60,7 @@ export class MedAuthorityFormService {
       {
         ...medAuthorityRawValue,
         id: { value: medAuthorityRawValue.id, disabled: true },
-      } /* cast to workaround https://github.com/angular/angular/issues/46458 */,
+      } as any /* cast to workaround https://github.com/angular/angular/issues/46458 */
     );
   }
 

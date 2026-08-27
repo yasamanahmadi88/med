@@ -38,7 +38,7 @@ export class CustomAuditEventFormService {
         {
           nonNullable: true,
           validators: [Validators.required],
-        },
+        }
       ),
       principal: new FormControl(customAuditEventRawValue.principal, {
         validators: [Validators.required, Validators.maxLength(50)],
@@ -51,7 +51,7 @@ export class CustomAuditEventFormService {
   }
 
   getCustomAuditEvent(form: CustomAuditEventFormGroup): ICustomAuditEvent | NewCustomAuditEvent {
-    return form.getRawValue();
+    return form.getRawValue() as ICustomAuditEvent | NewCustomAuditEvent;
   }
 
   resetForm(form: CustomAuditEventFormGroup, customAuditEvent: CustomAuditEventFormGroupInput): void {
@@ -60,7 +60,7 @@ export class CustomAuditEventFormService {
       {
         ...customAuditEventRawValue,
         id: { value: customAuditEventRawValue.id, disabled: true },
-      } /* cast to workaround https://github.com/angular/angular/issues/46458 */,
+      } as any /* cast to workaround https://github.com/angular/angular/issues/46458 */
     );
   }
 

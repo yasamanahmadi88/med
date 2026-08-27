@@ -29,10 +29,7 @@ export type EntityArrayResponseType = HttpResponse<IInstance[]>;
 export class InstanceService {
   protected resourceUrl = this.applicationConfigService.getEndpointFor('api/instances');
 
-  constructor(
-    protected http: HttpClient,
-    protected applicationConfigService: ApplicationConfigService,
-  ) {}
+  constructor(protected http: HttpClient, protected applicationConfigService: ApplicationConfigService) {}
 
   create(instance: NewInstance): Observable<EntityResponseType> {
     const copy = this.convertDateFromClient(instance);
@@ -86,7 +83,7 @@ export class InstanceService {
   ): Type[] {
     const instances: Type[] = instancesToCheck.filter(isPresent);
     if (instances.length > 0) {
-      const instanceCollectionIdentifiers = instanceCollection.map(instanceItem => this.getInstanceIdentifier(instanceItem));
+      const instanceCollectionIdentifiers = instanceCollection.map(instanceItem => this.getInstanceIdentifier(instanceItem)!);
       const instancesToAdd = instances.filter(instanceItem => {
         const instanceIdentifier = this.getInstanceIdentifier(instanceItem);
         if (instanceCollectionIdentifiers.includes(instanceIdentifier)) {

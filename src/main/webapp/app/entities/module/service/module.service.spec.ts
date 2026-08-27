@@ -37,6 +37,7 @@ describe('Module Service', () => {
     });
 
     it('should create a Module', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const module = { ...sampleWithNewData };
       const returnedFromService = { ...requireRestSample };
       const expected = { ...sampleWithRequiredData };

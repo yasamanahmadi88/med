@@ -11,7 +11,6 @@ import { ResourceService } from '../service/resource.service';
 @Component({
   selector: 'jhi-resource-update',
   templateUrl: './resource-update.component.html',
-  standalone: false,
 })
 export class ResourceUpdateComponent implements OnInit {
   isSaving = false;
@@ -22,7 +21,7 @@ export class ResourceUpdateComponent implements OnInit {
   constructor(
     protected resourceService: ResourceService,
     protected resourceFormService: ResourceFormService,
-    protected activatedRoute: ActivatedRoute,
+    protected activatedRoute: ActivatedRoute
   ) {}
 
   ngOnInit(): void {

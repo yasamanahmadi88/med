@@ -6,7 +6,6 @@ import { ProcessMetrics } from 'app/admin/metrics/metrics.model';
   selector: 'jhi-metrics-system',
   templateUrl: './metrics-system.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: false,
 })
 export class MetricsSystemComponent {
   /**

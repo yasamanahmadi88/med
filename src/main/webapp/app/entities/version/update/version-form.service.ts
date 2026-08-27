@@ -38,7 +38,7 @@ export class VersionFormService {
         {
           nonNullable: true,
           validators: [Validators.required],
-        },
+        }
       ),
       tableName: new FormControl(versionRawValue.tableName, {
         validators: [Validators.required, Validators.maxLength(100)],
@@ -53,7 +53,7 @@ export class VersionFormService {
   }
 
   getVersion(form: VersionFormGroup): IVersion | NewVersion {
-    return form.getRawValue();
+    return form.getRawValue() as IVersion | NewVersion;
   }
 
   resetForm(form: VersionFormGroup, version: VersionFormGroupInput): void {
@@ -62,7 +62,7 @@ export class VersionFormService {
       {
         ...versionRawValue,
         id: { value: versionRawValue.id, disabled: true },
-      } /* cast to workaround https://github.com/angular/angular/issues/46458 */,
+      } as any /* cast to workaround https://github.com/angular/angular/issues/46458 */
     );
   }
 

@@ -6,7 +6,6 @@ import { IMedAuthority } from '../med-authority.model';
 @Component({
   selector: 'jhi-med-authority-detail',
   templateUrl: './med-authority-detail.component.html',
-  standalone: false,
 })
 export class MedAuthorityDetailComponent implements OnInit {
   medAuthority: IMedAuthority | null = null;

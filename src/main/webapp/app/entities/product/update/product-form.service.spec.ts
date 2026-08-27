@@ -22,7 +22,7 @@ describe('Product Form Service', () => {
             id: expect.any(Object),
             productName: expect.any(Object),
             productDesc: expect.any(Object),
-          }),
+          })
         );
       });
 
@@ -34,13 +34,14 @@ describe('Product Form Service', () => {
             id: expect.any(Object),
             productName: expect.any(Object),
             productDesc: expect.any(Object),
-          }),
+          })
         );
       });
     });
 
     describe('getProduct', () => {
       it('should return NewProduct for default Product initial value', () => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const formGroup = service.createProductFormGroup(sampleWithNewData);
 
         const product = service.getProduct(formGroup) as any;

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="no-js" lang="en" dir="ltr" data-theme="light">
+<html class="no-js" lang="en" dir="ltr">
 <head>
   <meta charset="utf-8"/>
   <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
@@ -12,20 +12,7 @@
   <link rel="icon" href="favicon.ico"/>
   <link rel="manifest" href="manifest.webapp"/>
   <link rel="stylesheet" href="content/css/loading.css"/>
-  <script>
-    (function () {
-      try {
-        var stored = localStorage.getItem('medportal-theme');
-        var theme = stored === 'light' || stored === 'dark'
-          ? stored
-          : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        document.documentElement.setAttribute('data-theme', theme);
-        document.documentElement.style.colorScheme = theme;
-      } catch (e) {
-        document.documentElement.setAttribute('data-theme', 'light');
-      }
-    })();
-  </script>
+
 </head>
 <body>
 <!--[if lt IE 9]>

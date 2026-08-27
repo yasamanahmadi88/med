@@ -39,7 +39,7 @@ export class ConfigFormService {
         {
           nonNullable: true,
           validators: [Validators.required],
-        },
+        }
       ),
       property: new FormControl(configRawValue.property, {
         validators: [Validators.required, Validators.maxLength(100)],
@@ -57,7 +57,7 @@ export class ConfigFormService {
   }
 
   getConfig(form: ConfigFormGroup): IConfig | NewConfig {
-    return form.getRawValue();
+    return form.getRawValue() as IConfig | NewConfig;
   }
 
   resetForm(form: ConfigFormGroup, config: ConfigFormGroupInput): void {
@@ -66,7 +66,7 @@ export class ConfigFormService {
       {
         ...configRawValue,
         id: { value: configRawValue.id, disabled: true },
-      } /* cast to workaround https://github.com/angular/angular/issues/46458 */,
+      } as any /* cast to workaround https://github.com/angular/angular/issues/46458 */
     );
   }
 

@@ -23,7 +23,7 @@ describe('ResourceAuthority Form Service', () => {
             verb: expect.any(Object),
             medAuthority: expect.any(Object),
             resource: expect.any(Object),
-          }),
+          })
         );
       });
 
@@ -36,13 +36,14 @@ describe('ResourceAuthority Form Service', () => {
             verb: expect.any(Object),
             medAuthority: expect.any(Object),
             resource: expect.any(Object),
-          }),
+          })
         );
       });
     });
 
     describe('getResourceAuthority', () => {
       it('should return NewResourceAuthority for default ResourceAuthority initial value', () => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const formGroup = service.createResourceAuthorityFormGroup(sampleWithNewData);
 
         const resourceAuthority = service.getResourceAuthority(formGroup) as any;

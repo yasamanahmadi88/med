@@ -9,7 +9,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -21,13 +20,11 @@ import org.zalando.problem.spring.web.advice.security.SecurityAdviceTrait;
 import org.zalando.problem.violations.ConstraintViolationProblem;
 import tech.jhipster.web.util.HeaderUtil;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
-import jakarta.servlet.http.HttpServletRequest;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -66,45 +63,25 @@ public class ExceptionTranslator implements ProblemHandling, SecurityAdviceTrait
 
         HttpServletRequest nativeRequest = request.getNativeRequest(HttpServletRequest.class);
         String requestUri = nativeRequest != null ? nativeRequest.getRequestURI() : StringUtils.EMPTY;
-        Map<String, Object> payload = createProblemPayload(problem, requestUri);
-        return createProblemResponse(payload, entity);
-    }
+        ProblemBuilder builder = Problem
+            .builder()
+            .withType(Problem.DEFAULT_TYPE.equals(problem.getType()) ? ErrorConstants.DEFAULT_TYPE : problem.getType())
+            .withStatus(problem.getStatus())
+            .withTitle(problem.getTitle())
+            .with(PATH_KEY, requestUri);
 
-    private Map<String, Object> createProblemPayload(Problem problem, String requestUri) {
-        Map<String, Object> payload = new LinkedHashMap<>();
-        URI type = Problem.DEFAULT_TYPE.equals(problem.getType()) ? ErrorConstants.DEFAULT_TYPE : problem.getType();
-
-        payload.put("type", type.toString());
-        if (problem.getTitle() != null) {
-            payload.put("title", problem.getTitle());
-        }
-        if (problem.getStatus() != null) {
-            payload.put("status", problem.getStatus().getStatusCode());
-        }
-        if (problem.getDetail() != null) {
-            payload.put("detail", problem.getDetail());
-        }
-        if (problem.getInstance() != null) {
-            payload.put("instance", problem.getInstance().toString());
-        }
-        payload.put(PATH_KEY, requestUri);
-
-        if (problem instanceof ConstraintViolationProblem constraintViolationProblem) {
-            payload.put(VIOLATIONS_KEY, constraintViolationProblem.getViolations());
-            payload.put(MESSAGE_KEY, ErrorConstants.ERR_VALIDATION);
+        if (problem instanceof ConstraintViolationProblem) {
+            builder
+                .with(VIOLATIONS_KEY, ((ConstraintViolationProblem) problem).getViolations())
+                .with(MESSAGE_KEY, ErrorConstants.ERR_VALIDATION);
         } else {
-            payload.putAll(problem.getParameters());
-            if (!payload.containsKey(MESSAGE_KEY) && problem.getStatus() != null) {
-                payload.put(MESSAGE_KEY, "error.http." + problem.getStatus().getStatusCode());
+            builder.withCause(((DefaultProblem) problem).getCause()).withDetail(problem.getDetail()).withInstance(problem.getInstance());
+            problem.getParameters().forEach(builder::with);
+            if (!problem.getParameters().containsKey(MESSAGE_KEY) && problem.getStatus() != null) {
+                builder.with(MESSAGE_KEY, "error.http." + problem.getStatus().getStatusCode());
             }
         }
-
-        return payload;
-    }
-
-    @SuppressWarnings("unchecked")
-    private ResponseEntity<Problem> createProblemResponse(Map<String, Object> payload, ResponseEntity<Problem> entity) {
-        return (ResponseEntity<Problem>) (ResponseEntity<?>) new ResponseEntity<>(payload, entity.getHeaders(), entity.getStatusCode());
+        return new ResponseEntity<>(builder.build(), entity.getHeaders(), entity.getStatusCode());
     }
 
     @Override
@@ -229,15 +206,7 @@ public class ExceptionTranslator implements ProblemHandling, SecurityAdviceTrait
             .withType(type)
             .withTitle(status.getReasonPhrase())
             .withStatus(status)
-            .withDetail(getDetail(throwable));
-    }
-
-    private String getDetail(Throwable throwable) {
-        if (throwable instanceof HttpRequestMethodNotSupportedException ex) {
-            return "Request method '" + ex.getMethod() + "' not supported";
-        }
-
-        return throwable.getMessage();
+            .withDetail(throwable.getMessage());
     }
 
     private boolean shouldHideExceptionDetail(Throwable throwable, StatusType status) {

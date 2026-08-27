@@ -3,7 +3,7 @@ package com.behsa.medportal.repository.timezone;
 import java.io.Serializable;
 import java.time.*;
 import java.util.Objects;
-import jakarta.persistence.*;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "jhi_date_time_wrapper")

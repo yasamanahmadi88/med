@@ -1,0 +1,49 @@
+{
+  "applications": "*",
+  "changelogDate": "20230408122056",
+  "dto": "mapstruct",
+  "embedded": false,
+  "entityTableName": "jhi_resource",
+  "fields": [
+    {
+      "fieldName": "name",
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "maxlength"],
+      "fieldValidateRulesMaxlength": "200"
+    },
+    {
+      "fieldName": "displayName",
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "maxlength"],
+      "fieldValidateRulesMaxlength": "300"
+    },
+    {
+      "fieldName": "apiUri",
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "maxlength"],
+      "fieldValidateRulesMaxlength": "1000"
+    },
+    {
+      "fieldName": "resourceType",
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "maxlength"],
+      "fieldValidateRulesMaxlength": "255"
+    }
+  ],
+  "fluentMethods": true,
+  "jpaMetamodelFiltering": true,
+  "name": "Resource",
+  "pagination": "pagination",
+  "readOnly": false,
+  "relationships": [
+    {
+      "otherEntityName": "resourceAuthority",
+      "otherEntityRelationshipName": "resource",
+      "relationshipName": "resourceAuthorities",
+      "relationshipType": "one-to-many"
+    }
+  ],
+  "service": "serviceImpl",
+  "skipClient": true,
+  "skipServer": true
+}

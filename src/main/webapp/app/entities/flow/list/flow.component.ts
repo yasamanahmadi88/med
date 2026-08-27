@@ -15,7 +15,6 @@ import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/
 @Component({
   selector: 'jhi-flow',
   templateUrl: './flow.component.html',
-  standalone: false,
 })
 export class FlowComponent implements OnInit {
   flows?: IFlow[];
@@ -34,7 +33,7 @@ export class FlowComponent implements OnInit {
     protected flowService: FlowService,
     protected activatedRoute: ActivatedRoute,
     public router: Router,
-    protected modalService: NgbModal,
+    protected modalService: NgbModal
   ) {}
 
   trackId = (_index: number, item: IFlow): number => this.flowService.getFlowIdentifier(item);
@@ -52,7 +51,7 @@ export class FlowComponent implements OnInit {
     modalRef.closed
       .pipe(
         filter(reason => reason === ITEM_DELETED_EVENT),
-        switchMap(() => this.loadFromBackendWithRouteInformations()),
+        switchMap(() => this.loadFromBackendWithRouteInformations())
       )
       .subscribe({
         next: (res: EntityArrayResponseType) => {
@@ -80,7 +79,7 @@ export class FlowComponent implements OnInit {
   protected loadFromBackendWithRouteInformations(): Observable<EntityArrayResponseType> {
     return combineLatest([this.activatedRoute.queryParamMap, this.activatedRoute.data]).pipe(
       tap(([params, data]) => this.fillComponentAttributeFromRoute(params, data)),
-      switchMap(() => this.queryBackend(this.page, this.predicate, this.ascending, this.filters.filterOptions)),
+      switchMap(() => this.queryBackend(this.page, this.predicate, this.ascending, this.filters.filterOptions))
     );
   }
 
@@ -111,7 +110,7 @@ export class FlowComponent implements OnInit {
     page?: number,
     predicate?: string,
     ascending?: boolean,
-    filterOptions?: IFilterOption[],
+    filterOptions?: IFilterOption[]
   ): Observable<EntityArrayResponseType> {
     this.isLoading = true;
     const pageToLoad: number = page ?? 1;
@@ -123,7 +122,7 @@ export class FlowComponent implements OnInit {
     filterOptions?.forEach(filterOption => {
       queryObject[filterOption.name] = filterOption.values;
     });
-    return this.flowService.query(queryObject).pipe(tap(() => (this.isLoading = false)));
+    return this.flowService.query(queryObject).pipe(finalize(() => (this.isLoading = false)));
   }
 
   protected handleNavigation(page = this.page, predicate?: string, ascending?: boolean, filterOptions?: IFilterOption[]): void {
@@ -152,15 +151,12 @@ export class FlowComponent implements OnInit {
     }
   }
 
-  openBPMNPage(flowId: any) {
-    this.router.navigate(['/bpmn'], { relativeTo: this.activatedRoute, queryParams: { flowId } });
+  openBPMNPage(flowId: any){
+    this.router.navigate(['/bpmn'], {relativeTo: this.activatedRoute, queryParams: {flowId:flowId}});
   }
 
-  routeToNewFlow() {
-    this.flowService.xmlTemp = '';
-    this.router.navigate(['/flow/new'], {
-      relativeTo: this.activatedRoute,
-      queryParams: { productId: this.route.snapshot.queryParams['filter[productId.in]'] },
-    });
+  routeToNewFlow(){
+    this.flowService.xmlTemp = "";
+    this.router.navigate(['/flow/new'],{relativeTo: this.activatedRoute, queryParams: {productId: this.route.snapshot.queryParams["filter[productId.in]"]}} );
   }
 }

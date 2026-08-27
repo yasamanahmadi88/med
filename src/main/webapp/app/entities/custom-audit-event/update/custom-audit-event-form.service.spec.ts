@@ -23,7 +23,7 @@ describe('CustomAuditEvent Form Service', () => {
             principal: expect.any(Object),
             eventDate: expect.any(Object),
             eventType: expect.any(Object),
-          }),
+          })
         );
       });
 
@@ -36,13 +36,14 @@ describe('CustomAuditEvent Form Service', () => {
             principal: expect.any(Object),
             eventDate: expect.any(Object),
             eventType: expect.any(Object),
-          }),
+          })
         );
       });
     });
 
     describe('getCustomAuditEvent', () => {
       it('should return NewCustomAuditEvent for default CustomAuditEvent initial value', () => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const formGroup = service.createCustomAuditEventFormGroup(sampleWithNewData);
 
         const customAuditEvent = service.getCustomAuditEvent(formGroup) as any;

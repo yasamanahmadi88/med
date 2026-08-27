@@ -15,7 +15,6 @@ import { ResourceService } from 'app/entities/resource/service/resource.service'
 @Component({
   selector: 'jhi-resource-authority-update',
   templateUrl: './resource-authority-update.component.html',
-  standalone: false,
 })
 export class ResourceAuthorityUpdateComponent implements OnInit {
   isSaving = false;
@@ -31,7 +30,7 @@ export class ResourceAuthorityUpdateComponent implements OnInit {
     protected resourceAuthorityFormService: ResourceAuthorityFormService,
     protected medAuthorityService: MedAuthorityService,
     protected resourceService: ResourceService,
-    protected activatedRoute: ActivatedRoute,
+    protected activatedRoute: ActivatedRoute
   ) {}
 
   compareMedAuthority = (o1: IMedAuthority | null, o2: IMedAuthority | null): boolean =>
@@ -89,35 +88,32 @@ export class ResourceAuthorityUpdateComponent implements OnInit {
 
     this.medAuthoritiesSharedCollection = this.medAuthorityService.addMedAuthorityToCollectionIfMissing<IMedAuthority>(
       this.medAuthoritiesSharedCollection,
-      resourceAuthority.medAuthority,
+      resourceAuthority.medAuthority
     );
     this.resourcesSharedCollection = this.resourceService.addResourceToCollectionIfMissing<IResource>(
       this.resourcesSharedCollection,
-      resourceAuthority.resource,
+      resourceAuthority.resource
     );
   }
 
   protected loadRelationshipsOptions(): void {
     this.medAuthorityService
-      .query({ size: 1000 })
+      .query({size: 1000})
       .pipe(map((res: HttpResponse<IMedAuthority[]>) => res.body ?? []))
       .pipe(
         map((medAuthorities: IMedAuthority[]) =>
-          this.medAuthorityService.addMedAuthorityToCollectionIfMissing<IMedAuthority>(
-            medAuthorities,
-            this.resourceAuthority?.medAuthority,
-          ),
-        ),
+          this.medAuthorityService.addMedAuthorityToCollectionIfMissing<IMedAuthority>(medAuthorities, this.resourceAuthority?.medAuthority)
+        )
       )
       .subscribe((medAuthorities: IMedAuthority[]) => (this.medAuthoritiesSharedCollection = medAuthorities));
 
     this.resourceService
-      .query({ size: 1000 })
+      .query({size: 1000})
       .pipe(map((res: HttpResponse<IResource[]>) => res.body ?? []))
       .pipe(
         map((resources: IResource[]) =>
-          this.resourceService.addResourceToCollectionIfMissing<IResource>(resources, this.resourceAuthority?.resource),
-        ),
+          this.resourceService.addResourceToCollectionIfMissing<IResource>(resources, this.resourceAuthority?.resource)
+        )
       )
       .subscribe((resources: IResource[]) => (this.resourcesSharedCollection = resources));
   }

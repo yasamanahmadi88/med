@@ -23,7 +23,7 @@ describe('MedAuthority Form Service', () => {
             name: expect.any(Object),
             displayName: expect.any(Object),
             parentId: expect.any(Object),
-          }),
+          })
         );
       });
 
@@ -36,13 +36,14 @@ describe('MedAuthority Form Service', () => {
             name: expect.any(Object),
             displayName: expect.any(Object),
             parentId: expect.any(Object),
-          }),
+          })
         );
       });
     });
 
     describe('getMedAuthority', () => {
       it('should return NewMedAuthority for default MedAuthority initial value', () => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const formGroup = service.createMedAuthorityFormGroup(sampleWithNewData);
 
         const medAuthority = service.getMedAuthority(formGroup) as any;

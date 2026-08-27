@@ -80,7 +80,7 @@ public class InstanceQueryService extends QueryService<InstanceEntity> {
      * @return the matching {@link Specification} of the entity.
      */
     protected Specification<InstanceEntity> createSpecification(InstanceCriteria criteria) {
-        Specification<InstanceEntity> specification = (root, query, criteriaBuilder) -> null;
+        Specification<InstanceEntity> specification = Specification.where(null);
         if (criteria != null) {
             // This has to be called first, because the distinct method returns null
             if (criteria.getDistinct() != null) {

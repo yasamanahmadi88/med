@@ -9,10 +9,7 @@ import { ProductService } from '../service/product.service';
 
 @Injectable({ providedIn: 'root' })
 export class ProductRoutingResolveService implements Resolve<IProduct | null> {
-  constructor(
-    protected service: ProductService,
-    protected router: Router,
-  ) {}
+  constructor(protected service: ProductService, protected router: Router) {}
 
   resolve(route: ActivatedRouteSnapshot): Observable<IProduct | null | never> {
     const id = route.params['id'];
@@ -25,7 +22,7 @@ export class ProductRoutingResolveService implements Resolve<IProduct | null> {
             this.router.navigate(['404']);
             return EMPTY;
           }
-        }),
+        })
       );
     }
     return of(null);

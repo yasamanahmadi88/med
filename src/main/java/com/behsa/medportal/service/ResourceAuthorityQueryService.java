@@ -10,7 +10,7 @@ import com.behsa.medportal.service.mapper.ResourceAuthorityMapper;
 
 import java.util.ArrayList;
 import java.util.List;
-import jakarta.persistence.criteria.JoinType;
+import javax.persistence.criteria.JoinType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -40,20 +40,14 @@ public class ResourceAuthorityQueryService extends QueryService<ResourceAuthorit
 
     private final MedAuthorityService medAuthorityService;
 
-    private final ResourceService resourceService;
-
     public ResourceAuthorityQueryService(
         ResourceAuthorityRepository resourceAuthorityRepository,
         ResourceAuthorityMapper resourceAuthorityMapper,
-        MedAuthorityRepository medAuthorityRepository,
-        MedAuthorityService medAuthorityService,
-        ResourceService resourceService
-    ) {
+        MedAuthorityRepository medAuthorityRepository, MedAuthorityService medAuthorityService) {
         this.resourceAuthorityRepository = resourceAuthorityRepository;
         this.resourceAuthorityMapper = resourceAuthorityMapper;
         this.medAuthorityRepository = medAuthorityRepository;
         this.medAuthorityService = medAuthorityService;
-        this.resourceService = resourceService;
     }
 
     /**
@@ -84,26 +78,19 @@ public class ResourceAuthorityQueryService extends QueryService<ResourceAuthorit
     @Transactional(readOnly = true)
     public Page<ResourceAuthorityDTO> findByAuthorities(List<String> authorities, Pageable page) {
         log.debug("find by criteria : {}, page: {}", authorities, page);
-        if (authorities == null || authorities.isEmpty()) {
-            return Page.empty(page);
-        }
         List<Long> authIds = new ArrayList<>();
         List<MedAuthorityEntity> authorityList = medAuthorityRepository.findByNameIn(authorities);
-        authorityList.forEach(authority -> authIds.add(authority.getId()));
-        if (authIds.isEmpty()) {
-            return Page.empty(page);
-        }
+        authorityList.forEach(
+            authority -> {
+                authIds.add(authority.getId());
+            }
+        );
         Page<ResourceAuthorityDTO> temp = resourceAuthorityRepository
             .findByMedAuthority_IdIn(authIds, page)
             .map(resourceAuthorityMapper::toDto);
         temp.forEach(
             x -> {
-                if (x.getMedAuthority() != null && x.getMedAuthority().getId() != null) {
-                    medAuthorityService.findOne(x.getMedAuthority().getId()).ifPresent(x::setMedAuthority);
-                }
-                if (x.getResource() != null && x.getResource().getId() != null) {
-                    resourceService.findOne(x.getResource().getId()).ifPresent(x::setResource);
-                }
+                x.setMedAuthority(medAuthorityService.findOne(x.getMedAuthority().getId()).get());
             }
         );
         return temp;
@@ -127,7 +114,7 @@ public class ResourceAuthorityQueryService extends QueryService<ResourceAuthorit
      * @return the matching {@link Specification} of the entity.
      */
     protected Specification<ResourceAuthorityEntity> createSpecification(ResourceAuthorityCriteria criteria) {
-        Specification<ResourceAuthorityEntity> specification = (root, query, criteriaBuilder) -> null;
+        Specification<ResourceAuthorityEntity> specification = Specification.where(null);
         if (criteria != null) {
             // This has to be called first, because the distinct method returns null
             if (criteria.getDistinct() != null) {

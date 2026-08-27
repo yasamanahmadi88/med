@@ -14,8 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -165,7 +165,7 @@ public class VersionResource {
     @Secured(ENTITY_NAME)
     public ResponseEntity<List<VersionDTO>> getAllVersions(
         VersionCriteria criteria,
-        @org.springdoc.core.annotations.ParameterObject Pageable pageable
+        @org.springdoc.api.annotations.ParameterObject Pageable pageable
     ) {
         log.debug("REST request to get Versions by criteria: {}", criteria);
         Page<VersionDTO> page = versionQueryService.findByCriteria(criteria, pageable);

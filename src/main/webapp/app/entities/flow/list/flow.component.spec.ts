@@ -1,20 +1,20 @@
-import { vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpHeaders, HttpResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
 
 import { FlowService } from '../service/flow.service';
 
 import { FlowComponent } from './flow.component';
+import SpyInstance = jest.SpyInstance;
 
 describe('Flow Management Component', () => {
   let comp: FlowComponent;
   let fixture: ComponentFixture<FlowComponent>;
   let service: FlowService;
-  let routerNavigateSpy: ReturnType<typeof vi.spyOn>;
+  let routerNavigateSpy: SpyInstance<Promise<boolean>>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -28,12 +28,12 @@ describe('Flow Management Component', () => {
               defaultSort: 'id,asc',
             }),
             queryParamMap: of(
-              convertToParamMap({
+              jest.requireActual('@angular/router').convertToParamMap({
                 page: '1',
                 size: '1',
                 sort: 'id,desc',
                 'filter[someId.in]': 'dc4279ea-cfb9-11ec-9d64-0242ac120002',
-              }),
+              })
             ),
             snapshot: { queryParams: {} },
           },
@@ -46,16 +46,16 @@ describe('Flow Management Component', () => {
     fixture = TestBed.createComponent(FlowComponent);
     comp = fixture.componentInstance;
     service = TestBed.inject(FlowService);
-    routerNavigateSpy = vi.spyOn(comp.router, 'navigate');
+    routerNavigateSpy = jest.spyOn(comp.router, 'navigate');
 
     const headers = new HttpHeaders();
-    vi.spyOn(service, 'query').mockReturnValue(
+    jest.spyOn(service, 'query').mockReturnValue(
       of(
         new HttpResponse({
           body: [{ id: 123 }],
           headers,
-        }),
-      ),
+        })
+      )
     );
   });
 
@@ -71,7 +71,7 @@ describe('Flow Management Component', () => {
   describe('trackId', () => {
     it('Should forward to flowService', () => {
       const entity = { id: 123 };
-      vi.spyOn(service, 'getFlowIdentifier');
+      jest.spyOn(service, 'getFlowIdentifier');
       const id = comp.trackId(0, entity);
       expect(service.getFlowIdentifier).toHaveBeenCalledWith(entity);
       expect(id).toBe(entity.id);
@@ -108,7 +108,7 @@ describe('Flow Management Component', () => {
         queryParams: expect.objectContaining({
           sort: ['name,asc'],
         }),
-      }),
+      })
     );
   });
 

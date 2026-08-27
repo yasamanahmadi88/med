@@ -10,10 +10,7 @@ export interface PasswordValidationResponse {
 }
 @Injectable({ providedIn: 'root' })
 export class PasswordService {
-  constructor(
-    private http: HttpClient,
-    private applicationConfigService: ApplicationConfigService,
-  ) {}
+  constructor(private http: HttpClient, private applicationConfigService: ApplicationConfigService) {}
 
   validatePassword(password: string): Observable<PasswordValidationResponse> {
     return this.http.post<PasswordValidationResponse>('/api/password/validate', { password });
@@ -28,7 +25,7 @@ export class PasswordService {
   resetPasswordByAdmin(login: string, newPassword: string): Observable<void> {
     return this.http.post<void>(
       this.applicationConfigService.getEndpointFor(`api/admin/users/${encodeURIComponent(login)}/reset-password`),
-      { newPassword },
+      { newPassword }
     );
   }
 }

@@ -2,10 +2,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 
-import { IReportLogs } from '../logs.model';
 import { LogsDetailComponent } from './logs-detail.component';
 
-describe('Logs Management Detail Component', () => {
+describe('Product Management Detail Component', () => {
   let comp: LogsDetailComponent;
   let fixture: ComponentFixture<LogsDetailComponent>;
 
@@ -15,7 +14,7 @@ describe('Logs Management Detail Component', () => {
       providers: [
         {
           provide: ActivatedRoute,
-          useValue: { data: of({ log: { id: 123 } as IReportLogs }) },
+          useValue: { data: of({ product: { id: 123 } }) },
         },
       ],
     })
@@ -26,9 +25,12 @@ describe('Logs Management Detail Component', () => {
   });
 
   describe('OnInit', () => {
-    it('Should load log on init', () => {
+    it('Should load product on init', () => {
+      // WHEN
       comp.ngOnInit();
-      expect(comp.log).toEqual(expect.objectContaining({ id: 123 }));
+
+      // THEN
+      expect(comp.product).toEqual(expect.objectContaining({ id: 123 }));
     });
   });
 });

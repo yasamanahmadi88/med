@@ -1,0 +1,39 @@
+{
+  "applications": "*",
+  "changelogDate": "20230408122057",
+  "dto": "mapstruct",
+  "embedded": false,
+  "entityTableName": "resource_authority",
+  "fields": [
+    {
+      "fieldName": "verb",
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "maxlength"],
+      "fieldValidateRulesMaxlength": "255"
+    }
+  ],
+  "fluentMethods": true,
+  "jpaMetamodelFiltering": true,
+  "name": "ResourceAuthority",
+  "pagination": "pagination",
+  "readOnly": false,
+  "relationships": [
+    {
+      "otherEntityName": "medAuthority",
+      "otherEntityRelationshipName": "resourceAuthorities",
+      "relationshipName": "medAuthority",
+      "relationshipType": "many-to-one",
+      "relationshipValidateRules": "required"
+    },
+    {
+      "otherEntityName": "resource",
+      "otherEntityRelationshipName": "resourceAuthorities",
+      "relationshipName": "resource",
+      "relationshipType": "many-to-one",
+      "relationshipValidateRules": "required"
+    }
+  ],
+  "service": "serviceImpl",
+  "skipClient": true,
+  "skipServer": true
+}

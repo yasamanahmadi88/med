@@ -1,0 +1,22 @@
+<div #designerContainer [ngClass]="containerClasses" id="designer-container">
+  <app-toolbar *ngIf="showToolbar"></app-toolbar>
+
+  <div class="main-content">
+    <app-palette *ngIf="customPalette"></app-palette>
+
+    <app-designer
+      [xml]="processXml"
+      (xmlUpdate)="onXmlUpdate($event)">
+    </app-designer>
+
+    <app-panel *ngIf="customPanel"></app-panel>
+    <div *ngIf="!customPanel" class="camunda-penal" id="camunda-penal"></div>
+  </div>
+
+  <app-settings
+    [settings]="editorSettings"
+    (settingsUpdate)="onSettingsUpdate($event)">
+  </app-settings>
+
+  <app-context-menu></app-context-menu>
+</div>

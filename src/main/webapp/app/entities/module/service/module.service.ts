@@ -16,10 +16,7 @@ export type EntityArrayResponseType = HttpResponse<IModule[]>;
 export class ModuleService {
   protected resourceUrl = this.applicationConfigService.getEndpointFor('api/modules');
 
-  constructor(
-    protected http: HttpClient,
-    protected applicationConfigService: ApplicationConfigService,
-  ) {}
+  constructor(protected http: HttpClient, protected applicationConfigService: ApplicationConfigService) {}
 
   create(module: NewModule): Observable<EntityResponseType> {
     return this.http.post<IModule>(this.resourceUrl, module, { observe: 'response' });
@@ -60,7 +57,7 @@ export class ModuleService {
   ): Type[] {
     const modules: Type[] = modulesToCheck.filter(isPresent);
     if (modules.length > 0) {
-      const moduleCollectionIdentifiers = moduleCollection.map(moduleItem => this.getModuleIdentifier(moduleItem));
+      const moduleCollectionIdentifiers = moduleCollection.map(moduleItem => this.getModuleIdentifier(moduleItem)!);
       const modulesToAdd = modules.filter(moduleItem => {
         const moduleIdentifier = this.getModuleIdentifier(moduleItem);
         if (moduleCollectionIdentifiers.includes(moduleIdentifier)) {

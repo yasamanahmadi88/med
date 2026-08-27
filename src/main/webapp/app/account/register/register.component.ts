@@ -7,7 +7,6 @@ import { RegisterService } from './register.service';
 @Component({
   selector: 'jhi-register',
   templateUrl: './register.component.html',
-  standalone: false,
 })
 export class RegisterComponent implements AfterViewInit {
   @ViewChild('login', { static: false })
@@ -41,10 +40,7 @@ export class RegisterComponent implements AfterViewInit {
     }),
   });
 
-  constructor(
-    private translateService: TranslateService,
-    private registerService: RegisterService,
-  ) {}
+  constructor(private translateService: TranslateService, private registerService: RegisterService) {}
 
   ngAfterViewInit(): void {
     if (this.login) {

@@ -11,13 +11,12 @@ import { ASC, DESC, SORT, ITEM_DELETED_EVENT, DEFAULT_SORT_DATA } from 'app/conf
 import { EntityArrayResponseType, ModuleService } from '../service/module.service';
 import { ModuleDeleteDialogComponent } from '../delete/module-delete-dialog.component';
 import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/filter.model';
-import { SimpleTextDialogService } from '../../../layouts/simple-text-dialog/simple-text-dialog.service';
+import {SimpleTextDialogService} from "../../../layouts/simple-text-dialog/simple-text-dialog.service";
 import { faCog, faTrash, faEye, faPencil } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'jhi-module',
   templateUrl: './module.component.html',
-  standalone: false,
 })
 export class ModuleComponent implements OnInit {
   modules?: IModule[];
@@ -41,7 +40,7 @@ export class ModuleComponent implements OnInit {
     protected activatedRoute: ActivatedRoute,
     public router: Router,
     protected modalService: NgbModal,
-    protected simpleTextDialogService: SimpleTextDialogService,
+    protected simpleTextDialogService: SimpleTextDialogService
   ) {}
 
   trackId = (_index: number, item: IModule): number => this.moduleService.getModuleIdentifier(item);
@@ -59,7 +58,7 @@ export class ModuleComponent implements OnInit {
     modalRef.closed
       .pipe(
         filter(reason => reason === ITEM_DELETED_EVENT),
-        switchMap(() => this.loadFromBackendWithRouteInformations()),
+        switchMap(() => this.loadFromBackendWithRouteInformations())
       )
       .subscribe({
         next: (res: EntityArrayResponseType) => {
@@ -87,7 +86,7 @@ export class ModuleComponent implements OnInit {
   protected loadFromBackendWithRouteInformations(): Observable<EntityArrayResponseType> {
     return combineLatest([this.activatedRoute.queryParamMap, this.activatedRoute.data]).pipe(
       tap(([params, data]) => this.fillComponentAttributeFromRoute(params, data)),
-      switchMap(() => this.queryBackend(this.page, this.predicate, this.ascending, this.filters.filterOptions)),
+      switchMap(() => this.queryBackend(this.page, this.predicate, this.ascending, this.filters.filterOptions))
     );
   }
 
@@ -118,7 +117,7 @@ export class ModuleComponent implements OnInit {
     page?: number,
     predicate?: string,
     ascending?: boolean,
-    filterOptions?: IFilterOption[],
+    filterOptions?: IFilterOption[]
   ): Observable<EntityArrayResponseType> {
     this.isLoading = true;
     const pageToLoad: number = page ?? 1;
@@ -130,7 +129,7 @@ export class ModuleComponent implements OnInit {
     filterOptions?.forEach(filterOption => {
       queryObject[filterOption.name] = filterOption.values;
     });
-    return this.moduleService.query(queryObject).pipe(tap(() => (this.isLoading = false)));
+    return this.moduleService.query(queryObject).pipe(finalize(() => (this.isLoading = false)));
   }
 
   protected handleNavigation(page = this.page, predicate?: string, ascending?: boolean, filterOptions?: IFilterOption[]): void {
@@ -159,7 +158,7 @@ export class ModuleComponent implements OnInit {
     }
   }
 
-  showLoggingFilterDialog(loggingFilter: any) {
+  showLoggingFilterDialog(loggingFilter: any){
     this.simpleTextDialogService.open(loggingFilter);
   }
 }

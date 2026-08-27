@@ -14,11 +14,11 @@ import com.behsa.medportal.service.mapper.ConfigMapper;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
-import jakarta.persistence.EntityManager;
+import javax.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -508,7 +508,7 @@ class ConfigResourceIT {
         int databaseSizeBeforeUpdate = configRepository.findAll().size();
 
         // Update the config
-        ConfigEntity updatedConfigEntity = configRepository.findById(configEntity.getId()).orElseThrow();
+        ConfigEntity updatedConfigEntity = configRepository.findById(configEntity.getId()).get();
         // Disconnect from session so that the updates on updatedConfigEntity are not directly saved in db
         em.detach(updatedConfigEntity);
         updatedConfigEntity.property(UPDATED_PROPERTY).pValue(UPDATED_P_VALUE).commentDesc(UPDATED_COMMENT_DESC);

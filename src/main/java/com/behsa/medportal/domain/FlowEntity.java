@@ -2,14 +2,14 @@ package com.behsa.medportal.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.Serializable;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+import javax.persistence.*;
+import javax.validation.constraints.*;
 
 /**
  * A FlowEntity.
  */
 @Entity
-@Table(name = "TBL_FLOWS")
+@Table(name = "MEDIATION.TBL_FLOWS")
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class FlowEntity implements Serializable {
 
@@ -17,7 +17,7 @@ public class FlowEntity implements Serializable {
 
     @Id
     @GeneratedValue(generator = "AUTR_SEQ_GENERATOR")
-    @SequenceGenerator(name = "AUTR_SEQ_GENERATOR", sequenceName = "FLOWS_SEQ", allocationSize = 1)
+    @SequenceGenerator(name = "AUTR_SEQ_GENERATOR", sequenceName = "MEDIATION.FLOWS_SEQ", allocationSize = 0)
     @Column(name = "flow_key")
     private Long id;
 

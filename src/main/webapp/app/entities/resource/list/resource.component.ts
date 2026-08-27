@@ -15,7 +15,6 @@ import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/
 @Component({
   selector: 'jhi-resource',
   templateUrl: './resource.component.html',
-  standalone: false,
 })
 export class ResourceComponent implements OnInit {
   resources?: IResource[];
@@ -33,7 +32,7 @@ export class ResourceComponent implements OnInit {
     protected resourceService: ResourceService,
     protected activatedRoute: ActivatedRoute,
     public router: Router,
-    protected modalService: NgbModal,
+    protected modalService: NgbModal
   ) {}
 
   trackId = (_index: number, item: IResource): number => this.resourceService.getResourceIdentifier(item);
@@ -51,7 +50,7 @@ export class ResourceComponent implements OnInit {
     modalRef.closed
       .pipe(
         filter(reason => reason === ITEM_DELETED_EVENT),
-        switchMap(() => this.loadFromBackendWithRouteInformations()),
+        switchMap(() => this.loadFromBackendWithRouteInformations())
       )
       .subscribe({
         next: (res: EntityArrayResponseType) => {
@@ -79,7 +78,7 @@ export class ResourceComponent implements OnInit {
   protected loadFromBackendWithRouteInformations(): Observable<EntityArrayResponseType> {
     return combineLatest([this.activatedRoute.queryParamMap, this.activatedRoute.data]).pipe(
       tap(([params, data]) => this.fillComponentAttributeFromRoute(params, data)),
-      switchMap(() => this.queryBackend(this.page, this.predicate, this.ascending, this.filters.filterOptions)),
+      switchMap(() => this.queryBackend(this.page, this.predicate, this.ascending, this.filters.filterOptions))
     );
   }
 
@@ -110,7 +109,7 @@ export class ResourceComponent implements OnInit {
     page?: number,
     predicate?: string,
     ascending?: boolean,
-    filterOptions?: IFilterOption[],
+    filterOptions?: IFilterOption[]
   ): Observable<EntityArrayResponseType> {
     this.isLoading = true;
     const pageToLoad: number = page ?? 1;
@@ -122,7 +121,7 @@ export class ResourceComponent implements OnInit {
     filterOptions?.forEach(filterOption => {
       queryObject[filterOption.name] = filterOption.values;
     });
-    return this.resourceService.query(queryObject).pipe(tap(() => (this.isLoading = false)));
+    return this.resourceService.query(queryObject).pipe(finalize(() => (this.isLoading = false)));
   }
 
   protected handleNavigation(page = this.page, predicate?: string, ascending?: boolean, filterOptions?: IFilterOption[]): void {

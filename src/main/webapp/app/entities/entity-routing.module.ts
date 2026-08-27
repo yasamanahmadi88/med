@@ -46,12 +46,12 @@ import { RouterModule } from '@angular/router';
       },
       {
         path: 'flow',
-        data: { pageTitle: 'medPortalApp.flow.home.title' },
+        data: { pageTitle: 'medPortalApp.reportLogs.home.title' },
         loadChildren: () => import('./flow/flow.module').then(m => m.FlowModule),
       },
       {
         path: 'reportLogs',
-        data: { pageTitle: 'medPortalApp.flow.home.title' },
+        data: { pageTitle: 'medPortalApp.reportLogs.home.title' },
         loadChildren: () => import('./logs/logs.module').then(m => m.LogsModule),
       },
       {

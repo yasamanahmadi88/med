@@ -1,4 +1,3 @@
-import { vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
@@ -61,9 +60,9 @@ describe('Product Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<IProduct>>();
       const product = { id: 123 };
-      vi.spyOn(productFormService, 'getProduct').mockReturnValue(product);
-      vi.spyOn(productService, 'update').mockReturnValue(saveSubject);
-      vi.spyOn(comp, 'previousState');
+      jest.spyOn(productFormService, 'getProduct').mockReturnValue(product);
+      jest.spyOn(productService, 'update').mockReturnValue(saveSubject);
+      jest.spyOn(comp, 'previousState');
       activatedRoute.data = of({ product });
       comp.ngOnInit();
 
@@ -84,9 +83,9 @@ describe('Product Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<IProduct>>();
       const product = { id: 123 };
-      vi.spyOn(productFormService, 'getProduct').mockReturnValue({ id: null });
-      vi.spyOn(productService, 'create').mockReturnValue(saveSubject);
-      vi.spyOn(comp, 'previousState');
+      jest.spyOn(productFormService, 'getProduct').mockReturnValue({ id: null });
+      jest.spyOn(productService, 'create').mockReturnValue(saveSubject);
+      jest.spyOn(comp, 'previousState');
       activatedRoute.data = of({ product: null });
       comp.ngOnInit();
 
@@ -107,8 +106,8 @@ describe('Product Management Update Component', () => {
       // GIVEN
       const saveSubject = new Subject<HttpResponse<IProduct>>();
       const product = { id: 123 };
-      vi.spyOn(productService, 'update').mockReturnValue(saveSubject);
-      vi.spyOn(comp, 'previousState');
+      jest.spyOn(productService, 'update').mockReturnValue(saveSubject);
+      jest.spyOn(comp, 'previousState');
       activatedRoute.data = of({ product });
       comp.ngOnInit();
 

@@ -1,20 +1,20 @@
-import { vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpHeaders, HttpResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
 
 import { CustomAuditEventService } from '../service/custom-audit-event.service';
 
 import { CustomAuditEventComponent } from './custom-audit-event.component';
+import SpyInstance = jest.SpyInstance;
 
 describe('CustomAuditEvent Management Component', () => {
   let comp: CustomAuditEventComponent;
   let fixture: ComponentFixture<CustomAuditEventComponent>;
   let service: CustomAuditEventService;
-  let routerNavigateSpy: ReturnType<typeof vi.spyOn>;
+  let routerNavigateSpy: SpyInstance<Promise<boolean>>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -31,12 +31,12 @@ describe('CustomAuditEvent Management Component', () => {
               defaultSort: 'id,asc',
             }),
             queryParamMap: of(
-              convertToParamMap({
+              jest.requireActual('@angular/router').convertToParamMap({
                 page: '1',
                 size: '1',
                 sort: 'id,desc',
                 'filter[someId.in]': 'dc4279ea-cfb9-11ec-9d64-0242ac120002',
-              }),
+              })
             ),
             snapshot: { queryParams: {} },
           },
@@ -49,16 +49,16 @@ describe('CustomAuditEvent Management Component', () => {
     fixture = TestBed.createComponent(CustomAuditEventComponent);
     comp = fixture.componentInstance;
     service = TestBed.inject(CustomAuditEventService);
-    routerNavigateSpy = vi.spyOn(comp.router, 'navigate');
+    routerNavigateSpy = jest.spyOn(comp.router, 'navigate');
 
     const headers = new HttpHeaders();
-    vi.spyOn(service, 'query').mockReturnValue(
+    jest.spyOn(service, 'query').mockReturnValue(
       of(
         new HttpResponse({
           body: [{ id: 123 }],
           headers,
-        }),
-      ),
+        })
+      )
     );
   });
 
@@ -74,7 +74,7 @@ describe('CustomAuditEvent Management Component', () => {
   describe('trackId', () => {
     it('Should forward to customAuditEventService', () => {
       const entity = { id: 123 };
-      vi.spyOn(service, 'getCustomAuditEventIdentifier');
+      jest.spyOn(service, 'getCustomAuditEventIdentifier');
       const id = comp.trackId(0, entity);
       expect(service.getCustomAuditEventIdentifier).toHaveBeenCalledWith(entity);
       expect(id).toBe(entity.id);
@@ -111,7 +111,7 @@ describe('CustomAuditEvent Management Component', () => {
         queryParams: expect.objectContaining({
           sort: ['name,asc'],
         }),
-      }),
+      })
     );
   });
 

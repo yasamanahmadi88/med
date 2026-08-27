@@ -7,7 +7,7 @@ import com.behsa.medportal.service.criteria.CustomAuditEventCriteria;
 import com.behsa.medportal.service.dto.CustomAuditEventDTO;
 import com.behsa.medportal.service.mapper.CustomAuditEventMapper;
 import java.util.List;
-import jakarta.persistence.criteria.JoinType;
+import javax.persistence.criteria.JoinType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -84,7 +84,7 @@ public class CustomAuditEventQueryService extends QueryService<CustomAuditEventE
      * @return the matching {@link Specification} of the entity.
      */
     protected Specification<CustomAuditEventEntity> createSpecification(CustomAuditEventCriteria criteria) {
-        Specification<CustomAuditEventEntity> specification = (root, query, criteriaBuilder) -> null;
+        Specification<CustomAuditEventEntity> specification = Specification.where(null);
         if (criteria != null) {
             // This has to be called first, because the distinct method returns null
             if (criteria.getDistinct() != null) {

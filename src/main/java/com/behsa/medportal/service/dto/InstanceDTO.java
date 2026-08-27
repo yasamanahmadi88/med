@@ -5,7 +5,7 @@ import com.behsa.medportal.domain.InstanceEntity;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Objects;
-import jakarta.validation.constraints.*;
+import javax.validation.constraints.*;
 
 /**
  * A DTO for the {@link InstanceEntity} entity.

@@ -6,7 +6,7 @@ import com.behsa.medportal.service.criteria.ProductCriteria;
 import com.behsa.medportal.service.dto.ProductDTO;
 import com.behsa.medportal.service.mapper.ProductMapper;
 import java.util.List;
-import jakarta.persistence.criteria.JoinType;
+import javax.persistence.criteria.JoinType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -82,7 +82,7 @@ public class ProductQueryService extends QueryService<ProductEntity> {
      * @return the matching {@link Specification} of the entity.
      */
     protected Specification<ProductEntity> createSpecification(ProductCriteria criteria) {
-        Specification<ProductEntity> specification = (root, query, criteriaBuilder) -> null;
+        Specification<ProductEntity> specification = Specification.where(null);
         if (criteria != null) {
             // This has to be called first, because the distinct method returns null
             if (criteria.getDistinct() != null) {

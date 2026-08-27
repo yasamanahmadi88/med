@@ -45,7 +45,7 @@ export class InstanceFormService {
         {
           nonNullable: true,
           validators: [Validators.required],
-        },
+        }
       ),
       moduleName: new FormControl(instanceRawValue.moduleName, {
         validators: [Validators.required, Validators.maxLength(50)],
@@ -71,7 +71,7 @@ export class InstanceFormService {
   }
 
   getInstance(form: InstanceFormGroup): IInstance | NewInstance {
-    return form.getRawValue();
+    return form.getRawValue() as IInstance | NewInstance;
   }
 
   resetForm(form: InstanceFormGroup, instance: InstanceFormGroupInput): void {
@@ -80,7 +80,7 @@ export class InstanceFormService {
       {
         ...instanceRawValue,
         id: { value: instanceRawValue.id, disabled: true },
-      } /* cast to workaround https://github.com/angular/angular/issues/46458 */,
+      } as any /* cast to workaround https://github.com/angular/angular/issues/46458 */
     );
   }
 

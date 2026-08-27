@@ -2,7 +2,7 @@ package com.behsa.medportal.web.rest;
 
 import com.behsa.medportal.security.SecurityCache;
 import com.behsa.medportal.security.jwt.JWTFilter;
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;

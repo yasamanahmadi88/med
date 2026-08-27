@@ -138,7 +138,13 @@
 
         <div class="row mb-3">
           <label class="form-label" jhiTranslate="medPortalApp.module.loggingMode" for="field_loggingMode">Logging Mode</label>
-          <select class="form-control" id="field_loggingMode" name="loggingMode" data-cy="loggingMode" formControlName="loggingMode">
+          <select
+            class="form-control"
+            id="field_loggingMode"
+            name="loggingMode"
+            data-cy="loggingMode"
+            formControlName="loggingMode"
+          >
             <option *ngIf="editForm.get(['loggingMode'])!.value == null" [ngValue]="null" selected></option>
             <option [ngValue]="modesOption" *ngFor="let modesOption of loggingModes">{{ modesOption }}</option>
           </select>
@@ -202,6 +208,7 @@
           </div>
         </div>
 
+
         <div class="form-check pb-5">
           <input
             class="form-check-input"
@@ -213,6 +220,8 @@
           />
           <span jhiTranslate="medPortalApp.module.active">Active</span>
         </div>
+
+
       </div>
 
       <div>

@@ -27,7 +27,7 @@ describe('Module Form Service', () => {
             loggingMode: expect.any(Object),
             loggingFilter: expect.any(Object),
             dnsName: expect.any(Object),
-          }),
+          })
         );
       });
 
@@ -44,13 +44,14 @@ describe('Module Form Service', () => {
             loggingMode: expect.any(Object),
             loggingFilter: expect.any(Object),
             dnsName: expect.any(Object),
-          }),
+          })
         );
       });
     });
 
     describe('getModule', () => {
       it('should return NewModule for default Module initial value', () => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const formGroup = service.createModuleFormGroup(sampleWithNewData);
 
         const module = service.getModule(formGroup) as any;

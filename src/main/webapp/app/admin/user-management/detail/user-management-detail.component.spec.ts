@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 
@@ -11,8 +11,8 @@ describe('User Management Detail Component', () => {
   let comp: UserManagementDetailComponent;
   let fixture: ComponentFixture<UserManagementDetailComponent>;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
       declarations: [UserManagementDetailComponent],
       providers: [
         {
@@ -25,7 +25,7 @@ describe('User Management Detail Component', () => {
     })
       .overrideTemplate(UserManagementDetailComponent, '')
       .compileComponents();
-  });
+  }));
 
   beforeEach(() => {
     fixture = TestBed.createComponent(UserManagementDetailComponent);
@@ -49,7 +49,7 @@ describe('User Management Detail Component', () => {
           langKey: 'en',
           authorities: [Authority.USER],
           createdBy: 'admin',
-        }),
+        })
       );
     });
   });

@@ -17,8 +17,6 @@ public class SessionInfo {
     private LocalDateTime lastActionDate;
     private Bucket bucketPost; // for POST requests
     private Bucket bucketGet; //for other requests
-    /** Inactivity timeout in minutes for this session (remember-me may be longer). */
-    private long inactivityMinutes;
 
     public SessionInfo(
             Object principal,
@@ -34,24 +32,6 @@ public class SessionInfo {
             Bucket bucketGet,
             Bucket bucketPost
     ) {
-        this(principal, sessionId, ip, username, jwtToken, userAgent, loginDate, logoutDate, validToken, lastActionDate, bucketGet, bucketPost, 30);
-    }
-
-    public SessionInfo(
-            Object principal,
-            String sessionId,
-            String ip,
-            String username,
-            String jwtToken,
-            String userAgent,
-            LocalDateTime loginDate,
-            LocalDateTime logoutDate,
-            Boolean validToken,
-            LocalDateTime lastActionDate,
-            Bucket bucketGet,
-            Bucket bucketPost,
-            long inactivityMinutes
-    ) {
         this.principal = principal;
         this.sessionId = sessionId;
         this.ip = ip;
@@ -64,7 +44,6 @@ public class SessionInfo {
         this.lastActionDate = lastActionDate;
         this.bucketGet = bucketGet;
         this.bucketPost = bucketPost;
-        this.inactivityMinutes = inactivityMinutes > 0 ? inactivityMinutes : 30;
     }
 
     public Object getPrincipal() {
@@ -169,14 +148,5 @@ public class SessionInfo {
 
     public void setBucketPost(Bucket bucketPost) {
         this.bucketPost = bucketPost;
-    }
-
-    public long getInactivityMinutes() {
-        return inactivityMinutes;
-    }
-
-    public SessionInfo setInactivityMinutes(long inactivityMinutes) {
-        this.inactivityMinutes = inactivityMinutes;
-        return this;
     }
 }

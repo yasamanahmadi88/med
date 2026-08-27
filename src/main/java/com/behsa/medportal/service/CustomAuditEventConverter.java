@@ -1,7 +1,5 @@
 package com.behsa.medportal.service;
 
-import java.util.List;
-
 import com.behsa.medportal.domain.CustomAuditEventEntity;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
@@ -23,7 +21,7 @@ public class CustomAuditEventConverter {
      */
     public List<AuditEvent> convertToAuditEvent(Iterable<CustomAuditEventEntity> persistentAuditEvents) {
         if (persistentAuditEvents == null) {
-            return List.of();
+            return Collections.emptyList();
         }
         List<AuditEvent> auditEvents = new ArrayList<>();
         for (CustomAuditEventEntity persistentAuditEvent : persistentAuditEvents) {

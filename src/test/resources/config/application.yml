@@ -19,6 +19,9 @@ spring:
   # Replace by 'prod, faker' to add the faker context and have sample data loaded in production
   liquibase:
     contexts: test
+  jackson:
+    serialization:
+      write-durations-as-timestamps: false
   mail:
     host: localhost
   main:
@@ -64,6 +67,7 @@ jhipster:
       enabled: false
       host: localhost
       port: 5000
+      queue-size: 512
   security:
     authentication:
       jwt:
@@ -86,23 +90,3 @@ management:
   health:
     mail:
       enabled: false
-
-# Shared across all IT profiles (test/testdev/testcontainers/testprod).
-# Keep here so SecurityCache placeholders resolve even if a profile file is missing.
-mediation:
-  bpmn:
-    parser:
-      url: http://localhost:9999
-      active: false
-
-bucket4j:
-  get:
-    bucket-size: 1000
-    token-per-minute: 100
-  post:
-    bucket-size: 2000
-    token-per-minute: 200
-
-user-session:
-  expire:
-    per-minute: 30

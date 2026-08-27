@@ -10,7 +10,7 @@
     <thead>
       <tr jhiSort predicate="prefix" [(ascending)]="beansAscending" (sortChange)="filterAndSortBeans()">
         <th jhiSortBy="prefix" scope="col" class="w-40">
-          <span jhiTranslate="configuration.table.prefix">Prefix</span>
+          <span jhiTranslate="configuration.table.prefix">Prefix</span> <fa-icon icon="sort"></fa-icon>
         </th>
         <th scope="col" class="w-60"><span jhiTranslate="configuration.table.properties">Properties</span></th>
       </tr>

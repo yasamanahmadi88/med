@@ -14,8 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -68,7 +68,7 @@ public class ConfigResource {
      */
     @PostMapping("/configs")
     @Secured(ENTITY_NAME)
-    public ResponseEntity<ConfigDTO> createConfig(@Valid @RequestBody ConfigDTO configDTO) throws URISyntaxException {
+    public ResponseEntity<ConfigDTO> createConfig(@RequestBody ConfigDTO configDTO) throws URISyntaxException {
         log.debug("REST request to save Config : {}", configDTO);
         if (configDTO.getId() != null) {
             throw new BadRequestAlertException("A new config cannot already have an ID", ENTITY_NAME, "idexists");
@@ -95,7 +95,7 @@ public class ConfigResource {
     @Secured(ENTITY_NAME)
     public ResponseEntity<ConfigDTO> updateConfig(
         @PathVariable(value = "id", required = false) final Long id,
-        @Valid @RequestBody ConfigDTO configDTO
+        @RequestBody ConfigDTO configDTO
     ) throws URISyntaxException {
         log.debug("REST request to update Config : {}, {}", id, configDTO);
         if (configDTO.getId() == null) {
@@ -132,7 +132,7 @@ public class ConfigResource {
     @Secured(ENTITY_NAME)
     public ResponseEntity<ConfigDTO> partialUpdateConfig(
         @PathVariable(value = "id", required = false) final Long id,
-        @NotNull  @Valid @RequestBody ConfigDTO configDTO
+        @NotNull  @RequestBody ConfigDTO configDTO
     ) throws URISyntaxException {
         log.debug("REST request to partial update Config partially : {}, {}", id, configDTO);
         if (configDTO.getId() == null) {
@@ -165,7 +165,7 @@ public class ConfigResource {
     @Secured(ENTITY_NAME)
     public ResponseEntity<List<ConfigDTO>> getAllConfigs(
         ConfigCriteria criteria,
-        @org.springdoc.core.annotations.ParameterObject Pageable pageable
+        @org.springdoc.api.annotations.ParameterObject Pageable pageable
     ) {
         log.debug("REST request to get Configs by criteria: {}", criteria);
         Page<ConfigDTO> page = configQueryService.findByCriteria(criteria, pageable);

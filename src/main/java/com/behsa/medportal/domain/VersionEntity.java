@@ -1,14 +1,14 @@
 package com.behsa.medportal.domain;
 
 import java.io.Serializable;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+import javax.persistence.*;
+import javax.validation.constraints.*;
 
 /**
  * A VersionEntity.
  */
 @Entity
-@Table(name = "TBL_VERSIONS")
+@Table(name = "MEDIATION.tbl_versions")
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class VersionEntity implements Serializable {
 

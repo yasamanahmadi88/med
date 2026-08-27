@@ -4,6 +4,6 @@ export class Login {
     public password: string,
     public rememberMe: boolean,
     public captchaId: string,
-    public captchaToken: string,
+    public captchaToken: string
   ) {}
 }

@@ -9,10 +9,7 @@ import { VersionService } from '../service/version.service';
 
 @Injectable({ providedIn: 'root' })
 export class VersionRoutingResolveService implements Resolve<IVersion | null> {
-  constructor(
-    protected service: VersionService,
-    protected router: Router,
-  ) {}
+  constructor(protected service: VersionService, protected router: Router) {}
 
   resolve(route: ActivatedRouteSnapshot): Observable<IVersion | null | never> {
     const id = route.params['id'];
@@ -25,7 +22,7 @@ export class VersionRoutingResolveService implements Resolve<IVersion | null> {
             this.router.navigate(['404']);
             return EMPTY;
           }
-        }),
+        })
       );
     }
     return of(null);

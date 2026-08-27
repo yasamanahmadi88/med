@@ -9,10 +9,7 @@ import { MedAuthorityService } from '../service/med-authority.service';
 
 @Injectable({ providedIn: 'root' })
 export class MedAuthorityRoutingResolveService implements Resolve<IMedAuthority | null> {
-  constructor(
-    protected service: MedAuthorityService,
-    protected router: Router,
-  ) {}
+  constructor(protected service: MedAuthorityService, protected router: Router) {}
 
   resolve(route: ActivatedRouteSnapshot): Observable<IMedAuthority | null | never> {
     const id = route.params['id'];
@@ -25,7 +22,7 @@ export class MedAuthorityRoutingResolveService implements Resolve<IMedAuthority 
             this.router.navigate(['404']);
             return EMPTY;
           }
-        }),
+        })
       );
     }
     return of(null);

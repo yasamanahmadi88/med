@@ -2,10 +2,12 @@ package com.behsa.medportal.domain;
 
 import com.behsa.medportal.domain.enumeration.Verb;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 import java.io.Serializable;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+import javax.persistence.*;
+import javax.validation.constraints.*;
 
 /**
  * A ResourceAuthorityEntity.

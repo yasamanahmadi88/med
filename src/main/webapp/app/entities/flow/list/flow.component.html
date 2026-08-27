@@ -4,7 +4,7 @@
 
     <div class="d-flex justify-content-end">
       <button class="btn btn-info me-2" (click)="load()" [disabled]="isLoading">
-        <fa-icon icon="sync" [animation]="isLoading ? 'spin' : undefined"></fa-icon>
+        <fa-icon icon="sync" [spin]="isLoading"></fa-icon>
         <span jhiTranslate="medPortalApp.flow.home.refreshListLabel">Refresh list</span>
       </button>
 
@@ -12,7 +12,7 @@
         id="jh-create-entity"
         data-cy="entityCreateButton"
         class="btn btn-primary jh-create-entity create-flow"
-        *jhiHasPermission="['flow', 'create']; op: 'OR'"
+        *jhiHasPermission="['flow','create'];op 'OR'"
         (click)="routeToNewFlow()"
       >
         <fa-icon icon="plus"></fa-icon>
@@ -79,8 +79,8 @@
             </div>
           </td>
           <td style="padding: 0">
-            <button type="submit" class="btn btn-sm" (click)="openBPMNPage(flow.id)" style="padding: 0">
-              <img src="../../../../content/images/bpmn-icon.png" style="height: 40px; width: auto; padding: 0" />
+            <button type="submit"  class="btn btn-sm" (click)="openBPMNPage(flow.id)" style="padding: 0">
+              <img src="../../../../content/images/bpmn-icon.png" style="height: 40px; width: auto; padding: 0">
             </button>
           </td>
           <td class="text-end">
@@ -90,24 +90,12 @@
                 <span class="d-none d-md-inline" jhiTranslate="entity.action.view">View</span>
               </button>
 
-              <button
-                type="submit"
-                [routerLink]="['/flow', flow.id, 'edit']"
-                class="btn btn-primary btn-sm"
-                data-cy="entityEditButton"
-                *jhiHasPermission="['flow', 'edit']; op: 'OR'"
-              >
+              <button type="submit" [routerLink]="['/flow', flow.id, 'edit']" class="btn btn-primary btn-sm" data-cy="entityEditButton" *jhiHasPermission="['flow','edit'];op 'OR'">
                 <fa-icon icon="pencil-alt"></fa-icon>
                 <span class="d-none d-md-inline" jhiTranslate="entity.action.edit">Edit</span>
               </button>
 
-              <button
-                type="submit"
-                (click)="delete(flow)"
-                class="btn btn-danger btn-sm"
-                data-cy="entityDeleteButton"
-                *jhiHasPermission="['flow', 'delete']; op: 'OR'"
-              >
+              <button type="submit" (click)="delete(flow)" class="btn btn-danger btn-sm" data-cy="entityDeleteButton" *jhiHasPermission="['flow','delete'];op 'OR'">
                 <fa-icon icon="times"></fa-icon>
                 <span class="d-none d-md-inline" jhiTranslate="entity.action.delete">Delete</span>
               </button>

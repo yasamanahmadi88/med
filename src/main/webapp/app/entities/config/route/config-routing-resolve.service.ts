@@ -9,10 +9,7 @@ import { ConfigService } from '../service/config.service';
 
 @Injectable({ providedIn: 'root' })
 export class ConfigRoutingResolveService implements Resolve<IConfig | null> {
-  constructor(
-    protected service: ConfigService,
-    protected router: Router,
-  ) {}
+  constructor(protected service: ConfigService, protected router: Router) {}
 
   resolve(route: ActivatedRouteSnapshot): Observable<IConfig | null | never> {
     const id = route.params['id'];
@@ -25,7 +22,7 @@ export class ConfigRoutingResolveService implements Resolve<IConfig | null> {
             this.router.navigate(['404']);
             return EMPTY;
           }
-        }),
+        })
       );
     }
     return of(null);

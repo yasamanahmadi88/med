@@ -10,8 +10,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.UUID;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -86,11 +86,10 @@ public class AuthResource {
                 log.info("Existing admin sessions removed for user: {}", username);
             }
 
-            boolean rememberMe = Boolean.TRUE.equals(loginVM.getRememberMe());
-            String jwt = tokenProvider.createToken(authentication, rememberMe);
-            long inactivityMinutes = rememberMe
-                ? SecurityCache.REMEMBER_ME_INACTIVITY_MINUTES
-                : securityCache.getDefaultInactivityMinutes();
+            String jwt = tokenProvider.createToken(
+                authentication,
+                Boolean.TRUE.equals(loginVM.getRememberMe())
+            );
 
             securityCache.storeSession(
                 authentication.getPrincipal(),
@@ -101,8 +100,7 @@ public class AuthResource {
                 request.getHeader("User-Agent"),
                 LocalDateTime.now(),
                 null,
-                Boolean.TRUE,
-                inactivityMinutes
+                Boolean.TRUE
             );
 
             HttpHeaders httpHeaders = new HttpHeaders();

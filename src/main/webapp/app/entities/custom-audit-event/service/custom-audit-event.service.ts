@@ -29,10 +29,7 @@ export type EntityArrayResponseType = HttpResponse<ICustomAuditEvent[]>;
 export class CustomAuditEventService {
   protected resourceUrl = this.applicationConfigService.getEndpointFor('api/custom-audit-events');
 
-  constructor(
-    protected http: HttpClient,
-    protected applicationConfigService: ApplicationConfigService,
-  ) {}
+  constructor(protected http: HttpClient, protected applicationConfigService: ApplicationConfigService) {}
 
   create(customAuditEvent: NewCustomAuditEvent): Observable<EntityResponseType> {
     const copy = this.convertDateFromClient(customAuditEvent);
@@ -90,8 +87,8 @@ export class CustomAuditEventService {
   ): Type[] {
     const customAuditEvents: Type[] = customAuditEventsToCheck.filter(isPresent);
     if (customAuditEvents.length > 0) {
-      const customAuditEventCollectionIdentifiers = customAuditEventCollection.map(customAuditEventItem =>
-        this.getCustomAuditEventIdentifier(customAuditEventItem),
+      const customAuditEventCollectionIdentifiers = customAuditEventCollection.map(
+        customAuditEventItem => this.getCustomAuditEventIdentifier(customAuditEventItem)!
       );
       const customAuditEventsToAdd = customAuditEvents.filter(customAuditEventItem => {
         const customAuditEventIdentifier = this.getCustomAuditEventIdentifier(customAuditEventItem);
@@ -107,7 +104,7 @@ export class CustomAuditEventService {
   }
 
   protected convertDateFromClient<T extends ICustomAuditEvent | NewCustomAuditEvent | PartialUpdateCustomAuditEvent>(
-    customAuditEvent: T,
+    customAuditEvent: T
   ): RestOf<T> {
     return {
       ...customAuditEvent,

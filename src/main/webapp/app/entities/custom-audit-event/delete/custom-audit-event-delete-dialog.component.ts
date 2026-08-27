@@ -7,15 +7,11 @@ import { ITEM_DELETED_EVENT } from 'app/config/navigation.constants';
 
 @Component({
   templateUrl: './custom-audit-event-delete-dialog.component.html',
-  standalone: false,
 })
 export class CustomAuditEventDeleteDialogComponent {
   customAuditEvent?: ICustomAuditEvent;
 
-  constructor(
-    protected customAuditEventService: CustomAuditEventService,
-    protected activeModal: NgbActiveModal,
-  ) {}
+  constructor(protected customAuditEventService: CustomAuditEventService, protected activeModal: NgbActiveModal) {}
 
   cancel(): void {
     this.activeModal.dismiss();

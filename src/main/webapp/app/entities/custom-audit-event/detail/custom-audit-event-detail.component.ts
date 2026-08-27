@@ -6,7 +6,6 @@ import { ICustomAuditEvent } from '../custom-audit-event.model';
 @Component({
   selector: 'jhi-custom-audit-event-detail',
   templateUrl: './custom-audit-event-detail.component.html',
-  standalone: false,
 })
 export class CustomAuditEventDetailComponent implements OnInit {
   customAuditEvent: ICustomAuditEvent | null = null;

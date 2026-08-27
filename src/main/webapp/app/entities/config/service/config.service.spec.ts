@@ -37,6 +37,7 @@ describe('Config Service', () => {
     });
 
     it('should create a Config', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const config = { ...sampleWithNewData };
       const returnedFromService = { ...requireRestSample };
       const expected = { ...sampleWithRequiredData };

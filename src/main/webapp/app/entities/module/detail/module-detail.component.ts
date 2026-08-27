@@ -6,7 +6,6 @@ import { IModule } from '../module.model';
 @Component({
   selector: 'jhi-module-detail',
   templateUrl: './module-detail.component.html',
-  standalone: false,
 })
 export class ModuleDetailComponent implements OnInit {
   module: IModule | null = null;

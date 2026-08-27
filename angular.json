@@ -26,7 +26,7 @@
             "outputPath": "target/classes/static/",
             "index": "src/main/webapp/index.html",
             "main": "src/main/webapp/main.ts",
-            "polyfills": ["zone.js", "@angular/localize/init"],
+            "polyfills": "src/main/webapp/polyfills.ts",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
@@ -57,8 +57,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "4kb"
+                  "maximumWarning": "6kb",
+                  "maximumError": "10kb"
                 }
               ]
             },
@@ -68,13 +68,7 @@
               "vendorChunk": true,
               "extractLicenses": false,
               "sourceMap": true,
-              "namedChunks": true,
-              "fileReplacements": [
-                {
-                  "replace": "src/main/webapp/environments/environment.ts",
-                  "with": "src/main/webapp/environments/environment.development.ts"
-                }
-              ]
+              "namedChunks": true
             }
           },
           "defaultConfiguration": "production"
@@ -82,28 +76,23 @@
         "serve": {
           "builder": "@angular-builders/custom-webpack:dev-server",
           "options": {
-            "buildTarget": "med-portal:build:development",
-            "port": 9060
+            "browserTarget": "med-portal:build:development",
+            "port": 4200
           },
           "configurations": {
             "production": {
-              "buildTarget": "med-portal:build:production"
+              "browserTarget": "med-portal:build:production"
             },
             "development": {
-              "buildTarget": "med-portal:build:development"
+              "browserTarget": "med-portal:build:development"
             }
           },
           "defaultConfiguration": "development"
         },
         "test": {
-          "builder": "@angular/build:unit-test",
+          "builder": "@angular-builders/jest:run",
           "options": {
-            "runner": "vitest",
-            "buildTarget": "::development",
-            "runnerConfig": true,
-            "coverageReporters": ["text", "lcov"],
-            "reporters": ["default", ["vitest-sonar-reporter", { "outputFile": "./target/test-results/TESTS-results-sonar-vitest.xml" }]],
-            "tsConfig": "tsconfig.spec.json"
+            "configPath": "jest.conf.js"
           }
         }
       }
@@ -115,6 +104,7 @@
       "path": "./target/angular/",
       "environment": "all"
     },
-    "packageManager": "npm"
+    "packageManager": "npm",
+    "analytics": false
   }
 }

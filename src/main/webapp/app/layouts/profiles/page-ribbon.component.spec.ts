@@ -1,5 +1,4 @@
-import { vi } from 'vitest';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { of } from 'rxjs';
 
@@ -13,14 +12,14 @@ describe('Page Ribbon Component', () => {
   let fixture: ComponentFixture<PageRibbonComponent>;
   let profileService: ProfileService;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       declarations: [PageRibbonComponent],
     })
       .overrideTemplate(PageRibbonComponent, '')
       .compileComponents();
-  });
+  }));
 
   beforeEach(() => {
     fixture = TestBed.createComponent(PageRibbonComponent);
@@ -30,7 +29,7 @@ describe('Page Ribbon Component', () => {
 
   it('Should call profileService.getProfileInfo on init', () => {
     // GIVEN
-    vi.spyOn(profileService, 'getProfileInfo').mockReturnValue(of(new ProfileInfo()));
+    jest.spyOn(profileService, 'getProfileInfo').mockReturnValue(of(new ProfileInfo()));
 
     // WHEN
     comp.ngOnInit();

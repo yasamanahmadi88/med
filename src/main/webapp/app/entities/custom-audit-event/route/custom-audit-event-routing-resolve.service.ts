@@ -9,10 +9,7 @@ import { CustomAuditEventService } from '../service/custom-audit-event.service';
 
 @Injectable({ providedIn: 'root' })
 export class CustomAuditEventRoutingResolveService implements Resolve<ICustomAuditEvent | null> {
-  constructor(
-    protected service: CustomAuditEventService,
-    protected router: Router,
-  ) {}
+  constructor(protected service: CustomAuditEventService, protected router: Router) {}
 
   resolve(route: ActivatedRouteSnapshot): Observable<ICustomAuditEvent | null | never> {
     const id = route.params['id'];
@@ -25,7 +22,7 @@ export class CustomAuditEventRoutingResolveService implements Resolve<ICustomAud
             this.router.navigate(['404']);
             return EMPTY;
           }
-        }),
+        })
       );
     }
     return of(null);

@@ -5,7 +5,7 @@ import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-import jakarta.servlet.ServletException;
+import javax.servlet.ServletException;
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,7 +23,7 @@ class SessionCookieFilterTest {
         MockFilterChain filterChain = new MockFilterChain();
         
         // Set up request with session cookie
-        request.setCookies(new jakarta.servlet.http.Cookie("JSESSIONID", "test-session-id"));
+        request.setCookies(new javax.servlet.http.Cookie("JSESSIONID", "test-session-id"));
         request.setRequestURI("/api/test");
         
         // Execute the filter

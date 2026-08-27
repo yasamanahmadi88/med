@@ -2,7 +2,6 @@ import { Directive, EventEmitter, Input, Output } from '@angular/core';
 
 @Directive({
   selector: '[jhiSort]',
-  standalone: false,
 })
 export class SortDirective<T> {
   @Input()

@@ -3,13 +3,12 @@ import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { TranslateService } from '@ngx-translate/core';
 import { SessionStorageService } from 'ngx-webstorage';
-import { Observable, ReplaySubject, of, throwError } from 'rxjs';
+import { Observable, ReplaySubject, of } from 'rxjs';
 import { shareReplay, tap, catchError } from 'rxjs/operators';
 
 import { StateStorageService } from 'app/core/auth/state-storage.service';
 import { ApplicationConfigService } from '../config/application-config.service';
 import { Account } from 'app/core/auth/account.model';
-import { Authority } from 'app/config/authority.constants';
 
 @Injectable({ providedIn: 'root' })
 export class AccountService {
@@ -24,7 +23,7 @@ export class AccountService {
     private http: HttpClient,
     private stateStorageService: StateStorageService,
     private router: Router,
-    private applicationConfigService: ApplicationConfigService,
+    private applicationConfigService: ApplicationConfigService
   ) {}
 
   save(account: Account): Observable<{}> {
@@ -33,7 +32,6 @@ export class AccountService {
 
   authenticate(identity: Account | null): void {
     this.userIdentity = identity;
-    this._loggedInUser = identity;
     this.authenticationState.next(this.userIdentity);
     if (!identity) {
       this.accountCache$ = null;
@@ -50,27 +48,23 @@ export class AccountService {
     return this.userIdentity.authorities.some((authority: string) => authorities.includes(authority));
   }
 
-  isAdmin(): boolean {
-    return this.hasAnyAuthority(Authority.ADMIN);
-  }
-
   identity(force?: boolean): Observable<Account | null> {
     if (!this.accountCache$ || force) {
       this.accountCache$ = this.fetch().pipe(
         tap((account: Account) => {
           this.authenticate(account);
+          this._loggedInUser = account;
 
+          // After retrieve the account info, the language will be changed to
+          // the user's preferred language configured in the account setting
+          // unless user have choosed other language in the current session
           if (!this.sessionStorageService.retrieve('locale')) {
             this.translateService.use(account.langKey);
           }
 
           this.navigateToStoredUrl();
         }),
-        catchError(err => {
-          this.authenticate(null);
-          return throwError(() => err);
-        }),
-        shareReplay(),
+        shareReplay()
       );
     }
     return this.accountCache$.pipe(catchError(() => of(null)));
@@ -89,6 +83,8 @@ export class AccountService {
   }
 
   private navigateToStoredUrl(): void {
+    // previousState can be set in the authExpiredInterceptor and in the userRouteAccessService
+    // if login is successful, go to stored previousState and clear previousState
     const previousUrl = this.stateStorageService.getUrl();
     if (previousUrl) {
       this.stateStorageService.clearUrl();
@@ -97,7 +93,7 @@ export class AccountService {
   }
 
   get loggedInUser(): Account | null | undefined {
-    return this._loggedInUser;
+    return this._loggedInUser as Account;
   }
 
   set loggedInUser(value: Account | null | undefined) {

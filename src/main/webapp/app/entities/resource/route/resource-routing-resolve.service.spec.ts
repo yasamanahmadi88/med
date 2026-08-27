@@ -1,4 +1,3 @@
-import { vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HttpResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
@@ -33,7 +32,7 @@ describe('Resource routing resolve service', () => {
       ],
     });
     mockRouter = TestBed.inject(Router);
-    vi.spyOn(mockRouter, 'navigate').mockImplementation(() => Promise.resolve(true));
+    jest.spyOn(mockRouter, 'navigate').mockImplementation(() => Promise.resolve(true));
     mockActivatedRouteSnapshot = TestBed.inject(ActivatedRoute).snapshot;
     routingResolveService = TestBed.inject(ResourceRoutingResolveService);
     service = TestBed.inject(ResourceService);
@@ -43,7 +42,7 @@ describe('Resource routing resolve service', () => {
   describe('resolve', () => {
     it('should return IResource returned by find', () => {
       // GIVEN
-      service.find = vi.fn(id => of(new HttpResponse({ body: { id } })));
+      service.find = jest.fn(id => of(new HttpResponse({ body: { id } })));
       mockActivatedRouteSnapshot.params = { id: 123 };
 
       // WHEN
@@ -58,7 +57,7 @@ describe('Resource routing resolve service', () => {
 
     it('should return null if id is not provided', () => {
       // GIVEN
-      service.find = vi.fn();
+      service.find = jest.fn();
       mockActivatedRouteSnapshot.params = {};
 
       // WHEN
@@ -73,7 +72,7 @@ describe('Resource routing resolve service', () => {
 
     it('should route to 404 page if data not found in server', () => {
       // GIVEN
-      vi.spyOn(service, 'find').mockReturnValue(of(new HttpResponse<IResource>({ body: null })));
+      jest.spyOn(service, 'find').mockReturnValue(of(new HttpResponse<IResource>({ body: null })));
       mockActivatedRouteSnapshot.params = { id: 123 };
 
       // WHEN

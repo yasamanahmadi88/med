@@ -7,7 +7,7 @@ import { FlowDetailComponent } from '../detail/flow-detail.component';
 import { FlowUpdateComponent } from '../update/flow-update.component';
 import { FlowRoutingResolveService } from './flow-routing-resolve.service';
 import { ASC } from 'app/config/navigation.constants';
-import { FlowNewComponent } from '../new/flow-new.component';
+import {FlowNewComponent} from "../new/flow-new.component";
 
 const flowRoute: Routes = [
   {

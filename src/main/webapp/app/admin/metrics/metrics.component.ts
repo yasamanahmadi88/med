@@ -8,17 +8,13 @@ import { Metrics, Thread } from './metrics.model';
   selector: 'jhi-metrics',
   templateUrl: './metrics.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: false,
 })
 export class MetricsComponent implements OnInit {
   metrics?: Metrics;
   threads?: Thread[];
   updatingMetrics = true;
 
-  constructor(
-    private metricsService: MetricsService,
-    private changeDetector: ChangeDetectorRef,
-  ) {}
+  constructor(private metricsService: MetricsService, private changeDetector: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.refresh();

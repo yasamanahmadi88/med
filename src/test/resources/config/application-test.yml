@@ -1,31 +1,26 @@
 spring:
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=LEGACY;NON_KEYWORDS=VALUE;DATABASE_TO_UPPER=TRUE;INIT=CREATE SCHEMA IF NOT EXISTS MEDIATION
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=LEGACY;NON_KEYWORDS=VALUE
     username: medportal
     password:
     driver-class-name: org.h2.Driver
     hikari:
       auto-commit: false
       poolName: Hikari
-      # Pool must be >1: tests hold a connection under @Transactional while
-      # LoggerService.add uses REQUIRES_NEW (and auth success audits) needing another.
-      maximum-pool-size: 10
-      minimum-idle: 2
-      connection-timeout: 10000
+      maximum-pool-size: 1
 
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     open-in-view: false
-    defer-datasource-initialization: true
+    defer-datasource-initialization: false
     hibernate:
-      # Recreate schema from entities each IT context (custom DataSource skips spring.sql.init schema).
-      ddl-auto: create-drop
+      ddl-auto: none
       naming:
-        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
-        implicit-strategy: org.springframework.boot.hibernate.SpringImplicitNamingStrategy
+        physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+        implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
     properties:
-      hibernate.hbm2ddl.auto: create-drop
+      hibernate.hbm2ddl.auto: none
       hibernate.id.new_generator_mappings: true
       hibernate.connection.provider_disables_autocommit: true
       hibernate.cache.use_second_level_cache: false
@@ -42,22 +37,11 @@ spring:
     init:
       mode: always
       continue-on-error: false
-      data-locations: classpath:test-data.sql
+      schema-locations: classpath:schema-test.sql
+      data-locations: optional:classpath:test-data.sql
 
 mediation:
   bpmn:
     parser:
       url: http://localhost:9999
       active: false
-
-bucket4j:
-  get:
-    bucket-size: 1000
-    token-per-minute: 100
-  post:
-    bucket-size: 2000
-    token-per-minute: 200
-
-user-session:
-  expire:
-    per-minute: 30

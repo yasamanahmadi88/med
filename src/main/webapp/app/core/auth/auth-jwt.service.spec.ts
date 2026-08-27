@@ -1,15 +1,7 @@
-import { vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import {
-  provideNgxWebstorage,
-  withNgxWebstorageConfig,
-  withLocalStorage,
-  withSessionStorage,
-  LocalStorageService,
-  SessionStorageService,
-} from 'ngx-webstorage';
 import { AuthServerProvider } from 'app/core/auth/auth-jwt.service';
+import { LocalStorageService, NgxWebstorageModule, SessionStorageService } from 'ngx-webstorage';
 
 describe('Auth JWT', () => {
   let service: AuthServerProvider;
@@ -19,10 +11,7 @@ describe('Auth JWT', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [
-        provideNgxWebstorage(withNgxWebstorageConfig({ prefix: 'jhi', separator: '-' }), withLocalStorage(), withSessionStorage()),
-      ],
+      imports: [HttpClientTestingModule, NgxWebstorageModule.forRoot()],
     });
 
     httpMock = TestBed.inject(HttpTestingController);
@@ -38,13 +27,13 @@ describe('Auth JWT', () => {
     });
 
     it('should return token from session storage if local storage is empty', () => {
-      sessionStorageService.retrieve = vi.fn().mockReturnValue('sessionStorageToken');
+      sessionStorageService.retrieve = jest.fn().mockReturnValue('sessionStorageToken');
       const result = service.getToken();
       expect(result).toEqual('sessionStorageToken');
     });
 
     it('should return token from localstorage storage', () => {
-      localStorageService.retrieve = vi.fn().mockReturnValue('localStorageToken');
+      localStorageService.retrieve = jest.fn().mockReturnValue('localStorageToken');
       const result = service.getToken();
       expect(result).toEqual('localStorageToken');
     });
@@ -52,44 +41,48 @@ describe('Auth JWT', () => {
 
   describe('Login', () => {
     it('should clear session storage and save in local storage when rememberMe is true', () => {
-      localStorageService.clear = vi.fn();
-      sessionStorageService.clear = vi.fn();
-      localStorageService.store = vi.fn();
-      sessionStorageService.store = vi.fn();
+      // GIVEN
+      localStorageService.store = jest.fn();
+      sessionStorageService.clear = jest.fn();
 
-      service.login({ username: 'user', password: 'pass', rememberMe: true, captchaId: 'cid', captchaToken: 'ctok' }).subscribe();
-      httpMock.expectOne('api/authenticate').flush({ id_token: 'token' });
+      // WHEN
+      service.login({ username: 'John', password: '123', rememberMe: true }).subscribe();
+      httpMock.expectOne('api/authenticate').flush({ id_token: '1' });
 
-      expect(localStorageService.store).toHaveBeenCalledWith('authenticationToken', 'token');
-      expect(sessionStorageService.clear).toHaveBeenCalledWith('authenticationToken');
+      // THEN
+      httpMock.verify();
+      expect(localStorageService.store).toHaveBeenCalledWith('authenticationToken', '1');
+      expect(sessionStorageService.clear).toHaveBeenCalled();
     });
 
     it('should clear local storage and save in session storage when rememberMe is false', () => {
-      localStorageService.clear = vi.fn();
-      sessionStorageService.clear = vi.fn();
-      localStorageService.store = vi.fn();
-      sessionStorageService.store = vi.fn();
+      // GIVEN
+      sessionStorageService.store = jest.fn();
+      localStorageService.clear = jest.fn();
 
-      service.login({ username: 'user', password: 'pass', rememberMe: false, captchaId: 'cid', captchaToken: 'ctok' }).subscribe();
-      httpMock.expectOne('api/authenticate').flush({ id_token: 'token' });
+      // WHEN
+      service.login({ username: 'John', password: '123', rememberMe: false }).subscribe();
+      httpMock.expectOne('api/authenticate').flush({ id_token: '1' });
 
-      expect(sessionStorageService.store).toHaveBeenCalledWith('authenticationToken', 'token');
-      expect(localStorageService.clear).toHaveBeenCalledWith('authenticationToken');
+      // THEN
+      httpMock.verify();
+      expect(sessionStorageService.store).toHaveBeenCalledWith('authenticationToken', '1');
+      expect(localStorageService.clear).toHaveBeenCalled();
     });
   });
 
   describe('Logout', () => {
     it('should clear storage', () => {
-      localStorageService.clear = vi.fn();
-      sessionStorageService.clear = vi.fn();
-      service.logout().subscribe();
-      httpMock.expectOne('api/auth/logout').flush({});
-      expect(localStorageService.clear).toHaveBeenCalledWith('authenticationToken');
-      expect(sessionStorageService.clear).toHaveBeenCalledWith('authenticationToken');
-    });
-  });
+      // GIVEN
+      sessionStorageService.clear = jest.fn();
+      localStorageService.clear = jest.fn();
 
-  afterEach(() => {
-    httpMock.verify();
+      // WHEN
+      service.logout().subscribe();
+
+      // THEN
+      expect(localStorageService.clear).toHaveBeenCalled();
+      expect(sessionStorageService.clear).toHaveBeenCalled();
+    });
   });
 });

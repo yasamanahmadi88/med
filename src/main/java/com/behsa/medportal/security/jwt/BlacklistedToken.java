@@ -1,8 +1,8 @@
 package com.behsa.medportal.security.jwt;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import javax.persistence.Entity;
+import javax.persistence.Id;
 import java.util.Date;
 
 @Entity

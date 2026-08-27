@@ -12,7 +12,6 @@ import { ProfileService } from './profile.service';
     </div>
   `,
   styleUrls: ['./page-ribbon.component.scss'],
-  standalone: false,
 })
 export class PageRibbonComponent implements OnInit {
   ribbonEnv$?: Observable<string | undefined>;

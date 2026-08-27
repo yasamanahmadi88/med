@@ -1,7 +1,6 @@
-import { vi } from 'vitest';
-vi.mock('app/core/util/alert.service');
+jest.mock('app/core/util/alert.service');
 
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { AlertService } from 'app/core/util/alert.service';
 
@@ -12,14 +11,14 @@ describe('Alert Component', () => {
   let fixture: ComponentFixture<AlertComponent>;
   let mockAlertService: AlertService;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
       declarations: [AlertComponent],
-      providers: [{ provide: AlertService, useValue: { get: vi.fn(() => []), clear: vi.fn() } }],
+      providers: [AlertService],
     })
       .overrideTemplate(AlertComponent, '')
       .compileComponents();
-  });
+  }));
 
   beforeEach(() => {
     fixture = TestBed.createComponent(AlertComponent);

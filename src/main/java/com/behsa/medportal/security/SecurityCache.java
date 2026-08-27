@@ -3,6 +3,7 @@ package com.behsa.medportal.security;
 import com.behsa.medportal.security.jwt.SessionInfo;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
+import io.github.bucket4j.Refill;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,11 +21,6 @@ import java.util.stream.Collectors;
 public class SecurityCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(SecurityCache.class);
 
-    /** Default server-side inactivity window (minutes). */
-    public static final long DEFAULT_INACTIVITY_MINUTES = 30L;
-    /** Remember-me server-side inactivity window: 7 days. */
-    public static final long REMEMBER_ME_INACTIVITY_MINUTES = 7L * 24L * 60L;
-
     @Value("${bucket4j.get.bucket-size}")
     long bucketSizeForGet;
 
@@ -37,7 +33,7 @@ public class SecurityCache {
     @Value("${bucket4j.post.token-per-minute}")
     long tokenPerMinuteForPost;
 
-    @Value("${user-session.expire.per-minute:30}")
+    @Value("${user-session.expire.per-minute}")
     long sessionExpirePerMinute;
 
 
@@ -59,33 +55,6 @@ public class SecurityCache {
         LocalDateTime logout,
         Boolean validToken
     ) {
-        storeSession(
-            principal,
-            sessionId,
-            ip,
-            username,
-            token,
-            userAgent,
-            login,
-            logout,
-            validToken,
-            resolveDefaultInactivityMinutes()
-        );
-    }
-
-    public void storeSession(
-        Object principal,
-        String sessionId,
-        String ip,
-        String username,
-        String token,
-        String userAgent,
-        LocalDateTime login,
-        LocalDateTime logout,
-        Boolean validToken,
-        long inactivityMinutes
-    ) {
-        long minutes = inactivityMinutes > 0 ? inactivityMinutes : resolveDefaultInactivityMinutes();
         sessionInfos.put(
             token,
             new SessionInfo(
@@ -100,19 +69,9 @@ public class SecurityCache {
                 validToken,
                 login,
                 createNewBucket("get"),
-                createNewBucket("post"),
-                minutes
+                createNewBucket("post")
             )
         );
-    }
-
-    private long resolveDefaultInactivityMinutes() {
-        return sessionExpirePerMinute > 0 ? sessionExpirePerMinute : DEFAULT_INACTIVITY_MINUTES;
-    }
-
-    /** Configured inactivity window (minutes) for regular, non-remember-me sessions. */
-    public long getDefaultInactivityMinutes() {
-        return resolveDefaultInactivityMinutes();
     }
 
 
@@ -211,30 +170,24 @@ public class SecurityCache {
     }
 
     private boolean isTokenExpired(SessionInfo sessionInfo) {
-        long inactivityLimit = sessionInfo.getInactivityMinutes() > 0
-            ? sessionInfo.getInactivityMinutes()
-            : resolveDefaultInactivityMinutes();
-        return sessionInfo.getLastActionDate().isBefore(LocalDateTime.now().minusMinutes(inactivityLimit));
+        return sessionInfo.getLastActionDate().isBefore(LocalDateTime.now().minusMinutes(sessionExpirePerMinute)); //token inactivity expiration time in minutes
     }
 
     private Bucket createNewBucket(String reqType) {
+        Refill refill;
         Bandwidth limit;
 
+
         if (reqType.equals("get")) {
-            limit = Bandwidth.builder()
-                .capacity(bucketSizeForGet)
-                .refillGreedy(tokenPerMinuteForGet, Duration.ofMinutes(1))
-                .build();
+            refill = Refill.greedy(tokenPerMinuteForGet, Duration.ofMinutes(1));
+            limit = Bandwidth.classic(bucketSizeForGet, refill);
         } else {
-            limit = Bandwidth.builder()
-                .capacity(bucketSizeForPost)
-                .refillGreedy(tokenPerMinuteForPost, Duration.ofMinutes(1))
-                .build();
+            refill = Refill.greedy(tokenPerMinuteForPost, Duration.ofMinutes(1));
+            limit = Bandwidth.classic(bucketSizeForPost, refill);
         }
 
         return Bucket.builder().addLimit(limit).build();
     }
-
     public boolean tryConsumeLogin(String key) {
         if (key == null || key.isBlank()) {
             key = "unknown";
@@ -242,12 +195,7 @@ public class SecurityCache {
 
         Bucket bucket = loginBuckets.computeIfAbsent(key, ignored ->
             Bucket.builder()
-                .addLimit(
-                    Bandwidth.builder()
-                        .capacity(10)
-                        .refillGreedy(10, Duration.ofMinutes(1))
-                        .build()
-                )
+                .addLimit(Bandwidth.classic(10, Refill.greedy(10, Duration.ofMinutes(1))))
                 .build()
         );
 

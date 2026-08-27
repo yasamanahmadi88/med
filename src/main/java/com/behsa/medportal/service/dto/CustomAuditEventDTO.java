@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Objects;
-import jakarta.validation.constraints.*;
+import javax.validation.constraints.*;
 
 /**
  * A DTO for the {@link com.behsa.medportal.domain.CustomAuditEventEntity} entity.

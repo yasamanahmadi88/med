@@ -39,7 +39,7 @@ export class ResourceFormService {
         {
           nonNullable: true,
           validators: [Validators.required],
-        },
+        }
       ),
       name: new FormControl(resourceRawValue.name, {
         validators: [Validators.required, Validators.maxLength(200)],
@@ -57,7 +57,7 @@ export class ResourceFormService {
   }
 
   getResource(form: ResourceFormGroup): IResource | NewResource {
-    return form.getRawValue();
+    return form.getRawValue() as IResource | NewResource;
   }
 
   resetForm(form: ResourceFormGroup, resource: ResourceFormGroupInput): void {
@@ -66,7 +66,7 @@ export class ResourceFormService {
       {
         ...resourceRawValue,
         id: { value: resourceRawValue.id, disabled: true },
-      } /* cast to workaround https://github.com/angular/angular/issues/46458 */,
+      } as any /* cast to workaround https://github.com/angular/angular/issues/46458 */
     );
   }
 

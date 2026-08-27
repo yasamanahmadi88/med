@@ -7,15 +7,11 @@ import { ITEM_DELETED_EVENT } from 'app/config/navigation.constants';
 
 @Component({
   templateUrl: './resource-delete-dialog.component.html',
-  standalone: false,
 })
 export class ResourceDeleteDialogComponent {
   resource?: IResource;
 
-  constructor(
-    protected resourceService: ResourceService,
-    protected activeModal: NgbActiveModal,
-  ) {}
+  constructor(protected resourceService: ResourceService, protected activeModal: NgbActiveModal) {}
 
   cancel(): void {
     this.activeModal.dismiss();

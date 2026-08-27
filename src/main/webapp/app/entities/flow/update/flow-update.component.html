@@ -73,9 +73,7 @@
             [compareWith]="compareProduct"
           >
             <option *ngIf="editForm.get(['product'])!.value == null" [ngValue]="null" selected></option>
-            <option [ngValue]="productOption" *ngFor="let productOption of productsSharedCollection">
-              {{ productOption.productName }}
-            </option>
+            <option [ngValue]="productOption" *ngFor="let productOption of productsSharedCollection">{{ productOption.productName }}</option>
           </select>
         </div>
         <div *ngIf="editForm.get(['product'])!.invalid && (editForm.get(['product'])!.dirty || editForm.get(['product'])!.touched)">

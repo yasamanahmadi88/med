@@ -1,0 +1,15 @@
+{
+  "name": "Merger",
+  "prefix": "Merger",
+  "uri": "Merger",
+  "xml": {
+    "tagAlias": "lowerCase"
+  },
+  "associations": [],
+  "types": [
+    {
+      "name": "Merger",
+      "superClass": ["bpmn:Task"]
+    }
+  ]
+}

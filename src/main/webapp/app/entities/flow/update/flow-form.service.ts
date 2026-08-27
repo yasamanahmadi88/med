@@ -39,7 +39,7 @@ export class FlowFormService {
         {
           nonNullable: true,
           validators: [Validators.required],
-        },
+        }
       ),
       flowName: new FormControl(flowRawValue.flowName, {
         validators: [Validators.required, Validators.maxLength(6), Validators.minLength(6)],
@@ -57,7 +57,7 @@ export class FlowFormService {
   }
 
   getFlow(form: FlowFormGroup): IFlow | NewFlow {
-    return form.getRawValue();
+    return form.getRawValue() as IFlow | NewFlow;
   }
 
   resetForm(form: FlowFormGroup, flow: FlowFormGroupInput): void {
@@ -66,7 +66,7 @@ export class FlowFormService {
       {
         ...flowRawValue,
         id: { value: flowRawValue.id, disabled: true },
-      } /* cast to workaround https://github.com/angular/angular/issues/46458 */,
+      } as any /* cast to workaround https://github.com/angular/angular/issues/46458 */
     );
   }
 

@@ -3,7 +3,7 @@ export interface IModule {
   moduleName?: string | null;
   defaultPort?: string | null;
   redisKeyPrefix?: string | null;
-  status?: boolean | number | null;
+  status?: boolean| number | null;
   loggingMode?: string | null;
   loggingFilter?: string | null;
   dnsName?: string | null;

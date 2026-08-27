@@ -7,12 +7,9 @@ services:
       - _JAVA_OPTIONS=-Xmx512m -Xms256m
       - SPRING_PROFILES_ACTIVE=prod,api-docs
       - MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED=true
-      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL:-jdbc:oracle:thin:@medportal-oracle:1521:MedPortal}
-      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME:-medportal}
-      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD:?set DB password}
-      - SPRING_LIQUIBASE_URL=${SPRING_LIQUIBASE_URL:-jdbc:oracle:thin:@medportal-oracle:1521:MedPortal}
-      # Required: export a 512-bit Base64 secret before `docker compose up`.
-      - SECURITY_AUTHENTICATION_JWT_BASE64_SECRET=${SECURITY_AUTHENTICATION_JWT_BASE64_SECRET:?set JWT secret}
+      - SPRING_DATASOURCE_URL=jdbc:oracle:thin:@medportal-oracle:1521:MedPortal
+      - SPRING_LIQUIBASE_URL=jdbc:oracle:thin:@medportal-oracle:1521:MedPortal
+      - SECURITY_AUTHENTICATION_JWT_BASE64_SECRET=MTgwNmJkMzY5YjY5NWU4YzQ4NGFkMzFhYmMyNTRkYzk3MWUzYzZiZThmYzdmYTFkYzZjNGJmNTU3ZGVlODEyMTYxNmI4NzNhNzA2N2Q2YWEwNDExYmJiMGJkMDMzM2VhZWE5MGMxNjUxZDc1ZjE4MjY1NWViYWY1MjFhNWI0NjI=
       - JHIPSTER_SLEEP=30 # gives time for other services to boot before the application
     # If you want to expose these ports outside your dev PC,
     # remove the "127.0.0.1:" prefix

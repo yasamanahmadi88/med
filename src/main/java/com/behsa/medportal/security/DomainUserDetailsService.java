@@ -4,7 +4,7 @@ import com.behsa.medportal.domain.User;
 import com.behsa.medportal.repository.UserRepository;
 import com.behsa.medportal.service.ResourceAuthorityQueryService;
 import com.behsa.medportal.service.dto.ResourceAuthorityDTO;
-import org.apache.commons.validator.routines.EmailValidator;
+import org.hibernate.validator.internal.constraintvalidators.hv.EmailValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
@@ -43,7 +43,7 @@ public class DomainUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(final String login) {
         log.debug("Authenticating {}", login);
 
-        if (EmailValidator.getInstance().isValid(login)) {
+        if (new EmailValidator().isValid(login, null)) {
             return userRepository
                 .findOneWithAuthoritiesByEmailIgnoreCase(login)
                 .map(user -> createSpringSecurityUser(login, user))
@@ -75,7 +75,7 @@ public class DomainUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(final String login) {
         log.debug("Authenticating {}", login);
 
-        if (EmailValidator.getInstance().isValid(login)) {
+        if (new EmailValidator().isValid(login, null)) {
             return userRepository
                 .findOneWithAuthoritiesByEmailIgnoreCase(login)
                 .map(user -> createSpringSecurityUser(login, user))
@@ -91,7 +91,8 @@ public class DomainUserDetailsService implements UserDetailsService {
 
     private UserDetails createSpringSecurityUser(String lowercaseLogin, User user) {
         if (!user.isActivated()) {
-            throw new UserNotActivatedException("User " + lowercaseLogin + " was not activated");
+            return null;
+//            throw new UserNotActivatedException("User " + lowercaseLogin + " was not activated");
         }
         List<GrantedAuthority> grantedAuthorities = user
             .getAuthorities()
@@ -108,8 +109,6 @@ public class DomainUserDetailsService implements UserDetailsService {
 
         List<ResourceAuthorityDTO> resources = resourceAuthorityQueryService.findByAuthorities(ids, Pageable.unpaged()).getContent();
 
-        String partyId = user.getPartyId() != null ? user.getPartyId() : "";
-
         return new PortalUser(
             user.getLogin(),
             user.getPassword(),
@@ -118,7 +117,7 @@ public class DomainUserDetailsService implements UserDetailsService {
             true,
             true,
             grantedAuthorities,
-            partyId,
+            user.getPartyId() + "",
             resources,
             user
         );

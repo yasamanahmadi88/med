@@ -15,11 +15,11 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
-import jakarta.persistence.EntityManager;
+import javax.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -1179,7 +1179,7 @@ class InstanceResourceIT {
         int databaseSizeBeforeUpdate = instanceRepository.findAll().size();
 
         // Update the instance
-        InstanceEntity updatedInstanceEntity = instanceRepository.findById(instanceEntity.getId()).orElseThrow();
+        InstanceEntity updatedInstanceEntity = instanceRepository.findById(instanceEntity.getId()).get();
         // Disconnect from session so that the updates on updatedInstanceEntity are not directly saved in db
         em.detach(updatedInstanceEntity);
         updatedInstanceEntity

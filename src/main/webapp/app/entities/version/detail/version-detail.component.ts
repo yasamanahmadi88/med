@@ -6,7 +6,6 @@ import { IVersion } from '../version.model';
 @Component({
   selector: 'jhi-version-detail',
   templateUrl: './version-detail.component.html',
-  standalone: false,
 })
 export class VersionDetailComponent implements OnInit {
   version: IVersion | null = null;

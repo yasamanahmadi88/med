@@ -47,14 +47,8 @@ public class LoggerService implements AuditEventRepository {
     }
 
     public void log(final String eventName, Map<String, Object> data) {
-        // JWT may be absent under @WithMockUser / non-JWT auth; audit must not fail the business call.
-        data.put("jwt", SecurityUtils.getCurrentUserJWT().orElse(""));
-        String principal = SecurityUtils
-            .getCurrentUser()
-            .map(user -> user.getUsername())
-            .or(() -> SecurityUtils.getCurrentUserLogin())
-            .orElse("anonymoususer");
-        AuditEvent event = new AuditEvent(principal, eventName, data);
+        data.put("jwt", SecurityUtils.getCurrentUserJWT().get());
+        AuditEvent event = new AuditEvent(SecurityUtils.getCurrentUser().get().getUsername(), eventName, data);
         add(event);
     }
 

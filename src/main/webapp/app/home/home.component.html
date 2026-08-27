@@ -1,11 +1,12 @@
 <div class="row text-center">
+
   <div class="col">
     <h1 class="display-4" [jhiTranslate]="'home.title'">Mediation Portal</h1>
 
-    <div class="alert alert-success text-center">
-      <span id="home-logged-message" *ngIf="account" jhiTranslate="home.logged.message" [translateValues]="{ username: account.login }">
-        You are logged in as user "{{ account.login }}".</span
-      >
-    </div>
+      <div class="alert alert-success text-center">
+        <span id="home-logged-message" *ngIf="account" jhiTranslate="home.logged.message" [translateValues]="{ username: account.login }">
+          You are logged in as user "{{ account.login }}".</span>
+      </div>
+
   </div>
 </div>

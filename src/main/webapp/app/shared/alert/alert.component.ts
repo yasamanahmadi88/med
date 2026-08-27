@@ -5,7 +5,6 @@ import { AlertService, Alert } from 'app/core/util/alert.service';
 @Component({
   selector: 'jhi-alert',
   templateUrl: './alert.component.html',
-  standalone: false,
 })
 export class AlertComponent implements OnInit, OnDestroy {
   alerts: Alert[] = [];

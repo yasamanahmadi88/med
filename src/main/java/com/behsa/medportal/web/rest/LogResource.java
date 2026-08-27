@@ -16,8 +16,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +34,9 @@ import tech.jhipster.web.util.ResponseUtil;
 
 @RestController
 @RequestMapping("/api")
+
+//TODO COMMENT SECURED
+
 public class LogResource {
 
     private final Logger log = LoggerFactory.getLogger(LogResource.class);
@@ -111,7 +114,7 @@ public class LogResource {
     @Secured(ENTITY_NAME)
     public ResponseEntity<List<LogDTO>> getAllLogs(
         LogCriteria criteria,
-        @org.springdoc.core.annotations.ParameterObject Pageable pageable
+        @org.springdoc.api.annotations.ParameterObject Pageable pageable
     ) {
         log.debug("REST request to get Logs by criteria: {}", criteria);
         Page<LogDTO> page = logQueryService.findByCriteria(criteria, pageable);
@@ -155,7 +158,7 @@ public class LogResource {
      */
     @GetMapping("/logs/summary")
     @Secured(ENTITY_NAME)
-    public ResponseEntity<List<LogListRowDTO>> getLogsSummary(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+    public ResponseEntity<List<LogListRowDTO>> getLogsSummary(@org.springdoc.api.annotations.ParameterObject Pageable pageable) {
         log.debug("REST request to get Logs summary page");
         Page<LogListRowDTO> page = logService.findSummary(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
@@ -166,7 +169,7 @@ public class LogResource {
     @Secured(ENTITY_NAME)
     public ResponseEntity<List<LogDTO>> searchLogsByCorrelationId(
         @RequestParam String searchText,
-        @org.springdoc.core.annotations.ParameterObject Pageable pageable
+        @org.springdoc.api.annotations.ParameterObject Pageable pageable
     ) {
         log.debug("REST request to search Logs by correlationId: {}", searchText);
         Page<LogDTO> page = logQueryService.searchByCorrelationId(searchText, pageable);

@@ -1,8 +1,8 @@
 package com.behsa.medportal.web.rest.vm;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  * View Model object for storing a user's credentials and captcha data.
@@ -19,10 +19,10 @@ public class LoginVM {
 
     private Boolean rememberMe;
 
-    @NotBlank
+    
     private String captchaId;
 
-    @NotBlank
+    
     private String captchaToken;
 
     public String getUsername() {

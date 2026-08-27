@@ -24,7 +24,7 @@ describe('Flow Form Service', () => {
             flowDesc: expect.any(Object),
             flow: expect.any(Object),
             product: expect.any(Object),
-          }),
+          })
         );
       });
 
@@ -38,13 +38,14 @@ describe('Flow Form Service', () => {
             flowDesc: expect.any(Object),
             flow: expect.any(Object),
             product: expect.any(Object),
-          }),
+          })
         );
       });
     });
 
     describe('getFlow', () => {
       it('should return NewFlow for default Flow initial value', () => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const formGroup = service.createFlowFormGroup(sampleWithNewData);
 
         const flow = service.getFlow(formGroup) as any;

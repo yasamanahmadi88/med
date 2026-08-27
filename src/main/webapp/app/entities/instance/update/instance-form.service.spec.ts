@@ -30,7 +30,7 @@ describe('Instance Form Service', () => {
             totalProcessedTask: expect.any(Object),
             processedStatistics: expect.any(Object),
             hostName: expect.any(Object),
-          }),
+          })
         );
       });
 
@@ -50,13 +50,14 @@ describe('Instance Form Service', () => {
             totalProcessedTask: expect.any(Object),
             processedStatistics: expect.any(Object),
             hostName: expect.any(Object),
-          }),
+          })
         );
       });
     });
 
     describe('getInstance', () => {
       it('should return NewInstance for default Instance initial value', () => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const formGroup = service.createInstanceFormGroup(sampleWithNewData);
 
         const instance = service.getInstance(formGroup) as any;

@@ -2,8 +2,8 @@ package com.behsa.medportal.filter;
 
 import org.owasp.html.PolicyFactory;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletRequestWrapper;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 import java.util.Map;
 
 public class XssRequestWrapper extends HttpServletRequestWrapper {

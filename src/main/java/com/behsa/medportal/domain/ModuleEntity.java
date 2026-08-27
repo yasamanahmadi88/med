@@ -4,14 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+import javax.persistence.*;
+import javax.validation.constraints.*;
 
 /**
  * A ModuleEntity.
  */
 @Entity
-@Table(name = "TBL_MODULES")
+@Table(name = "MEDIATION.tbl_modules")
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class ModuleEntity implements Serializable {
 
@@ -19,7 +19,7 @@ public class ModuleEntity implements Serializable {
 
     @Id
     @GeneratedValue(generator = "AUTR_SEQ_GENERATOR")
-    @SequenceGenerator(name = "AUTR_SEQ_GENERATOR", sequenceName = "MODULES_SEQ", allocationSize = 1)
+    @SequenceGenerator(name = "AUTR_SEQ_GENERATOR", sequenceName = "MODULES_SEQ", allocationSize = 0)
     @Column(name = "module_key")
     private Long id;
 

@@ -79,9 +79,7 @@
             [compareWith]="compareResource"
           >
             <option *ngIf="editForm.get(['resource'])!.value == null" [ngValue]="null" selected></option>
-            <option [ngValue]="resourceOption" *ngFor="let resourceOption of resourcesSharedCollection">
-              {{ resourceOption.displayName }}
-            </option>
+            <option [ngValue]="resourceOption" *ngFor="let resourceOption of resourcesSharedCollection">{{ resourceOption.displayName }}</option>
           </select>
         </div>
         <div *ngIf="editForm.get(['resource'])!.invalid && (editForm.get(['resource'])!.dirty || editForm.get(['resource'])!.touched)">

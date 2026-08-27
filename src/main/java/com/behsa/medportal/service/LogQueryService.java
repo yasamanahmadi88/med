@@ -8,8 +8,8 @@ import com.behsa.medportal.service.dto.ProductDTO;
 import com.behsa.medportal.service.mapper.LogMapper;
 import java.time.LocalDateTime;
 import java.util.List;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Path;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Path;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -57,7 +57,7 @@ public class LogQueryService {
 
     // ---------- Core: build Specification WITHOUT LogEntity_ ----------
     private Specification<LogEntity> toSpecification(LogCriteria c) {
-        Specification<LogEntity> spec = (root, query, criteriaBuilder) -> null;
+        Specification<LogEntity> spec = Specification.where(null);
 
         if (c == null) return spec;
 
@@ -101,7 +101,7 @@ public class LogQueryService {
     private Specification<LogEntity> string(String attr, StringFilter f) {
         return (root, query, cb) -> {
             Path<String> p = root.get(attr);
-            jakarta.persistence.criteria.Predicate predicate = cb.conjunction();
+            javax.persistence.criteria.Predicate predicate = cb.conjunction();
 
             if (f.getEquals() != null)          predicate = cb.and(predicate, cb.equal(p, f.getEquals()));
             if (f.getNotEquals() != null)       predicate = cb.and(predicate, cb.notEqual(p, f.getNotEquals()));
@@ -124,7 +124,7 @@ public class LogQueryService {
     private <X extends Comparable<? super X>> Specification<LogEntity> range(String attr, RangeFilter<X> f) {
         return (root, query, cb) -> {
             Path<X> p = root.get(attr);
-            jakarta.persistence.criteria.Predicate predicate = cb.conjunction();
+            javax.persistence.criteria.Predicate predicate = cb.conjunction();
 
             if (f.getEquals() != null)          predicate = cb.and(predicate, cb.equal(p, f.getEquals()));
             if (f.getNotEquals() != null)       predicate = cb.and(predicate, cb.notEqual(p, f.getNotEquals()));

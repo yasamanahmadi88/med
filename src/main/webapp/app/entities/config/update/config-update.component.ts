@@ -13,7 +13,6 @@ import { ModuleService } from 'app/entities/module/service/module.service';
 @Component({
   selector: 'jhi-config-update',
   templateUrl: './config-update.component.html',
-  standalone: false,
 })
 export class ConfigUpdateComponent implements OnInit {
   isSaving = false;
@@ -27,7 +26,7 @@ export class ConfigUpdateComponent implements OnInit {
     protected configService: ConfigService,
     protected configFormService: ConfigFormService,
     protected moduleService: ModuleService,
-    protected activatedRoute: ActivatedRoute,
+    protected activatedRoute: ActivatedRoute
   ) {}
 
   compareModule = (o1: IModule | null, o2: IModule | null): boolean => this.moduleService.compareModule(o1, o2);
@@ -85,7 +84,7 @@ export class ConfigUpdateComponent implements OnInit {
 
   protected loadRelationshipsOptions(): void {
     this.moduleService
-      .query({ size: 1000 })
+      .query({size: 1000})
       .pipe(map((res: HttpResponse<IModule[]>) => res.body ?? []))
       .pipe(map((modules: IModule[]) => this.moduleService.addModuleToCollectionIfMissing<IModule>(modules, this.config?.module)))
       .subscribe((modules: IModule[]) => (this.modulesSharedCollection = modules));

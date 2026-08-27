@@ -1,8 +1,9 @@
 import { Component, OnDestroy, Input, Output, EventEmitter, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
 import BpmnModeler from 'bpmn-js/lib/Modeler';
+import { BpmnPropertiesPanelModule, BpmnPropertiesProviderModule, CamundaPlatformPropertiesProviderModule } from 'bpmn-js-properties-panel';
+import camundaModdleDescriptor from 'camunda-bpmn-moddle/resources/camunda.json';
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
 
 @Component({
@@ -23,7 +24,19 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
   constructor(private bpmnEditorService: BpmnEditorService) {}
 
   ngAfterViewInit(): void {
-    this.initModeler();
+    // PanelComponent is a sibling, so its ngAfterViewInit runs after this one in the same
+    // change-detection pass. Deferring by a macrotask lets it register its element first, so
+    // the properties panel has a parent to render into.
+    setTimeout(() => this.initModeler(), 0);
+  }
+
+  ngOnDestroy(): void {
+    if (this.bpmnModeler) {
+      this.bpmnModeler.destroy();
+    }
+    this.bpmnEditorService.setBpmnModeler(null);
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private initModeler(): void {
@@ -31,6 +44,8 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
       setTimeout(() => this.initModeler(), 100);
       return;
     }
+
+    const panelParent = this.bpmnEditorService.getPropertiesPanelParent();
 
     try {
       this.bpmnModeler = new BpmnModeler({
@@ -41,12 +56,25 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
           // key events `window` did.
           bindTo: document.documentElement,
         },
+        // The panel modules read `propertiesPanel.parent`, so they are only registered when a
+        // parent exists — the editor can be configured without the custom panel.
+        ...(panelParent
+          ? {
+              propertiesPanel: { parent: panelParent },
+              additionalModules: [BpmnPropertiesPanelModule, BpmnPropertiesProviderModule, CamundaPlatformPropertiesProviderModule],
+              moddleExtensions: { camunda: camundaModdleDescriptor },
+            }
+          : {}),
       });
 
       this.bpmnEditorService.setBpmnModeler(this.bpmnModeler);
 
       if (this.xml) {
         this.loadXml(this.xml);
+      } else {
+        // Without a diagram there is no canvas root and no element to select, so the properties
+        // panel would render empty and the palette would refuse to place anything.
+        this.bpmnModeler.createDiagram();
       }
 
       // Listen for xml changes
@@ -72,13 +100,5 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
     this.bpmnModeler.saveXML({ format: true }).then((result: any) => {
       this.xmlUpdate.emit(result.xml);
     });
-  }
-
-  ngOnDestroy(): void {
-    if (this.bpmnModeler) {
-      this.bpmnModeler.destroy();
-    }
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 }

@@ -12,13 +12,29 @@ export class BpmnEditorService {
   });
   private processXmlSubject = new BehaviorSubject<string | undefined>(undefined);
   private bpmnModelerSubject = new BehaviorSubject<any>(null);
+  private propertiesPanelParentSubject = new BehaviorSubject<HTMLElement | null>(null);
 
   editorSettings$ = this.editorSettingsSubject.asObservable();
   processXml$ = this.processXmlSubject.asObservable();
   bpmnModeler$ = this.bpmnModelerSubject.asObservable();
+  propertiesPanelParent$ = this.propertiesPanelParentSubject.asObservable();
 
   constructor() {
     this.loadSettings();
+  }
+
+  /**
+   * The element bpmn-js-properties-panel renders into.
+   *
+   * PanelComponent owns that element but is a sibling of DesignerComponent, which builds the
+   * modeler, so the two hand it over through here rather than reaching into each other's DOM.
+   */
+  setPropertiesPanelParent(parent: HTMLElement | null): void {
+    this.propertiesPanelParentSubject.next(parent);
+  }
+
+  getPropertiesPanelParent(): HTMLElement | null {
+    return this.propertiesPanelParentSubject.value;
   }
 
   private loadSettings(): void {

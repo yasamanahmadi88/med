@@ -1,7 +1,7 @@
 import { NumberFieldEntry, SelectEntry, TextAreaEntry, TextFieldEntry } from '@bpmn-io/properties-panel';
 
 import ModulePropertiesProvider from './ModulePropertiesProvider';
-import { httpReceiverSchema, httpTransmitterSchema, schemaForType } from './schema';
+import { httpReceiverSchema, httpTransmitterSchema, schemaForType } from './schemas';
 
 /**
  * The provider is what makes a placed integration module configurable at all: without it a

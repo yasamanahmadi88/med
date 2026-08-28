@@ -11,3 +11,4 @@ export default {
 
 export { ModulePropertiesProvider };
 export * from './schema';
+export * from './schemas';

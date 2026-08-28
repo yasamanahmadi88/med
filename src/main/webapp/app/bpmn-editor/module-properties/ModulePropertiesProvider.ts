@@ -2,7 +2,8 @@ import { CheckboxEntry, NumberFieldEntry, SelectEntry, TextAreaEntry, TextFieldE
 import { getBusinessObject } from 'bpmn-js/lib/util/ModelUtil';
 import { Base } from 'diagram-js/lib/model';
 
-import { ModuleField, ModuleSchema, schemaForType } from './schema';
+import { ModuleField, ModuleSchema } from './schema';
+import { schemaForType } from './schemas';
 
 /**
  * Adds one properties-panel group per custom integration module, built from `schema.ts`.

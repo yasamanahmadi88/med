@@ -94,7 +94,14 @@ export default class ModulePropertiesProvider {
     if (field.kind === 'select') {
       // The panel renders an empty first option so a property can be cleared, matching the Vue
       // form, where the select started blank until the user picked a value.
-      entry['getOptions'] = () => [{ value: '', label: '' }, ...(field.options ?? []).map(value => ({ value, label: value }))];
+      entry['getOptions'] = () => [
+        { value: '', label: '' },
+        ...(field.options ?? []).map(option =>
+          // A bare string is a choice whose stored value reads well enough to show as-is; the
+          // pair form carries the Vue template's display text, which often differed.
+          typeof option === 'string' ? { value: option, label: option } : { value: option.value, label: option.label },
+        ),
+      ];
     }
 
     return entry;

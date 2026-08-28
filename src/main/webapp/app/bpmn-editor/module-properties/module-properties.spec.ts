@@ -1,7 +1,7 @@
-import { SelectEntry, TextAreaEntry, TextFieldEntry } from '@bpmn-io/properties-panel';
+import { NumberFieldEntry, SelectEntry, TextAreaEntry, TextFieldEntry } from '@bpmn-io/properties-panel';
 
 import ModulePropertiesProvider from './ModulePropertiesProvider';
-import { httpReceiverSchema, schemaForType } from './schema';
+import { httpReceiverSchema, httpTransmitterSchema, schemaForType } from './schema';
 
 /**
  * The provider is what makes a placed integration module configurable at all: without it a
@@ -85,6 +85,70 @@ describe('module properties', () => {
       const options = group.entries.find((e: any) => e.id === 'agreementMode').getOptions();
 
       expect(options.map((o: any) => o.value)).toEqual(['', 'RUNNING', 'FETCH_ONLY', 'DRAFT']);
+    });
+  });
+
+  describe('HttpTransmitter', () => {
+    it('finds the schema for the type the palette creates', () => {
+      expect(schemaForType('HttpTransmitter:HttpTransmitter')).toBe(httpTransmitterSchema);
+    });
+
+    it('carries every field the Vue module had', () => {
+      // The Vue editor spread these across 34 components; a field dropped in the port is a
+      // setting the user can no longer reach, and nothing else would fail if one went missing.
+      expect(httpTransmitterSchema.fields).toHaveLength(34);
+    });
+
+    it('builds one entry per declared field, in declaration order', () => {
+      const { provider } = build();
+      const [group] = provider.getGroups(makeElement('HttpTransmitter:HttpTransmitter') as any)([]) as any[];
+
+      expect(group.entries.map((e: any) => e.id)).toEqual(httpTransmitterSchema.fields.map(f => f.name));
+    });
+
+    it('keeps `ContentType` capitalised', () => {
+      // Alone in this module the Vue getter reads `${prefix}:ContentType`. Normalising it to
+      // `contentType` would silently address an attribute no existing diagram carries.
+      const { provider, modeling } = build();
+      const element = makeElement('HttpTransmitter:HttpTransmitter');
+      const [group] = provider.getGroups(element as any)([]) as any[];
+
+      group.entries.find((e: any) => e.id === 'ContentType').setValue('application/json');
+      expect(modeling.updateModdleProperties).toHaveBeenCalledWith(element, expect.anything(), {
+        'camunda:ContentType': 'application/json',
+      });
+    });
+
+    it('offers the http methods the Vue select offered, and no others', () => {
+      // The backend rejects a verb outside this list, so an extra option here would only let a
+      // user author a diagram that fails at run time.
+      const { provider } = build();
+      const [group] = provider.getGroups(makeElement('HttpTransmitter:HttpTransmitter') as any)([]) as any[];
+      const options = group.entries.find((e: any) => e.id === 'httpMethod').getOptions();
+
+      expect(options.map((o: any) => o.value)).toEqual(['', 'GET', 'POST', 'DELETE', 'PUT']);
+    });
+
+    it('keeps the cacheable flag as the strings the Vue select stored', () => {
+      // The Vue <option value="0">No</option> wrote '0', not false; a boolean here would not
+      // round-trip against diagrams the Vue editor saved.
+      const { provider } = build();
+      const [group] = provider.getGroups(makeElement('HttpTransmitter:HttpTransmitter') as any)([]) as any[];
+      const options = group.entries.find((e: any) => e.id === 'isCacheAble').getOptions();
+
+      expect(options.map((o: any) => o.value)).toEqual(['', '0', '1']);
+    });
+
+    it('renders the number fields as number entries', () => {
+      // Every delay and timeout is milliseconds; a text entry would let a unit or stray space
+      // through into an attribute the engine parses as a long.
+      const { provider } = build();
+      const [group] = provider.getGroups(makeElement('HttpTransmitter:HttpTransmitter') as any)([]) as any[];
+      const entry = (id: string): any => group.entries.find((e: any) => e.id === id);
+
+      expect(entry('partyTimeOut').component).toBe(NumberFieldEntry);
+      expect(entry('maxAttempts').component).toBe(NumberFieldEntry);
+      expect(entry('overAllTimeOut').component).toBe(NumberFieldEntry);
     });
   });
 

@@ -31,8 +31,14 @@ public class FlowEntity implements Serializable {
     @Column(name = "flow_desc", length = 300, nullable = false)
     private String flowDesc;
 
+    // The BPMN diagram XML. Liquibase owns the real schema and declares this column ${clobType}
+    // (clob on Oracle, longvarchar on H2); ddl-auto is none in production. The explicit length is
+    // for the schemas Hibernate *does* generate — the H2 integration tests and local runs — where
+    // the default varchar(255) is far too small for a diagram and inserts fail.
+    // Deliberately not @Lob: FlowCriteria exposes a `contains` filter on this field, and H2 cannot
+    // LIKE a clob.
     @NotNull
-    @Column(name = "flow", nullable = false)
+    @Column(name = "flow", nullable = false, length = 1_000_000)
     private String flow;
 
     @ManyToOne(optional = false)

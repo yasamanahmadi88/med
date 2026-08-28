@@ -85,6 +85,7 @@ describe('BpmnEditorComponent', () => {
 
   it('registers the camunda moddle extension the Camunda provider needs', () => {
     expect(created[0].options.moddleExtensions.camunda).toBeTruthy();
+    expect(created[0].options.moddleExtensions.cdrParser).toBeUndefined();
   });
 
   it('starts an empty diagram when no xml is supplied', () => {

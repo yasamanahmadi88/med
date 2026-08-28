@@ -29,20 +29,13 @@ import Transformer from '../moddle-extensions/transformerModule.json';
 import { EditorSettings } from '../types/editor/settings';
 
 /**
- * Moddle extensions the editor registers on every modeler.
+ * Moddle extensions for the editor's own integration modules.
  *
  * Each key is the namespace prefix the palette builds shapes with — creating, say, a
- * `KafkaReceiver:KafkaReceiver` shape only resolves once `KafkaReceiver` is registered here, so
- * these travel with the custom palette rather than being optional.
- *
- * `camunda` comes from the camunda-bpmn-moddle package rather than a copy in this repo, because
- * CamundaPlatformPropertiesProviderModule is written against that descriptor.
+ * `KafkaReceiver:KafkaReceiver` shape only resolves once `KafkaReceiver` is registered, so these
+ * travel with the custom palette rather than being optional.
  */
-export const moddleExtensions: Record<string, unknown> = {
-  camunda: camundaModdleDescriptor,
-  activiti,
-  flowable,
-  cdrParser,
+const integrationModuleExtensions: Record<string, unknown> = {
   CdrParser,
   CsvTransformer,
   DbReceiver,
@@ -60,6 +53,25 @@ export const moddleExtensions: Record<string, unknown> = {
   miyue,
   Transformer,
 };
+
+/**
+ * The four process engines are competing flavours of the same schema — activiti, flowable and
+ * cdrParser are the Camunda moddle with the prefix renamed — so exactly one may be registered.
+ * Registering more than one makes moddle refuse the duplicate extension of bpmn:Definitions
+ * ("property <diagramRelationId> already defined") and the modeler fails to construct at all.
+ */
+const engineExtensions: Record<string, unknown> = {
+  camunda: camundaModdleDescriptor,
+  activiti,
+  flowable,
+  cdrParser,
+};
+
+export function moddleExtensionsFor(settings: EditorSettings | undefined): Record<string, unknown> {
+  const engine = settings?.processEngine ?? 'camunda';
+
+  return { ...integrationModuleExtensions, [engine]: engineExtensions[engine] };
+}
 
 /**
  * The didi modules the palette and renderer settings select.

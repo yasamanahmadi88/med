@@ -4,7 +4,7 @@ import { Subject } from 'rxjs';
 import BpmnModeler from 'bpmn-js/lib/Modeler';
 import { BpmnPropertiesPanelModule, BpmnPropertiesProviderModule, CamundaPlatformPropertiesProviderModule } from 'bpmn-js-properties-panel';
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
-import { additionalModulesFor, moddleExtensions } from '../../additional-modules';
+import { additionalModulesFor, moddleExtensionsFor } from '../../additional-modules';
 
 @Component({
   selector: 'jhi-designer',
@@ -52,7 +52,12 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
     // modules when a parent element exists for it to render into.
     const modules: unknown[] = additionalModulesFor(settings);
     if (panelParent) {
-      modules.push(BpmnPropertiesPanelModule, BpmnPropertiesProviderModule, CamundaPlatformPropertiesProviderModule);
+      modules.push(BpmnPropertiesPanelModule, BpmnPropertiesProviderModule);
+      // The Camunda groups read camunda-prefixed properties, so they only belong when that is
+      // the engine in force; the other engines register their own moddle instead.
+      if ((settings?.processEngine ?? 'camunda') === 'camunda') {
+        modules.push(CamundaPlatformPropertiesProviderModule);
+      }
     }
 
     try {
@@ -64,10 +69,10 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
           // key events `window` did.
           bindTo: document.documentElement,
         },
-        // The moddle extensions define the namespaces the custom palette builds shapes with, so
-        // they are always registered; without them elementFactory.createShape would fail on the
+        // Defines the namespaces the custom palette builds shapes with, plus the one process
+        // engine schema in force; without them elementFactory.createShape fails on the
         // integration-module types.
-        moddleExtensions,
+        moddleExtensions: moddleExtensionsFor(settings),
         additionalModules: modules,
         // The panel modules read `propertiesPanel.parent`, so it is only set when a parent
         // exists — the editor can be configured without the custom panel.

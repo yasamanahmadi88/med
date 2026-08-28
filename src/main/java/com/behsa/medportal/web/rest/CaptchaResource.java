@@ -8,7 +8,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,15 +34,6 @@ public class CaptchaResource {
         );
     }
 
-    @PostMapping("/captcha-validate")
-    public Map<String, Boolean> validateCaptcha(@RequestBody CaptchaValidateRequest request) {
-        boolean valid = request != null
-            && request.captchaId() != null
-            && localCaptchaService.verifyAndConsume(request.captchaId(), request.userInput());
-
-        return Map.of("valid", valid);
-    }
-
     @GetMapping(value = "/captcha.png", produces = MediaType.IMAGE_PNG_VALUE)
     public ResponseEntity<byte[]> image(@RequestParam("cid") String captchaId) {
         byte[] png = localCaptchaService.renderPng(captchaId);
@@ -59,6 +49,4 @@ public class CaptchaResource {
             .header(HttpHeaders.EXPIRES, "0")
             .body(png);
     }
-
-    public record CaptchaValidateRequest(String captchaId, String userInput) {}
 }

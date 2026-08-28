@@ -16,7 +16,7 @@ export default defineConfig(
     },
   },
   { ignores: ['src/main/docker/', 'src/main/webapp/404.html', 'src/main/webapp/index.html', 'src/main/webapp/swagger-ui/**', 'src/main/webapp/content/**'] },
-  { ignores: ['target/classes/static/', 'target/', 'dist/', 'src/main/webapp/content/bpmnjs/**'] },
+  { ignores: ['target/classes/static/', 'target/', 'dist/'] },
   eslint.configs.recommended,
   {
     files: ['**/*.{js,cjs,mjs}'],

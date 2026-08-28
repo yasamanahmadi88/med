@@ -103,6 +103,17 @@ const xml = this.editorService.getProcessXml();
 const modeler = this.editorService.getBpmnModeler();
 ```
 
+### Save and Cancel
+
+The editor components never persist anything themselves. `ToolbarComponent` reports Save and Cancel to
+whatever is provided for the `BPMN_EDITOR_HOST` token (`services/bpmn-editor-host.ts`), so where a
+diagram is stored is the routed page's decision and the editor stays reusable.
+
+`components/flow/flow-bpmn-editor.component.ts` is the host behind the `/bpmn-editor` route and the
+only file in this feature that knows about flows. It seeds the diagram before the editor is created
+— `DesignerComponent` reads `[xml]` once, while it builds the modeler — and on save writes it back
+to the flow named by `?flowId=`, or to `FlowService.xmlTemp` when the flow has not been created yet.
+
 ## Configuration
 
 Edit `src/main/webapp/app/bpmn-editor/config/index.ts` to customize:

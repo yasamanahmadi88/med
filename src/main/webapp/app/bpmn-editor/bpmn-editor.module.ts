@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { BpmnEditorRoutingModule } from './bpmn-editor-routing.module';
 import { BpmnEditorComponent } from './components/bpmn-editor.component';
+import { FlowBpmnEditorComponent } from './components/flow/flow-bpmn-editor.component';
 import { DesignerComponent } from './components/designer/designer.component';
 import { ToolbarComponent } from './components/toolbar/toolbar.component';
 import { PaletteComponent } from './components/palette/palette.component';
@@ -17,6 +18,7 @@ import { ContextMenuComponent } from './components/context-menu/context-menu.com
     CommonModule,
     FormsModule,
     BpmnEditorRoutingModule,
+    FlowBpmnEditorComponent,
     BpmnEditorComponent,
     DesignerComponent,
     ToolbarComponent,

@@ -138,4 +138,10 @@ bucket4j:
 
 user-session:
   expire:
+    # Server-side inactivity window (minutes) for a normal session.
     per-minute: 30
+    # Server-side inactivity window (minutes) for a remember-me session.
+    # Keep this aligned with jhipster.security.authentication.jwt.token-validity-in-seconds-for-remember-me
+    # (2592000 s = 30 days = 43200 minutes). A shorter value here logs the user out while their
+    # remember-me JWT is still valid; a longer value keeps a dead session in memory.
+    remember-me-per-minute: 43200

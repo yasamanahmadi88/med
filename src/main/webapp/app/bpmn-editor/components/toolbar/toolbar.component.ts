@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, Inject, Optional } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
+import { BPMN_EDITOR_HOST, BpmnEditorHost } from '../../services/bpmn-editor-host';
 
 @Component({
   selector: 'jhi-toolbar',
@@ -10,15 +11,30 @@ import { BpmnEditorService } from '../../services/bpmn-editor.service';
   imports: [CommonModule],
 })
 export class ToolbarComponent {
-  constructor(private bpmnEditorService: BpmnEditorService) {}
+  constructor(
+    private bpmnEditorService: BpmnEditorService,
+    @Optional() @Inject(BPMN_EDITOR_HOST) private host: BpmnEditorHost | null,
+  ) {}
 
-  /** Keep the current diagram in the editor service so other views can read it back. */
+  /** Keep the current diagram in the editor service so other views can read it back, then let
+   *  the host persist it wherever it came from. */
   onSave(): void {
     void this.currentXml().then(xml => {
       if (xml) {
         this.bpmnEditorService.setProcessXml(xml);
+        this.host?.save(xml);
       }
     });
+  }
+
+  /** Discard the session. Without a host there is nowhere to report the discard to, so the
+   *  plain browser back is all that is left. */
+  onCancel(): void {
+    if (this.host) {
+      this.host.cancel();
+    } else {
+      window.history.back();
+    }
   }
 
   /** Download the current diagram as a .bpmn file. */

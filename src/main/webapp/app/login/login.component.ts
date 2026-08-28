@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
 
 import { LoginService } from 'app/login/login.service';
 import { AccountService } from 'app/core/auth/account.service';
-import { LocalStorageService } from 'ngx-webstorage';
+import { ApplicationConfigService } from 'app/core/config/application-config.service';
 import { Login } from './login.model';
 import { StateStorageService } from 'app/core/auth/state-storage.service';
 
@@ -18,7 +18,6 @@ import { StateStorageService } from 'app/core/auth/state-storage.service';
 export class LoginComponent implements OnInit, AfterViewInit {
   @ViewChild('username', { static: false }) username!: ElementRef;
 
-  backUrl = '';
   authenticationError = false;
   captchaLoadError = false;
   captchaId = '';
@@ -33,16 +32,14 @@ export class LoginComponent implements OnInit, AfterViewInit {
   });
 
   constructor(
-    private localStorageService: LocalStorageService,
     private accountService: AccountService,
     private loginService: LoginService,
     private router: Router,
     private http: HttpClient,
     private stateStorageService: StateStorageService,
     private changeDetector: ChangeDetectorRef,
-  ) {
-    this.backUrl = this.localStorageService.retrieve('backendUrl') || '';
-  }
+    private applicationConfigService: ApplicationConfigService,
+  ) {}
 
   ngOnInit(): void {
     this.loadCaptcha();
@@ -62,21 +59,23 @@ export class LoginComponent implements OnInit, AfterViewInit {
     this.isLoading = true;
     this.captchaLoadError = false;
 
-    this.http.post<{ captchaId: string; captchaImageUrl: string }>(this.backUrl + '/api/captcha-endpoint', {}).subscribe({
-      next: response => {
-        this.captchaId = response.captchaId;
-        this.captchaImageUrl = this.backUrl + response.captchaImageUrl;
-        this.loginForm.patchValue({ userCaptchaInput: '' });
-        this.stopLoading();
-      },
-      error: () => {
-        this.captchaId = '';
-        this.captchaImageUrl = '';
-        this.captchaLoadError = true;
-        this.authenticationError = true;
-        this.stopLoading();
-      },
-    });
+    this.http
+      .post<{ captchaId: string; captchaImageUrl: string }>(this.applicationConfigService.getEndpointFor('api/captcha-endpoint'), {})
+      .subscribe({
+        next: response => {
+          this.captchaId = response.captchaId;
+          this.captchaImageUrl = this.buildCaptchaImageUrl(response.captchaImageUrl);
+          this.loginForm.patchValue({ userCaptchaInput: '' });
+          this.stopLoading();
+        },
+        error: () => {
+          this.captchaId = '';
+          this.captchaImageUrl = '';
+          this.captchaLoadError = true;
+          this.authenticationError = true;
+          this.stopLoading();
+        },
+      });
   }
 
   login(): void {
@@ -142,6 +141,22 @@ export class LoginComponent implements OnInit, AfterViewInit {
       this.captchaLoadError = false;
       this.loadCaptcha();
     }
+  }
+
+  /**
+   * The server returns the captcha image as a root-relative path (`/api/captcha.png?cid=...`).
+   * Route it through ApplicationConfigService so it resolves against the same backend as every
+   * other API call, stripping the leading slash so a configured endpoint prefix is not doubled up.
+   */
+  private buildCaptchaImageUrl(imagePath: string): string {
+    if (!imagePath) {
+      return '';
+    }
+    // Absolute or protocol-relative URLs are already fully qualified.
+    if (/^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(imagePath)) {
+      return imagePath;
+    }
+    return this.applicationConfigService.getEndpointFor(imagePath.replace(/^\/+/, ''));
   }
 
   private stopLoading(): void {

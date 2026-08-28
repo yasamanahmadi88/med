@@ -179,3 +179,31 @@ test.describe('MedPortal themes and responsive navigation', () => {
     await expect(page.getByTestId('entity')).toBeVisible();
   });
 });
+
+test.describe('MedPortal change detection', () => {
+  test('renders a list that arrives after the route has already been drawn', async ({ page, mockApi }) => {
+    // Every other spec here asserts what a route paints on arrival, which a frozen view still
+    // gets right: the component is created and checked once as part of the navigation. This one
+    // asserts the pass *after* that — data fetched in ngOnInit and assigned to a plain field.
+    // Without zone change detection the rows never appear even though the response arrived.
+    await mockApi({ account: 'admin' });
+    await page.route('**/api/admin/users?**', route =>
+      route.fulfill({
+        status: 200,
+        headers: { 'content-type': 'application/json', 'x-total-count': '2', link: '' },
+        body: JSON.stringify([
+          { id: 1, login: 'admin', email: 'admin@localhost', activated: true, langKey: 'en', authorities: ['ROLE_ADMIN'] },
+          { id: 2, login: 'test', email: 'test@localhost', activated: true, langKey: 'en', authorities: ['ROLE_USER'] },
+        ]),
+      }),
+    );
+
+    await page.goto('/admin/user-management');
+
+    await expect(page.locator('jhi-user-mgmt table tbody tr')).toHaveCount(2);
+    await expect(page.locator('jhi-user-mgmt table tbody')).toContainText('admin@localhost');
+    // isLoading is set true before the request and false in the response handler; a stale view
+    // leaves the button disabled forever.
+    await expect(page.getByRole('button', { name: 'Refresh list' })).toBeEnabled();
+  });
+});

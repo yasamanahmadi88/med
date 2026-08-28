@@ -5,6 +5,7 @@ import BpmnModeler from 'bpmn-js/lib/Modeler';
 import { BpmnPropertiesPanelModule, BpmnPropertiesProviderModule, CamundaPlatformPropertiesProviderModule } from 'bpmn-js-properties-panel';
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
 import { additionalModulesFor, moddleExtensionsFor } from '../../additional-modules';
+import ModulePropertiesModule from '../../module-properties';
 
 @Component({
   selector: 'jhi-designer',
@@ -58,6 +59,9 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
       if ((settings?.processEngine ?? 'camunda') === 'camunda') {
         modules.push(CamundaPlatformPropertiesProviderModule);
       }
+      // The integration modules the palette places carry their own properties; without this
+      // group a KafkaReceiver or HttpReceiver can be drawn but never configured.
+      modules.push(ModulePropertiesModule);
     }
 
     try {
@@ -74,6 +78,9 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
         // integration-module types.
         moddleExtensions: moddleExtensionsFor(settings),
         additionalModules: modules,
+        // Reaches ModulePropertiesProvider as `config.processEngine`. Module properties are
+        // namespaced by the engine, so an HttpReceiver stores `camunda:agreementMode`.
+        processEngine: settings?.processEngine ?? 'camunda',
         // The panel modules read `propertiesPanel.parent`, so it is only set when a parent
         // exists — the editor can be configured without the custom panel.
         ...(panelParent ? { propertiesPanel: { parent: panelParent } } : {}),

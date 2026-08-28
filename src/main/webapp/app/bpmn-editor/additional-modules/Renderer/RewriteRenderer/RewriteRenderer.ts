@@ -1909,7 +1909,7 @@ class RewriteRenderer extends BaseRenderer {
       //     ...(attr || {}),
       //     width: element.width,
       //     height: element.height,
-      //     href: 'src/bpmn-icons/corner-icons/transformerModule_corner.svg'
+      //     href: '/content/bpmn-icons/corner-icons/transformerModule_corner.svg'
       //   })
       //   svgAppend(parentGfx, customIcon)
       //   renderEmbeddedLabel(parentGfx, element, 'center-middle')
@@ -1931,7 +1931,7 @@ class RewriteRenderer extends BaseRenderer {
           ...(attr || {}),
           width: element.width,
           height: element.height,
-          href: 'src/bpmn-icons/corner-icons/mergerModule_corner.svg',
+          href: '/content/bpmn-icons/corner-icons/mergerModule_corner.svg',
         });
         svgAppend(parentGfx, customIcon);
         renderEmbeddedLabel(parentGfx, element, 'center-middle');
@@ -1952,7 +1952,7 @@ class RewriteRenderer extends BaseRenderer {
           ...(attr || {}),
           width: element.width,
           height: element.height,
-          href: 'src/bpmn-icons/corner-icons/kafkaTransmitterModule_corner.svg',
+          href: '/content/bpmn-icons/corner-icons/kafkaTransmitterModule_corner.svg',
         });
         svgAppend(parentGfx, customIcon);
         renderEmbeddedLabel(parentGfx, element, 'center-middle');
@@ -1973,7 +1973,7 @@ class RewriteRenderer extends BaseRenderer {
           ...(attr || {}),
           width: element.width,
           height: element.height,
-          href: 'src/bpmn-icons/corner-icons/kafkaReceiverModule_corner.svg',
+          href: '/content/bpmn-icons/corner-icons/kafkaReceiverModule_corner.svg',
         });
         svgAppend(parentGfx, customIcon);
         renderEmbeddedLabel(parentGfx, element, 'center-middle');
@@ -1994,7 +1994,7 @@ class RewriteRenderer extends BaseRenderer {
           ...(attr || {}),
           width: element.width,
           height: element.height,
-          href: 'src/bpmn-icons/corner-icons/httpTransmitterModule_corner.svg',
+          href: '/content/bpmn-icons/corner-icons/httpTransmitterModule_corner.svg',
         });
         svgAppend(parentGfx, customIcon);
         renderEmbeddedLabel(parentGfx, element, 'center-middle');
@@ -2015,7 +2015,7 @@ class RewriteRenderer extends BaseRenderer {
           ...(attr || {}),
           width: element.width,
           height: element.height,
-          href: 'src/bpmn-icons/corner-icons/httpReceiverModule_corner.svg',
+          href: '/content/bpmn-icons/corner-icons/httpReceiverModule_corner.svg',
         });
         svgAppend(parentGfx, customIcon);
         renderEmbeddedLabel(parentGfx, element, 'center-middle');
@@ -2036,7 +2036,7 @@ class RewriteRenderer extends BaseRenderer {
           ...(attr || {}),
           width: element.width,
           height: element.height,
-          href: 'src/bpmn-icons/corner-icons/fileReceiverModule_corner.svg',
+          href: '/content/bpmn-icons/corner-icons/fileReceiverModule_corner.svg',
         });
         svgAppend(parentGfx, customIcon);
         renderEmbeddedLabel(parentGfx, element, 'center-middle');
@@ -2057,7 +2057,7 @@ class RewriteRenderer extends BaseRenderer {
           ...(attr || {}),
           width: element.width,
           height: element.height,
-          href: 'src/bpmn-icons/corner-icons/fileTransmitterModule_corner.svg',
+          href: '/content/bpmn-icons/corner-icons/fileTransmitterModule_corner.svg',
         });
         svgAppend(parentGfx, customIcon);
         renderEmbeddedLabel(parentGfx, element, 'center-middle');
@@ -2078,7 +2078,7 @@ class RewriteRenderer extends BaseRenderer {
           ...(attr || {}),
           width: element.width,
           height: element.height,
-          href: 'src/bpmn-icons/corner-icons/dbReceiverModule_corner.svg',
+          href: '/content/bpmn-icons/corner-icons/dbReceiverModule_corner.svg',
         });
         svgAppend(parentGfx, customIcon);
         renderEmbeddedLabel(parentGfx, element, 'center-middle');
@@ -2100,7 +2100,7 @@ class RewriteRenderer extends BaseRenderer {
           ...(attr || {}),
           width: element.width,
           height: element.height,
-          href: 'src/bpmn-icons/corner-icons/csvTransformerModule_corner.svg',
+          href: '/content/bpmn-icons/corner-icons/csvTransformerModule_corner.svg',
         });
         svgAppend(parentGfx, customIcon);
         renderEmbeddedLabel(parentGfx, element, 'center-middle');
@@ -2121,7 +2121,7 @@ class RewriteRenderer extends BaseRenderer {
           ...(attr || {}),
           width: element.width,
           height: element.height,
-          href: 'src/bpmn-icons/corner-icons/dbTransmitterModule_corner.svg',
+          href: '/content/bpmn-icons/corner-icons/dbTransmitterModule_corner.svg',
         });
         svgAppend(parentGfx, customIcon);
         renderEmbeddedLabel(parentGfx, element, 'center-top');
@@ -2142,7 +2142,7 @@ class RewriteRenderer extends BaseRenderer {
           ...(attr || {}),
           width: element.width,
           height: element.height,
-          href: 'src/bpmn-icons/corner-icons/fragmenterModule_corner.svg',
+          href: '/content/bpmn-icons/corner-icons/fragmenterModule_corner.svg',
         });
         svgAppend(parentGfx, customIcon);
         renderEmbeddedLabel(parentGfx, element, 'center-top');
@@ -2163,7 +2163,7 @@ class RewriteRenderer extends BaseRenderer {
           ...(attr || {}),
           width: element.width,
           height: element.height,
-          href: 'src/bpmn-icons/corner-icons/eventaDbReeceiverModule_corner.svg',
+          href: '/content/bpmn-icons/corner-icons/eventaDbReeceiverModule_corner.svg',
         });
         svgAppend(parentGfx, customIcon);
         renderEmbeddedLabel(parentGfx, element, 'center-middle');
@@ -2184,7 +2184,7 @@ class RewriteRenderer extends BaseRenderer {
           ...(attr || {}),
           width: element.width,
           height: element.height,
-          href: 'src/bpmn-icons/corner-icons/cdrParserModule_corner.svg',
+          href: '/content/bpmn-icons/corner-icons/cdrParserModule_corner.svg',
         });
         svgAppend(parentGfx, customIcon);
         renderEmbeddedLabel(parentGfx, element, 'center-middle');
@@ -2205,7 +2205,7 @@ class RewriteRenderer extends BaseRenderer {
           ...(attr || {}),
           width: element.width,
           height: element.height,
-          href: 'src/bpmn-icons/corner-icons/csvTransformerModule_corner.svg',
+          href: '/content/bpmn-icons/corner-icons/csvTransformerModule_corner.svg',
         });
         svgAppend(parentGfx, customIcon);
         renderEmbeddedLabel(parentGfx, element, 'center-middle');
@@ -2226,7 +2226,7 @@ class RewriteRenderer extends BaseRenderer {
           ...(attr || {}),
           width: element.width,
           height: element.height,
-          href: 'src/bpmn-icons/corner-icons/httpReceiverModuleEventa_corner.svg',
+          href: '/content/bpmn-icons/corner-icons/httpReceiverModuleEventa_corner.svg',
         });
         svgAppend(parentGfx, customIcon);
         renderEmbeddedLabel(parentGfx, element, 'center-middle');

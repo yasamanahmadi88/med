@@ -3,14 +3,16 @@ import RewritePalette from './Palette/RewritePalette';
 import EnhancementRenderer from './Renderer/EnhancementRenderer';
 import RewriteRenderer from './Renderer/RewriteRenderer';
 import CustomElementFactory from './ElementFactory';
-import { additionalModulesFor, moddleExtensions } from './index';
+import { additionalModulesFor, moddleExtensionsFor } from './index';
 import { defaultSettings } from '../config';
 import { EditorSettings } from '../types/editor/settings';
 
 const settingsWith = (overrides: Partial<EditorSettings>): EditorSettings => ({ ...defaultSettings, ...overrides });
 
 describe('bpmn-editor additional modules', () => {
-  describe('moddleExtensions', () => {
+  describe('moddleExtensionsFor', () => {
+    const moddleExtensions = moddleExtensionsFor(defaultSettings);
+
     it('registers every namespace the enhancement palette creates shapes with', () => {
       // EnhancementPaletteProvider builds these types; without the matching moddle extension
       // elementFactory.createShape throws on an unknown namespace.
@@ -40,7 +42,20 @@ describe('bpmn-editor additional modules', () => {
     });
 
     it('keeps camunda on the camunda-bpmn-moddle descriptor the properties provider expects', () => {
+      expect(defaultSettings.processEngine).toBe('camunda');
       expect((moddleExtensions['camunda'] as { name?: string }).name).toBe('Camunda');
+    });
+
+    it('registers exactly one process-engine schema', () => {
+      // activiti, flowable and cdrParser are the Camunda moddle with the prefix renamed. Two of
+      // them at once makes moddle reject the duplicate bpmn:Definitions extension and the modeler
+      // fails to construct, which is a runtime failure no build catches.
+      for (const engine of ['camunda', 'activiti', 'flowable', 'cdrParser'] as const) {
+        const registered = Object.keys(moddleExtensionsFor(settingsWith({ processEngine: engine })));
+        const engines = registered.filter(k => ['camunda', 'activiti', 'flowable', 'cdrParser'].includes(k));
+
+        expect(engines, `processEngine ${engine}`).toEqual([engine]);
+      }
     });
   });
 

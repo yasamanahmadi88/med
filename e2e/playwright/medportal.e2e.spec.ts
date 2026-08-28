@@ -207,3 +207,49 @@ test.describe('MedPortal change detection', () => {
     await expect(page.getByRole('button', { name: 'Refresh list' })).toBeEnabled();
   });
 });
+
+test.describe('MedPortal entity lists', () => {
+  test('renders a sortable table once the collection has rows', async ({ page, mockApi }) => {
+    // Until this spec existed every collection in the suite was mocked empty, so the tables —
+    // which are behind `*ngIf="…length > 0"` — never rendered. That hid a crash in the sort
+    // header: SortByDirective assigned to FaIconComponent.icon, a ModelSignal in
+    // @fortawesome/angular-fontawesome 4, which replaced the signal and made the next render
+    // throw "this.icon is not a function". Every entity list in the app was affected.
+    // The shared `page` fixture fails the test on any console error, so a regression surfaces
+    // here rather than silently.
+    await mockApi({
+      account: 'admin',
+      collections: {
+        '/api/products': [
+          { id: 1, productName: 'Mediation', productDesc: 'First product' },
+          { id: 2, productName: 'Billing', productDesc: 'Second product' },
+        ],
+      },
+    });
+
+    await page.goto('/product');
+
+    await expect(page.locator('table tbody tr')).toHaveCount(2);
+    await expect(page.locator('table tbody')).toContainText('Mediation');
+    // The sort headers render their icon through the directive that used to throw.
+    await expect(page.locator('table thead fa-icon').first()).toBeVisible();
+  });
+
+  test('sorting by a column keeps the table rendered', async ({ page, mockApi }) => {
+    // updateIconDefinition runs again on every predicate/ascending change, so clicking a header
+    // exercises the write path, not just the initial one.
+    await mockApi({
+      account: 'admin',
+      collections: { '/api/products': [{ id: 1, productName: 'Mediation', productDesc: 'First product' }] },
+    });
+
+    await page.goto('/product');
+    await expect(page.locator('table tbody tr')).toHaveCount(1);
+
+    // The product table's sortable columns are Product Name and Product Desc; there is no ID column.
+    await page.locator('table thead th[jhisortby]').first().click();
+
+    await expect(page.locator('table tbody tr')).toHaveCount(1);
+    await expect(page.locator('table thead fa-icon').first()).toBeVisible();
+  });
+});

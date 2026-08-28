@@ -59,7 +59,7 @@ export class MainComponent implements OnInit {
   private updateLayoutState(url: string | null | undefined): void {
     const path = url ?? '';
     setTimeout(() => {
-      this.fullScreen = path.includes('/bpmn');
+      this.fullScreen = path.includes('/bpmn-editor');
       this.isLoginPage = path.includes('/login');
       this.changeDetector.detectChanges();
     });

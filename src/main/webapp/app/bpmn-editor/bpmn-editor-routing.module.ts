@@ -1,11 +1,11 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { BpmnEditorComponent } from './components/bpmn-editor.component';
+import { FlowBpmnEditorComponent } from './components/flow/flow-bpmn-editor.component';
 
 const routes: Routes = [
   {
     path: '',
-    component: BpmnEditorComponent,
+    component: FlowBpmnEditorComponent,
     data: { title: 'BPMN Editor' },
   },
 ];

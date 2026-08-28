@@ -4,6 +4,8 @@ import com.behsa.medportal.security.AuthoritiesConstants;
 import com.behsa.medportal.security.SecurityCache;
 import com.behsa.medportal.security.jwt.JWTConfigurer;
 import com.behsa.medportal.security.jwt.TokenProvider;
+import jakarta.servlet.DispatcherType;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -15,34 +17,78 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 import tech.jhipster.config.JHipsterProperties;
 
 import java.util.Arrays;
+import java.util.Set;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
 
+    /**
+     * Backend / infrastructure path roots that must never be served the Angular shell.
+     * Kept in sync with {@code ClientForwardController#isBackendOrInfrastructurePath}.
+     */
+    private static final Set<String> BACKEND_PATH_ROOTS = Set.of(
+        "/api",
+        "/management",
+        "/v3",
+        "/swagger-ui",
+        "/swagger-resources",
+        "/api-docs"
+    );
+
+    /** Matches the deep links that Spring MVC forwards to the Angular shell. See {@link #isClientRoute}. */
+    private static final RequestMatcher CLIENT_ROUTE = SecurityConfiguration::isClientRoute;
+
     private final JHipsterProperties jHipsterProperties;
     private final TokenProvider tokenProvider;
-    private final CorsFilter corsFilter;
     private final SecurityCache securityCache;
 
     public SecurityConfiguration(
         TokenProvider tokenProvider,
-        CorsFilter corsFilter,
         JHipsterProperties jHipsterProperties,
         SecurityCache securityCache
     ) {
         this.tokenProvider = tokenProvider;
-        this.corsFilter = corsFilter;
         this.jHipsterProperties = jHipsterProperties;
         this.securityCache = securityCache;
+    }
+
+    /**
+     * Whether the request is an Angular client-side route that Spring MVC forwards to {@code index.html}.
+     *
+     * <p>Mirrors {@code ClientForwardController#forward}: a GET (or HEAD) whose last path segment carries
+     * no file extension, and that does not target a backend/infrastructure root, is a deep link such as
+     * {@code /login} or {@code /admin/user-management}. Those requests must stay anonymous, otherwise
+     * refreshing a deep link — and reaching the login page at all — would be rejected by the
+     * {@code denyAll()} tail. Static files always carry an extension and are covered by the SPA
+     * allow-list instead.</p>
+     */
+    private static boolean isClientRoute(HttpServletRequest request) {
+        String method = request.getMethod();
+        if (!HttpMethod.GET.matches(method) && !HttpMethod.HEAD.matches(method)) {
+            return false;
+        }
+
+        String uri = request.getRequestURI();
+        if (uri == null || !uri.startsWith("/")) {
+            return false;
+        }
+
+        for (String root : BACKEND_PATH_ROOTS) {
+            if (uri.equals(root) || uri.startsWith(root + "/")) {
+                return false;
+            }
+        }
+
+        // No extension in the last segment => client-side route, not a static file.
+        return uri.lastIndexOf('.') <= uri.lastIndexOf('/');
     }
 
     @Bean
@@ -97,7 +143,6 @@ public class SecurityConfiguration {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
-            .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
             .exceptionHandling(exceptions ->
                 exceptions
                     .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
@@ -122,17 +167,18 @@ public class SecurityConfiguration {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz ->
                 authz
+                    // Spring Security authorizes ERROR and ASYNC dispatches too; denying them would turn
+                    // every error page and every async re-dispatch into an empty 403.
+                    .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.ASYNC).permitAll()
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     // PathPatternParser forbids ** in the middle; permit the whole /app tree.
                     .requestMatchers("/app/**").permitAll()
                     .requestMatchers("/i18n/**").permitAll()
-                    .requestMatchers("/content/bpmnjs/**").authenticated()
                     .requestMatchers("/content/**").permitAll()
-                    .requestMatchers("/test/**").permitAll()
                     .requestMatchers("/api/authenticate").permitAll()
                     .requestMatchers("/api/auth/**").permitAll()
                     // The captcha guards the login form, so its whole flow runs before authentication.
-                    .requestMatchers("/api/captcha-endpoint", "/api/captcha-validate").permitAll()
+                    .requestMatchers("/api/captcha-endpoint").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/captcha.png").permitAll()
                     // Public self-registration is disabled for this deployment.
                     .requestMatchers("/api/register").denyAll()
@@ -170,7 +216,11 @@ public class SecurityConfiguration {
                         "/management/metrics/**"
                     ).denyAll()
                     .requestMatchers("/management/**").hasAuthority(AuthoritiesConstants.ADMIN)
+                    // Public build/version banner. Previously public only by falling through to the
+                    // permit-all tail; spelled out here so the deny-all tail does not change its behaviour.
+                    .requestMatchers(HttpMethod.GET, "/version", "/version/info").permitAll()
                     // SPA shell + hashed Angular assets (API/management already matched above).
+                    // Everything the Angular build drops into target/classes/static must appear here.
                     .requestMatchers(
                         "/",
                         "/index.html",
@@ -180,13 +230,28 @@ public class SecurityConfiguration {
                         "/*.ico",
                         "/*.png",
                         "/*.svg",
+                        "/*.webp",
+                        "/*.gif",
+                        "/*.jpg",
+                        "/*.jpeg",
                         "/*.woff",
                         "/*.woff2",
                         "/*.ttf",
+                        "/*.eot",
+                        "/*.webmanifest",
+                        "/manifest.webapp",
+                        "/robots.txt",
+                        "/3rdpartylicenses.txt",
+                        "/ngsw.json",
                         "/media/**",
                         "/assets/**"
                     ).permitAll()
-                    .anyRequest().permitAll()
+                    // Angular deep links (no hash routing): forwarded to index.html by ClientForwardController.
+                    .requestMatchers(CLIENT_ROUTE).permitAll()
+                    // Fail closed: anything not matched above is denied rather than silently public.
+                    // Static SPA files belong in the allow-list directly above; client-side routes are
+                    // covered by CLIENT_ROUTE; new endpoints must declare their own rule.
+                    .anyRequest().denyAll()
             )
             .httpBasic(httpBasic -> httpBasic.disable())
             .formLogin(formLogin -> formLogin.disable());

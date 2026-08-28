@@ -153,7 +153,7 @@ export class FlowComponent implements OnInit {
   }
 
   openBPMNPage(flowId: any) {
-    this.router.navigate(['/bpmn'], { relativeTo: this.activatedRoute, queryParams: { flowId } });
+    this.router.navigate(['/bpmn-editor'], { relativeTo: this.activatedRoute, queryParams: { flowId } });
   }
 
   routeToNewFlow() {

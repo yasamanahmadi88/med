@@ -1,6 +1,8 @@
 # Complete branch: security & login
 
-Canonical implementation branch: `cursor/medportal-complete-b7d5`.
+Status: **merged into `main`**. This work originally landed on the
+`cursor/medportal-complete-b7d5` branch, which has since been merged and deleted; `main` is
+now the canonical branch. This document is kept as a record of what the change contained.
 
 ## Login path (working end-to-end)
 

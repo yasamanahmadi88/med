@@ -758,4 +758,14 @@ class FlowResourceIT {
         List<FlowEntity> flowList = flowRepository.findAll();
         assertThat(flowList).hasSize(databaseSizeBeforeDelete - 1);
     }
+
+    @Test
+    @Transactional
+    void saveFlowToMediationIsNotImplemented() throws Exception {
+        // The mediation API does not exist yet, so the endpoint must not answer "success".
+        restFlowMockMvc
+            .perform(post(ENTITY_API_URL + "/save").contentType(MediaType.TEXT_PLAIN).content(DEFAULT_FLOW))
+            .andExpect(status().isNotImplemented())
+            .andExpect(jsonPath("$.mediationStatus").value("not_implemented"));
+    }
 }

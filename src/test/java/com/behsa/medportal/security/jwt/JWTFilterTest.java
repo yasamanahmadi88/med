@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import com.behsa.medportal.security.SecurityCache;
 import com.behsa.medportal.security.AuthoritiesConstants;
+import io.jsonwebtoken.Claims;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -48,9 +49,11 @@ class JWTFilterTest {
             "test-password",
             List.of(new SimpleGrantedAuthority(AuthoritiesConstants.USER))
         );
-        when(tokenProvider.validateToken(jwt)).thenReturn(true);
+        Claims claims = mock(Claims.class);
+        // The filter parses the token exactly once and reuses the verified claims.
+        when(tokenProvider.parseAndValidate(jwt)).thenReturn(claims);
         when(securityCache.getSessionInfoByToken(jwt)).thenReturn(activeSession(jwt));
-        when(tokenProvider.getAuthentication(jwt)).thenReturn(authentication);
+        when(tokenProvider.getAuthentication(jwt, claims)).thenReturn(authentication);
 
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader(JWTFilter.AUTHORIZATION_HEADER, "Bearer " + jwt);
@@ -67,7 +70,7 @@ class JWTFilterTest {
     @Test
     void invalidBearerTokenClearsAuthenticationAndRemovesSession() throws Exception {
         String jwt = "wrong.jwt";
-        when(tokenProvider.validateToken(jwt)).thenReturn(false);
+        when(tokenProvider.parseAndValidate(jwt)).thenReturn(null);
 
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader(JWTFilter.AUTHORIZATION_HEADER, "Bearer " + jwt);
@@ -93,7 +96,7 @@ class JWTFilterTest {
 
         assertThat(response.getStatus()).isEqualTo(200);
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
-        verify(tokenProvider, never()).validateToken("good.jwt");
+        verify(tokenProvider, never()).parseAndValidate("good.jwt");
     }
 
     @Test
@@ -108,7 +111,7 @@ class JWTFilterTest {
 
         assertThat(response.getStatus()).isEqualTo(200);
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
-        verify(tokenProvider, never()).validateToken("");
+        verify(tokenProvider, never()).parseAndValidate("");
     }
 
     @Test
@@ -123,7 +126,7 @@ class JWTFilterTest {
 
         assertThat(response.getStatus()).isEqualTo(200);
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
-        verify(tokenProvider, never()).validateToken("");
+        verify(tokenProvider, never()).parseAndValidate("");
     }
 
     @Test
@@ -139,7 +142,7 @@ class JWTFilterTest {
 
         assertThat(response.getStatus()).isEqualTo(200);
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
-        verify(tokenProvider, never()).validateToken(jwt);
+        verify(tokenProvider, never()).parseAndValidate(jwt);
     }
 
     @Test
@@ -155,7 +158,7 @@ class JWTFilterTest {
 
         assertThat(response.getStatus()).isEqualTo(200);
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
-        verify(tokenProvider, never()).validateToken("good.jwt");
+        verify(tokenProvider, never()).parseAndValidate("good.jwt");
     }
 
     private SessionInfo activeSession(String jwt) {
@@ -164,7 +167,8 @@ class JWTFilterTest {
             "session-id",
             "127.0.0.1",
             "test-user",
-            jwt,
+            // SessionInfo holds the SHA-256 hash of the bearer token, never the raw token.
+            SecurityCache.hashToken(jwt),
             "JUnit",
             LocalDateTime.now(),
             null,

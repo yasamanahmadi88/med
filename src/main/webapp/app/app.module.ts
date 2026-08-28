@@ -1,4 +1,4 @@
-import { NgModule, LOCALE_ID } from '@angular/core';
+import { NgModule, LOCALE_ID, provideZoneChangeDetection } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import locale from '@angular/common/locales/en';
@@ -55,6 +55,7 @@ import { ThemeService } from './core/theme/theme.service';
     }),
   ],
   providers: [
+    provideZoneChangeDetection(),
     provideNgxWebstorage(
       withNgxWebstorageConfig({ prefix: 'jhi', separator: '-', caseSensitive: true }),
       withLocalStorage(),

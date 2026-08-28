@@ -94,13 +94,7 @@ public class FlowResource {
             throw new BadRequestAlertException("A new flow cannot already have an ID", ENTITY_NAME, "idexists");
         }
         if (bpmnParserActive) {
-            ResponseEntity<Object> parserResponse = sendToBpmnParser(flowDTO, "create", bpmnParserUrl);
-            if (!parserResponse.getStatusCode().is2xxSuccessful()) {
-                // Parser rejected the diagram: do not persist, hand the parser's verdict back to the caller.
-                log.debug("BPMN parser rejected flow {} for create : {}", flowDTO.getFlowName(), parserResponse.getStatusCode());
-                return parserResponse;
-            }
-            log.debug("BPMN parser accepted flow {} for create : {}", flowDTO.getFlowName(), parserResponse.getBody());
+            return sendToBpmnParser(flowDTO, "create", bpmnParserUrl);
         }
         FlowDTO result = flowService.save(flowDTO);
         loggerService.log( ENTITY_NAME+"_CREATE",new HashMap<>());
@@ -114,29 +108,26 @@ public class FlowResource {
      * Sends the raw BPMN XML of {@code flowDTO} to the external mediation BPMN parser
      * ({@code mediation.bpmn.parser.url}, enabled by {@code mediation.bpmn.parser.active}).
      *
-     * <p><b>The parser is treated as a validation/dispatch step, not as the system of record.</b>
-     * The evidence for that reading, since the parser contract is not documented in this repository:
+     * <p><b>When the parser is active it replaces local persistence entirely</b>: {@code createFlow} and
+     * {@code updateFlow} hand the diagram to the parser and return its response, without calling
+     * {@link com.behsa.medportal.service.FlowService}. This is the behaviour the application shipped
+     * with before the platform upgrade and it is deliberate — the mediation team owns the flow once
+     * the parser is enabled.
+     *
+     * <p>Worth knowing, because it is surprising when reading only this class:
      * <ul>
      *   <li>The request carries only the XML body plus {@code FLOW_NAME}/{@code FLOW_DESC}/{@code PRODUCT_NAME}
-     *       headers. The flow id is never sent, so a {@code "update"} call cannot address a specific
-     *       record on the parser side - it is byte-for-byte shaped like a {@code "create"} call.</li>
-     *   <li>Every read path of this resource ({@code GET /flows}, {@code GET /flows/count},
+     *       headers. The flow id is never sent, so an {@code "update"} call is shaped exactly like a
+     *       {@code "create"} one.</li>
+     *   <li>Every read path here ({@code GET /flows}, {@code GET /flows/count},
      *       {@code GET /flows/&#123;id&#125;}, {@code POST /flows/isFlowNameValid}) queries the local
-     *       database only. If the parser owned persistence, switching the flag on would make every
-     *       list/detail screen go stale.</li>
-     *   <li>{@code PATCH /flows/&#123;id&#125;} and {@code DELETE /flows/&#123;id&#125;} never call the parser at all,
+     *       database, which the parser-active write path does not update. Lists and detail screens
+     *       therefore show whatever was last written locally.</li>
+     *   <li>{@code PATCH /flows/&#123;id&#125;} and {@code DELETE /flows/&#123;id&#125;} never call the parser,
      *       so partial updates and deletes always act on the local row.</li>
-     *   <li>The parser response is an opaque {@code Object} with no id, so it cannot even produce the
-     *       {@code Location} header of a create.</li>
+     *   <li>The response body is the parser's opaque payload rather than a {@link FlowDTO}, so the
+     *       client contract differs between parser-active and parser-inactive mode.</li>
      * </ul>
-     *
-     * <p>Therefore create/update run the parser <em>and then</em> persist locally: validate first so a
-     * rejected flow is never stored, persist second so the internal database never goes stale. The
-     * response body stays the persisted {@link FlowDTO} in both parser-active and parser-inactive mode,
-     * so the client contract does not depend on a server-side flag; the parser payload is logged.
-     *
-     * <p>TO CONFIRM with the mediation team: if the parser is in fact the system of record for flows,
-     * this double-write is wrong and the read paths above need to change too.
      */
     public ResponseEntity<Object> sendToBpmnParser(FlowDTO flowDTO, String bpmnType, String bpmnParserUrl) throws Exception {
         HttpHeaders headers = new HttpHeaders();
@@ -178,13 +169,7 @@ public class FlowResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
         if (bpmnParserActive) {
-            ResponseEntity<Object> parserResponse = sendToBpmnParser(flowDTO, "update", bpmnParserUrl);
-            if (!parserResponse.getStatusCode().is2xxSuccessful()) {
-                // Parser rejected the diagram: leave the stored row untouched and return the parser's verdict.
-                log.debug("BPMN parser rejected flow {} for update : {}", flowDTO.getFlowName(), parserResponse.getStatusCode());
-                return parserResponse;
-            }
-            log.debug("BPMN parser accepted flow {} for update : {}", flowDTO.getFlowName(), parserResponse.getBody());
+            return sendToBpmnParser(flowDTO, "update", bpmnParserUrl);
         }
         FlowDTO result = flowService.update(flowDTO);
         loggerService.log( ENTITY_NAME+"_UPDATE",new HashMap<>());

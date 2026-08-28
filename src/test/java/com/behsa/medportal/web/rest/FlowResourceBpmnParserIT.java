@@ -16,7 +16,6 @@ import com.behsa.medportal.repository.FlowRepository;
 import com.behsa.medportal.service.dto.FlowDTO;
 import com.behsa.medportal.service.mapper.FlowMapper;
 import jakarta.persistence.EntityManager;
-import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,9 +36,10 @@ import org.springframework.web.client.RestTemplate;
  * parser switched on ({@code mediation.bpmn.parser.active=true}; it is {@code false} in every shipped
  * configuration, which is why {@link FlowResourceIT} covers the parser-inactive behaviour).
  *
- * <p>The parser is a validation/dispatch step rather than the system of record (see
- * {@link FlowResource#sendToBpmnParser}), so these tests pin down two things: an accepted flow is still
- * persisted in the local database, and a rejected flow is not persisted at all.
+ * <p>With the parser on, create and update hand the flow over to it and return its response without
+ * touching the local database (see {@link FlowResource#sendToBpmnParser}). That is deliberate — the
+ * mediation team owns the flow once the parser is enabled — and surprising enough that these tests
+ * pin it down, so nobody "fixes" it back into a double-write by accident.
  *
  * <p>The parser call goes through the shared {@link RestTemplate} bean, replaced here by a
  * {@link MockitoBean} so that no HTTP request leaves the test.
@@ -98,7 +98,7 @@ class FlowResourceBpmnParserIT {
 
     @Test
     @Transactional
-    void createFlowWithParserActiveStillPersistsLocally() throws Exception {
+    void createFlowWithParserActiveDelegatesInsteadOfPersisting() throws Exception {
         givenParserAccepts();
 
         int databaseSizeBeforeCreate = flowRepository.findAll().size();
@@ -106,23 +106,20 @@ class FlowResourceBpmnParserIT {
         FlowDTO flowDTO = flowMapper.toDto(flowEntity);
         restFlowMockMvc
             .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(flowDTO)))
-            .andExpect(status().isCreated());
+            // The parser's own response is returned verbatim, so this is its 200 rather than the 201
+            // the parser-inactive path produces.
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("parsed"));
 
-        // The flow went to the parser ...
         verify(restTemplate).postForEntity(contains("/create"), any(HttpEntity.class), eq(Object.class));
 
-        // ... and it is still stored locally.
-        List<FlowEntity> flowList = flowRepository.findAll();
-        assertThat(flowList).hasSize(databaseSizeBeforeCreate + 1);
-        FlowEntity testFlow = flowList.get(flowList.size() - 1);
-        assertThat(testFlow.getFlowName()).isEqualTo(DEFAULT_FLOW_NAME);
-        assertThat(testFlow.getFlowDesc()).isEqualTo(DEFAULT_FLOW_DESC);
-        assertThat(testFlow.getFlow()).isEqualTo(DEFAULT_FLOW);
+        // Nothing is written locally: the parser owns the flow while it is enabled.
+        assertThat(flowRepository.findAll()).hasSize(databaseSizeBeforeCreate);
     }
 
     @Test
     @Transactional
-    void createFlowIsNotPersistedWhenParserRejects() throws Exception {
+    void createFlowReturnsTheParserRejection() throws Exception {
         givenParserRejects();
 
         int databaseSizeBeforeCreate = flowRepository.findAll().size();
@@ -130,16 +127,15 @@ class FlowResourceBpmnParserIT {
         FlowDTO flowDTO = flowMapper.toDto(flowEntity);
         restFlowMockMvc
             .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(flowDTO)))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.error").value("invalid bpmn"));
 
-        // Nothing was stored: the parser verdict wins.
-        List<FlowEntity> flowList = flowRepository.findAll();
-        assertThat(flowList).hasSize(databaseSizeBeforeCreate);
+        assertThat(flowRepository.findAll()).hasSize(databaseSizeBeforeCreate);
     }
 
     @Test
     @Transactional
-    void updateFlowWithParserActiveStillPersistsLocally() throws Exception {
+    void updateFlowWithParserActiveDelegatesAndLeavesTheRowUntouched() throws Exception {
         // Initialize the database
         flowRepository.saveAndFlush(flowEntity);
         givenParserAccepts();
@@ -159,23 +155,23 @@ class FlowResourceBpmnParserIT {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(TestUtil.convertObjectToJsonBytes(flowDTO))
             )
-            .andExpect(status().isOk());
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("parsed"));
 
-        // The flow went to the parser ...
         verify(restTemplate).postForEntity(contains("/update"), any(HttpEntity.class), eq(Object.class));
 
-        // ... and the local row was updated instead of going stale.
-        List<FlowEntity> flowList = flowRepository.findAll();
-        assertThat(flowList).hasSize(databaseSizeBeforeUpdate);
-        FlowEntity testFlow = flowList.get(flowList.size() - 1);
-        assertThat(testFlow.getFlowName()).isEqualTo(UPDATED_FLOW_NAME);
-        assertThat(testFlow.getFlowDesc()).isEqualTo(UPDATED_FLOW_DESC);
-        assertThat(testFlow.getFlow()).isEqualTo(UPDATED_FLOW);
+        // The stored row keeps its original values — the update went to the parser, not to the database,
+        // which is why the list and detail screens can disagree with what was last submitted.
+        assertThat(flowRepository.findAll()).hasSize(databaseSizeBeforeUpdate);
+        FlowEntity testFlow = flowRepository.findById(flowEntity.getId()).orElseThrow();
+        assertThat(testFlow.getFlowName()).isEqualTo(DEFAULT_FLOW_NAME);
+        assertThat(testFlow.getFlowDesc()).isEqualTo(DEFAULT_FLOW_DESC);
+        assertThat(testFlow.getFlow()).isEqualTo(DEFAULT_FLOW);
     }
 
     @Test
     @Transactional
-    void updateFlowIsNotPersistedWhenParserRejects() throws Exception {
+    void updateFlowReturnsTheParserRejection() throws Exception {
         // Initialize the database
         flowRepository.saveAndFlush(flowEntity);
         givenParserRejects();
@@ -193,11 +189,10 @@ class FlowResourceBpmnParserIT {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(TestUtil.convertObjectToJsonBytes(flowDTO))
             )
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.error").value("invalid bpmn"));
 
-        // The stored row is untouched.
-        List<FlowEntity> flowList = flowRepository.findAll();
-        assertThat(flowList).hasSize(databaseSizeBeforeUpdate);
+        assertThat(flowRepository.findAll()).hasSize(databaseSizeBeforeUpdate);
         FlowEntity testFlow = flowRepository.findById(flowEntity.getId()).orElseThrow();
         assertThat(testFlow.getFlowName()).isEqualTo(DEFAULT_FLOW_NAME);
         assertThat(testFlow.getFlowDesc()).isEqualTo(DEFAULT_FLOW_DESC);

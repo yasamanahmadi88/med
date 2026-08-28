@@ -4,9 +4,8 @@ import en_US from './en_US';
 /**
  * Message bundles for the BPMN editor.
  *
- * The original Vue editor built a vue-i18n instance here. Nothing outside this module used
- * that instance — only `defaultLang` is imported elsewhere — so the bundles are exported
- * directly and the vue-i18n dependency is gone.
+ * Exported as plain objects rather than through an i18n runtime: only `defaultLang` is imported
+ * elsewhere, so nothing here needs one.
  */
 export const defaultLang = 'en_US';
 

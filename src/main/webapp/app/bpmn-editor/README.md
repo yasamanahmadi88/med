@@ -1,6 +1,6 @@
 # BPMN Editor Module
 
-This module provides a BPMN (Business Process Model and Notation) diagram editor integrated into the Angular application. It's a migration of the Vue.js SeenTa-BPMN-customize-property project to Angular.
+This module provides a BPMN (Business Process Model and Notation) diagram editor integrated into the Angular application.
 
 ## Features
 
@@ -136,14 +136,11 @@ Add new translations by:
 1. Creating a new language file in `i18n/`
 2. Adding language support in settings
 
-## Migration Notes
+## Structure
 
-This module is a migration from the Vue.js project "SeenTa-BPMN-customize-property" to Angular. Key changes:
-
-- Vue components → Angular standalone components
-- Pinia stores → Angular services with RxJS observables
-- Vue 3 composition API → Angular lifecycle hooks and component architecture
-- SCSS/CSS styles → Scoped Angular component styles
+- Standalone Angular components for the canvas, palette, toolbar, properties panel and settings
+- Angular services with RxJS observables for editor state
+- Scoped component styles
 
 ## Dependencies
 

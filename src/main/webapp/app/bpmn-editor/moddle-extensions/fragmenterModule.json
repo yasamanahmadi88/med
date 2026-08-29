@@ -1,0 +1,15 @@
+{
+  "name": "Fragmenter",
+  "prefix": "Fragmenter",
+  "uri": "Fragmenter",
+  "xml": {
+    "tagAlias": "lowerCase"
+  },
+  "associations": [],
+  "types": [
+    {
+      "name": "Fragmenter",
+      "superClass": ["bpmn:Task"]
+    }
+  ]
+}

@@ -11,7 +11,6 @@ import { ASC, DESC, SORT, ITEM_DELETED_EVENT, DEFAULT_SORT_DATA } from 'app/conf
 import { EntityArrayResponseType, MedAuthorityService } from '../service/med-authority.service';
 import { MedAuthorityDeleteDialogComponent } from '../delete/med-authority-delete-dialog.component';
 import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/filter.model';
-import {finalize} from "rxjs/operators";
 
 @Component({
   selector: 'jhi-med-authority',
@@ -123,7 +122,7 @@ export class MedAuthorityComponent implements OnInit {
     filterOptions?.forEach(filterOption => {
       queryObject[filterOption.name] = filterOption.values;
     });
-    return this.medAuthorityService.query(queryObject).pipe(finalize(() => (this.isLoading = false)));
+    return this.medAuthorityService.query(queryObject).pipe(tap(() => (this.isLoading = false)));
   }
 
   protected handleNavigation(page = this.page, predicate?: string, ascending?: boolean, filterOptions?: IFilterOption[]): void {

@@ -1,0 +1,15 @@
+{
+  "name": "DbTransmitter",
+  "prefix": "DbTransmitter",
+  "uri": "DbTransmitter",
+  "xml": {
+    "tagAlias": "lowerCase"
+  },
+  "associations": [],
+  "types": [
+    {
+      "name": "DbTransmitter",
+      "superClass": ["bpmn:Task"]
+    }
+  ]
+}

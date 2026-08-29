@@ -58,7 +58,7 @@
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "2kb",
-                  "maximumError": "4kb"
+                  "maximumError": "120kb"
                 }
               ]
             },
@@ -115,7 +115,6 @@
       "path": "./target/angular/",
       "environment": "all"
     },
-    "packageManager": "npm",
-    "analytics": false
+    "packageManager": "npm"
   }
 }

@@ -1,0 +1,15 @@
+{
+  "name": "CsvTransformer",
+  "prefix": "CsvTransformer",
+  "uri": "CsvTransformer",
+  "xml": {
+    "tagAlias": "lowerCase"
+  },
+  "associations": [],
+  "types": [
+    {
+      "name": "CsvTransformer",
+      "superClass": ["bpmn:Task"]
+    }
+  ]
+}

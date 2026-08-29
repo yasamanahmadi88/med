@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpHeaders } from '@angular/common/http';
 import { ActivatedRoute, Data, ParamMap, Router } from '@angular/router';
-import { combineLatest, filter, finalize, Observable, switchMap, tap } from 'rxjs';
+import { combineLatest, filter, Observable, switchMap, tap } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { IResourceAuthority } from '../resource-authority.model';
@@ -122,7 +122,7 @@ export class ResourceAuthorityComponent implements OnInit {
     filterOptions?.forEach(filterOption => {
       queryObject[filterOption.name] = filterOption.values;
     });
-    return this.resourceAuthorityService.query(queryObject).pipe(finalize(() => (this.isLoading = false)));
+    return this.resourceAuthorityService.query(queryObject).pipe(tap(() => (this.isLoading = false)));
   }
 
   protected handleNavigation(page = this.page, predicate?: string, ascending?: boolean, filterOptions?: IFilterOption[]): void {

@@ -9,7 +9,11 @@ public class SessionInfo {
     private String sessionId;
     private String ip;
     private String username;
-    private String jwtToken;
+    /**
+     * SHA-256 hash (hex) of the bearer token this session was created for, never the raw token.
+     * Keeping the raw token here would leak live credentials into any heap dump.
+     */
+    private String tokenHash;
     private String userAgent;
     private LocalDateTime loginDate;
     private LocalDateTime logoutDate;
@@ -25,7 +29,7 @@ public class SessionInfo {
             String sessionId,
             String ip,
             String username,
-            String jwtToken,
+            String tokenHash,
             String userAgent,
             LocalDateTime loginDate,
             LocalDateTime logoutDate,
@@ -34,7 +38,7 @@ public class SessionInfo {
             Bucket bucketGet,
             Bucket bucketPost
     ) {
-        this(principal, sessionId, ip, username, jwtToken, userAgent, loginDate, logoutDate, validToken, lastActionDate, bucketGet, bucketPost, 30);
+        this(principal, sessionId, ip, username, tokenHash, userAgent, loginDate, logoutDate, validToken, lastActionDate, bucketGet, bucketPost, 30);
     }
 
     public SessionInfo(
@@ -42,7 +46,7 @@ public class SessionInfo {
             String sessionId,
             String ip,
             String username,
-            String jwtToken,
+            String tokenHash,
             String userAgent,
             LocalDateTime loginDate,
             LocalDateTime logoutDate,
@@ -56,7 +60,7 @@ public class SessionInfo {
         this.sessionId = sessionId;
         this.ip = ip;
         this.username = username;
-        this.jwtToken = jwtToken;
+        this.tokenHash = tokenHash;
         this.userAgent = userAgent;
         this.loginDate = loginDate;
         this.logoutDate = logoutDate;
@@ -85,13 +89,25 @@ public class SessionInfo {
         return this;
     }
 
-    public String getJwtToken() {
-        return jwtToken;
+    /**
+     * @return the SHA-256 hash (hex) of this session's bearer token. Safe to log or display; it can
+     *         be matched against {@code SecurityCache.hashToken(token)} but cannot be replayed.
+     */
+    public String getTokenHash() {
+        return tokenHash;
     }
 
-    public SessionInfo setJwtToken(String jwtToken) {
-        this.jwtToken = jwtToken;
+    public SessionInfo setTokenHash(String tokenHash) {
+        this.tokenHash = tokenHash;
         return this;
+    }
+
+    /**
+     * @return a short, non-reversible identifier for this session's token, suitable for a
+     *         session-management screen.
+     */
+    public String getTokenHashPrefix() {
+        return tokenHash == null ? null : tokenHash.substring(0, Math.min(12, tokenHash.length()));
     }
 
     public LocalDateTime getLoginDate() {

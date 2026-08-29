@@ -13,7 +13,6 @@ import { ModuleDeleteDialogComponent } from '../delete/module-delete-dialog.comp
 import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/filter.model';
 import { SimpleTextDialogService } from '../../../layouts/simple-text-dialog/simple-text-dialog.service';
 import { faCog, faTrash, faEye, faPencil } from '@fortawesome/free-solid-svg-icons';
-import {finalize} from "rxjs/operators";
 
 @Component({
   selector: 'jhi-module',
@@ -131,7 +130,7 @@ export class ModuleComponent implements OnInit {
     filterOptions?.forEach(filterOption => {
       queryObject[filterOption.name] = filterOption.values;
     });
-    return this.moduleService.query(queryObject).pipe(finalize(() => (this.isLoading = false)));
+    return this.moduleService.query(queryObject).pipe(tap(() => (this.isLoading = false)));
   }
 
   protected handleNavigation(page = this.page, predicate?: string, ascending?: boolean, filterOptions?: IFilterOption[]): void {

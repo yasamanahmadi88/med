@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { finalize, map } from 'rxjs/operators';
 import { LocalStorageService, SessionStorageService } from 'ngx-webstorage';
 
 import { ApplicationConfigService } from '../config/application-config.service';
@@ -34,12 +34,15 @@ export class AuthServerProvider {
   }
 
   logout(): Observable<void> {
-    return new Observable(observer => {
-      this.http.post(this.applicationConfigService.getEndpointFor('api/auth/logout'), {}).subscribe();
-      this.localStorageService.clear('authenticationToken');
-      this.sessionStorageService.clear('authenticationToken');
-      observer.complete();
-    });
+    return this.http.post(this.applicationConfigService.getEndpointFor('api/auth/logout'), {}).pipe(
+      map(() => undefined),
+      // `finalize` runs on success, error and unsubscription, so the client-side session is always
+      // dropped - the user must never stay logged in locally because the server-side revoke failed.
+      finalize(() => {
+        this.localStorageService.clear('authenticationToken');
+        this.sessionStorageService.clear('authenticationToken');
+      }),
+    );
   }
 
   private authenticateSuccess(response: JwtToken, rememberMe: boolean): void {

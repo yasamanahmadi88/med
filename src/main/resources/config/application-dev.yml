@@ -130,7 +130,7 @@ bucket4j:
     bucket-size: 5
     token-per-minute: 5
   get:
-    bucket-size: 1000
+    bucket-size: 10
     token-per-minute: 10
   post:
     bucket-size: 5
@@ -138,4 +138,8 @@ bucket4j:
 
 user-session:
   expire:
+    # Server-side inactivity window (minutes) for a normal session.
     per-minute: 30
+    # Server-side inactivity window (minutes) for a remember-me session.
+    # Keep this aligned with the remember-me JWT validity (30 days).
+    remember-me-per-minute: 43200

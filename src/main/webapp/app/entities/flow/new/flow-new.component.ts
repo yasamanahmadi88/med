@@ -78,7 +78,7 @@ export class FlowNewComponent implements OnInit, OnDestroy {
 
   openBPMNPage() {
     this.isGoingToBPMNPage = true;
-    this.router.navigate(['/bpmn'], { relativeTo: this.activatedRoute });
+    this.router.navigate(['/bpmn-editor'], { relativeTo: this.activatedRoute });
   }
 
   protected subscribeToSaveResponse(result: Observable<HttpResponse<IFlow>>): void {

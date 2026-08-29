@@ -1,0 +1,15 @@
+{
+  "name": "Transformer",
+  "prefix": "Transformer",
+  "uri": "Transformer",
+  "xml": {
+    "tagAlias": "lowerCase"
+  },
+  "associations": [],
+  "types": [
+    {
+      "name": "Transformer",
+      "superClass": ["bpmn:Task"]
+    }
+  ]
+}

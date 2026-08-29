@@ -87,6 +87,35 @@ describe('Auth JWT', () => {
       expect(localStorageService.clear).toHaveBeenCalledWith('authenticationToken');
       expect(sessionStorageService.clear).toHaveBeenCalledWith('authenticationToken');
     });
+
+    it('should complete only after the server-side revoke has answered', () => {
+      localStorageService.clear = vi.fn();
+      sessionStorageService.clear = vi.fn();
+      let completed = false;
+
+      service.logout().subscribe({ complete: () => (completed = true) });
+
+      // The request is still in flight: the observable must not have completed yet.
+      expect(completed).toBe(false);
+      expect(localStorageService.clear).not.toHaveBeenCalled();
+
+      httpMock.expectOne('api/auth/logout').flush({});
+
+      expect(completed).toBe(true);
+    });
+
+    it('should clear storage even when the server-side revoke fails', () => {
+      localStorageService.clear = vi.fn();
+      sessionStorageService.clear = vi.fn();
+      let errored = false;
+
+      service.logout().subscribe({ error: () => (errored = true) });
+      httpMock.expectOne('api/auth/logout').flush('nope', { status: 500, statusText: 'Internal Server Error' });
+
+      expect(errored).toBe(true);
+      expect(localStorageService.clear).toHaveBeenCalledWith('authenticationToken');
+      expect(sessionStorageService.clear).toHaveBeenCalledWith('authenticationToken');
+    });
   });
 
   afterEach(() => {

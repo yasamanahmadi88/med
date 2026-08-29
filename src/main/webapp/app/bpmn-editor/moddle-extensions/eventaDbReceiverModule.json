@@ -1,0 +1,15 @@
+{
+  "name": "EventaDbReceiver",
+  "prefix": "EventaDbReceiver",
+  "uri": "EventaDbReceiver",
+  "xml": {
+    "tagAlias": "lowerCase"
+  },
+  "associations": [],
+  "types": [
+    {
+      "name": "EventaDbReceiver",
+      "superClass": ["bpmn:Task"]
+    }
+  ]
+}

@@ -4,7 +4,13 @@ Enterprise mediation portal — **Angular 21** + **Java 25** / **Spring Boot 4.0
 
 ## Canonical branch
 
-Implementation work lives on **`cursor/medportal-complete-b7d5`** (security + login hardened). See `docs/upgrade/complete-branch-security-login.md`.
+**`main`** is the single source of truth. It carries the Angular 21 / Java 25 / Spring Boot 4 stack,
+the ported BPMN editor, and the security + login hardening.
+
+There is no separate implementation branch any more: the former `cursor/medportal-complete-b7d5`
+branch has been merged into `main` and deleted. Its security and login work is described in
+[`docs/upgrade/complete-branch-security-login.md`](docs/upgrade/complete-branch-security-login.md),
+kept as a record of what landed.
 
 ## Build & run (local)
 
@@ -29,4 +35,14 @@ export SECURITY_AUTHENTICATION_JWT_BASE64_SECRET="$(openssl rand -base64 64)"
 
 ## Upgrade docs
 
-`docs/upgrade/` — migration plan, Liquibase/Oracle RCA, empty-forms/RBAC, human review checklist.
+`docs/upgrade/` — [`complete-branch-security-login.md`](docs/upgrade/complete-branch-security-login.md)
+records the security and login hardening that landed with the platform upgrade.
+`CHANGELOG-UPGRADE.md` lists the upgrade itself release by release.
+
+## Security docs
+
+`docs/security/` — [`deferred-remediations.md`](docs/security/deferred-remediations.md)
+covers the four findings from the security review that are deliberately not fixed in code
+because they need an infrastructure or product decision first: per-JVM session state,
+per-request authority lookups, the ineffective XSS input filter, and `unsafe-inline` in the
+production CSP.

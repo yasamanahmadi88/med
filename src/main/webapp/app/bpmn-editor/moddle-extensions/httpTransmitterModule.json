@@ -1,0 +1,15 @@
+{
+  "name": "HttpTransmitter",
+  "prefix": "HttpTransmitter",
+  "uri": "HttpTransmitter",
+  "xml": {
+    "tagAlias": "lowerCase"
+  },
+  "associations": [],
+  "types": [
+    {
+      "name": "HttpTransmitter",
+      "superClass": ["bpmn:Task"]
+    }
+  ]
+}

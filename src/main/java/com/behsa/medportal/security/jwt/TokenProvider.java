@@ -144,9 +144,26 @@ public class TokenProvider {
 //        return new UsernamePasswordAuthenticationToken(principal, token, authorities);
 //    }
 
+    /**
+     * Builds the {@link Authentication} for a bearer token, parsing (and therefore signature-verifying)
+     * it first. Prefer {@link #getAuthentication(String, Claims)} when the caller has already obtained
+     * verified claims from {@link #parseAndValidate(String)} — that avoids a second signature check.
+     */
     public Authentication getAuthentication(String token) {
         Claims claims = jwtParser.parseSignedClaims(token).getPayload();
 
+        return getAuthentication(token, claims);
+    }
+
+    /**
+     * Builds the {@link Authentication} from claims that have ALREADY been signature-verified by
+     * {@link #parseAndValidate(String)} or {@link #getAuthentication(String)}. Never pass unverified
+     * claims here.
+     *
+     * @param token  the raw token, kept as the authentication credentials (as before).
+     * @param claims the verified claims for {@code token}.
+     */
+    public Authentication getAuthentication(String token, Claims claims) {
         String login = claims.getSubject();
 
         com.behsa.medportal.domain.User user = userRepository
@@ -179,18 +196,28 @@ public class TokenProvider {
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
 
-    public boolean validateToken(String authToken) {
+    /**
+     * Parses and fully verifies a bearer token exactly once and returns its claims.
+     * <p>
+     * The parse is signature-verifying ({@code parseSignedClaims} bound to the HMAC key, with the
+     * issuer and audience required), and the required-claims check still runs. Every failure mode is
+     * routed into {@code securityMetersService} exactly as before.
+     *
+     * @return the verified claims, or {@code null} if the token is absent, malformed, expired,
+     *         unsupported, badly signed, or missing a required claim.
+     */
+    public Claims parseAndValidate(String authToken) {
         if (authToken == null || authToken.isBlank()) {
-            return false;
+            return null;
         }
         try {
             Claims claims = jwtParser.parseSignedClaims(authToken).getPayload();
             if (!hasRequiredClaims(claims)) {
                 log.trace("Invalid JWT token because required claims are missing.");
-                return false;
+                return null;
             }
 
-            return true;
+            return claims;
         } catch (ExpiredJwtException e) {
             this.securityMetersService.trackTokenExpired();
 
@@ -213,7 +240,16 @@ public class TokenProvider {
             log.error("Token validation error {}", e.getMessage());
         }
 
-        return false;
+        return null;
+    }
+
+    /**
+     * @return {@code true} when the token parses, verifies and carries the required claims.
+     *         Kept for callers that only need a yes/no answer; request-path callers should use
+     *         {@link #parseAndValidate(String)} so the token is parsed only once.
+     */
+    public boolean validateToken(String authToken) {
+        return parseAndValidate(authToken) != null;
     }
 
     private boolean hasRequiredClaims(Claims claims) {

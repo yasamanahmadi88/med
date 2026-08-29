@@ -1,6 +1,7 @@
 package com.behsa.medportal.security.jwt;
 
 import com.behsa.medportal.security.SecurityCache;
+import io.jsonwebtoken.Claims;
 import java.io.IOException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -48,7 +49,11 @@ public class JWTFilter extends GenericFilterBean {
                 return;
             }
 
-            if (!tokenProvider.validateToken(jwt)) {
+            // Parse and verify once; the verified claims are reused below so the signature is not
+            // checked a second time on every authenticated request.
+            Claims claims = tokenProvider.parseAndValidate(jwt);
+
+            if (claims == null) {
                 SecurityContextHolder.clearContext();
                 removeInvalidSession(jwt);
                 filterChain.doFilter(servletRequest, servletResponse);
@@ -70,7 +75,7 @@ public class JWTFilter extends GenericFilterBean {
                 return;
             }
 
-            Authentication authentication = tokenProvider.getAuthentication(jwt);
+            Authentication authentication = tokenProvider.getAuthentication(jwt, claims);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (RuntimeException ex) {
             SecurityContextHolder.clearContext();

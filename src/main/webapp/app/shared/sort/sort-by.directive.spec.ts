@@ -1,4 +1,4 @@
-import { EventEmitter } from '@angular/core';
+import { EventEmitter, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faSort, faSortDown, faSortUp } from '@fortawesome/free-solid-svg-icons';
 
@@ -8,7 +8,9 @@ import { SortDirective } from './sort.directive';
 describe('Directive: SortByDirective', () => {
   let sortDirective: SortDirective<string>;
   let sortByDirective: SortByDirective<string>;
-  let icon: { icon: unknown };
+  // FaIconComponent.icon is a ModelSignal in v4. Stubbing it as a plain property is what let
+  // the directive's old assignment pass these specs while throwing in a real browser.
+  let icon: { icon: ReturnType<typeof signal<unknown>> };
   let sortChanges: { predicate: string; ascending: boolean }[];
 
   beforeEach(() => {
@@ -21,7 +23,7 @@ describe('Directive: SortByDirective', () => {
 
     sortByDirective = new SortByDirective<string>(sortDirective);
     sortByDirective.jhiSortBy = 'name';
-    icon = { icon: 'sort' };
+    icon = { icon: signal<unknown>('sort') };
     sortByDirective.iconComponent = icon as unknown as FaIconComponent;
   });
 
@@ -35,7 +37,7 @@ describe('Directive: SortByDirective', () => {
 
     expect(sortByDirective.jhiSortBy).toEqual('name');
     expect(sortDirective.predicate).toEqual('id');
-    expect(icon.icon).toEqual(faSort);
+    expect(icon.icon()).toEqual(faSort);
     expect(sortChanges).toHaveLength(0);
   });
 
@@ -47,7 +49,7 @@ describe('Directive: SortByDirective', () => {
     expect(sortByDirective.jhiSortBy).toEqual('name');
     expect(sortDirective.predicate).toEqual('name');
     expect(sortDirective.ascending).toEqual(true);
-    expect(icon.icon).toEqual(faSortUp);
+    expect(icon.icon()).toEqual(faSortUp);
     expect(sortChanges).toHaveLength(0);
   });
 
@@ -60,7 +62,7 @@ describe('Directive: SortByDirective', () => {
 
     expect(sortDirective.predicate).toEqual('name');
     expect(sortDirective.ascending).toEqual(false);
-    expect(icon.icon).toEqual(faSortDown);
+    expect(icon.icon()).toEqual(faSortDown);
     expect(sortChanges).toHaveLength(1);
     expect(sortChanges[0]).toEqual({ predicate: 'name', ascending: false });
   });
@@ -75,7 +77,7 @@ describe('Directive: SortByDirective', () => {
 
     expect(sortDirective.predicate).toEqual('name');
     expect(sortDirective.ascending).toEqual(true);
-    expect(icon.icon).toEqual(faSortUp);
+    expect(icon.icon()).toEqual(faSortUp);
     expect(sortChanges).toHaveLength(2);
     expect(sortChanges[0]).toEqual({ predicate: 'name', ascending: false });
     expect(sortChanges[1]).toEqual({ predicate: 'name', ascending: true });

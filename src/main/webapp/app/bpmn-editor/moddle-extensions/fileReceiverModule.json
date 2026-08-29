@@ -1,0 +1,15 @@
+{
+  "name": "FileReceiver",
+  "prefix": "FileReceiver",
+  "uri": "FileReceiver",
+  "xml": {
+    "tagAlias": "lowerCase"
+  },
+  "associations": [],
+  "types": [
+    {
+      "name": "FileReceiver",
+      "superClass": ["bpmn:Task"]
+    }
+  ]
+}

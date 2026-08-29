@@ -88,8 +88,10 @@ public class AuthResource {
 
             boolean rememberMe = Boolean.TRUE.equals(loginVM.getRememberMe());
             String jwt = tokenProvider.createToken(authentication, rememberMe);
+            // Both windows come from user-session.expire.* so the server-side session and the JWT
+            // lifetime stay in step; see SecurityCache for the remember-me alignment note.
             long inactivityMinutes = rememberMe
-                ? SecurityCache.REMEMBER_ME_INACTIVITY_MINUTES
+                ? securityCache.getRememberMeInactivityMinutes()
                 : securityCache.getDefaultInactivityMinutes();
 
             securityCache.storeSession(

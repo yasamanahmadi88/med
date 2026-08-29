@@ -1,0 +1,15 @@
+{
+  "name": "KafkaReceiver",
+  "prefix": "KafkaReceiver",
+  "uri": "KafkaReceiver",
+  "xml": {
+    "tagAlias": "lowerCase"
+  },
+  "associations": [],
+  "types": [
+    {
+      "name": "KafkaReceiver",
+      "superClass": ["bpmn:Task"]
+    }
+  ]
+}

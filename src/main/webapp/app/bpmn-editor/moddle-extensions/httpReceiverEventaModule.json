@@ -1,0 +1,15 @@
+{
+  "name": "HttpReceiverEventa",
+  "prefix": "HttpReceiverEventa",
+  "uri": "HttpReceiverEventa",
+  "xml": {
+    "tagAlias": "lowerCase"
+  },
+  "associations": [],
+  "types": [
+    {
+      "name": "HttpReceiverEventa",
+      "superClass": ["bpmn:Task"]
+    }
+  ]
+}

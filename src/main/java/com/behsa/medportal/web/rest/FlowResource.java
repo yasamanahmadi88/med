@@ -24,6 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -78,6 +79,9 @@ public class FlowResource {
     /**
      * {@code POST  /flows} : Create a new flow.
      *
+     * <p>When the BPMN parser is active the diagram is validated by the parser first and only
+     * persisted locally if the parser accepted it. See {@link #sendToBpmnParser}.
+     *
      * @param flowDTO the flowDTO to create.
      * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new flowDTO, or with status {@code 400 (Bad Request)} if the flow has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
@@ -100,6 +104,31 @@ public class FlowResource {
             .body(result);
     }
 
+    /**
+     * Sends the raw BPMN XML of {@code flowDTO} to the external mediation BPMN parser
+     * ({@code mediation.bpmn.parser.url}, enabled by {@code mediation.bpmn.parser.active}).
+     *
+     * <p><b>When the parser is active it replaces local persistence entirely</b>: {@code createFlow} and
+     * {@code updateFlow} hand the diagram to the parser and return its response, without calling
+     * {@link com.behsa.medportal.service.FlowService}. This is the behaviour the application shipped
+     * with before the platform upgrade and it is deliberate — the mediation team owns the flow once
+     * the parser is enabled.
+     *
+     * <p>Worth knowing, because it is surprising when reading only this class:
+     * <ul>
+     *   <li>The request carries only the XML body plus {@code FLOW_NAME}/{@code FLOW_DESC}/{@code PRODUCT_NAME}
+     *       headers. The flow id is never sent, so an {@code "update"} call is shaped exactly like a
+     *       {@code "create"} one.</li>
+     *   <li>Every read path here ({@code GET /flows}, {@code GET /flows/count},
+     *       {@code GET /flows/&#123;id&#125;}, {@code POST /flows/isFlowNameValid}) queries the local
+     *       database, which the parser-active write path does not update. Lists and detail screens
+     *       therefore show whatever was last written locally.</li>
+     *   <li>{@code PATCH /flows/&#123;id&#125;} and {@code DELETE /flows/&#123;id&#125;} never call the parser,
+     *       so partial updates and deletes always act on the local row.</li>
+     *   <li>The response body is the parser's opaque payload rather than a {@link FlowDTO}, so the
+     *       client contract differs between parser-active and parser-inactive mode.</li>
+     * </ul>
+     */
     public ResponseEntity<Object> sendToBpmnParser(FlowDTO flowDTO, String bpmnType, String bpmnParserUrl) throws Exception {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("application/xml"));
@@ -111,6 +140,9 @@ public class FlowResource {
     }
     /**
      * {@code PUT  /flows/:id} : Updates an existing flow.
+     *
+     * <p>When the BPMN parser is active the diagram is validated by the parser first and only
+     * persisted locally if the parser accepted it. See {@link #sendToBpmnParser}.
      *
      * @param id the id of the flowDTO to save.
      * @param flowDTO the flowDTO to update.
@@ -136,15 +168,15 @@ public class FlowResource {
         if (!flowRepository.existsById(id)) {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
-        if (!bpmnParserActive) {
+        if (bpmnParserActive) {
+            return sendToBpmnParser(flowDTO, "update", bpmnParserUrl);
+        }
         FlowDTO result = flowService.update(flowDTO);
         loggerService.log( ENTITY_NAME+"_UPDATE",new HashMap<>());
         return ResponseEntity
             .ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, flowDTO.getId().toString()))
             .body(result);
-        }
-        return sendToBpmnParser(flowDTO, "update", bpmnParserUrl);
     }
 
 
@@ -249,18 +281,32 @@ public class FlowResource {
             .build();
     }
 
+    /**
+     * {@code POST  /flows/save} : hand a BPMN diagram to the mediation platform for deployment.
+     *
+     * <p><b>Not implemented.</b> The mediation team has not provided the deployment API yet, so this
+     * endpoint has nothing to call: it never sent the diagram anywhere and it cannot know a mediation
+     * status. It previously answered {@code 200 OK} with {@code mediationStatus: "success"}, which told
+     * every caller that a save had happened when nothing at all had. It now answers
+     * {@code 501 Not Implemented} so no caller can mistake the missing integration for success.
+     *
+     * <p>The route and its {@code @Secured} check are kept so the contract and its authorization stay in
+     * place. Once the mediation API exists, this method should POST the supplied BPMN XML to it and
+     * return the real mediation outcome (success/failure plus any diagnostics) instead of this stub.
+     *
+     * @param flow the raw BPMN XML that would be sent to mediation.
+     * @return {@code 501 (Not Implemented)} with a body stating that mediation is not wired up.
+     */
     @PostMapping("/flows/save")
     @Secured(ENTITY_NAME)
-    public ResponseEntity<Map> saveFlow(@RequestBody String flow) throws URISyntaxException {
-
-        //TODO send e.data to api provided by mediation team
+    public ResponseEntity<Map<String, String>> saveFlow(@RequestBody String flow) {
+        log.warn("REST request to save Flow to mediation, but no mediation API is configured; answering 501");
 
         Map<String, String> map = new HashMap<>();
-        map.put("mediationStatus", "success"); //TODO response received from mediation
+        map.put("mediationStatus", "not_implemented");
+        map.put("message", "The mediation API is not available yet; this flow was not sent to mediation.");
 
-        return ResponseEntity
-            .ok()
-            .body(map);
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(map);
     }
 
     @PostMapping("/flows/isFlowNameValid")

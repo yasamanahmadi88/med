@@ -1,0 +1,15 @@
+{
+  "name": "HttpReceiver",
+  "prefix": "HttpReceiver",
+  "uri": "HttpReceiver",
+  "xml": {
+    "tagAlias": "lowerCase"
+  },
+  "associations": [],
+  "types": [
+    {
+      "name": "HttpReceiver",
+      "superClass": ["bpmn:Task"]
+    }
+  ]
+}

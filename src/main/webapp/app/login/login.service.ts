@@ -19,6 +19,11 @@ export class LoginService {
   }
 
   logout(): void {
-    this.authServerProvider.logout().subscribe({ complete: () => this.accountService.authenticate(null) });
+    // The server-side revoke is now awaited by AuthServerProvider (it clears the stored token in a
+    // `finalize`), so it can settle after this call returns. Drop the client-side identity straight
+    // away so the UI is logged out immediately and cannot bounce an in-flight session back to home,
+    // and swallow a failing revoke: the local session is already gone either way.
+    this.authServerProvider.logout().subscribe({ error: () => undefined });
+    this.accountService.authenticate(null);
   }
 }

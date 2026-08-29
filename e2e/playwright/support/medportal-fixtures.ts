@@ -23,12 +23,19 @@ type MockOptions = {
   account?: Role;
   authenticateAs?: Role;
   failLogin?: boolean;
+  /**
+   * Rows to return for a collection endpoint, keyed by its path (e.g. `/api/products`).
+   * Collections default to empty, which is why no list in this suite rendered a row for a long
+   * time — and why a crash in the sort-header icon went unseen until one did.
+   */
+  collections?: Record<string, unknown[]>;
 };
 
 type MockState = {
   account: Account | null;
   authenticateAs: Account;
   failLogin: boolean;
+  collections: Record<string, unknown[]>;
 };
 
 const jsonHeaders = { 'content-type': 'application/json' };
@@ -142,6 +149,7 @@ async function installMedPortalApiMocks(page: Page, options: MockOptions): Promi
     account: accountFor(options.account ?? 'anonymous'),
     authenticateAs: accountFor(options.authenticateAs ?? 'admin') ?? adminAccount(),
     failLogin: options.failLogin ?? false,
+    collections: options.collections ?? {},
   };
 
   await page.route('**/management/**', route => handleManagementRoute(route));
@@ -215,7 +223,8 @@ async function handleApiRoute(route: Route, state: MockState): Promise<void> {
   }
 
   if (isCollectionEndpoint(path)) {
-    await fulfillJson(route, [], paginationHeaders());
+    const rows = state.collections[path] ?? [];
+    await fulfillJson(route, rows, paginationHeaders(rows.length));
     return;
   }
 
@@ -329,10 +338,10 @@ function isCollectionEndpoint(path: string): boolean {
   ].some(endpoint => path === endpoint || path.startsWith(`${endpoint}/`));
 }
 
-function paginationHeaders(): Record<string, string> {
+function paginationHeaders(total = 0): Record<string, string> {
   return {
     ...jsonHeaders,
-    'x-total-count': '0',
+    'x-total-count': String(total),
     link: '',
   };
 }
@@ -354,7 +363,11 @@ function isAllowedRequestFailure(request: Request): boolean {
   return (
     request.resourceType() === 'websocket' ||
     request.url().includes('/sockjs-node/') ||
-    (failureText.includes('ERR_ABORTED') && /\/(api|management)\//.test(request.url()))
+    // A backend call cancelled because the test navigated away is not a failure. `/v3/api-docs`
+    // is the swagger fetch behind /admin/docs; it has no trailing path segment, so it never
+    // matched the api|management pattern and surfaced as a flake whenever the abort happened to
+    // land after the route changed.
+    (failureText.includes('ERR_ABORTED') && (/\/(api|management)\//.test(request.url()) || request.url().includes('/v3/api-docs')))
   );
 }
 

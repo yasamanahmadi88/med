@@ -49,7 +49,10 @@ export class SortByDirective<T> implements AfterContentInit, OnDestroy {
       if (this.sort.predicate === this.jhiSortBy) {
         icon = this.sort.ascending ? this.sortAscIcon : this.sortDescIcon;
       }
-      (this.iconComponent as unknown as { icon: IconDefinition }).icon = icon;
+      // `icon` is a ModelSignal in @fortawesome/angular-fontawesome 4; assigning to it replaces
+      // the signal function itself, and the component's next render throws
+      // "this.icon is not a function" — which took down every table that had rows to sort.
+      this.iconComponent.icon.set(icon);
     }
   }
 }

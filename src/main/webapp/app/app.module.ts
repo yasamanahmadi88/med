@@ -1,4 +1,4 @@
-import { NgModule, LOCALE_ID } from '@angular/core';
+import { NgModule, LOCALE_ID, provideZoneChangeDetection } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import locale from '@angular/common/locales/en';
@@ -28,7 +28,6 @@ import { ActiveMenuDirective } from './layouts/navbar/active-menu.directive';
 import { ErrorComponent } from './layouts/error/error.component';
 import { ToastrModule } from 'ngx-toastr';
 import { SimpleTextDialogComponent } from './layouts/simple-text-dialog/simple-text-dialog.component';
-import { BpmnComponent } from './entities/bpmn/bpmn.component';
 import { ThemeToggleComponent } from './core/theme/theme-toggle.component';
 import { ThemeService } from './core/theme/theme.service';
 
@@ -55,6 +54,7 @@ import { ThemeService } from './core/theme/theme.service';
     }),
   ],
   providers: [
+    provideZoneChangeDetection(),
     provideNgxWebstorage(
       withNgxWebstorageConfig({ prefix: 'jhi', separator: '-', caseSensitive: true }),
       withLocalStorage(),
@@ -74,7 +74,6 @@ import { ThemeService } from './core/theme/theme.service';
     ActiveMenuDirective,
     FooterComponent,
     SimpleTextDialogComponent,
-    BpmnComponent,
     ThemeToggleComponent,
   ],
   bootstrap: [MainComponent],

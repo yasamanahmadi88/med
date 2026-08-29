@@ -16,7 +16,7 @@ export default defineConfig(
     },
   },
   { ignores: ['src/main/docker/', 'src/main/webapp/404.html', 'src/main/webapp/index.html', 'src/main/webapp/swagger-ui/**', 'src/main/webapp/content/**'] },
-  { ignores: ['target/classes/static/', 'target/', 'dist/', 'src/main/webapp/content/bpmnjs/**'] },
+  { ignores: ['target/classes/static/', 'target/', 'dist/'] },
   eslint.configs.recommended,
   {
     files: ['**/*.{js,cjs,mjs}'],
@@ -135,6 +135,32 @@ export default defineConfig(
     files: ['src/main/webapp/**/*.spec.ts'],
     rules: {
       '@typescript-eslint/no-empty-function': 'off',
+    },
+  },
+  {
+    // Hand-written ambient shims describing bpmn-js/diagram-js internals, which ship no types of
+    // their own. They model untyped JS callbacks as `Function` and mirror the libraries' generic
+    // signatures, so these two rules fire throughout without pointing at anything fixable.
+    // Scoped to the declaration files: the editor's own code is linted under the full rule set.
+    files: ['src/main/webapp/app/bpmn-editor/types/**/*.d.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-function-type': 'off',
+      '@typescript-eslint/no-unnecessary-type-parameters': 'off',
+    },
+  },
+  {
+    // The palette providers, element factory and renderers are carried over from the upstream
+    // open-source editor and drive bpmn-js/diagram-js internals that ship no types. These rules
+    // fire on that house style — `a && b()` guards, labels built by concatenating `any` values,
+    // a `@ts-ignore` over the didi `$inject` statics — rather than on defects. Correctness rules
+    // stay on, and the editor's Angular components are linted under the full rule set.
+    files: ['src/main/webapp/app/bpmn-editor/additional-modules/**/*.ts'],
+    rules: {
+      '@typescript-eslint/ban-ts-comment': 'off',
+      '@typescript-eslint/no-shadow': 'off',
+      '@typescript-eslint/no-unnecessary-type-parameters': 'off',
+      '@typescript-eslint/no-unused-expressions': 'off',
+      '@typescript-eslint/restrict-plus-operands': 'off',
     },
   },
   {

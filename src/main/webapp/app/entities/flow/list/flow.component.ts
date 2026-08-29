@@ -11,7 +11,6 @@ import { ASC, DESC, SORT, ITEM_DELETED_EVENT, DEFAULT_SORT_DATA } from 'app/conf
 import { EntityArrayResponseType, FlowService } from '../service/flow.service';
 import { FlowDeleteDialogComponent } from '../delete/flow-delete-dialog.component';
 import { FilterOptions, IFilterOptions, IFilterOption } from 'app/shared/filter/filter.model';
-import {finalize} from "rxjs/operators";
 
 @Component({
   selector: 'jhi-flow',
@@ -124,7 +123,7 @@ export class FlowComponent implements OnInit {
     filterOptions?.forEach(filterOption => {
       queryObject[filterOption.name] = filterOption.values;
     });
-    return this.flowService.query(queryObject).pipe(finalize(() => (this.isLoading = false)));
+    return this.flowService.query(queryObject).pipe(tap(() => (this.isLoading = false)));
   }
 
   protected handleNavigation(page = this.page, predicate?: string, ascending?: boolean, filterOptions?: IFilterOption[]): void {
@@ -154,7 +153,7 @@ export class FlowComponent implements OnInit {
   }
 
   openBPMNPage(flowId: any) {
-    this.router.navigate(['/bpmn'], { relativeTo: this.activatedRoute, queryParams: { flowId } });
+    this.router.navigate(['/bpmn-editor'], { relativeTo: this.activatedRoute, queryParams: { flowId } });
   }
 
   routeToNewFlow() {

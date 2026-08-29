@@ -112,6 +112,14 @@ describe('Flow Management Component', () => {
     );
   });
 
+  it('should open the BPMN editor on the flow it was asked about', () => {
+    // The editor reads flowId back out of the query params to decide which flow it is editing,
+    // so the shape of this navigation is the contract between the two.
+    comp.openBPMNPage(123);
+
+    expect(routerNavigateSpy).toHaveBeenLastCalledWith(['/bpmn-editor'], expect.objectContaining({ queryParams: { flowId: 123 } }));
+  });
+
   it('should calculate the filter attribute', () => {
     // WHEN
     comp.ngOnInit();

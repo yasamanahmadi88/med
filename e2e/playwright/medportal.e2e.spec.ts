@@ -179,3 +179,77 @@ test.describe('MedPortal themes and responsive navigation', () => {
     await expect(page.getByTestId('entity')).toBeVisible();
   });
 });
+
+test.describe('MedPortal change detection', () => {
+  test('renders a list that arrives after the route has already been drawn', async ({ page, mockApi }) => {
+    // Every other spec here asserts what a route paints on arrival, which a frozen view still
+    // gets right: the component is created and checked once as part of the navigation. This one
+    // asserts the pass *after* that — data fetched in ngOnInit and assigned to a plain field.
+    // Without zone change detection the rows never appear even though the response arrived.
+    await mockApi({ account: 'admin' });
+    await page.route('**/api/admin/users?**', route =>
+      route.fulfill({
+        status: 200,
+        headers: { 'content-type': 'application/json', 'x-total-count': '2', link: '' },
+        body: JSON.stringify([
+          { id: 1, login: 'admin', email: 'admin@localhost', activated: true, langKey: 'en', authorities: ['ROLE_ADMIN'] },
+          { id: 2, login: 'test', email: 'test@localhost', activated: true, langKey: 'en', authorities: ['ROLE_USER'] },
+        ]),
+      }),
+    );
+
+    await page.goto('/admin/user-management');
+
+    await expect(page.locator('jhi-user-mgmt table tbody tr')).toHaveCount(2);
+    await expect(page.locator('jhi-user-mgmt table tbody')).toContainText('admin@localhost');
+    // isLoading is set true before the request and false in the response handler; a stale view
+    // leaves the button disabled forever.
+    await expect(page.getByRole('button', { name: 'Refresh list' })).toBeEnabled();
+  });
+});
+
+test.describe('MedPortal entity lists', () => {
+  test('renders a sortable table once the collection has rows', async ({ page, mockApi }) => {
+    // Until this spec existed every collection in the suite was mocked empty, so the tables —
+    // which are behind `*ngIf="…length > 0"` — never rendered. That hid a crash in the sort
+    // header: SortByDirective assigned to FaIconComponent.icon, a ModelSignal in
+    // @fortawesome/angular-fontawesome 4, which replaced the signal and made the next render
+    // throw "this.icon is not a function". Every entity list in the app was affected.
+    // The shared `page` fixture fails the test on any console error, so a regression surfaces
+    // here rather than silently.
+    await mockApi({
+      account: 'admin',
+      collections: {
+        '/api/products': [
+          { id: 1, productName: 'Mediation', productDesc: 'First product' },
+          { id: 2, productName: 'Billing', productDesc: 'Second product' },
+        ],
+      },
+    });
+
+    await page.goto('/product');
+
+    await expect(page.locator('table tbody tr')).toHaveCount(2);
+    await expect(page.locator('table tbody')).toContainText('Mediation');
+    // The sort headers render their icon through the directive that used to throw.
+    await expect(page.locator('table thead fa-icon').first()).toBeVisible();
+  });
+
+  test('sorting by a column keeps the table rendered', async ({ page, mockApi }) => {
+    // updateIconDefinition runs again on every predicate/ascending change, so clicking a header
+    // exercises the write path, not just the initial one.
+    await mockApi({
+      account: 'admin',
+      collections: { '/api/products': [{ id: 1, productName: 'Mediation', productDesc: 'First product' }] },
+    });
+
+    await page.goto('/product');
+    await expect(page.locator('table tbody tr')).toHaveCount(1);
+
+    // The product table's sortable columns are Product Name and Product Desc; there is no ID column.
+    await page.locator('table thead th[jhisortby]').first().click();
+
+    await expect(page.locator('table tbody tr')).toHaveCount(1);
+    await expect(page.locator('table thead fa-icon').first()).toBeVisible();
+  });
+});

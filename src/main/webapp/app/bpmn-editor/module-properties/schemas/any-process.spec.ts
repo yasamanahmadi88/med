@@ -1,3 +1,4 @@
+import { FieldOption } from '../schema';
 import { anyProcessSchema } from './any-process';
 
 /**
@@ -78,7 +79,7 @@ describe('anyProcessSchema', () => {
     // These are enum values the backend matches on, so an extra, missing or misspelt one produces
     // a diagram the engine rejects. The Vue <option> *text* was prettified for all four ack modes
     // ("NO ACK", "REC ACK", …); the underscored values below are what was stored.
-    const options: Record<string, readonly string[]> = {};
+    const options: Record<string, readonly FieldOption[]> = {};
     for (const field of anyProcessSchema.fields) {
       if (field.options) {
         options[field.name] = field.options;

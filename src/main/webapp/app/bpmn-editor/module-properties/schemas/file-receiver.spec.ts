@@ -1,3 +1,4 @@
+import { FieldOption } from '../schema';
 import { fileReceiverSchema } from './file-receiver';
 
 /**
@@ -79,7 +80,7 @@ describe('fileReceiverSchema', () => {
     // These are enum values the backend matches on, so an extra, missing or misspelt one produces
     // a diagram the engine rejects. Note the Vue <option> *text* was prettified for three of them
     // ("FETCH ONLY", "RENAME AND MOVE", "SUB FOLDERS"); the values below are what was stored.
-    const options: Record<string, readonly string[]> = {};
+    const options: Record<string, readonly FieldOption[]> = {};
     for (const field of fileReceiverSchema.fields) {
       if (field.options) {
         options[field.name] = field.options;

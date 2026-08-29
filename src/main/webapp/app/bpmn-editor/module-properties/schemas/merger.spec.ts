@@ -1,3 +1,4 @@
+import { FieldOption } from '../schema';
 import { mergerSchema } from './merger';
 
 /**
@@ -62,7 +63,7 @@ describe('mergerSchema', () => {
     // Transcribed from the `<option value="...">` lists. The Vue markup displayed some of these
     // with prettier text ("NOT SEND" for NOT_SEND, "Yes"/"No" for the 0/1 flags); only the value is
     // stored, and only the value is what the engine matches on.
-    const options = (name: string): readonly string[] | undefined => mergerSchema.fields.find(f => f.name === name)?.options;
+    const options = (name: string): readonly FieldOption[] | undefined => mergerSchema.fields.find(f => f.name === name)?.options;
 
     expect(options('agreementMode')).toEqual(['RUNNING', 'FETCH_ONLY', 'DRAFT']);
     expect(options('isIncremental234')).toEqual(['0', '1']);

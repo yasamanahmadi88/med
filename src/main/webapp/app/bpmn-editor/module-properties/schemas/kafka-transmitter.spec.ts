@@ -1,3 +1,4 @@
+import { FieldOption } from '../schema';
 import { kafkaTransmitterSchema } from './kafka-transmitter';
 
 /**
@@ -69,7 +70,7 @@ describe('kafkaTransmitterSchema', () => {
     // `agreementMode` is the module's only select, and these are enum values the backend matches
     // on, so an extra, missing or misspelt one produces a diagram the engine rejects. The Vue
     // <option> *text* read "FETCH ONLY"; the value below is what was stored.
-    const options: Record<string, readonly string[]> = {};
+    const options: Record<string, readonly FieldOption[]> = {};
     for (const field of kafkaTransmitterSchema.fields) {
       if (field.options) {
         options[field.name] = field.options;

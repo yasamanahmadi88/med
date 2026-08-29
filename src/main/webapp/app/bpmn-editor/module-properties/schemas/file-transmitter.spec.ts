@@ -1,3 +1,4 @@
+import { FieldOption } from '../schema';
 import { fileTransmitterSchema } from './file-transmitter';
 
 /**
@@ -68,7 +69,7 @@ describe('fileTransmitterSchema', () => {
     // a diagram the engine rejects. Note the Vue <option> *text* was prettified for one of them
     // ("FETCH ONLY"); the values below are what was stored. `writeProtocol` also carries a fourth
     // choice, `FILE`, that the mirror-image `FileReceiver.readProtocol` does not.
-    const options: Record<string, readonly string[]> = {};
+    const options: Record<string, readonly FieldOption[]> = {};
     for (const field of fileTransmitterSchema.fields) {
       if (field.options) {
         options[field.name] = field.options;

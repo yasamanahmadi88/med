@@ -130,7 +130,22 @@
     </changeSet>
 
     <changeSet id="20260711-42-tbl-flows" author="upgrade">
-        <preConditions onFail="MARK_RAN"><not><tableExists tableName="tbl_flows"/></not></preConditions>
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <and>
+                <not>
+                    <tableExists tableName="TBL_FLOWS"/>
+                </not>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*)
+                    FROM ALL_SYNONYMS
+                    WHERE OWNER = 'MEDPORTAL'
+                      AND SYNONYM_NAME = 'TBL_FLOWS'
+                      AND TABLE_OWNER = 'MEDIATION'
+                      AND TABLE_NAME = 'TBL_FLOWS'
+                      AND DB_LINK IS NULL
+                </sqlCheck>
+            </and>
+        </preConditions>
         <createTable tableName="tbl_flows">
             <column name="flow_key" type="bigint"><constraints primaryKey="true" nullable="false"/></column>
             <column name="flow_name" type="varchar(255)"/>

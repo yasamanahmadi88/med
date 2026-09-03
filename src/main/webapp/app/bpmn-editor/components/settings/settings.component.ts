@@ -1,24 +1,26 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { EditorSettings } from '../../types/editor/settings';
+
+type SelectSettingKey = 'language' | 'bg';
+type CheckboxSettingKey = 'toolbar' | 'miniMap';
 
 @Component({
   selector: 'jhi-settings',
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
 })
-export class SettingsComponent implements OnInit {
+export class SettingsComponent implements OnChanges {
   @Input() settings!: EditorSettings;
   @Output() settingsUpdate = new EventEmitter<Partial<EditorSettings>>();
 
   showSettings = false;
-  localSettings!: EditorSettings;
+  localSettings: EditorSettings | null = null;
 
-  ngOnInit(): void {
-    if (this.settings) {
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['settings'] && this.settings) {
       this.localSettings = { ...this.settings };
     }
   }
@@ -27,12 +29,28 @@ export class SettingsComponent implements OnInit {
     this.showSettings = !this.showSettings;
   }
 
-  onSettingChange(key: keyof EditorSettings, value: any): void {
-    this.localSettings = { ...this.localSettings, [key]: value };
-    this.settingsUpdate.emit({ [key]: value });
+  onSelectChange(key: SelectSettingKey, event: Event): void {
+    const select = event.target;
+    if (!(select instanceof HTMLSelectElement)) return;
+
+    this.updateSetting(key, select.value);
+  }
+
+  onCheckboxChange(key: CheckboxSettingKey, event: Event): void {
+    const checkbox = event.target;
+    if (!(checkbox instanceof HTMLInputElement)) return;
+
+    this.updateSetting(key, checkbox.checked);
   }
 
   closeSettings(): void {
     this.showSettings = false;
+  }
+
+  private updateSetting<K extends keyof EditorSettings>(key: K, value: EditorSettings[K]): void {
+    if (!this.localSettings) return;
+
+    this.localSettings = { ...this.localSettings, [key]: value };
+    this.settingsUpdate.emit({ [key]: value });
   }
 }

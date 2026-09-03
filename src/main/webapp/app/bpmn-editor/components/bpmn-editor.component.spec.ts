@@ -99,4 +99,31 @@ describe('BpmnEditorComponent', () => {
     expect(created[0].destroy).toHaveBeenCalled();
     expect(service.getBpmnModeler()).toBeNull();
   });
+
+  it('does not expose the settings control that the Vue portal kept hidden', () => {
+    expect(fixture.nativeElement.querySelector('jhi-settings')).toBeNull();
+  });
+
+  it('prevents the native context menu only inside the BPMN editor', () => {
+    const editor: HTMLElement = fixture.nativeElement.querySelector('#designer-container');
+    const editorEvent = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+    const outsideEvent = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+
+    editor.dispatchEvent(editorEvent);
+    document.body.dispatchEvent(outsideEvent);
+
+    expect(editorEvent.defaultPrevented).toBe(true);
+    expect(outsideEvent.defaultPrevented).toBe(false);
+  });
+
+  it('allows the native context menu when the editor setting disables interception', () => {
+    service.updateConfiguration({ contextmenu: false });
+    fixture.detectChanges();
+
+    const editor: HTMLElement = fixture.nativeElement.querySelector('#designer-container');
+    const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+    editor.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(false);
+  });
 });

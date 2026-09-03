@@ -1,6 +1,5 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ViewEncapsulation } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { BpmnEditorService } from '../services/bpmn-editor.service';
@@ -9,7 +8,6 @@ import { DesignerComponent } from './designer/designer.component';
 import { ToolbarComponent } from './toolbar/toolbar.component';
 import { PaletteComponent } from './palette/palette.component';
 import { PanelComponent } from './panel/panel.component';
-import { SettingsComponent } from './settings/settings.component';
 import { ContextMenuComponent } from './context-menu/context-menu.component';
 
 @Component({
@@ -21,20 +19,9 @@ import { ContextMenuComponent } from './context-menu/context-menu.component';
   // Without None the whole editor renders unstyled.
   encapsulation: ViewEncapsulation.None,
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    DesignerComponent,
-    ToolbarComponent,
-    PaletteComponent,
-    PanelComponent,
-    SettingsComponent,
-    ContextMenuComponent,
-  ],
+  imports: [CommonModule, DesignerComponent, ToolbarComponent, PaletteComponent, PanelComponent, ContextMenuComponent],
 })
 export class BpmnEditorComponent implements OnInit, OnDestroy {
-  @ViewChild('designerContainer') designerContainer!: ElementRef;
-
   editorSettings!: EditorSettings;
   processXml: string | undefined;
   private destroy$ = new Subject<void>();
@@ -49,9 +36,6 @@ export class BpmnEditorComponent implements OnInit, OnDestroy {
     this.bpmnEditorService.processXml$.pipe(takeUntil(this.destroy$)).subscribe(xml => {
       this.processXml = xml;
     });
-
-    // Prevent context menu
-    document.addEventListener('contextmenu', ev => ev.preventDefault());
   }
 
   ngOnDestroy(): void {
@@ -84,7 +68,9 @@ export class BpmnEditorComponent implements OnInit, OnDestroy {
     this.bpmnEditorService.setProcessXml(xml);
   }
 
-  onSettingsUpdate(settings: Partial<EditorSettings>): void {
-    this.bpmnEditorService.updateConfiguration(settings);
+  onContextMenu(event: MouseEvent): void {
+    if (this.editorSettings?.contextmenu) {
+      event.preventDefault();
+    }
   }
 }

@@ -1,26 +1,26 @@
 <div class="settings-container">
-  <button class="settings-toggle" (click)="toggleSettings()" title="Settings">
+  <button type="button" class="settings-toggle" (click)="toggleSettings()" title="Settings" aria-label="Settings">
     <i class="fas fa-cog"></i>
   </button>
 
-  <div class="settings-panel" *ngIf="showSettings">
+  <div class="settings-panel" *ngIf="showSettings && localSettings as currentSettings">
     <div class="settings-header">
       <h3>Settings</h3>
-      <button class="close-btn" (click)="closeSettings()">×</button>
+      <button type="button" class="close-btn" (click)="closeSettings()" aria-label="Close settings">×</button>
     </div>
 
     <div class="settings-content">
       <div class="setting-item">
         <label>Language:</label>
-        <select [value]="localSettings?.language" (change)="onSettingChange('language', $event)">
+        <select [value]="currentSettings.language" (change)="onSelectChange('language', $event)">
           <option value="zh_CN">中文</option>
-          <option value="en">English</option>
+          <option value="en_US">English</option>
         </select>
       </div>
 
       <div class="setting-item">
         <label>Background:</label>
-        <select [value]="localSettings?.bg" (change)="onSettingChange('bg', $event)">
+        <select [value]="currentSettings.bg" (change)="onSelectChange('bg', $event)">
           <option value="white">White</option>
           <option value="grid">Grid</option>
           <option value="grid-image">Grid Image</option>
@@ -30,14 +30,14 @@
 
       <div class="setting-item">
         <label>
-          <input type="checkbox" [checked]="localSettings?.toolbar" (change)="onSettingChange('toolbar', $event)" />
+          <input type="checkbox" [checked]="currentSettings.toolbar" (change)="onCheckboxChange('toolbar', $event)" />
           Show Toolbar
         </label>
       </div>
 
       <div class="setting-item">
         <label>
-          <input type="checkbox" [checked]="localSettings?.miniMap" (change)="onSettingChange('miniMap', $event)" />
+          <input type="checkbox" [checked]="currentSettings.miniMap" (change)="onCheckboxChange('miniMap', $event)" />
           Show Mini Map
         </label>
       </div>

@@ -1,4 +1,4 @@
-<div #designerContainer [ngClass]="containerClasses" id="designer-container">
+<div [ngClass]="containerClasses" id="designer-container" (contextmenu)="onContextMenu($event)">
   <jhi-toolbar *ngIf="showToolbar"></jhi-toolbar>
 
   <div class="main-content">
@@ -9,8 +9,6 @@
     <jhi-panel *ngIf="customPanel"></jhi-panel>
     <div *ngIf="!customPanel" class="camunda-penal" id="camunda-penal"></div>
   </div>
-
-  <jhi-settings [settings]="editorSettings" (settingsUpdate)="onSettingsUpdate($event)"> </jhi-settings>
 
   <jhi-context-menu></jhi-context-menu>
 </div>

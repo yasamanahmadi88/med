@@ -6,6 +6,7 @@ import { BpmnPropertiesPanelModule, BpmnPropertiesProviderModule, CamundaPlatfor
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
 import { additionalModulesFor, moddleExtensionsFor } from '../../additional-modules';
 import ModulePropertiesModule from '../../module-properties';
+import { createNewDiagram } from '../../utils/empty-diagram';
 
 @Component({
   selector: 'jhi-designer',
@@ -93,7 +94,12 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
       } else {
         // Without a diagram there is no canvas root and no element to select, so the properties
         // panel would render empty and the palette would refuse to place anything.
-        this.bpmnModeler.createDiagram();
+        //
+        // Not `modeler.createDiagram()`: that always names the process `Process_1`, discarding
+        // the configured processId and processName the flow is keyed on.
+        createNewDiagram(this.bpmnModeler, settings).catch((error: unknown) => {
+          console.error('Could not create BPMN 2.0 diagram', error);
+        });
       }
 
       // Listen for xml changes

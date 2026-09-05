@@ -33,9 +33,9 @@ import { BpmnEditorModule } from './bpmn-editor/bpmn-editor.module';
   imports: [
     BpmnEditorModule,
     // other imports...
-  ]
+  ],
 })
-export class YourModule { }
+export class YourModule {}
 ```
 
 ### 3. Add Route
@@ -150,6 +150,43 @@ Main BPMN.js libraries used:
 - `bpmn-js-properties-panel`: Properties panel for editing element properties
 - `diagram-js`: Diagram drawing and manipulation library
 - `camunda-bpmn-moddle`: Camunda BPMN extensions support
+
+## Port status: `utils/`
+
+The Vue editor this module replaces had 18 files under `src/utils`. Resolved through their
+call sites rather than their names, only three carry behaviour this editor still needs, and
+`utils/empty-diagram.ts` is the first of them.
+
+**Ported**
+
+| Vue file                  | Here                     | Note                                                                                                                                                                                                                                                         |
+| ------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `EmptyXML.ts`, `index.ts` | `utils/empty-diagram.ts` | `modeler.createDiagram()` discards the configured `processId`/`processName`. The engine argument `EmptyXML` took is dropped — it was never referenced, so no diagram ever carried it. The process name is now XML-escaped; the original interpolated it raw. |
+
+**Not ported — no consumer in the Vue project either**
+
+`BpmnHasProcessRef.ts`, `files.ts`, `storage.ts`, `uuid.ts`, `tools.ts`. Nothing imports them,
+by path or by exported symbol.
+
+**Not ported — already provided by the stock properties panel**
+
+`BpmnAsyncElement.ts`, `BpmnEventDefinitionUtil.ts`, `BpmnExtensionElementsUtil.ts`,
+`BpmnImplementationType.ts`, `BpmnValidator.ts`. Each exists only to serve a `bo-utils` file
+behind one panel group — job execution, conditions, execution listeners, extension properties,
+and id validation. `designer.component.ts` registers `BpmnPropertiesProviderModule` and
+`CamundaPlatformPropertiesProviderModule`, which ship those same groups
+(`JobExecutionProps`, `ConditionProps`, `ExecutionListenerProps`, `ExtensionPropertiesProps`,
+`IdProps`, `AsynchronousContinuationsProps`). Porting them would fork a maintained
+implementation.
+
+**Not ported — belongs with a feature still to come**
+
+| Vue file                                                  | Waiting on                                                                                                                                                                                                                                                            |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `EventEmitter.ts`                                         | Its 446 `element-update` emissions were the 152 per-field property components, now replaced by `module-properties`; the panel re-reads on selection itself. `modeler-init` is Angular DI here. Only `show-contextmenu` is left, and it belongs with the context menu. |
+| `BpmnDesignerUtils.ts`, `BpmnReplaceOptions.ts`           | The context menu. `ContextMenuComponent` is still an empty shell.                                                                                                                                                                                                     |
+| `customIconRegistry.ts` (and its `-fixed` near-duplicate) | Custom icon upload — registry, palette provider, upload UI and service together.                                                                                                                                                                                      |
+| `Logger.ts`                                               | Its two consumers (the Vue panel shell and `CustomRules`) are unported. The orphan `types/editor/utils.d.ts` declaring it has been removed.                                                                                                                           |
 
 ## Future Enhancements
 

@@ -1,13 +1,59 @@
-<div class="toolbar">
-  <div class="toolbar-section">
-    <button class="toolbar-btn" title="Save" data-cy="bpmnSave" (click)="onSave()"><i class="fas fa-save"></i> Save</button>
-    <button class="toolbar-btn" title="Export" (click)="onExport()"><i class="fas fa-download"></i> Export</button>
-    <button class="toolbar-btn" title="Import" (click)="onImport()"><i class="fas fa-upload"></i> Import</button>
-    <button class="toolbar-btn" title="Cancel" data-cy="bpmnCancel" (click)="onCancel()"><i class="fas fa-times"></i> Cancel</button>
+<div class="toolbar" role="toolbar" aria-label="BPMN editor toolbar">
+  <div class="primary-actions" role="group" aria-label="Diagram actions">
+    <button type="button" class="action-button save-button" title="Save" data-cy="bpmnSave" (click)="onSave()">Save</button>
+
+    <button type="button" class="action-button preview-button" title="Preview as XML" data-cy="bpmnPreviewXml" (click)="onPreviewXml()">
+      Preview as XML
+    </button>
+
+    <button type="button" class="action-button cancel-button" title="Cancel" data-cy="bpmnCancel" (click)="onCancel()">Cancel</button>
   </div>
 
-  <div class="toolbar-section">
-    <button class="toolbar-btn" title="Undo" (click)="onUndo()"><i class="fas fa-undo"></i> Undo</button>
-    <button class="toolbar-btn" title="Redo" (click)="onRedo()"><i class="fas fa-redo"></i> Redo</button>
+  <div class="button-group" role="group" aria-label="Zoom controls">
+    <button type="button" class="icon-button" title="Zoom Out" aria-label="Zoom Out" data-cy="bpmnZoomOut" (click)="zoomOut()">
+      <fa-icon [icon]="zoomOutIcon"></fa-icon>
+    </button>
+
+    <button type="button" class="zoom-button" title="Zoom Reset" data-cy="bpmnZoomReset" (click)="fitViewport()">
+      {{ zoomPercentage }}
+    </button>
+
+    <button type="button" class="icon-button" title="Zoom In" aria-label="Zoom In" data-cy="bpmnZoomIn" (click)="zoomIn()">
+      <fa-icon [icon]="zoomInIcon"></fa-icon>
+    </button>
   </div>
+
+  <div class="button-group" role="group" aria-label="History controls">
+    <button type="button" class="icon-button" title="Undo" aria-label="Undo" data-cy="bpmnUndo" (click)="onUndo()">
+      <fa-icon [icon]="undoIcon"></fa-icon>
+    </button>
+
+    <button type="button" class="icon-button" title="Redo" aria-label="Redo" data-cy="bpmnRedo" (click)="onRedo()">
+      <fa-icon [icon]="redoIcon"></fa-icon>
+    </button>
+
+    <button type="button" class="icon-button" title="Restart" aria-label="Restart" data-cy="bpmnRestart" (click)="onRestart()">
+      <fa-icon [icon]="restartIcon"></fa-icon>
+    </button>
+  </div>
+</div>
+
+<div class="preview-backdrop" *ngIf="xmlPreview !== null" data-cy="bpmnXmlPreviewDialog" (click)="closePreview()">
+  <section class="preview-dialog" role="dialog" aria-modal="true" aria-labelledby="xml-preview-title" (click)="$event.stopPropagation()">
+    <header class="preview-header">
+      <h2 id="xml-preview-title">Preview as XML</h2>
+      <button
+        type="button"
+        class="close-button"
+        title="Close"
+        aria-label="Close XML preview"
+        data-cy="bpmnPreviewClose"
+        (click)="closePreview()"
+      >
+        &times;
+      </button>
+    </header>
+
+    <pre class="preview-content" tabindex="0"><code>{{ xmlPreview }}</code></pre>
+  </section>
 </div>

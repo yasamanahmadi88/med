@@ -36,8 +36,9 @@ test.describe('BPMN editor', () => {
 
     await page.goto('/bpmn-editor');
 
-    // DesignerComponent calls createDiagram() when no xml is supplied; bpmn-js draws a start
-    // event into the root layer for it.
+    // DesignerComponent seeds an empty diagram when no xml is supplied, and that diagram opens
+    // with a start event — a process without one is not executable, and a blank canvas gives
+    // the user nothing to drag from.
     await expect(page.locator('.bpmn-canvas .djs-element')).not.toHaveCount(0);
   });
 

@@ -14,6 +14,16 @@ import { EditorSettings } from '../types/editor/settings';
 const ID_PATTERN = /^[A-Za-z_][\w.-]*$/;
 
 /**
+ * The start event every new diagram opens with, matching what `modeler.createDiagram()` draws —
+ * same id and same bounds, so a diagram made here is indistinguishable from one made before.
+ *
+ * The Vue `EmptyXML` had no elements at all, which left the canvas blank. That is worse in two
+ * ways: a process without a start event is not executable, and the user has nothing to drag
+ * from. This is one of the two places the port deliberately keeps the Angular behaviour.
+ */
+const START_EVENT_ID = 'StartEvent_1';
+
+/**
  * Escapes text for an XML attribute. The Vue original interpolated `processName` raw, so a
  * name holding `&` or `"` — both accepted by the settings form — produced a document that
  * failed to import, leaving the canvas blank with only a console warning.
@@ -41,9 +51,15 @@ export function emptyDiagramXml(processId: string, processName: string): string 
   xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
   targetNamespace="http://bpmn.io/schema/bpmn"
   id="Definitions_${id}">
-  <bpmn:process id="${id}" name="${escapeXml(processName)}" isExecutable="true"></bpmn:process>
+  <bpmn:process id="${id}" name="${escapeXml(processName)}" isExecutable="true">
+    <bpmn:startEvent id="${START_EVENT_ID}" />
+  </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="${id}"></bpmndi:BPMNPlane>
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="${id}">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="${START_EVENT_ID}">
+        <dc:Bounds x="173" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>`;
 }

@@ -88,9 +88,15 @@ describe('BpmnEditorComponent', () => {
     expect(created[0].options.moddleExtensions.cdrParser).toBeUndefined();
   });
 
-  it('starts an empty diagram when no xml is supplied', () => {
-    expect(created[0].createDiagram).toHaveBeenCalled();
-    expect(created[0].importXML).not.toHaveBeenCalled();
+  it('starts an empty diagram carrying the configured process identity', () => {
+    // Not `modeler.createDiagram()`, which always names the process `Process_1`: the configured
+    // processId and processName are what a flow is keyed on, so a diagram that dropped them
+    // would have to be renamed by hand before it could be saved.
+    const settings = service.getEditorSettings();
+    expect(created[0].createDiagram).not.toHaveBeenCalled();
+
+    const [xml] = created[0].importXML.mock.calls[0];
+    expect(xml).toContain(`<bpmn:process id="${settings.processId}" name="${settings.processName}"`);
   });
 
   it('clears the modeler from the service on destroy', () => {

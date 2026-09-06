@@ -21,6 +21,7 @@ import { BPMN_EDITOR_HOST, BpmnEditorHost } from '../../services/bpmn-editor-hos
 @Component({
   selector: 'jhi-flow-bpmn-editor',
   templateUrl: './flow-bpmn-editor.component.html',
+  styles: [':host { display: block; height: 100%; min-height: 0; }'],
   standalone: true,
   imports: [CommonModule, BpmnEditorComponent],
   providers: [{ provide: BPMN_EDITOR_HOST, useExisting: forwardRef(() => FlowBpmnEditorComponent) }],

@@ -1,5 +1,17 @@
-<div class="panel">
-  <div class="panel-header">Properties</div>
+<div class="editor-properties-panel" [class.editor-properties-panel--collapsed]="collapsed">
+  <div class="editor-properties-panel__header">
+    <span class="editor-properties-panel__title">Properties</span>
+    <button
+      type="button"
+      class="editor-properties-panel__toggle"
+      data-cy="bpmnPropertiesToggle"
+      [attr.aria-expanded]="!collapsed"
+      [attr.aria-label]="collapsed ? 'Expand properties panel' : 'Collapse properties panel'"
+      (click)="toggleCollapsed()"
+    >
+      <span aria-hidden="true">{{ collapsed ? '&#9650;' : '&#9660;' }}</span>
+    </button>
+  </div>
   <!-- bpmn-js-properties-panel renders into this element; see PanelComponent.ngAfterViewInit. -->
-  <div #panelContent class="panel-content"></div>
+  <div #panelContent class="editor-properties-panel__content"></div>
 </div>

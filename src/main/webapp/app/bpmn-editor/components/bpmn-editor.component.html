@@ -6,7 +6,11 @@
 
     <jhi-designer [xml]="processXml" (xmlUpdate)="onXmlUpdate($event)"> </jhi-designer>
 
-    <jhi-panel *ngIf="customPanel"></jhi-panel>
+    <jhi-panel
+      *ngIf="customPanel"
+      [collapsed]="propertiesPanelCollapsed"
+      (collapsedChange)="onPropertiesPanelCollapsedChange($event)"
+    ></jhi-panel>
     <div *ngIf="!customPanel" class="camunda-penal" id="camunda-penal"></div>
   </div>
 

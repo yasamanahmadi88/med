@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
 
@@ -10,6 +10,8 @@ import { BpmnEditorService } from '../../services/bpmn-editor.service';
   imports: [CommonModule],
 })
 export class PanelComponent implements AfterViewInit, OnDestroy {
+  @Input() collapsed = false;
+  @Output() collapsedChange = new EventEmitter<boolean>();
   @ViewChild('panelContent') panelContent!: ElementRef<HTMLElement>;
 
   constructor(private bpmnEditorService: BpmnEditorService) {}
@@ -22,5 +24,9 @@ export class PanelComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.bpmnEditorService.setPropertiesPanelParent(null);
+  }
+
+  toggleCollapsed(): void {
+    this.collapsedChange.emit(!this.collapsed);
   }
 }

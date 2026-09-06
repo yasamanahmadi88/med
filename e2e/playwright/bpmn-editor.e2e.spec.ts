@@ -47,7 +47,50 @@ test.describe('BPMN editor', () => {
     await page.goto('/bpmn-editor');
 
     // bpmn-js-properties-panel renders into the element PanelComponent registers.
-    await expect(page.locator('.panel-content .bio-properties-panel')).toBeVisible();
+    await expect(page.locator('.editor-properties-panel__content .bio-properties-panel')).toBeVisible();
+  });
+
+  test('stacks the canvas above a collapsible properties panel on a narrow viewport', async ({ page, mockApi }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    const designer = page.locator('jhi-designer');
+    const propertiesPanel = page.locator('jhi-panel');
+
+    await expect(designer).toBeVisible();
+    await expect(propertiesPanel).toBeVisible();
+    await expect(page.locator('.editor-properties-panel__title')).toHaveText('Properties');
+
+    const designerBox = await designer.boundingBox();
+    const panelBox = await propertiesPanel.boundingBox();
+
+    expect(designerBox).not.toBeNull();
+    expect(panelBox).not.toBeNull();
+    expect(designerBox!.width).toBeGreaterThan(300);
+    expect(panelBox!.width).toBeGreaterThan(300);
+    expect(panelBox!.y).toBeGreaterThanOrEqual(designerBox!.y + designerBox!.height - 1);
+
+    const toggle = page.getByTestId('bpmnPropertiesToggle');
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.locator('.editor-properties-panel__content')).toBeHidden();
+    await expect(toggle).toBeInViewport();
+
+    const expandedDesignerBox = await designer.boundingBox();
+    const collapsedPanelBox = await propertiesPanel.boundingBox();
+    const viewport = page.viewportSize();
+
+    expect(expandedDesignerBox).not.toBeNull();
+    expect(collapsedPanelBox).not.toBeNull();
+    expect(viewport).not.toBeNull();
+    expect(expandedDesignerBox!.height).toBeGreaterThan(designerBox!.height);
+    expect(collapsedPanelBox!.y + collapsedPanelBox!.height).toBeLessThanOrEqual(viewport!.height);
+
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.locator('.editor-properties-panel__content')).toBeVisible();
   });
 
   test('shows the custom integration modules in the palette', async ({ page, mockApi }) => {
@@ -103,7 +146,7 @@ test.describe('BPMN editor', () => {
 
     await page.goto('/bpmn-editor');
 
-    for (const title of ['Save', 'Export', 'Import', 'Undo', 'Redo']) {
+    for (const title of ['Save', 'Preview as XML', 'Cancel', 'Zoom Out', 'Zoom Reset', 'Zoom In', 'Undo', 'Redo', 'Restart']) {
       await expect(page.locator(`.toolbar button[title="${title}"]`), `toolbar ${title}`).toBeVisible();
     }
   });

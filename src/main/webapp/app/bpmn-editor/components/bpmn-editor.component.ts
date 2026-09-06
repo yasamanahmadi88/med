@@ -24,6 +24,7 @@ import { ContextMenuComponent } from './context-menu/context-menu.component';
 export class BpmnEditorComponent implements OnInit, OnDestroy {
   editorSettings!: EditorSettings;
   processXml: string | undefined;
+  propertiesPanelCollapsed = false;
   private destroy$ = new Subject<void>();
 
   constructor(private bpmnEditorService: BpmnEditorService) {}
@@ -61,6 +62,7 @@ export class BpmnEditorComponent implements OnInit, OnDestroy {
     if (this.customPanel) classes.push('designer-with-penal');
     if (this.editorSettings?.bg === 'grid-image') classes.push('designer-with-bg');
     if (this.editorSettings?.bg === 'image') classes.push('designer-with-image');
+    if (this.propertiesPanelCollapsed) classes.push('properties-panel-collapsed');
     return classes;
   }
 
@@ -72,5 +74,9 @@ export class BpmnEditorComponent implements OnInit, OnDestroy {
     if (this.editorSettings?.contextmenu) {
       event.preventDefault();
     }
+  }
+
+  onPropertiesPanelCollapsedChange(collapsed: boolean): void {
+    this.propertiesPanelCollapsed = collapsed;
   }
 }

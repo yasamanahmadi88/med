@@ -59,7 +59,34 @@ describe('BpmnEditorComponent', () => {
     const panel = fixture.debugElement.query(el => el.componentInstance instanceof PanelComponent);
     expect(panel).toBeTruthy();
 
-    expect(service.getPropertiesPanelParent()).toBe(panel.nativeElement.querySelector('.panel-content'));
+    expect(service.getPropertiesPanelParent()).toBe(panel.nativeElement.querySelector('.editor-properties-panel__content'));
+  });
+
+  it('uses editor-specific properties-panel classes that do not collide with the legacy Vue styles', () => {
+    const panel: HTMLElement = fixture.nativeElement.querySelector('jhi-panel');
+
+    expect(panel.querySelector('.editor-properties-panel')).toBeTruthy();
+    expect(panel.querySelector('.editor-properties-panel__title')?.textContent?.trim()).toBe('Properties');
+    expect(panel.querySelector('.panel-header')).toBeNull();
+  });
+
+  it('keeps the properties panel mounted while toggling its collapsed layout', () => {
+    const toggle: HTMLButtonElement = fixture.nativeElement.querySelector('[data-cy="bpmnPropertiesToggle"]');
+    const panelContent = service.getPropertiesPanelParent();
+
+    toggle.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('#designer-container').classList).toContain('properties-panel-collapsed');
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(service.getPropertiesPanelParent()).toBe(panelContent);
+
+    toggle.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('#designer-container').classList).not.toContain('properties-panel-collapsed');
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(service.getPropertiesPanelParent()).toBe(panelContent);
   });
 
   it('creates exactly one modeler and publishes it on the service', () => {

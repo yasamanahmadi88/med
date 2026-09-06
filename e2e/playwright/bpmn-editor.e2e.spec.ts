@@ -255,6 +255,31 @@ test.describe('BPMN editor', () => {
     await expect(page.locator('.bpmn-canvas .djs-element')).not.toHaveCount(before);
   });
 
+  test('places a module at the size the custom element factory configures', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    const canvas = page.locator('.bpmn-canvas .djs-container');
+    await expect(canvas).toBeVisible();
+    await page.locator('.djs-palette .KafkaReceiver-module').click();
+    const box = await canvas.boundingBox();
+    await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+    await page.keyboard.press('Escape');
+
+    // Every integration module extends bpmn:Task, and the Vue editor sized bpmn:Task 120x120
+    // through `config.elementFactory`. Without that config CustomElementFactory has nothing to
+    // read and bpmn-js's own 100x80 applies — which also draws the module's square corner icon
+    // squashed, since the renderer stretches it to the shape's box.
+    //
+    // Read off the SVG so the assertion does not depend on the canvas zoom. moddle names the
+    // shape after the nearest BPMN supertype it knows, so a placed KafkaReceiver is
+    // `Activity_<id>` — the only Activity on a diagram that otherwise holds one start event.
+    const shape = page.locator('.bpmn-canvas .djs-element[data-element-id^="Activity_"] .djs-visual > rect').first();
+    await expect(shape).toHaveAttribute('width', '120');
+    await expect(shape).toHaveAttribute('height', '120');
+  });
+
   test('blocks saving while a module property is invalid, and says why', async ({ page, mockApi }) => {
     await mockApi({ account: 'admin' });
 

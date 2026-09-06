@@ -1,4 +1,4 @@
-import { FieldOption } from '../schema';
+import { optionLabel, optionValue } from '../schema';
 import { mergerSchema } from './merger';
 
 /**
@@ -60,18 +60,32 @@ describe('mergerSchema', () => {
   });
 
   it('offers exactly the values the Vue selects offered', () => {
-    // Transcribed from the `<option value="...">` lists. The Vue markup displayed some of these
-    // with prettier text ("NOT SEND" for NOT_SEND, "Yes"/"No" for the 0/1 flags); only the value is
-    // stored, and only the value is what the engine matches on.
-    const options = (name: string): readonly FieldOption[] | undefined => mergerSchema.fields.find(f => f.name === name)?.options;
+    // Transcribed from the `<option value="...">` lists. Only the value is stored, and only the
+    // value is what the engine matches on; the text the user picks from is checked below.
+    const values = (name: string): string[] | undefined => mergerSchema.fields.find(f => f.name === name)?.options?.map(optionValue);
 
-    expect(options('agreementMode')).toEqual(['RUNNING', 'FETCH_ONLY', 'DRAFT']);
-    expect(options('isIncremental234')).toEqual(['0', '1']);
-    expect(options('firstAction')).toEqual(['SAVE_ONLY', 'SAVE_AND_SEND']);
-    expect(options('lastSaveAction')).toEqual(['SAVE_MERGED', 'SAVE_NEW', 'SAVE_OLD', 'NOT_SAVE']);
-    expect(options('lastSendAction')).toEqual(['SEND_MERGED', 'SEND_NEW', 'SEND_OLD', 'NOT_SEND']);
-    expect(options('expireAction')).toEqual(['SEND', 'NOT_SEND']);
-    expect(options('mergerForceNextDay')).toEqual(['0', '1']);
+    expect(values('agreementMode')).toEqual(['RUNNING', 'FETCH_ONLY', 'DRAFT']);
+    expect(values('isIncremental234')).toEqual(['0', '1']);
+    expect(values('firstAction')).toEqual(['SAVE_ONLY', 'SAVE_AND_SEND']);
+    expect(values('lastSaveAction')).toEqual(['SAVE_MERGED', 'SAVE_NEW', 'SAVE_OLD', 'NOT_SAVE']);
+    expect(values('lastSendAction')).toEqual(['SEND_MERGED', 'SEND_NEW', 'SEND_OLD', 'NOT_SEND']);
+    expect(values('expireAction')).toEqual(['SEND', 'NOT_SEND']);
+    expect(values('mergerForceNextDay')).toEqual(['0', '1']);
+  });
+
+  it('shows the text the Vue selects showed, not the stored value', () => {
+    // Seven selects, and the Vue markup prettified every one of them: none of these lists reads
+    // the same as its values. A Merger whose "Force Next Day" offers 0 and 1 rather than Is Not
+    // and Is is a different form, however identical the diagram it writes.
+    const labels = (name: string): string[] | undefined => mergerSchema.fields.find(f => f.name === name)?.options?.map(optionLabel);
+
+    expect(labels('agreementMode')).toEqual(['RUNNING', 'FETCH ONLY', 'DRAFT']);
+    expect(labels('isIncremental234')).toEqual(['No', 'Yes']);
+    expect(labels('firstAction')).toEqual(['SAVE ONLY', 'SAVE AND SEND']);
+    expect(labels('lastSaveAction')).toEqual(['SAVE MERGED', 'SAVE NEW', 'SAVE OLD', 'NOT SAVE']);
+    expect(labels('lastSendAction')).toEqual(['SEND MERGED', 'SEND NEW', 'SEND OLD', 'NOT SEND']);
+    expect(labels('expireAction')).toEqual(['SEND', 'NOT SEND']);
+    expect(labels('mergerForceNextDay')).toEqual(['Is Not', 'Is']);
   });
 
   it('gives options to selects and to nothing else', () => {

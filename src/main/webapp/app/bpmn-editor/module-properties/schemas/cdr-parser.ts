@@ -1,4 +1,4 @@
-import { ModuleSchema } from '../schema';
+import { AGREEMENT_MODE, ModuleSchema } from '../schema';
 
 /**
  * `CdrParser` — which call-detail-record dialect an incoming file is parsed as.
@@ -18,24 +18,25 @@ export const cdrParserSchema: ModuleSchema = {
   type: 'CdrParser:CdrParser',
   label: 'CdrParser',
   fields: [
-    { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: ['RUNNING', 'FETCH_ONLY', 'DRAFT'] },
+    { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: AGREEMENT_MODE },
     { name: 'batchMode', label: 'Batch Mode', kind: 'select', options: ['SINGLE', 'BATCH', 'BOTH'] },
     // The Vue options label these with spaces where the value has underscores (HUAWEI_PGW_DATA_CDR
-    // shows as "HUAWEI PGW DATA CDR", TAP_312 as "TAP 312"). The panel has no separate option
-    // label, so the underscored values — the ones the backend reads — are what is shown.
+    // shows as "HUAWEI PGW DATA CDR", TAP_312 as "TAP 312"), so they carry the pair form: the
+    // panel's SelectEntry renders `option.label` and stores `option.value`
+    // (@bpmn-io/properties-panel/dist/index.esm.js:3931-3935).
     {
       name: 'batchCdrType',
       label: 'Batch Cdr Type',
       kind: 'select',
       options: [
-        'HUAWEI_UNKNOWN_CDR',
-        'HUAWEI_PGW_DATA_CDR',
-        'HUAWEI_SGW_DATA_CDR',
-        'HUAWEI_VOICE_SMS_CDR',
-        'HUAWEI_SMSC_CDR',
-        'HUAWEI_MMSC_CDR',
-        'HUAWEI_SDP_CDR',
-        'TAP_312',
+        { value: 'HUAWEI_UNKNOWN_CDR', label: 'HUAWEI UNKNOWN CDR' },
+        { value: 'HUAWEI_PGW_DATA_CDR', label: 'HUAWEI PGW DATA CDR' },
+        { value: 'HUAWEI_SGW_DATA_CDR', label: 'HUAWEI SGW DATA CDR' },
+        { value: 'HUAWEI_VOICE_SMS_CDR', label: 'HUAWEI VOICE SMS CDR' },
+        { value: 'HUAWEI_SMSC_CDR', label: 'HUAWEI SMSC CDR' },
+        { value: 'HUAWEI_MMSC_CDR', label: 'HUAWEI MMSC CDR' },
+        { value: 'HUAWEI_SDP_CDR', label: 'HUAWEI SDP CDR' },
+        { value: 'TAP_312', label: 'TAP 312' },
         'ATS9900',
       ],
     },

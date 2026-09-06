@@ -1,4 +1,4 @@
-import { ModuleSchema } from '../schema';
+import { AGREEMENT_MODE, ModuleSchema } from '../schema';
 
 /**
  * `KafkaReceiver` — the topic and consumer settings live on the process, so the module itself
@@ -12,7 +12,7 @@ export const kafkaReceiverSchema: ModuleSchema = {
   type: 'KafkaReceiver:KafkaReceiver',
   label: 'KafkaReceiver',
   fields: [
-    { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: ['RUNNING', 'FETCH_ONLY', 'DRAFT'] },
+    { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: AGREEMENT_MODE },
     { name: 'commentDesc', label: 'Comment Desc', kind: 'text' },
   ],
 };

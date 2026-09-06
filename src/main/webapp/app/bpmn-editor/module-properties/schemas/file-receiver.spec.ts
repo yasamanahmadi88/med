@@ -1,4 +1,4 @@
-import { FieldOption } from '../schema';
+import { optionLabel, optionValue } from '../schema';
 import { fileReceiverSchema } from './file-receiver';
 
 /**
@@ -80,10 +80,12 @@ describe('fileReceiverSchema', () => {
     // These are enum values the backend matches on, so an extra, missing or misspelt one produces
     // a diagram the engine rejects. Note the Vue <option> *text* was prettified for three of them
     // ("FETCH ONLY", "RENAME AND MOVE", "SUB FOLDERS"); the values below are what was stored.
-    const options: Record<string, readonly FieldOption[]> = {};
+    const options: Record<string, string[]> = {};
+    const labels: Record<string, string[]> = {};
     for (const field of fileReceiverSchema.fields) {
       if (field.options) {
-        options[field.name] = field.options;
+        options[field.name] = field.options.map(optionValue);
+        labels[field.name] = field.options.map(optionLabel);
       }
     }
 
@@ -92,6 +94,15 @@ describe('fileReceiverSchema', () => {
       readProtocol: ['FTP', 'SFTP', 'FTPS'],
       fileScanPolicy: ['SUBFOLDERS', 'ROOT'],
       postProcessingAction: ['RENAME', 'REMOVE', 'MOVE', 'RENAME_AND_MOVE'],
+      contentFormat: ['UTF8', 'BASE64'],
+    });
+
+    // And shown with the Vue <option> text, which spaced most of the underscored values.
+    expect(labels).toEqual({
+      agreementMode: ['RUNNING', 'FETCH ONLY', 'DRAFT'],
+      readProtocol: ['FTP', 'SFTP', 'FTPS'],
+      fileScanPolicy: ['SUB FOLDERS', 'ROOT'],
+      postProcessingAction: ['RENAME', 'REMOVE', 'MOVE', 'RENAME AND MOVE'],
       contentFormat: ['UTF8', 'BASE64'],
     });
   });

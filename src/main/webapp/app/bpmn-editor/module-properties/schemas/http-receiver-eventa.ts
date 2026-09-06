@@ -1,4 +1,4 @@
-import { ModuleSchema } from '../schema';
+import { AGREEMENT_MODE, ModuleSchema } from '../schema';
 
 /**
  * `HttpReceiverEventa` — the Eventa-flavoured HTTP entry point: a much smaller form than
@@ -18,7 +18,7 @@ export const httpReceiverEventaSchema: ModuleSchema = {
   type: 'HttpReceiverEventa:HttpReceiverEventa',
   label: 'HttpReceiverEventa',
   fields: [
-    { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: ['RUNNING', 'FETCH_ONLY', 'DRAFT'] },
+    { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: AGREEMENT_MODE },
     { name: 'agreementKey', label: 'Agreement Key', kind: 'number' },
     { name: 'transformer', label: 'Transformer', kind: 'textarea' },
     { name: 'validator', label: 'Validator', kind: 'textarea' },

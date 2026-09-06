@@ -1,4 +1,4 @@
-import { ModuleSchema } from '../schema';
+import { AGREEMENT_MODE, ModuleSchema } from '../schema';
 
 /**
  * `EventaDbReceiver` — the Eventa-flavoured database entry point.
@@ -16,7 +16,7 @@ export const eventaDbReceiverSchema: ModuleSchema = {
   type: 'EventaDbReceiver:EventaDbReceiver',
   label: 'EventaDbReceiver',
   fields: [
-    { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: ['RUNNING', 'FETCH_ONLY', 'DRAFT'] },
+    { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: AGREEMENT_MODE },
     { name: 'outputMsgType', label: 'Output Message Type', kind: 'text' },
     { name: 'commentDesc', label: 'Comment Desc', kind: 'text' },
   ],

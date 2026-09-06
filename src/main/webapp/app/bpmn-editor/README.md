@@ -864,6 +864,135 @@ library stylesheets `index.scss` imports (properties-panel 28 kB, diagram-js 20 
 17.5 kB, minimap 1.4 kB); our own SCSS was never the bulk of it. The 102 kB of `font-awesome.min.css`
 does not appear in that number at all — it was never imported, so it was never in the bundle.
 
+### A second pass over `App.tsx`: `Panel/`, `Designer/`, `store/` and `EnhancementContextmenu`
+
+The areas the earlier changes covered least, resolved the same way — from `App.tsx` outward, by
+call site. `App.tsx` mounts six components: `Toolbar`, `Palette`, `Designer`, `Panel`, `Setting`
+and `ContextMenu`. Four were already audited. What follows is what the other two, the two stores
+and `initModeler`'s one remaining import turned up.
+
+Three of the findings are fixed here. The rest are reported with the patch they would take,
+because each is a decision rather than a transcription.
+
+#### Fixed: every module shape was 100x80, and its icon drawn squashed
+
+`components/Designer/modulesAndModdle.ts:154-157` passed `options.elementFactory` whenever
+`otherModule` was on, which is the default:
+
+```ts
+modules.push(ElementFactory);
+options['elementFactory'] = {
+  'bpmn:Task': { width: 120, height: 120 },
+  'bpmn:SequenceFlow': { width: 100, height: 80 },
+};
+```
+
+`CustomElementFactory` was ported. That option was not, and it is the only thing the class reads
+(`additional-modules/ElementFactory/CustomElementFactory.ts:20-28`): with `config.elementFactory`
+undefined every lookup fell through to `super.getDefaultSize`, so the ported factory was a no-op
+and bpmn-js's 100x80 applied.
+
+Every integration module declares `superClass: ["bpmn:Task"]`, so this is the size a
+KafkaReceiver, an HttpTransmitter and the rest are placed at. It is not only geometry:
+`RewriteRenderer` stretches the module's corner icon to the shape's box
+(`RewriteRenderer.ts:1961-1981`) and those icons are square — `kafkaReceiverModule_corner.svg` is
+`viewBox="0 0 551 553"` — so at 100x80 every module icon was drawn squashed.
+
+`DEFAULT_ELEMENT_SIZES` is now passed to the modeler. The Vue config's `bpmn:SequenceFlow` entry
+is deliberately not: `getDefaultSize` is consulted for shapes only, and
+`ElementFactory.createConnection` never asks for one, so it changed nothing there either.
+
+#### Fixed: the panel's selects showed the stored value, not the Vue label
+
+`module-properties/schema.ts` already models a choice as a bare value _or_ a `{ value, label }`
+pair, "because the Vue templates often showed text differing from the stored value". Two schemas
+used the pair form. Fourteen did not, and two of them justified it with a claim about the library
+that is not true — `cdr-parser.ts` said "the panel has no separate option label", while
+`@bpmn-io/properties-panel/dist/index.esm.js:3931-3935` renders
+`<option value={option.value}>{option.label}</option>`.
+
+So the same `0`/`1` flag read **No / Yes** on an HttpTransmitter and **0 / 1** on a Merger, in one
+panel. Transcribed from the Vue `<option>` markup, the drift was:
+
+| Field                                     | Vue showed                                     | This showed            |
+| ----------------------------------------- | ---------------------------------------------- | ---------------------- |
+| `agreementMode` (13 modules)              | `FETCH ONLY`                                   | `FETCH_ONLY`           |
+| `Merger.isIncremental234`                 | `No` / `Yes`                                   | `0` / `1`              |
+| `Merger.mergerForceNextDay`               | `Is Not` / `Is`                                | `0` / `1`              |
+| `CsvTransformer.haveHeader`               | `NO` / `YES`                                   | `0` / `1`              |
+| `Merger` first/last-save/last-send/expire | `SAVE AND SEND`, `NOT SEND`, …                 | the underscored values |
+| `CdrParser.batchCdrType` (8 of 9)         | `HUAWEI PGW DATA CDR`, `TAP 312`, …            | the underscored values |
+| `Transformer` transformType + firstAction | `MCCI CHANGECARD`, `EVENT FROM DB RECEIVER`, … | the underscored values |
+| `FileReceiver.fileScanPolicy`             | `SUB FOLDERS`                                  | `SUBFOLDERS`           |
+| `FileReceiver.postProcessingAction`       | `RENAME AND MOVE`                              | `RENAME_AND_MOVE`      |
+| `anyProcess.ackMode`                      | `NO ACK`, `REC ACK`, …                         | the underscored values |
+
+**No stored value changes.** Only the text the user picks from. `optionValue` and `optionLabel`
+in `schema.ts` are the one place that distinction is made, and the specs now assert both halves
+separately, so a future schema cannot drop a label without a test noticing.
+
+#### Fixed: right-click stayed dead across the portal after one visit
+
+`bpmn-editor.component.ts` registered the Vue original's
+`document.addEventListener('contextmenu', ev => ev.preventDefault())` (`App.tsx:52`) and never
+removed it. In Vue that cost nothing — the editor _was_ the application. Here it is a lazily
+routed page: leaving the listener behind killed right-click on every other screen in the portal
+until a full reload, and each visit stacked another copy. It comes off in `ngOnDestroy` now.
+
+#### Fixed along the way: the settings panel wrote DOM events into the settings
+
+Not a port gap — the Vue `Setting/index.tsx` renders an empty `<div>`, its whole drawer commented
+out (`index.tsx:78-215`), so none of this existed there to port. But the Angular panel that
+replaced it passed `$event` where its handler expected a value, and stored the `Event` object as
+the setting. Nothing threw:
+
+- `toolbar` became a truthy object, so the checkbox could never hide the toolbar;
+- `bg` stopped equalling `'grid-image'`, so touching any control dropped the grid background;
+- `language` reached `BpmnEditorService.updateConfiguration`, which writes it to `sessionStorage` —
+  leaving the string `[object Event]` for the next visit to load as a language.
+
+The handler reads `target.value` / `target.checked` now. Its gear was also `<i class="fas fa-cog">`,
+which draws nothing in this project for the reason the toolbar icons did not, so it is an
+`<fa-icon>`; and the English option's value is `en_US`, which is the bundle key `i18n/index.ts`
+actually exports.
+
+#### Reported, not built
+
+- **The minimap opens closed.** Vue registered it with `minimap: { open: true }`
+  (`modulesAndModdle.ts:127-132`), so it was open on load; here the toolbar button is the only way
+  to open it. The patch is that one option, but it also means rewriting the Playwright test that
+  currently pins "starts closed", so it wants a decision rather than a commit.
+- **`bpmn-js-color-picker` and `bpmn-js-token-simulation` were on by default in Vue**, both under
+  `otherModule` (`modulesAndModdle.ts:141-147`) — not behind the toolbar toggles. Neither package
+  is a dependency here, so this is the same "adding a dependency is your call" question the lint
+  module raised, with the correction that the colour picker was not an optional extra in the Vue
+  editor: right-clicking an element there offered it.
+- **`bg: 'grid'` registers nothing.** Vue pushed `diagram-js/lib/features/grid-snapping/visuals`
+  for that setting (`modulesAndModdle.ts:134-137`); here the value only removes a CSS class. Also
+  the settings panel's `miniMap` checkbox reaches nothing after the modeler is built — Vue rebuilt
+  the whole modeler on any settings change (`Designer/index.tsx:24-41`), and this does not.
+- **`window.addEventListener('message', ev => modeler.importXML(ev.data))`**
+  (`modulesAndModdle.ts:186-188`) is the receiving half of the `postMessage` save this port
+  already declined. It imports any message any frame posts, with no origin check. Not ported, and
+  it should not be without one.
+- **The Vue panel disappeared entirely for a Process.** `Panel/index.tsx:445` returns `null`
+  unless `currentElementType !== 'Process'`, so clicking bare canvas emptied the panel. Here the
+  stock panel shows the process's own groups. Kept, as an improvement rather than a difference to
+  reverse — flagging it because it is visible on the first click of every session.
+- **`styles/font-awesome.min.css` and `styles/style.css` are imported by nothing** —
+  `styles/index.scss` lists neither, and no component references them. 6,834 lines of dead
+  stylesheet carried over from the Vue tree.
+
+#### Checked and found equivalent
+
+`store/editor.ts` and `store/modeler.ts` are answered by `BpmnEditorService`, getter for getter,
+including the `sessionStorage` language write. `additional-functions/EnhancementContextmenu.ts` is
+`context-menu/ContextMenuProvider.ts`: same `element.contextmenu` hook at the same priority 2000,
+same `isAppendAction` split, same +10px cursor offset, same close-on-canvas-click listener. The
+enhancement palette matches entry for entry, including the two entries Vue left commented out.
+`Palette/index.tsx` (the custom palette) is a Chinese-language stub that only mounts under
+`paletteMode: 'custom'`, which is not the default and not what this editor uses.
+
 ## Future Enhancements
 
 - [ ] Token simulation

@@ -5,6 +5,7 @@ import { BpmnEditorComponent } from './bpmn-editor.component';
 import { PanelComponent } from './panel/panel.component';
 import { BpmnEditorService } from '../services/bpmn-editor.service';
 import { additionalModulesFor } from '../additional-modules';
+import { DEFAULT_ELEMENT_SIZES } from '../additional-modules/ElementFactory';
 
 /**
  * bpmn-js renders through the SVG DOM, which jsdom does not implement, so the modeler is stubbed
@@ -97,6 +98,30 @@ describe('BpmnEditorComponent', () => {
 
     const [xml] = created[0].importXML.mock.calls[0];
     expect(xml).toContain(`<bpmn:process id="${settings.processId}" name="${settings.processName}"`);
+  });
+
+  it('gives the custom element factory the sizes it exists to apply', () => {
+    // CustomElementFactory reads nothing but `config.elementFactory`; without it the class is a
+    // no-op and every integration module — all of them `bpmn:Task` subclasses — is placed at
+    // bpmn-js's 100x80 rather than the 120x120 the Vue editor configured.
+    expect(created[0].options.elementFactory).toEqual(DEFAULT_ELEMENT_SIZES);
+    expect(created[0].options.elementFactory['bpmn:Task']).toEqual({ width: 120, height: 120 });
+  });
+
+  it('stops suppressing the browser context menu once the editor is gone', () => {
+    // The listener is on `document`, so leaving it behind kills right-click across the whole
+    // portal — not just here — until a full page reload.
+    const rightClick = (): MouseEvent => {
+      const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+      document.dispatchEvent(event);
+      return event;
+    };
+
+    expect(rightClick().defaultPrevented).toBe(true);
+
+    fixture.destroy();
+
+    expect(rightClick().defaultPrevented).toBe(false);
   });
 
   it('clears the modeler from the service on destroy', () => {

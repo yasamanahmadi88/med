@@ -123,6 +123,8 @@ declare module 'moddle' {
   // Registry
   export interface Package {
     name: string;
+    /** The namespace the prefix stands for. Mandatory in moddle, and missing here until now. */
+    uri: string;
     prefix: string;
     types: DescriptorType[];
   }

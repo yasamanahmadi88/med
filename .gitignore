@@ -39,3 +39,6 @@ Thumbs.db
 # Source archive (extracted into src/)
 ######################
 /src-for-medPortal.rar
+
+# Scratch worktrees the agent harness creates; each is a full checkout of this repo.
+.claude/worktrees/

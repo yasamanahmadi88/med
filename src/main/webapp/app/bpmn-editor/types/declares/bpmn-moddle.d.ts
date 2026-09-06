@@ -3,17 +3,14 @@ declare module 'bpmn-moddle' {
 
   export { Moddle, Package, ModdleElement };
 
-  type ParseResult = {
+  export type ParseResult = {
     rootElement: ModdleElement;
     references: object[];
     warnings: Error[];
     elementsById: { [key: string]: ModdleElement };
   };
-  type ParseError = {
-    warnings: Error[];
-  };
 
-  type SerializationResult = {
+  export type SerializationResult = {
     xml: string;
   };
 
@@ -650,10 +647,22 @@ declare module 'bpmn-moddle' {
     Sequential,
   }
 
-  // 默认导出
+  /**
+   * Hand-written, so three signatures used to describe the library rather than match it. Checked
+   * against `bpmn-moddle/dist/index.js` (v9.0.4) and corrected:
+   *
+   *  - the constructor took `Package[]` only. moddle also accepts a record keyed by prefix, and
+   *    that is the form bpmn-js passes — `new BpmnModdle(moddleOptions)` at
+   *    `bpmn-js/lib/BaseViewer.js:649`, built from the `moddleExtensions` option.
+   *  - `fromXML` was typed as resolving to a result *or* an error (`:48-59`). It resolves with the
+   *    result and rejects on failure, so the union only forced every caller to narrow a case that
+   *    never arrives.
+   *  - `toXML` took a `string` (`:78-90`). It takes the element — the library's own JSDoc says
+   *    `@param {String} element` and is wrong; the value reaches `writer.toXML(element)`.
+   */
   export default class BpmnModdle extends Moddle {
-    constructor(packages?: Package[], options?: object);
-    fromXML(xmlStr: string, typeName?: string | object, options?: object): Promise<ParseResult | ParseError>;
-    toXML(element: string, options?: object): Promise<SerializationResult | Error>;
+    constructor(packages?: Package[] | Record<string, unknown>, options?: object);
+    fromXML(xmlStr: string, typeName?: string | object, options?: object): Promise<ParseResult>;
+    toXML(element: ModdleElement, options?: object): Promise<SerializationResult>;
   }
 }

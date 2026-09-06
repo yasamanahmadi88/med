@@ -503,6 +503,246 @@ three Playwright tests now hold the claims:
 The third was falsified before being kept: with `CamundaPlatformPropertiesProviderModule` removed
 from `designer.component.ts` it fails on the first assertion, and passes again once restored.
 
+### The four `moddle-extensions` still in the Vue folder — none of them ported
+
+`moddle-extensions/` holds 23 files in the Vue editor and 19 here. The four missing ones were
+resolved the same way as everything else: by who imports them, and then by whether an npm package
+already ships them. All four stay out, and one of them would have done real damage.
+
+| Vue file                | Imported by                                                  | Verdict                                                                |
+| ----------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| `bpmn.json`             | **nobody**                                                   | `bpmn-moddle`'s own BPMN 2.0 schema. Registering it replaces it.       |
+| `camunda.json`          | `Designer/modulesAndModdle.ts:10`                            | `camunda-bpmn-moddle`'s own file, plus one type nothing names.         |
+| `zeebe.json`            | **nobody**                                                   | `zeebe-bpmn-moddle`'s schema, for an engine this editor never targets. |
+| `customIconModule.json` | `Designer/CustomIconIntegration.ts:3` — which nobody imports | Dead twice over, and it contradicts its own palette.                   |
+
+#### `bpmn.json` is BPMN 2.0 itself, and registering it is silent damage
+
+The file is `bpmn-moddle/resources/bpmn/json/bpmn.json` — 2957 normalised lines of it — with two
+extra `isAttr: true` flags, on `LinkEventDefinition#target` and `MessageEventDefinition#operationRef`.
+It carries `"prefix": "bpmn"` and `"uri": "http://www.omg.org/spec/BPMN/20100524/MODEL"`: the
+package `bpmn-moddle` registers for itself.
+
+The failure mode is what makes this worth spelling out. `bpmn-moddle` merges the extensions over
+its own packages **by key** (`bpmn-moddle/dist/index.js:3730-3742`,
+`assign({}, packages, additionalPackages)`), so:
+
+- keyed `bpmn`, the descriptor **replaces** the BPMN 2.0 schema — no error, no warning, and every
+  diagram is then parsed against a stale copy;
+- keyed anything else, moddle throws `package with prefix <bpmn> already defined`
+  (`moddle/dist/index.js:958`).
+
+The first is the one to guard, because nothing else would notice. `index.spec.ts` does now.
+
+#### `camunda.json` is the library file plus one type nothing names
+
+Normalised and diffed against `camunda-bpmn-moddle@7.0.2/resources/camunda.json`, the whole
+difference is 64 lines, all additions, all in one place:
+
+- a type `cdrParserProperties` — `camunda:ExecutionListener`'s shape under another name — which
+  appears nowhere in the Vue project but its own declaration (`moddle-extensions/camunda.json:1039`);
+- the string `camunda:cdrProperties` added to `Field`'s `meta.allowedIn`
+  (`moddle-extensions/camunda.json:695`), naming a type that does not exist — the type above is
+  declared as `cdrParserProperties`. `allowedIn` is inert here in any case: the only occurrence of
+  the word across `bpmn-js`, `bpmn-js-properties-panel`, `moddle`, `bpmn-moddle`,
+  `camunda-bpmn-moddle` and `diagram-js` is inside the resource file that declares it.
+
+`additional-modules/index.ts:1` already imports the npm descriptor. The CDR parser's real schema is
+the separate `cdrParserProperties.json`, which is ported, and which is what
+`Designer/modulesAndModdle.ts:100,171` registered for that panel.
+
+#### `zeebe.json` targets an engine this editor does not
+
+`zeebe-bpmn-moddle`'s schema — `ZeebeServiceTask`, `TaskDefinition`, `IoMapping`, `TaskHeaders` and
+twelve more, under `http://camunda.org/schema/zeebe/1.0`. Nothing imports it in the Vue project,
+`zeebe-bpmn-moddle` is not a dependency of this project, no Zeebe properties provider is
+registered, and no palette entry or property form emits a Zeebe element. It would register a
+namespace and change nothing.
+
+#### `customIconModule.json` is dead in the Vue project too
+
+Its one importer is `Designer/CustomIconIntegration.ts:3`, and `CustomIconIntegration` is imported
+by nothing — a whole-project grep returns only the file's own self-references. Reached, it would
+still not work:
+
+- `utils/customIconRegistry-fixed.ts:48` mints element types as `Custom:${icon.name}`, while the
+  file declares prefix `custom` with the single type `CustomElement`. The palette provider would
+  ask `elementFactory.createShape` for a namespace nobody registered.
+- `CustomIconIntegration.ts:1` reads the `-fixed` registry while
+  `Palette/EnhancementPalette/customIconPaletteProvider.ts:10` reads the other one, so the two
+  halves would not see the same icons.
+- `CustomIconIntegration.ts:29-53` only `new`s the provider into a field. It is never registered
+  with didi, so `getPaletteEntries` is never called.
+- the file spells its own `enumerations` key `emumerations`.
+
+Custom icons are blocked on a product decision, and this file is not the part that was missing.
+
+#### What this change does instead: hold the claims in moddle
+
+The `moddleExtensionsFor` tests could only read the keys of the returned object, which never
+touches moddle — and moddle is where every way of getting this wrong actually shows up. Four tests
+now build the real thing (`new BpmnModdle(extensions)`, which is what bpmn-js does with this object
+at `bpmn-js/lib/BaseViewer.js:61,646`), and each was falsified before being kept:
+
+| Test                                              | Falsified by                                                                              |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `bpmn:Definitions` resolves for every engine      | returning camunda and cdrParser together → `property <diagramRelationId> already defined` |
+| every type the palettes place resolves            | dropping `KafkaReceiver` → `expected undefined to be truthy`                              |
+| a diagram parses and re-serialises                | dropping the camunda descriptor → `expected 'true' to be true`                            |
+| no package `bpmn-moddle` already owns is declared | adding the BPMN 2.0 package → `expected [ 'bpmn', … ] to not include 'bpmn'`              |
+
+The third is the one worth reading twice. `camunda:asyncBefore="true"` comes back as the **string**
+`'true'` when the camunda descriptor is missing, because moddle keeps the attributes of an unknown
+namespace in `$attrs` verbatim. A test that only checked the value survived would pass either way;
+asserting the boolean is what makes it a test.
+
+#### Two corrections to what `additional-modules/index.ts` said
+
+Checking the one-engine rule against moddle rather than against the key list turned up two claims
+in that comment that are not true:
+
+- **"the modeler fails to construct at all."** It does not. moddle builds type descriptors lazily,
+  so the clash surfaces on the first `getType('bpmn:Definitions')` — that is, the first
+  `createDiagram` or `importXML`, with a modeler that constructed perfectly well. A test that only
+  constructs a modeler would miss it entirely.
+- **"registering more than one"** is not the trigger. Only camunda and cdrParser clash, because
+  only those two extend `bpmn:Definitions` (`camunda-bpmn-moddle/resources/camunda.json:10-23`,
+  `moddle-extensions/cdrParserProperties.json:10-21`). All five other pairs build a working moddle.
+  The rule is still right — one diagram carries one engine's schema — but it is enforced here, not
+  by moddle.
+
+#### Two hand-written declarations corrected along the way
+
+Testing against moddle rather than against the key list meant calling the library the way bpmn-js
+calls it, and `types/declares/` described three of those signatures wrongly. Checked against
+`bpmn-moddle/dist/index.js` (v9.0.4) and fixed rather than cast around:
+
+- `BpmnModdle`'s constructor was typed `Package[]` only. moddle also takes a record keyed by
+  prefix, which is the form bpmn-js passes (`BaseViewer.js:649`).
+- `fromXML` was typed as resolving to a result _or_ an error. It resolves with the result and
+  rejects on failure, so the union only forced callers to narrow a case that never arrives.
+- `toXML` took a `string`. It takes the element; the library's own JSDoc says `@param {String}`
+  and is wrong about itself.
+- `moddle`'s `Package` was missing `uri`, which every package has and which the new test reads.
+
+Four `as unknown as` casts came out with them.
+
+### `components/common/` and `styles/context-pad.scss` — 154 lines, nothing to port
+
+Four "common" components and one stylesheet, resolved the same way as everything else: by who
+imports each file, and then whether _that_ consumer is itself reachable from `App.tsx`. Two are
+dead in the Vue project, two are the hand-rolled version of something the stock properties panel
+now renders, and the stylesheet styles a class no code produces, using an image that is not there.
+
+| Vue file                   | Lines | Verdict                                                                                                     |
+| -------------------------- | ----- | ----------------------------------------------------------------------------------------------------------- |
+| `common/BpmnIcon.vue`      | 23    | **Dead** — no import, no global registration, no template names it.                                         |
+| `common/CollapseTitle.vue` | 32    | Registered globally, but its only users are seven files nothing imports. Also the panel's own group header. |
+| `common/EditItem.vue`      | 54    | The same seven files. Also the panel's own labelled entry row.                                              |
+| `common/LucideIcon.vue`    | 38    | Live in Vue — and every call site that was ported already draws a `<fa-icon>` here.                         |
+| `styles/context-pad.scss`  | 7     | Styles a class only commented-out code produces, from an image that does not exist.                         |
+
+#### `BpmnIcon.vue` is dead — and its stylesheet is why this panel header wrapped
+
+`main.ts:79-96` registers `LucideIcon`, `EditItem` and `CollapseTitle` globally. `BpmnIcon` is not
+among them, nothing imports it by path, and no template in the Vue source names `<BpmnIcon>` or
+`<bpmn-icon>`. The Vue panel header it was written for renders `<p>{bpmnElementName}</p>` and
+nothing else (`components/Panel/index.tsx:450-451`), so the component never reached a screen.
+
+Its **stylesheet** did reach this module, though. `styles/panel.scss` was carried over whole, and
+its `.panel-header` rule is the icon's layout: a grid with a 40px first column for the `<svg>`,
+spanning two rows for the element name and type. `PanelComponent` renders one word and no icon
+(`components/panel/panel.component.html:2`), so that column had nothing in it and the title was
+squeezed into it — measured in the browser: the header 117px tall, `grid-template-columns: 40px
+245px`, and "Properties" broken across two line boxes 39.7px and 31.0px wide with the 245px column
+beside it empty. `BpmnEditorComponent` uses `ViewEncapsulation.None`, which is how a global rule
+written for a Vue component reached an Angular one.
+
+The rule is removed. Its one non-layout declaration, the `#f5f5f7` tint, moves to
+`panel.component.scss` where the header that actually exists is styled, so the only visible change
+is the title fitting on its line.
+
+#### `CollapseTitle.vue` and `EditItem.vue` — seven consumers, none of them imported
+
+`<collapse-title>` and `<edit-item>` appear only in `components/Panel/components/Element*.vue` —
+`ElementAsyncContinuations`, `ElementConditional`, `ElementDocumentations`,
+`ElementExecutionListeners`, `ElementExtensionProperties`, `ElementGenerations`,
+`ElementJobExecution`. **Nothing in the Vue project imports any of those seven**, by path or by
+symbol. `Panel/index.tsx` renders `renderComponents` (`index.tsx:454-456`), and every branch that
+fills it (`index.tsx:172-380`) pushes only the module-specific `*Properties/*.vue` editors. So even
+though `penalMode` defaults to `custom` (`config/index.ts:10`) and `App.tsx:77` therefore mounts
+the custom panel, none of the seven ever mounts, and the two components they hold are unreachable.
+
+They are also duplicates. `@bpmn-io/properties-panel/dist/index.esm.js:923-947` is `Group`: the
+header, the title, the arrow and the open/closed state — the whole collapsible section, of which
+`CollapseTitle` was the title row inside a naive-ui `n-collapse-item`. And each entry renders
+`<label class="bio-properties-panel-label" for="…">` bound to its control, which is `EditItem`'s
+`<div class="edit-item_label">` row with an association it never had: clicking the panel's label
+focuses the field.
+
+One difference, stated rather than hidden: `EditItem` put the label to the left of the control at a
+fixed pixel width (`labelWidth`, default 80); the panel stacks the label above it. Same
+information, different shape, and no code of ours either way.
+
+#### `LucideIcon.vue` — live in Vue, already answered by `<fa-icon>`
+
+The one of the four that is genuinely reachable. Its call sites and what became of each:
+
+| Vue call site                   | Icon                          | Here                                                       |
+| ------------------------------- | ----------------------------- | ---------------------------------------------------------- |
+| `Commands.tsx:40,50,60`         | `Undo2`, `Redo2`, `Eraser`    | `icons.undo`, `icons.redo`, `icons.restart`                |
+| `Scales.tsx:49,71`              | `ZoomOut`, `ZoomIn`           | `icons.zoomOut`, `icons.zoomIn`                            |
+| `ExternalTools.tsx:146,170`     | `Map`, `Keyboard`             | `icons.minimap`, `icons.shortcuts`                         |
+| `ExternalTools.tsx:125,135,158` | `Bot`, `Podcast`, `FileCheck` | token simulation, lint, event-listener dialog — not ported |
+| `Aligns.tsx:7`                  | —                             | imported but never rendered; `setup()` returns nothing     |
+| `Setting/index.tsx:81`          | `Settings`                    | inside a `{/* … */}` JSX comment                           |
+
+Every call site that was ported already draws its icon, and porting `LucideIcon` would mean adding
+a `lucide-angular` dependency — `package.json` has no lucide package — to redraw them. The toolbar
+icon test already counts one `svg.svg-inline--fa` per button, so a regression there is caught.
+
+#### `context-pad.scss` — a class nothing produces, pointing at an image that is not there
+
+Both halves fail independently.
+
+`.enhancement-op` appears exactly twice in the Vue source outside the stylesheet, and **both are
+commented out**: `additional-modules/ContextPad/RewriteContextPad/rewriteContextPadProvider.ts:65`
+and `:77`. `getContextPadEntries` returns the `actions` object it declared empty at `:60`. Nothing
+in this module produces the class either.
+
+And the image. The rule asks for `./logo.ico`, which resolves against `src/styles/`. The only
+`.ico` in the Vue repository is `public/logo.ico`; `src/styles/logo.ico` does not exist. Had the
+class ever been rendered, its background would still have been nothing.
+
+The provider it decorates is not here in any case: `RewriteContextPadProvider` is registered only
+under `contextPadMode: 'rewrite'`, and neither context-pad variant is ported — see "The six
+`additional-modules` left over" above. This module's `styles/index.scss` already omits the import.
+
+#### What this change does instead: hold the two coverage claims
+
+The dead files need no code. The two "the library already does it" claims do, because a future
+change could quietly drop the module — the same reason the `bpmn-icons` audit left tests behind.
+Three Playwright tests:
+
+- **the panel header is a single line box.** This is the assertion that catches the dead
+  `.panel-header` grid; the header reads "Properties" either way, so a text assertion walks
+  straight past a title broken in half.
+- **a group opens and closes from its header**, with its fields appearing and disappearing —
+  groups open closed, so the first click has to be the one that reveals them.
+- **the ID row's `<label for>` focuses its input when clicked**, which is the association
+  `EditItem`'s `<div>` never had.
+
+Each was falsified before being kept. Restoring the `.panel-header` rule turns the first from one
+line box into two. Dropping `BpmnPropertiesProviderModule` from `designer.component.ts` fails the
+other two. And the focus assertion was checked against a control: clicking the group header title —
+a `<div>`, not a label — leaves the input `inactive`, so it is the `<label for>` doing the work.
+
+**Left alone, and worth a word.** `styles/panel.scss` still carries naive-ui leftovers —
+`.n-collapse`, `.n-collapse-item*`, `.inline-large-button`, `.need-filled.n-form`. Unlike
+`.panel-header` these are inert: no element with an `n-collapse` class renders anywhere in this
+editor (counted in the browser: zero). They are the styling for the collapse the properties panel
+now provides. Say the word and they go with a follow-up that audits the rest of `Panel/`.
+
 ## Future Enhancements
 
 - [ ] Token simulation

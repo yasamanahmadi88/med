@@ -743,6 +743,127 @@ a `<div>`, not a label — leaves the input `inactive`, so it is the `<label for
 editor (counted in the browser: zero). They are the styling for the collapse the properties panel
 now provides. Say the word and they go with a follow-up that audits the rest of `Panel/`.
 
+### The stylesheets — 12 files, 5 left, and two of them were breaking things
+
+`styles/` came across whole, the way `panel.scss` did, so it was audited the same way: every rule
+resolved against the DOM this editor actually renders. Not by reading — by counting. A Playwright
+probe walked `document.styleSheets`, ran `document.querySelectorAll(rule.selectorText).length` for
+all 3,981 rules on the page, and repeated it with the settings panel open, the XML and shortcut
+dialogs open, the create menu open and the replace popup open. Anything that looked live was then
+measured a second time with its declarations blanked in place (`rule.style.cssText = ''`), which is
+the only way to see what a rule contributes: an `!important` override reports the wrong answer,
+because `revert` also discards the SVG presentation attributes bpmn-js paints with.
+
+#### Two rules applied and were wrong
+
+**`.djs-popup-group { display: flex !important }`** (`palette.scss`) turned the replace menu — the
+wrench on the context pad, which this port deliberately kept as bpmn-js's own popup — into a single
+row. diagram-js draws that menu as a `<ul>` in a 300px popup and scrolls it vertically
+(`.djs-popup-results { max-height: 280px; overflow: auto }`). Measured on a task in a 1280px
+viewport: the ten "Change element" entries laid out **1341px wide**, `resultsScrollWidth` 1341 against
+a `clientWidth` of 283, and **eight of the ten past the popup's right edge** — three sitting under
+`.djs-popup-backdrop`, where a click dismisses the menu instead of choosing a type, and four off the
+side of the screen at x ≥ 1269. With the rule blanked: 10 rows, 1 column, nothing spilling. Removed.
+
+**The grid background never drew.** `index.scss` painted it on `.designer` — Vue's canvas element.
+This editor renders `<jhi-designer>`, so the selector matched **0** elements and `bg: 'grid-image'`,
+which is the shipped default (`config/index.ts:13`) and puts `designer-with-bg` on the container,
+produced `background-image: none`. Same shape as the `.panel-header` bug: a rule laid out around
+markup that is not there. Retargeted at `jhi-designer`, measured as the 40px tile with
+`background-repeat: repeat` and `background-size: auto` — the `background` shorthand is `!important`,
+so it resets the `contain` that `bpmn-editor.component.scss` sets on the same element.
+
+Its sibling `&.designer-with-image` is **removed rather than retargeted**: it asks for `/04.jpg`,
+which this project does not ship (the only jpg under `content/` is `images/background-blurry.jpg`).
+Retargeting it would turn the settings panel's "Image" option into a 404 on every load, so that
+option stays the no-op it already was. `bg: 'grid'` has never had a rule at all.
+
+#### Five files removed, each measured dead
+
+| File                            | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `font-awesome.min.css` (102 kB) | Referenced by nothing — `git grep` over the whole tree at the merge base returns only the file itself. It never reaches `document.styleSheets`, and `document.fonts` lists exactly one face: `bpmn`. This project ships FontAwesome as SVG components.                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `style.css`                     | Also referenced by nothing. Its live-looking rules were `.bjs-breadcrumbs { display: none }` (bpmn-js already hides it outside a subprocess) and two contradictory media queries setting `.djs-container { overflow: auto }` and `overflow: hidden`.                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `setting.scss`                  | All 15 selectors matched 0. It styles `.setting`, `.setting-container`, `.setting-header/-content/-footer`, `.toggle-button`; `SettingsComponent` renders `.settings-container`, `.settings-panel`, `.settings-header/-content`, `.settings-toggle` — different classes with their own scoped stylesheet. The rest (`.n-form-item.theme-list`, `.n-color-picker`, `.n-input-number`, `.tips-message`) is naive-ui.                                                                                                                                                                                                                                                       |
+| `toolbar.scss`                  | `.toolbar` matches the Angular toolbar, so it was measured rather than read: with the rule blanked, the container box and all 13 button rectangles are **byte-identical** (`identical: true`). Every declaration is either set to the same value by `toolbar.component.scss` (`display: flex`, `align-items: center`, `padding: 8px 16px` = `0.5rem 1rem`) or resolves to the used value it already had (`width: 100%`, `height: min-content`, `box-sizing`). Its other selectors — `.button-list_column`, `.preview-model`, `.shortcut-keys-model`, `.event-listeners-box`, `.n-dialog.n-modal`, `div[class^='n-button']` — matched 0, including with each dialog open. |
+| `bpmn-override.scss`            | `.bts-toggle-mode` (bpmn-js-token-simulation, not a dependency) and `.cmd-change-menu`: 0 each.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `camunda-penal.scss`            | `.camunda-penal` renders only under `penalMode: 'default'`. Measured in that mode: 350px with the rule and 350px with it blanked — `bpmn-editor.component.scss`'s `.main-content .camunda-penal` out-specifies it. Nothing else in the file.                                                                                                                                                                                                                                                                                                                                                                                                                             |
+
+Plus one `@import`: **`element-templates.css`**. All 23 of its selectors matched 0, and no
+element-templates provider is registered — `designer.component.ts` adds `BpmnPropertiesProviderModule`
+and `CamundaPlatformPropertiesProviderModule` only.
+
+#### `panel.scss` was partly live, so its live half moved
+
+The naive-ui leftovers reported earlier — `.n-collapse*`, `.inline-large-button`,
+`.need-filled.n-form` — all matched 0, and `width: 480px` never applied: `panel.component.scss`'s
+scoped `.panel` wins on specificity, measured at 350px with the global rule both enabled and
+blanked. But four declarations _were_ doing something. Blanking the rule moved `padding` from
+`0 8px` to `0`, `box-shadow` from `0 0 8px #ccc` to `none`, `max-height` from `100%` to `none` and
+`overflow-y` from `auto` to `visible`. Those four (with `box-sizing`) are now in
+`panel.component.scss` at their original values — the same handling the `#f5f5f7` tint got when the
+`.panel-header` grid came out — and the panel measures identically after the move.
+
+#### Trimmed from the files that stayed
+
+- `designer.scss`: `.designer { flex: 1 }` — 0 matches; `bpmn-editor.component.scss` already gives
+  `jhi-designer` that. Its other two rules are live and stay: blanking `.djs-minimap div.toggle`
+  turns the minimap's own widget from `display: none` into a 138px block, and blanking
+  `.layer-selectionOutline` turns the layer's computed `fill` from `none` to black.
+- `palette.scss`: `.djs-visual g image` and seven icon classes, 0 matches each —
+  `.transformer-module` and `.eventaDbReceiver-module` (their palette entries are commented out at
+  `enhancementPaletteProvider.ts:179` and `:260`), `.httpReceiverEventa-module` (named nowhere), and
+  `.csvTransformerCorner` / `.mergerCorner` / `.fragmenterCorner` / `.KafkaTransmitterCorner`, where
+  "Corner" is only ever a function name or an entry key, never a `className`. The duplicate
+  `.csvTransformer-module` block also went: it was declared twice, and the second (1.5em/1.8em) is
+  the one that won — measured at 45px before and after.
+- `index.scss`: `#app`, Vue's mount point — 0 matches.
+
+#### Left alone, deliberately
+
+- **`custom-icons.scss`** is not imported by `index.scss`, so none of it ever loads and all of its
+  selectors matched 0. Untouched: it belongs with the blocked custom-icon feature.
+- **`.djs-visual rect`** (`palette.scss`) stays, and it is worth knowing what it does. Three of its
+  four declarations are inert: `RewriteRenderer` writes `stroke-width: 2px; fill: #fff;
+fill-opacity: …` as an _inline style_, which beats them — measured identical with them and
+  without. The fourth, `stroke: rgb(0,0,0) !important`, repaints every rect-drawn element black
+  over the renderer's `defaultTaskColor: '#9cafcf'` (`RewriteRenderer.ts:77`). That is also what
+  the Vue editor looked like, so removing it would change the diagram's appearance rather than fix
+  it — and under `rendererMode: 'default'` bpmn-js paints with presentation attributes, which a
+  rule beats, so the other three would stop being inert. Say the word if the blue-grey borders the
+  renderer was written for are what you want.
+- **`.palette`** (`palette.scss`) renders only under `paletteMode: 'custom'`. Measured in that mode:
+  `width: 360px` is out-specified by `palette.component.scss` (200px either way), leaving
+  `padding: 16px` as its only effect. Kept — removing it is a visual change, not a dead-rule fix.
+- **`body, html, .designer-container`** in `index.scss`. `#app` came out of the selector list; the
+  rest stays, and it has a problem this change does not fix. See below.
+
+#### One bug found and **not** fixed: 47px of the editor is unreachable
+
+Measured on `/bpmn-editor` at a 720px viewport: the navbar is 46.4px tall, `.designer-container`
+starts at y=47 and is `height: 100vh`, so it ends at y=767 — 47px below the bottom of the screen.
+`body { overflow: hidden }` from this stylesheet means the page cannot scroll to it
+(`window.scrollTo(0, 5000)` leaves `scrollY` at 0), so the bottom 47px of the canvas and of the
+properties panel are simply gone. It is the same root cause as everything else here — Vue's editor
+_was_ the document — but the fix is not a stylesheet edit:
+
+- `height: 100vh` is set by `bpmn-editor.component.scss` as well, and that copy wins;
+- blanking the `body, html` half alone does **not** fix it (measured: still clipped by 47, document
+  768px tall, and the page still would not scroll);
+- making the container fill the room below the navbar needs the shell chain
+  (`body > jhi-main > .app-root > main > .card`) to become a height-constrained column, which is
+  `layouts/main/main.component.scss` and affects every route.
+
+So it is written down rather than guessed at. It wants its own change.
+
+#### What this does to the budget
+
+`bpmn-editor.component.scss` was `2.00 kB` budget, `68.53 kB` actual — 66.53 kB over. It is now
+**58.73 kB**, 56.73 kB over — 9.80 kB out. Not more, because the bundle is almost entirely the six
+library stylesheets `index.scss` imports (properties-panel 28 kB, diagram-js 20 kB, the bpmn font
+17.5 kB, minimap 1.4 kB); our own SCSS was never the bulk of it. The 102 kB of `font-awesome.min.css`
+does not appear in that number at all — it was never imported, so it was never in the bundle.
+
 ## Future Enhancements
 
 - [ ] Token simulation

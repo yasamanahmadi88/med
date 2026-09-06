@@ -7,6 +7,7 @@ import { BpmnEditorService } from '../../services/bpmn-editor.service';
 import { additionalModulesFor, moddleExtensionsFor } from '../../additional-modules';
 import ModulePropertiesModule from '../../module-properties';
 import { createNewDiagram } from '../../utils/empty-diagram';
+import ContextMenuModule from '../../context-menu';
 
 @Component({
   selector: 'jhi-designer',
@@ -65,6 +66,11 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
       modules.push(ModulePropertiesModule);
     }
 
+    // Right-click: the stock replace menu for an element, our create menu for the canvas.
+    // Registered unconditionally — the module reads `config.contextMenu` and steps aside when
+    // the setting is off, so the browser's own menu is what appears.
+    modules.push(ContextMenuModule);
+
     try {
       this.bpmnModeler = new BpmnModeler({
         container: this.canvas.nativeElement,
@@ -82,6 +88,11 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
         // Reaches ModulePropertiesProvider as `config.processEngine`. Module properties are
         // namespaced by the engine, so an HttpReceiver stores `camunda:agreementMode`.
         processEngine: settings?.processEngine ?? 'camunda',
+        // Reaches ContextMenuProvider as `config.contextMenu`.
+        contextMenu: {
+          enabled: settings?.contextmenu ?? true,
+          custom: settings?.customContextmenu ?? true,
+        },
         // The panel modules read `propertiesPanel.parent`, so it is only set when a parent
         // exists — the editor can be configured without the custom panel.
         ...(panelParent ? { propertiesPanel: { parent: panelParent } } : {}),

@@ -151,17 +151,20 @@ Main BPMN.js libraries used:
 - `diagram-js`: Diagram drawing and manipulation library
 - `camunda-bpmn-moddle`: Camunda BPMN extensions support
 
-## Port status: `utils/`
+## Port status
 
-The Vue editor this module replaces had 18 files under `src/utils`. Resolved through their
-call sites rather than their names, only three carry behaviour this editor still needs, and
-`utils/empty-diagram.ts` is the first of them.
+The Vue editor this module replaces had 18 files under `src/utils`, plus a context menu spread
+over four more. Resolved through their call sites rather than their names, most carry no
+behaviour this editor still needs.
+
+### `utils/`
 
 **Ported**
 
-| Vue file                  | Here                     | Note                                                                                                                                                                                                                                                         |
-| ------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `EmptyXML.ts`, `index.ts` | `utils/empty-diagram.ts` | `modeler.createDiagram()` discards the configured `processId`/`processName`. The engine argument `EmptyXML` took is dropped — it was never referenced, so no diagram ever carried it. The process name is now XML-escaped; the original interpolated it raw. |
+| Vue file                  | Here                                  | Note                                                                                                                                                                                                                                                         |
+| ------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `EmptyXML.ts`, `index.ts` | `utils/empty-diagram.ts`              | `modeler.createDiagram()` discards the configured `processId`/`processName`. The engine argument `EmptyXML` took is dropped — it was never referenced, so no diagram ever carried it. The process name is now XML-escaped; the original interpolated it raw. |
+| `BpmnDesignerUtils.ts`    | `context-menu/ContextMenuProvider.ts` | Only `isAppendAction`, its one function with a consumer.                                                                                                                                                                                                     |
 
 **Not ported — no consumer in the Vue project either**
 
@@ -174,19 +177,39 @@ by path or by exported symbol.
 `BpmnImplementationType.ts`, `BpmnValidator.ts`. Each exists only to serve a `bo-utils` file
 behind one panel group — job execution, conditions, execution listeners, extension properties,
 and id validation. `designer.component.ts` registers `BpmnPropertiesProviderModule` and
-`CamundaPlatformPropertiesProviderModule`, which ship those same groups
-(`JobExecutionProps`, `ConditionProps`, `ExecutionListenerProps`, `ExtensionPropertiesProps`,
-`IdProps`, `AsynchronousContinuationsProps`). Porting them would fork a maintained
-implementation.
+`CamundaPlatformPropertiesProviderModule`, which ship those same groups (`JobExecutionProps`,
+`ConditionProps`, `ExecutionListenerProps`, `ExtensionPropertiesProps`, `IdProps`,
+`AsynchronousContinuationsProps`). Porting them would fork a maintained implementation.
 
 **Not ported — belongs with a feature still to come**
 
-| Vue file                                                  | Waiting on                                                                                                                                                                                                                                                            |
-| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `EventEmitter.ts`                                         | Its 446 `element-update` emissions were the 152 per-field property components, now replaced by `module-properties`; the panel re-reads on selection itself. `modeler-init` is Angular DI here. Only `show-contextmenu` is left, and it belongs with the context menu. |
-| `BpmnDesignerUtils.ts`, `BpmnReplaceOptions.ts`           | The context menu. `ContextMenuComponent` is still an empty shell.                                                                                                                                                                                                     |
-| `customIconRegistry.ts` (and its `-fixed` near-duplicate) | Custom icon upload — registry, palette provider, upload UI and service together.                                                                                                                                                                                      |
-| `Logger.ts`                                               | Its two consumers (the Vue panel shell and `CustomRules`) are unported. The orphan `types/editor/utils.d.ts` declaring it has been removed.                                                                                                                           |
+| Vue file                                                  | Waiting on                                                                                                                                  |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `customIconRegistry.ts` (and its `-fixed` near-duplicate) | Custom icon upload — registry, palette provider, upload UI and service together.                                                            |
+| `Logger.ts`                                               | Its two consumers (the Vue panel shell and `CustomRules`) are unported. The orphan `types/editor/utils.d.ts` declaring it has been removed. |
+
+### The context menu
+
+`context-menu/` and `components/context-menu/` between them replace `EnhancementContextmenu.ts`,
+`components/ContextMenu/`, and the two utils those used.
+
+Right-click splits in two, and only one half needed anything of ours:
+
+| Right-clicked            | Vue                                                                                     | Here                                                                                             |
+| ------------------------ | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| An element               | its own flat list, from a 130-line reimplementation of `ReplaceMenuProvider.getEntries` | the stock `bpmn-replace` popup — the same choices, plus search, grouping and keyboard navigation |
+| Canvas, pool, subprocess | the same flat list, in "create" mode                                                    | our own menu; `bpmn-replace` is empty for these                                                  |
+
+`BpmnReplaceOptions.ts` is not ported because it _is_ that reimplementation. The create menu's
+entries are still bpmn-js's own `ReplaceOptions` data (`START_EVENT + TASK + GATEWAY +
+BOUNDARY_EVENT`, the four groups Vue chose) — importing their data, not forking their logic.
+
+**This closes out `EventEmitter.ts`.** Its last unported event was `show-contextmenu`, carried
+between the modeler-side handler and the menu component. bpmn-js already has an event bus both
+sides can reach, so `ContextMenuProvider` fires `contextMenu.append.open` on it and
+`ContextMenuComponent` — which takes the modeler from `BpmnEditorService` — listens. No bus of
+our own, and nothing left in `EventEmitter.ts` to port. Its other two events were already
+answered: `element-update` by the properties panel, `modeler-init` by Angular DI.
 
 ## Future Enhancements
 

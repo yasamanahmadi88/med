@@ -5,6 +5,16 @@
   background-color: #f9f9f9;
   border-left: 1px solid #e0e0e0;
   height: 100%;
+  // What survives the Vue `styles/panel.scss` `.panel` rule, which has gone with the file. Its
+  // `width: 480px` never applied — this scoped rule out-specifies it, measured at 350px with the
+  // global rule both enabled and blanked — and its `.n-collapse*` / `.inline-large-button` /
+  // `.need-filled.n-form` children matched nothing. These four are the declarations that were
+  // doing something, kept at their original values so the panel looks exactly as it did.
+  box-sizing: border-box;
+  padding: 0 8px;
+  box-shadow: 0 0 8px #ccc;
+  max-height: 100%;
+  overflow-y: auto;
 
   .panel-header {
     padding: 1rem;

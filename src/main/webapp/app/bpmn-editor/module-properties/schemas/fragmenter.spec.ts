@@ -1,3 +1,4 @@
+import { optionLabel, optionValue } from '../schema';
 import { fragmenterSchema } from './fragmenter';
 
 /**
@@ -29,6 +30,8 @@ describe('fragmenterSchema', () => {
     // These values are read by the backend, so an extra or renamed option produces a diagram the
     // engine rejects rather than a visibly broken form.
     expect(fragmenterSchema.fields[0].kind).toBe('select');
-    expect(fragmenterSchema.fields[0].options).toEqual(['RUNNING', 'FETCH_ONLY', 'DRAFT']);
+    expect(fragmenterSchema.fields[0].options?.map(optionValue)).toEqual(['RUNNING', 'FETCH_ONLY', 'DRAFT']);
+    // The Vue <option> text spaced FETCH_ONLY; SelectEntry shows the label and stores the value.
+    expect(fragmenterSchema.fields[0].options?.map(optionLabel)).toEqual(['RUNNING', 'FETCH ONLY', 'DRAFT']);
   });
 });

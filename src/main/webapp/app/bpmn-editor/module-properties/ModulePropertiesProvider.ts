@@ -2,7 +2,7 @@ import { CheckboxEntry, NumberFieldEntry, SelectEntry, TextAreaEntry, TextFieldE
 import { getBusinessObject } from 'bpmn-js/lib/util/ModelUtil';
 import { Base } from 'diagram-js/lib/model';
 
-import { ModuleField, ModuleSchema } from './schema';
+import { ModuleField, ModuleSchema, optionLabel, optionValue } from './schema';
 import { schemaForType } from './schemas';
 import { validateField } from './validators';
 
@@ -106,11 +106,11 @@ export default class ModulePropertiesProvider {
       // form, where the select started blank until the user picked a value.
       entry['getOptions'] = () => [
         { value: '', label: '' },
-        ...(field.options ?? []).map(option =>
-          // A bare string is a choice whose stored value reads well enough to show as-is; the
-          // pair form carries the Vue template's display text, which often differed.
-          typeof option === 'string' ? { value: option, label: option } : { value: option.value, label: option.label },
-        ),
+        // A bare string is a choice whose stored value reads well enough to show as-is; the pair
+        // form carries the Vue template's display text, which differed for most of them.
+        // `SelectEntry` stores `value` and renders `label`
+        // (@bpmn-io/properties-panel/dist/index.esm.js:3931-3935).
+        ...(field.options ?? []).map(option => ({ value: optionValue(option), label: optionLabel(option) })),
       ];
     }
 

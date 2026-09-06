@@ -48,5 +48,18 @@ export interface ModuleSchema {
   readonly fields: readonly ModuleField[];
 }
 
+/** The value a choice stores — what the backend reads, and all a diagram ever carries. */
+export function optionValue(option: FieldOption): string {
+  return typeof option === 'string' ? option : option.value;
+}
+
+/**
+ * The text a choice shows. Equal to the value unless the Vue `<option>` displayed something else,
+ * which it did for most of the underscored enums and for every `0`/`1` flag.
+ */
+export function optionLabel(option: FieldOption): string {
+  return typeof option === 'string' ? option : option.label;
+}
+
 /** Every module offers the same agreement modes; the Vue template showed FETCH_ONLY spaced. */
 export const AGREEMENT_MODE: readonly FieldOption[] = ['RUNNING', { value: 'FETCH_ONLY', label: 'FETCH ONLY' }, 'DRAFT'];

@@ -1,18 +1,22 @@
-@import "bpmn-js-properties-panel/dist/assets/element-templates.css";
+// `element-templates.css` is not imported: it styles the properties panel's element-templates
+// group, and no element-templates provider is registered (`designer.component.ts:56-72` adds
+// `BpmnPropertiesProviderModule` and `CamundaPlatformPropertiesProviderModule` only). Every one
+// of its 23 selectors matched zero elements in the browser.
 @import "bpmn-js-properties-panel/dist/assets/properties-panel.css";
 
-@import "bpmn-override";
-@import "toolbar";
 @import "designer";
 @import "palette";
-@import "panel";
-@import "camunda-penal";
-@import "setting";
 @import "contextmenu";
 
+// `bpmn-override`, `toolbar`, `panel`, `camunda-penal` and `setting` are gone: measured in
+// Chromium, every selector in them matched nothing, or was out-specified by the component
+// stylesheet that styles the element it names. See README, "The stylesheets".
+
+// The Vue editor was the whole document, so its shell sized itself against the viewport. Here it
+// is one route below the application navbar. `#app` — Vue's mount point — went with the rest of
+// that assumption: it matched nothing.
 body,
 html,
-#app,
 .designer-container {
   height: 100vh;
   width: 100vw;
@@ -22,22 +26,21 @@ html,
   display: flex;
   flex-direction: column;
   position: relative;
-  &.designer-with-bg > .main-content .designer {
+  // Vue rendered the canvas as `<div class="designer">` (`components/Designer/index.vue`); here it
+  // is the `<jhi-designer>` element, so this rule — like `.panel-header` before it — was laid out
+  // around markup that is never rendered, and the `bg: 'grid-image'` default drew nothing at all.
+  &.designer-with-bg > .main-content jhi-designer {
     background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTAgMTBoNDBNMTAgMHY0ME0wIDIwaDQwTTIwIDB2NDBNMCAzMGg0ME0zMCAwdjQwIiBmaWxsPSJub25lIiBzdHJva2U9IiNlMGUwZTAiIG9wYWNpdHk9Ii4yIi8+PHBhdGggZD0iTTQwIDBIMHY0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZTBlMGUwIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2EpIi8+PC9zdmc+')
       repeat !important;
   }
-  &.designer-with-image > .main-content .designer {
-    background-repeat: no-repeat !important;
-    background-image: url("/04.jpg") !important;
-    background-size: cover;
-  }
+  // `&.designer-with-image` is not here. It named the same missing `.designer` element and asked
+  // for `/04.jpg`, which this project does not ship — the only jpg under `content/` is
+  // `images/background-blurry.jpg`. Retargeting it would turn the settings panel's "Image"
+  // background into a 404 on every load, so the option stays the no-op it already was.
   .main-content {
     width: 100%;
     flex: 1;
     overflow: hidden;
     display: flex;
-    .designer {
-      flex: 1;
-    }
   }
 }

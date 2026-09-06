@@ -1,4 +1,4 @@
-import { ModuleSchema } from '../schema';
+import { AGREEMENT_MODE, ModuleSchema } from '../schema';
 
 /**
  * `CsvTransformer` — how a delimited record is cut up: the separators and field count first, then
@@ -16,10 +16,18 @@ export const csvTransformerSchema: ModuleSchema = {
   type: 'CsvTransformer:CsvTransformer',
   label: 'CsvTransformer',
   fields: [
-    { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: ['RUNNING', 'FETCH_ONLY', 'DRAFT'] },
+    { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: AGREEMENT_MODE },
     // Despite a stray `type="checkbox"` attribute, the Vue control is a `<select>` storing the
     // strings '0' and '1', labelled NO and YES. The values are what reaches the diagram.
-    { name: 'haveHeader', label: 'Have Header?', kind: 'select', options: ['0', '1'] },
+    {
+      name: 'haveHeader',
+      label: 'Have Header?',
+      kind: 'select',
+      options: [
+        { value: '0', label: 'NO' },
+        { value: '1', label: 'YES' },
+      ],
+    },
     { name: 'recordSeparator', label: 'Record Separator', kind: 'text' },
     { name: 'fieldSeparator', label: 'Field Separator', kind: 'text' },
     { name: 'RefMsgTypeJslt', label: 'Ref Msg Type JSLT', kind: 'textarea' },

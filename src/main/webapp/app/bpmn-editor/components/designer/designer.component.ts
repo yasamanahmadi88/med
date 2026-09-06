@@ -5,6 +5,7 @@ import BpmnModeler from 'bpmn-js/lib/Modeler';
 import { BpmnPropertiesPanelModule, BpmnPropertiesProviderModule, CamundaPlatformPropertiesProviderModule } from 'bpmn-js-properties-panel';
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
 import { additionalModulesFor, moddleExtensionsFor } from '../../additional-modules';
+import { DEFAULT_ELEMENT_SIZES } from '../../additional-modules/ElementFactory';
 import ModulePropertiesModule from '../../module-properties';
 import { createNewDiagram } from '../../utils/empty-diagram';
 import ContextMenuModule from '../../context-menu';
@@ -88,6 +89,12 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
         // Reaches ModulePropertiesProvider as `config.processEngine`. Module properties are
         // namespaced by the engine, so an HttpReceiver stores `camunda:agreementMode`.
         processEngine: settings?.processEngine ?? 'camunda',
+        // Reaches CustomElementFactory as `config.elementFactory`, which is the only thing that
+        // class reads. The Vue editor supplied it and this did not, so the ported factory
+        // returned bpmn-js's own sizes for everything; see the constant for what that cost.
+        // Unread when no custom palette or renderer is configured, because the factory is only
+        // registered alongside them and the stock one ignores the option.
+        elementFactory: DEFAULT_ELEMENT_SIZES,
         // Reaches ContextMenuProvider as `config.contextMenu`.
         contextMenu: {
           enabled: settings?.contextmenu ?? true,

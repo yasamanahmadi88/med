@@ -1,63 +1,29 @@
+// Only rendered under `paletteMode: 'custom'` (`config/index.ts:9` ships `'enhancement'`).
+// Measured in that mode: `palette.component.scss` out-specifies the width — 200px with this rule
+// enabled and with it blanked — so `padding: 16px` is all this contributes and `width: 360px`
+// never applied.
 .palette {
   width: 360px;
   box-sizing: border-box;
   padding: 16px;
 }
+
+// Under the shipped `rendererMode: 'rewrite'` only the `!important` stroke has any effect here.
+// `RewriteRenderer` writes `stroke: #9cafcf; stroke-width: 2px; fill: #fff; fill-opacity: …` as
+// an inline style, which beats the other three declarations — measured identical with them and
+// without them — so what this rule does is repaint every rect-drawn element black, overriding
+// `defaultTaskColor` (`RewriteRenderer.ts:77`). That is also what the Vue editor looked like, so
+// the appearance is unchanged from the source; the other three are left in place because under
+// `rendererMode: 'default'` bpmn-js paints with presentation attributes, which a rule beats.
 .djs-visual rect{
   stroke: rgb(0, 0, 0) !important;
   stroke-width: 2px;
   fill: rgb(255, 255, 255);
   fill-opacity: 0;
 }
-.djs-visual g image{
-  padding: 10px !important;
-  margin: 50px !important;
-}
-.transformer-module{
-  background-image: url("/content/bpmn-icons/transformerModule.svg");
-  background-size: 1em 1em;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-.transformer-module:active{
-  background-image: url("/content/bpmn-icons/transformerModule.svg");
-  background-size: 1.3em 1.3em;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-.transformer-module::selection{
-  background-image: url("/content/bpmn-icons/transformerModule.svg");
-  background-size: 1.3em 1.3em;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
 
-.csvTransformer-module{
-  background-image: url("/content/bpmn-icons/csvTransformerModule.svg");
-  background-size: 1em 1em;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-.csvTransformer-module:active{
-  background-image: url("/content/bpmn-icons/csvTransformerModule.svg");
-  background-size: 1.3em 1.3em;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-.csvTransformer-module::selection{
-  background-image: url("/content/bpmn-icons/csvTransformerModule.svg");
-  background-size: 1.3em 1.3em;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-
-
-.csvTransformerCorner{
-  background-image: url("/content/bpmn-icons/corner-icons/csvTransformerModule_corner.svg");
-  background-size: 0.5em 0.5em;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
+// `.djs-visual g image` is gone: zero matches. The renderer draws no `<image>`, and the custom
+// icons that would have are the blocked feature.
 
 .merger-module{
   background-image: url("/content/bpmn-icons/mergerModule.svg");
@@ -74,12 +40,6 @@
 .merger-module::selection{
   background-image: url("/content/bpmn-icons/mergerModule.svg");
   background-size: 1.3em 1.3em;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-.mergerCorner{
-  background-image: url("/content/bpmn-icons/corner-icons/mergerModule_corner.svg");
-  background-size: 0.5em 0.5em;
   background-position: center center;
   background-repeat: no-repeat;
 }
@@ -101,14 +61,6 @@
   background-position: center center;
   background-repeat: no-repeat;
 }
-.fragmenterCorner{
-  background-image: url("/content/bpmn-icons/corner-icons/fragmenterModule_corner.svg");
-  background-size: 0.5em 0.5em;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-
-
 
 .KafkaTransmitter-module{
   background-image: url("/content/bpmn-icons/kafkaTransmitterModule.svg");
@@ -128,14 +80,6 @@
   background-position: center center;
   background-repeat: no-repeat;
 }
-.KafkaTransmitterCorner{
-  background-image: url("/content/bpmn-icons/corner-icons/kafkaTransmitterModule_corner.svg");
-  background-size: 1.5em 1.5em;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-
-
 
 .KafkaReceiver-module{
   background-image: url("/content/bpmn-icons/kafkaReceiverModule.svg");
@@ -263,24 +207,6 @@
   background-position: center center;
   background-repeat: no-repeat;
 }
-.eventaDbReceiver-module{
-  background-image: url("/content/bpmn-icons/eventaDbReeceiverModule.svg");
-  background-size: 1em 1em;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-.eventaDbReceiver-module:active{
-  background-image: url("/content/bpmn-icons/eventaDbReeceiverModule.svg");
-  background-size: 1.3em 1.3em;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-.eventaDbReceiver-module::selection{
-  background-image: url("/content/bpmn-icons/eventaDbReeceiverModule.svg");
-  background-size: 1.3em 1.3em;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
 .bpmn-icon-cdrParserModule{
   background-image: url("/content/bpmn-icons/bpmn-icon-cdrParserModule.svg");
   background-size: 2.2em 2.2em;
@@ -299,6 +225,10 @@
   background-position: center center;
   background-repeat: no-repeat;
 }
+// Declared twice in the Vue file, at 1em/1.3em and then at 1.5em/1.8em. The second block won, so
+// these are the sizes the palette entry has always had — measured at 45px (1.5em of the palette's
+// 30px font) both before and after. The first block is dropped rather than left to look like the
+// effective one.
 .csvTransformer-module{
   background-image: url("/content/bpmn-icons/csvTransformerModule.svg");
   background-size: 1.5em 1.5em;
@@ -318,31 +248,17 @@
   background-repeat: no-repeat;
 }
 
-
-
-
-.httpReceiverEventa-module{
-  background-image: url("/content/bpmn-icons/httpReceiverModuleEventa.svg");
-  background-size: 1.1em 1.1em;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-.httpReceiverEventa-module:active{
-  background-image: url("/content/bpmn-icons/httpReceiverModuleEventa.svg");
-  background-size: 1.3em 1.3em;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-.httpReceiverEventa-module::selection{
-  background-image: url("/content/bpmn-icons/httpReceiverModuleEventa.svg");
-  background-size: 1.3em 1.3em;
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-
-
-
-
-.djs-popup-group{
-  display: flex !important;
-}
+// Seven icon classes are gone, all measured at zero matches:
+//   `.transformer-module` and `.eventaDbReceiver-module` — their palette entries are commented
+//     out (`enhancementPaletteProvider.ts:179` and `:260`);
+//   `.httpReceiverEventa-module` — no entry names it anywhere;
+//   `.csvTransformerCorner`, `.mergerCorner`, `.fragmenterCorner`, `.KafkaTransmitterCorner` —
+//     "Corner" appears only as function names and palette entry keys in that provider, never as
+//     a `className`.
+//
+// `.djs-popup-group { display: flex !important }` is gone too, and that one was doing damage.
+// diagram-js draws the replace menu as a `<ul>` — `.djs-popup-results { max-height: 280px;
+// overflow: auto }` scrolls it — and forcing the list into a row laid the ten "Change element"
+// entries out 1341px wide inside a 300px popup: eight spilled past its right edge, three of them
+// under `.djs-popup-backdrop` where a click dismisses the menu instead of choosing a type, and
+// four off the side of a 1280px viewport entirely.

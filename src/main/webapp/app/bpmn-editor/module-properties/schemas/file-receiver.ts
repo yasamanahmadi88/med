@@ -1,4 +1,4 @@
-import { ModuleSchema } from '../schema';
+import { AGREEMENT_MODE, ModuleSchema } from '../schema';
 
 /**
  * `FileReceiver` — polls a local or remote directory, picks up matching files and post-processes
@@ -27,11 +27,11 @@ export const fileReceiverSchema: ModuleSchema = {
   type: 'FileReceiver:FileReceiver',
   label: 'FileReceiver',
   fields: [
-    { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: ['RUNNING', 'FETCH_ONLY', 'DRAFT'] },
+    { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: AGREEMENT_MODE },
     { name: 'readProtocol', label: 'Read Protocol', kind: 'select', options: ['FTP', 'SFTP', 'FTPS'] },
     // Stored as `fileScanPolicy`, not `scanPolicy` — the only field whose property name does not
     // follow its label.
-    { name: 'fileScanPolicy', label: 'Scan Policy', kind: 'select', options: ['SUBFOLDERS', 'ROOT'] },
+    { name: 'fileScanPolicy', label: 'Scan Policy', kind: 'select', options: [{ value: 'SUBFOLDERS', label: 'SUB FOLDERS' }, 'ROOT'] },
     { name: 'directoryPath', label: 'Directory Path', kind: 'text' },
     { name: 'subFolderPattern', label: 'Sub Folder Pattern', kind: 'text' },
     { name: 'fileFormatPattern', label: 'File Format Pattern', kind: 'text' },
@@ -46,7 +46,7 @@ export const fileReceiverSchema: ModuleSchema = {
       name: 'postProcessingAction',
       label: 'Post Processing Action',
       kind: 'select',
-      options: ['RENAME', 'REMOVE', 'MOVE', 'RENAME_AND_MOVE'],
+      options: ['RENAME', 'REMOVE', 'MOVE', { value: 'RENAME_AND_MOVE', label: 'RENAME AND MOVE' }],
     },
     { name: 'moveDir', label: 'Move Dir', kind: 'text' },
     { name: 'renameExtension', label: 'Rename Extension', kind: 'text' },

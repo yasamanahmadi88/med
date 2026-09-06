@@ -1,4 +1,4 @@
-import { ModuleSchema } from '../schema';
+import { AGREEMENT_MODE, ModuleSchema } from '../schema';
 
 /**
  * `FileTransmitter` — writes the message out as a file, locally or over FTP/SFTP/FTPS.
@@ -25,7 +25,7 @@ export const fileTransmitterSchema: ModuleSchema = {
   type: 'FileTransmitter:FileTransmitter',
   label: 'FileTransmitter',
   fields: [
-    { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: ['RUNNING', 'FETCH_ONLY', 'DRAFT'] },
+    { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: AGREEMENT_MODE },
     // `FILE` — writing to a local path — is offered here but not by `FileReceiver.readProtocol`.
     { name: 'writeProtocol', label: 'Write Protocol', kind: 'select', options: ['FTP', 'SFTP', 'FTPS', 'FILE'] },
     { name: 'contentFormat', label: 'Content Format', kind: 'select', options: ['UTF8', 'BASE64'] },

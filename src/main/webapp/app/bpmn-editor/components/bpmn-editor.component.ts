@@ -38,6 +38,16 @@ export class BpmnEditorComponent implements OnInit, OnDestroy {
   editorSettings!: EditorSettings;
   processXml: string | undefined;
   private destroy$ = new Subject<void>();
+  /**
+   * Kept so `ngOnDestroy` can take it off again.
+   *
+   * The Vue original (`App.tsx:52`) added the same listener in `onMounted` and never removed it,
+   * which cost nothing there: the editor *was* the application, and the listener died with the
+   * page. Here it is one lazily routed page inside the portal, so an unremoved document listener
+   * outlives it — right-click stays dead on every other screen until a full reload, and each
+   * visit stacks another copy.
+   */
+  private readonly suppressContextMenu = (event: MouseEvent): void => event.preventDefault();
 
   constructor(private bpmnEditorService: BpmnEditorService) {}
 
@@ -50,11 +60,12 @@ export class BpmnEditorComponent implements OnInit, OnDestroy {
       this.processXml = xml;
     });
 
-    // Prevent context menu
-    document.addEventListener('contextmenu', ev => ev.preventDefault());
+    // The editor draws its own menus on right-click, so the browser's must not appear over them.
+    document.addEventListener('contextmenu', this.suppressContextMenu);
   }
 
   ngOnDestroy(): void {
+    document.removeEventListener('contextmenu', this.suppressContextMenu);
     this.destroy$.next();
     this.destroy$.complete();
   }

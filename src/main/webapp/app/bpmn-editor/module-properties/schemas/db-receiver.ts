@@ -1,4 +1,4 @@
-import { ModuleSchema } from '../schema';
+import { AGREEMENT_MODE, ModuleSchema } from '../schema';
 
 /**
  * `DbReceiver` — a database-polling entry point. The connection itself lives on the process; all
@@ -15,7 +15,7 @@ export const dbReceiverSchema: ModuleSchema = {
   type: 'DbReceiver:DbReceiver',
   label: 'DbReceiver',
   fields: [
-    { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: ['RUNNING', 'FETCH_ONLY', 'DRAFT'] },
+    { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: AGREEMENT_MODE },
     { name: 'outputMsgType', label: 'Output Message Type', kind: 'text' },
     { name: 'commentDesc', label: 'Comment Desc', kind: 'text' },
   ],

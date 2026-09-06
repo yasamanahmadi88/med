@@ -1,4 +1,4 @@
-import { ModuleSchema } from '../schema';
+import { AGREEMENT_MODE, ModuleSchema } from '../schema';
 
 /**
  * `Merger` — how an incoming message is combined with the one already held, and what happens when
@@ -16,23 +16,57 @@ export const mergerSchema: ModuleSchema = {
   type: 'Merger:Merger',
   label: 'Merger',
   fields: [
-    { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: ['RUNNING', 'FETCH_ONLY', 'DRAFT'] },
-    { name: 'isIncremental234', label: 'Is Incremental', kind: 'select', options: ['0', '1'] },
-    { name: 'firstAction', label: 'First Action', kind: 'select', options: ['SAVE_ONLY', 'SAVE_AND_SEND'] },
+    { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: AGREEMENT_MODE },
+    {
+      name: 'isIncremental234',
+      label: 'Is Incremental',
+      kind: 'select',
+      options: [
+        { value: '0', label: 'No' },
+        { value: '1', label: 'Yes' },
+      ],
+    },
+    {
+      name: 'firstAction',
+      label: 'First Action',
+      kind: 'select',
+      options: [
+        { value: 'SAVE_ONLY', label: 'SAVE ONLY' },
+        { value: 'SAVE_AND_SEND', label: 'SAVE AND SEND' },
+      ],
+    },
     {
       name: 'lastSaveAction',
       label: 'Last Save Action',
       kind: 'select',
-      options: ['SAVE_MERGED', 'SAVE_NEW', 'SAVE_OLD', 'NOT_SAVE'],
+      options: [
+        { value: 'SAVE_MERGED', label: 'SAVE MERGED' },
+        { value: 'SAVE_NEW', label: 'SAVE NEW' },
+        { value: 'SAVE_OLD', label: 'SAVE OLD' },
+        { value: 'NOT_SAVE', label: 'NOT SAVE' },
+      ],
     },
     {
       name: 'lastSendAction',
       label: 'Last Send Action',
       kind: 'select',
-      options: ['SEND_MERGED', 'SEND_NEW', 'SEND_OLD', 'NOT_SEND'],
+      options: [
+        { value: 'SEND_MERGED', label: 'SEND MERGED' },
+        { value: 'SEND_NEW', label: 'SEND NEW' },
+        { value: 'SEND_OLD', label: 'SEND OLD' },
+        { value: 'NOT_SEND', label: 'NOT SEND' },
+      ],
     },
-    { name: 'expireAction', label: 'Expire Action', kind: 'select', options: ['SEND', 'NOT_SEND'] },
-    { name: 'mergerForceNextDay', label: 'Force Next Day', kind: 'select', options: ['0', '1'] },
+    { name: 'expireAction', label: 'Expire Action', kind: 'select', options: ['SEND', { value: 'NOT_SEND', label: 'NOT SEND' }] },
+    {
+      name: 'mergerForceNextDay',
+      label: 'Force Next Day',
+      kind: 'select',
+      options: [
+        { value: '0', label: 'Is Not' },
+        { value: '1', label: 'Is' },
+      ],
+    },
     { name: 'expirationCount', label: 'Expiration Count', kind: 'number' },
     { name: 'expirationTime', label: 'Expiration Time (ms)', kind: 'number' },
     // A free-text `hh:mm:ss` field. The Vue component validated the format inline and showed its

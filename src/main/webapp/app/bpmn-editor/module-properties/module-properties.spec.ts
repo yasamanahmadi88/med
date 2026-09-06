@@ -86,6 +86,17 @@ describe('module properties', () => {
 
       expect(options.map((o: any) => o.value)).toEqual(['', 'RUNNING', 'FETCH_ONLY', 'DRAFT']);
     });
+
+    it('shows a choice the way the Vue template showed it', () => {
+      // This is the half of a select the user actually reads. `SelectEntry` renders `label` and
+      // stores `value` (@bpmn-io/properties-panel/dist/index.esm.js:3931-3935), so a schema that
+      // declares only values shows the raw enum — FETCH_ONLY where the Vue form said FETCH ONLY.
+      const { provider } = build();
+      const [group] = provider.getGroups(makeElement('HttpReceiver:HttpReceiver') as any)([]) as any[];
+      const options = group.entries.find((e: any) => e.id === 'agreementMode').getOptions();
+
+      expect(options.map((o: any) => o.label)).toEqual(['', 'RUNNING', 'FETCH ONLY', 'DRAFT']);
+    });
   });
 
   describe('HttpTransmitter', () => {
@@ -137,6 +148,8 @@ describe('module properties', () => {
       const options = group.entries.find((e: any) => e.id === 'isCacheAble').getOptions();
 
       expect(options.map((o: any) => o.value)).toEqual(['', '0', '1']);
+      // And offered as No and Yes, which is the only thing that made the digits readable.
+      expect(options.map((o: any) => o.label)).toEqual(['', 'No', 'Yes']);
     });
 
     it('renders the number fields as number entries', () => {

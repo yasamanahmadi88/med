@@ -255,6 +255,31 @@ test.describe('BPMN editor', () => {
     await expect(page.locator('.bpmn-canvas .djs-element')).not.toHaveCount(before);
   });
 
+  test('places a module at the size the custom element factory configures', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    const canvas = page.locator('.bpmn-canvas .djs-container');
+    await expect(canvas).toBeVisible();
+    await page.locator('.djs-palette .KafkaReceiver-module').click();
+    const box = await canvas.boundingBox();
+    await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+    await page.keyboard.press('Escape');
+
+    // Every integration module extends bpmn:Task, and the Vue editor sized bpmn:Task 120x120
+    // through `config.elementFactory`. Without that config CustomElementFactory has nothing to
+    // read and bpmn-js's own 100x80 applies — which also draws the module's square corner icon
+    // squashed, since the renderer stretches it to the shape's box.
+    //
+    // Read off the SVG so the assertion does not depend on the canvas zoom. moddle names the
+    // shape after the nearest BPMN supertype it knows, so a placed KafkaReceiver is
+    // `Activity_<id>` — the only Activity on a diagram that otherwise holds one start event.
+    const shape = page.locator('.bpmn-canvas .djs-element[data-element-id^="Activity_"] .djs-visual > rect').first();
+    await expect(shape).toHaveAttribute('width', '120');
+    await expect(shape).toHaveAttribute('height', '120');
+  });
+
   test('blocks saving while a module property is invalid, and says why', async ({ page, mockApi }) => {
     await mockApi({ account: 'admin' });
 
@@ -566,5 +591,68 @@ test.describe('BPMN editor', () => {
 
     await page.getByTestId('bpmnToggleMinimap').click();
     await expect(minimap).not.toHaveClass(/\bopen\b/);
+  });
+
+  test('the replace menu is a list, not a row that runs off the screen', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    const canvas = page.locator('.bpmn-canvas .djs-container');
+    await page.locator('.djs-palette .bpmn-icon-task').click();
+    const box = await canvas.boundingBox();
+    await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 3);
+    await page.keyboard.press('Escape');
+    await page.locator('.bpmn-canvas .djs-element[data-element-id^="Activity"]').first().click();
+    await page.locator('.djs-context-pad .bpmn-icon-screw-wrench').click();
+    await expect(page.locator('.djs-popup')).toBeVisible();
+
+    // `styles/palette.scss` carried a `.djs-popup-group { display: flex !important }` over from
+    // the Vue editor. diagram-js draws this menu as a `<ul>` inside a 300px popup and scrolls it
+    // vertically (`.djs-popup-results { max-height: 280px; overflow: auto }`); forcing the list
+    // into a row laid the ten "Change element" entries out 1341px wide, so eight of them fell
+    // outside the popup — three under `.djs-popup-backdrop`, where a click dismisses the menu
+    // rather than choosing a type, and four off the side of a 1280px viewport.
+    //
+    // Counting columns is what catches it. Every entry is present and carries the right label in
+    // either layout, so a presence or text assertion walks straight past a menu the user cannot
+    // reach the bottom half of.
+    const geometry = await page.evaluate(() => {
+      const popup = document.querySelector('.djs-popup')!.getBoundingClientRect();
+      const entries = Array.from(document.querySelectorAll('.djs-popup-body .entry'));
+      return {
+        entryCount: entries.length,
+        columns: new Set(entries.map(entry => Math.round(entry.getBoundingClientRect().left))).size,
+        spillingRight: entries.filter(entry => entry.getBoundingClientRect().right > popup.right + 1).length,
+      };
+    });
+
+    expect(geometry.entryCount).toBeGreaterThan(1);
+    expect(geometry.columns).toBe(1);
+    expect(geometry.spillingRight).toBe(0);
+  });
+
+  test('the grid background is painted on the element this editor renders', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    // `bg: 'grid-image'` is the shipped default (`config/index.ts:13`), and the container carries
+    // the class for it. The rule that draws the grid was written for Vue's `<div class="designer">`
+    // and this editor renders `<jhi-designer>`, so — like the `.panel-header` grid before it — it
+    // matched nothing and the default background drew nothing at all.
+    await expect(page.locator('#designer-container')).toHaveClass(/\bdesigner-with-bg\b/);
+
+    const background = await page.evaluate(() => {
+      const style = getComputedStyle(document.querySelector('jhi-designer')!);
+      return { image: style.backgroundImage, repeat: style.backgroundRepeat, size: style.backgroundSize };
+    });
+
+    expect(background.image).toMatch(/^url\("data:image\/svg\+xml;base64,/);
+    // The tile is 40px and has to repeat. `bpmn-editor.component.scss` asks for `contain` on the
+    // same element, which would stretch one tile over the whole canvas; the `background`
+    // shorthand is `!important`, so it resets the size and this pins that it still does.
+    expect(background.repeat).toBe('repeat');
+    expect(background.size).toBe('auto');
   });
 });

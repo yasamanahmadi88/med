@@ -1,4 +1,4 @@
-import { ModuleSchema } from '../schema';
+import { AGREEMENT_MODE, ModuleSchema } from '../schema';
 
 /**
  * `DbTransmitter` — a JDBC/HikariCP connection: the datasource itself, then the pool tuning.
@@ -16,7 +16,7 @@ export const dbTransmitterSchema: ModuleSchema = {
   type: 'DbTransmitter:DbTransmitter',
   label: 'DbTransmitter',
   fields: [
-    { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: ['RUNNING', 'FETCH_ONLY', 'DRAFT'] },
+    { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: AGREEMENT_MODE },
     { name: 'url', label: 'Url', kind: 'text' },
     { name: 'username', label: 'Username', kind: 'text' },
     // The Vue control was `<input type="password">` with a show/hide eye toggle. The panel has no

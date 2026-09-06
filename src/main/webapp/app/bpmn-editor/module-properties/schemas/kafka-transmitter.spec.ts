@@ -1,4 +1,4 @@
-import { FieldOption } from '../schema';
+import { optionLabel, optionValue } from '../schema';
 import { kafkaTransmitterSchema } from './kafka-transmitter';
 
 /**
@@ -69,15 +69,22 @@ describe('kafkaTransmitterSchema', () => {
   it('offers exactly the option values the Vue select offered', () => {
     // `agreementMode` is the module's only select, and these are enum values the backend matches
     // on, so an extra, missing or misspelt one produces a diagram the engine rejects. The Vue
-    // <option> *text* read "FETCH ONLY"; the value below is what was stored.
-    const options: Record<string, readonly FieldOption[]> = {};
+    // <option> text read "FETCH ONLY" while storing FETCH_ONLY, so both halves are checked.
+    const options: Record<string, string[]> = {};
+    const labels: Record<string, string[]> = {};
     for (const field of kafkaTransmitterSchema.fields) {
       if (field.options) {
-        options[field.name] = field.options;
+        options[field.name] = field.options.map(optionValue);
+        labels[field.name] = field.options.map(optionLabel);
       }
     }
 
     expect(options).toEqual({ agreementMode: ['RUNNING', 'FETCH_ONLY', 'DRAFT'] });
+
+    // And shown with the Vue <option> text, which spaced most of the underscored values.
+    expect(labels).toEqual({
+      agreementMode: ['RUNNING', 'FETCH ONLY', 'DRAFT'],
+    });
   });
 
   it('gives options to selects and only to selects', () => {

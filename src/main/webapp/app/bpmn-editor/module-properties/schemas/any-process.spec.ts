@@ -1,4 +1,4 @@
-import { FieldOption } from '../schema';
+import { optionLabel, optionValue } from '../schema';
 import { anyProcessSchema } from './any-process';
 
 /**
@@ -77,17 +77,25 @@ describe('anyProcessSchema', () => {
 
   it('offers exactly the option values the Vue selects offered', () => {
     // These are enum values the backend matches on, so an extra, missing or misspelt one produces
-    // a diagram the engine rejects. The Vue <option> *text* was prettified for all four ack modes
-    // ("NO ACK", "REC ACK", …); the underscored values below are what was stored.
-    const options: Record<string, readonly FieldOption[]> = {};
+    // a diagram the engine rejects. The Vue <option> text was prettified for all four ack modes,
+    // so value and label are checked separately: the underscored value is the one stored.
+    const options: Record<string, string[]> = {};
+    const labels: Record<string, string[]> = {};
     for (const field of anyProcessSchema.fields) {
       if (field.options) {
-        options[field.name] = field.options;
+        options[field.name] = field.options.map(optionValue);
+        labels[field.name] = field.options.map(optionLabel);
       }
     }
 
     expect(options).toEqual({
       ackMode: ['NO_ACK', 'REC_ACK', 'VAL_ACK', 'PRC_ACK'],
+      status: ['OPEN', 'CLOSE'],
+    });
+
+    // And shown with the Vue <option> text, which spaced most of the underscored values.
+    expect(labels).toEqual({
+      ackMode: ['NO ACK', 'REC ACK', 'VAL ACK', 'PRC ACK'],
       status: ['OPEN', 'CLOSE'],
     });
   });

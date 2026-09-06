@@ -1,3 +1,4 @@
+import { optionLabel, optionValue } from '../schema';
 import { transformerSchema } from './transformer';
 
 /**
@@ -47,7 +48,9 @@ describe('transformerSchema', () => {
     const agreementMode = transformerSchema.fields.find(f => f.name === 'agreementMode');
 
     expect(agreementMode?.kind).toBe('select');
-    expect(agreementMode?.options).toEqual(['RUNNING', 'FETCH_ONLY', 'DRAFT']);
+    expect(agreementMode?.options?.map(optionValue)).toEqual(['RUNNING', 'FETCH_ONLY', 'DRAFT']);
+    // The Vue <option> text spaced FETCH_ONLY; SelectEntry shows the label and stores the value.
+    expect(agreementMode?.options?.map(optionLabel)).toEqual(['RUNNING', 'FETCH ONLY', 'DRAFT']);
   });
 
   it('offers every named transformation, underscores intact, on both selects', () => {
@@ -58,9 +61,14 @@ describe('transformerSchema', () => {
     const firstAction = transformerSchema.fields.find(f => f.name === 'firstAction');
 
     expect(transformType?.kind).toBe('select');
-    expect(transformType?.options).toEqual(transformTypes);
+    expect(transformType?.options?.map(optionValue)).toEqual(transformTypes);
     expect(firstAction?.kind).toBe('select');
-    expect(firstAction?.options).toEqual(transformTypes);
+    expect(firstAction?.options?.map(optionValue)).toEqual(transformTypes);
+
+    // And shown with the spaces the Vue <option> text had, on both selects.
+    const transformLabels = transformTypes.map(value => value.replace(/_/g, ' '));
+    expect(transformType?.options?.map(optionLabel)).toEqual(transformLabels);
+    expect(firstAction?.options?.map(optionLabel)).toEqual(transformLabels);
   });
 
   it('gives options to selects and to nothing else', () => {

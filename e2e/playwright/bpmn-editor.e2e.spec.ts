@@ -42,6 +42,37 @@ test.describe('BPMN editor', () => {
     await expect(page.locator('.bpmn-canvas .djs-element')).not.toHaveCount(0);
   });
 
+  test('offers no delete on the start event', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    // bpmn-js builds the context pad by asking the rules what is allowed, so the missing trash
+    // button *is* CustomRules refusing. A process without a start event is one no engine will
+    // run, and nothing in the editor says it has gone.
+    await page.locator('.bpmn-canvas .djs-element[data-element-id^="StartEvent"]').first().click();
+
+    await expect(page.locator('.djs-context-pad .entry')).not.toHaveCount(0);
+    await expect(page.locator('.djs-context-pad .bpmn-icon-trash')).toHaveCount(0);
+  });
+
+  test('still deletes an ordinary element', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    // The rule must protect two element types, not make the canvas read-only.
+    const canvas = page.locator('.bpmn-canvas .djs-container');
+    await page.locator('.djs-palette .bpmn-icon-task').click();
+    const box = await canvas.boundingBox();
+    await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+
+    const withTask = await page.locator('.bpmn-canvas .djs-element').count();
+    await page.locator('.djs-context-pad .bpmn-icon-trash').click();
+
+    await expect(page.locator('.bpmn-canvas .djs-element')).toHaveCount(withTask - 1);
+  });
+
   test('right-clicking an element offers the types it can become', async ({ page, mockApi }) => {
     await mockApi({ account: 'admin' });
 

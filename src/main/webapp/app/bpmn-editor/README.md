@@ -211,6 +211,62 @@ sides can reach, so `ContextMenuProvider` fires `contextMenu.append.open` on it 
 our own, and nothing left in `EventEmitter.ts` to port. Its other two events were already
 answered: `element-update` by the properties panel, `modeler-init` by Angular DI.
 
+### The six `additional-modules` left over
+
+Audited the same way. Four of the six carry no behaviour at all, and two of those would take
+behaviour _away_ if they were ported.
+
+| Vue module               | Registered when                               | What it actually does                                                                                                                                                                                                |
+| ------------------------ | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Rules`                  | `otherModule`                                 | One rule: start and end events cannot be deleted. **Ported.**                                                                                                                                                        |
+| `ContextPad/Enhancement` | `contextPadMode: 'enhancement'` (the default) | Extends `ContextPadProvider`, overrides `getContextPadEntries` to return `{}`, registers under a _new_ name — so the stock provider still runs and this adds nothing. Every example entry is commented out. A no-op. |
+| `ContextPad/Rewrite`     | `contextPadMode: 'rewrite'`                   | The same empty provider, but registered as `contextPadProvider` — it _replaces_ the stock one. Selecting this mode empties the context pad: no delete, no connect, no append.                                        |
+| `PopupMenu/Enhancement`  | never                                         | `class EnhancementPopupMenuProvider {}`. Not referenced by the designer at all.                                                                                                                                      |
+| `PopupMenu/Rewrite`      | never                                         | `class RewritePopupMenuProvider {}` registered as `replaceMenuProvider`, which would replace bpmn-js's real replace menu with a no-op. Also never referenced.                                                        |
+| `AutoPlace`              | `otherModule`                                 | bpmn-js's own `getFlowNodePosition`, copied, with two constants changed. See below.                                                                                                                                  |
+| `Translate`              | always                                        | Broken — see below.                                                                                                                                                                                                  |
+| `Lint`                   | `useLint` (off by default)                    | bpmnlint rule bundle. Needs two dependencies this project does not have.                                                                                                                                             |
+
+`ContextPad` and `PopupMenu` are scaffolding the Vue author left behind: "here is where you would
+customise this", with the examples commented out. Porting the enhancement variants would add four
+files that do nothing; porting the rewrite variants would ship a way to break the editor from the
+settings panel. Neither is here.
+
+**The delete rule is ported with one deliberate change.** The Vue rule returned a boolean, so a
+single start event caught in a drag-selection blocked the whole delete. This one returns the
+elements that _may_ go, which is the convention diagram-js expects, so the rest of the selection
+still deletes.
+
+#### `AutoPlace` — not ported, and the difference is visible
+
+Vue's `CustomAutoPlace` is `getFlowNodePosition` from `bpmn-js/lib/features/auto-place/
+BpmnAutoPlaceUtil` copied out, with `minDistance` raised from 80 to 100 and passed to
+`getConnectedDistance` as `defaultDistance` (bpmn-js uses 50 there). The effect: an appended
+element with nothing to measure against sits 100px to the right instead of 50px.
+
+That is a real difference, and reproducing it means forking ~40 lines of library code to change
+two numbers — the same trade this port has refused elsewhere. Left out for now; say the word and
+it is a small, self-contained follow-up.
+
+#### `Translate` — broken in the original, and the bundle is not English
+
+```ts
+const lang = sessionStorage.getItem('en_Us'); // a language name used as a storage key
+const translations = languages['en_Us' || lang]; // always the literal 'en_Us'
+```
+
+`languages` has `zh_CN` and `en_US`. `'en_Us'` — lowercase `s` — is neither, so `translations` is
+always `undefined` and every label falls through untranslated. The Vue editor never translated
+anything; bpmn-js's own English labels are what users saw.
+
+Fixing the lookup alone would make things worse here. `i18n/en_US` is largely **untranslated
+Chinese** carried over from `zh_CN`: all 25 entries in `elements/tasks.ts`, 30 in
+`elements/events.ts`, 176 of ~182 in `elements/other.ts`. Wiring translation up with
+`defaultLang = 'en_US'` would turn the palette, context pad and popup menu Chinese.
+
+So this needs a decision about the product's language before it needs code, and it is not in this
+change.
+
 ## Future Enhancements
 
 - [ ] Token simulation

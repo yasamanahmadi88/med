@@ -5,6 +5,7 @@ import RewritePalette from './Palette/RewritePalette';
 import EnhancementRenderer from './Renderer/EnhancementRenderer';
 import RewriteRenderer from './Renderer/RewriteRenderer';
 import CustomElementFactory from './ElementFactory';
+import CustomRules from './Rules';
 
 import activiti from '../moddle-extensions/activiti.json';
 import flowable from '../moddle-extensions/flowable.json';
@@ -82,6 +83,9 @@ export function moddleExtensionsFor(settings: EditorSettings | undefined): Recor
  * - `rendererMode` picks how those custom element types are drawn. A custom palette without a
  *   renderer would place shapes bpmn-js cannot draw, so CustomElementFactory and a renderer are
  *   registered whenever a custom palette is active.
+ * - `otherModule` carries the extras that are neither palette nor renderer. Only the delete rule
+ *   travelled across; see the README for what the Vue editor kept under this flag and why the
+ *   rest did not.
  */
 export function additionalModulesFor(settings: EditorSettings | undefined): unknown[] {
   const modules: unknown[] = [];
@@ -102,6 +106,12 @@ export function additionalModulesFor(settings: EditorSettings | undefined): unkn
 
   if (modules.length > 0) {
     modules.push(CustomElementFactory);
+  }
+
+  // `otherModule` is the Vue editor's switch for the extras that are not palette or renderer;
+  // the rule protecting start and end events travelled under it.
+  if (settings?.otherModule ?? true) {
+    modules.push(CustomRules);
   }
 
   return modules;

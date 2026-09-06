@@ -611,6 +611,22 @@ in that comment that are not true:
   The rule is still right — one diagram carries one engine's schema — but it is enforced here, not
   by moddle.
 
+#### Two hand-written declarations corrected along the way
+
+Testing against moddle rather than against the key list meant calling the library the way bpmn-js
+calls it, and `types/declares/` described three of those signatures wrongly. Checked against
+`bpmn-moddle/dist/index.js` (v9.0.4) and fixed rather than cast around:
+
+- `BpmnModdle`'s constructor was typed `Package[]` only. moddle also takes a record keyed by
+  prefix, which is the form bpmn-js passes (`BaseViewer.js:649`).
+- `fromXML` was typed as resolving to a result _or_ an error. It resolves with the result and
+  rejects on failure, so the union only forced callers to narrow a case that never arrives.
+- `toXML` took a `string`. It takes the element; the library's own JSDoc says `@param {String}`
+  and is wrong about itself.
+- `moddle`'s `Package` was missing `uri`, which every package has and which the new test reads.
+
+Four `as unknown as` casts came out with them.
+
 ### `components/common/` and `styles/context-pad.scss` — 154 lines, nothing to port
 
 Four "common" components and one stylesheet, resolved the same way as everything else: by who
@@ -618,13 +634,13 @@ imports each file, and then whether _that_ consumer is itself reachable from `Ap
 dead in the Vue project, two are the hand-rolled version of something the stock properties panel
 now renders, and the stylesheet styles a class no code produces, using an image that is not there.
 
-| Vue file                  | Lines | Verdict                                                                                             |
-| ------------------------- | ----- | --------------------------------------------------------------------------------------------------- |
-| `common/BpmnIcon.vue`     | 23    | **Dead** — no import, no global registration, no template names it.                                 |
-| `common/CollapseTitle.vue` | 32   | Registered globally, but its only users are seven files nothing imports. Also the panel's own group header. |
-| `common/EditItem.vue`     | 54    | The same seven files. Also the panel's own labelled entry row.                                       |
-| `common/LucideIcon.vue`   | 38    | Live in Vue — and every call site that was ported already draws a `<fa-icon>` here.                  |
-| `styles/context-pad.scss` | 7     | Styles a class only commented-out code produces, from an image that does not exist.                  |
+| Vue file                   | Lines | Verdict                                                                                                     |
+| -------------------------- | ----- | ----------------------------------------------------------------------------------------------------------- |
+| `common/BpmnIcon.vue`      | 23    | **Dead** — no import, no global registration, no template names it.                                         |
+| `common/CollapseTitle.vue` | 32    | Registered globally, but its only users are seven files nothing imports. Also the panel's own group header. |
+| `common/EditItem.vue`      | 54    | The same seven files. Also the panel's own labelled entry row.                                              |
+| `common/LucideIcon.vue`    | 38    | Live in Vue — and every call site that was ported already draws a `<fa-icon>` here.                         |
+| `styles/context-pad.scss`  | 7     | Styles a class only commented-out code produces, from an image that does not exist.                         |
 
 #### `BpmnIcon.vue` is dead — and its stylesheet is why this panel header wrapped
 
@@ -672,14 +688,14 @@ information, different shape, and no code of ours either way.
 
 The one of the four that is genuinely reachable. Its call sites and what became of each:
 
-| Vue call site                       | Icon                     | Here                                                    |
-| ----------------------------------- | ------------------------ | ------------------------------------------------------- |
-| `Commands.tsx:40,50,60`             | `Undo2`, `Redo2`, `Eraser` | `icons.undo`, `icons.redo`, `icons.restart`            |
-| `Scales.tsx:49,71`                  | `ZoomOut`, `ZoomIn`      | `icons.zoomOut`, `icons.zoomIn`                         |
-| `ExternalTools.tsx:146,170`         | `Map`, `Keyboard`        | `icons.minimap`, `icons.shortcuts`                      |
-| `ExternalTools.tsx:125,135,158`     | `Bot`, `Podcast`, `FileCheck` | token simulation, lint, event-listener dialog — not ported |
-| `Aligns.tsx:7`                      | —                        | imported but never rendered; `setup()` returns nothing   |
-| `Setting/index.tsx:81`              | `Settings`               | inside a `{/* … */}` JSX comment                        |
+| Vue call site                   | Icon                          | Here                                                       |
+| ------------------------------- | ----------------------------- | ---------------------------------------------------------- |
+| `Commands.tsx:40,50,60`         | `Undo2`, `Redo2`, `Eraser`    | `icons.undo`, `icons.redo`, `icons.restart`                |
+| `Scales.tsx:49,71`              | `ZoomOut`, `ZoomIn`           | `icons.zoomOut`, `icons.zoomIn`                            |
+| `ExternalTools.tsx:146,170`     | `Map`, `Keyboard`             | `icons.minimap`, `icons.shortcuts`                         |
+| `ExternalTools.tsx:125,135,158` | `Bot`, `Podcast`, `FileCheck` | token simulation, lint, event-listener dialog — not ported |
+| `Aligns.tsx:7`                  | —                             | imported but never rendered; `setup()` returns nothing     |
+| `Setting/index.tsx:81`          | `Settings`                    | inside a `{/* … */}` JSX comment                           |
 
 Every call site that was ported already draws its icon, and porting `LucideIcon` would mean adding
 a `lucide-angular` dependency — `package.json` has no lucide package — to redraw them. The toolbar

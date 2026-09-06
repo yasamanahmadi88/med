@@ -84,17 +84,17 @@ describe('bpmn-editor additional modules', () => {
    * getting this wrong shows up.
    */
   describe('the moddle those extensions build', () => {
-    // The local `types/declares/bpmn-moddle.d.ts` types the constructor as the array form only;
-    // bpmn-js passes the prefix-keyed object, which moddle accepts just as well.
-    const build = (extensions: Record<string, unknown>): BpmnModdle => new BpmnModdle(extensions as unknown as Package[]);
+    // The prefix-keyed form, which is what bpmn-js hands moddle.
+    const build = (extensions: Record<string, unknown>): BpmnModdle => new BpmnModdle(extensions);
 
     it('resolves bpmn:Definitions for every process engine', () => {
       // moddle builds type descriptors lazily, so a clashing pair of extensions does NOT throw in
       // the constructor: `new BpmnModeler(...)` succeeds and the first createDiagram/importXML is
       // what fails. Resolving the type is what forces the descriptor, so that is what is asserted.
       //
-      // Only camunda and cdrParser can clash: both add an unprefixed `diagramRelationId` to
-      // bpmn:Definitions (camunda-bpmn-moddle/resources/camunda.json lines 10-23,
+      // Only camunda and cdrParser can clash: both add a `diagramRelationId` to bpmn:Definitions
+      // — `camunda:` on one side and `cdrParser:` on the other, but moddle collides on the local
+      // name (camunda-bpmn-moddle/resources/camunda.json lines 10-23,
       // moddle-extensions/cdrParserProperties.json lines 10-21). activiti and flowable extend
       // bpmn:Definitions not at all, so they would coexist with anything — the one-engine rule is
       // about a diagram carrying one engine's schema, and only this pair also breaks the editor.
@@ -134,7 +134,7 @@ describe('bpmn-editor additional modules', () => {
 
     it('parses and re-serialises what the extensions exist for', async () => {
       const moddle = build(moddleExtensionsFor(defaultSettings));
-      const parsed = (await moddle.fromXML(DIAGRAM, 'bpmn:Definitions')) as unknown as { rootElement: ModdleElement; warnings: Error[] };
+      const parsed = await moddle.fromXML(DIAGRAM, 'bpmn:Definitions');
 
       expect(parsed.warnings.map(warning => warning.message)).toEqual([]);
 
@@ -146,7 +146,7 @@ describe('bpmn-editor additional modules', () => {
       expect(receiver.$type).toBe('KafkaReceiver:KafkaReceiver');
       expect(receiver.get('name')).toBe('orders');
 
-      const { xml } = (await moddle.toXML(parsed.rootElement as unknown as string)) as unknown as { xml: string };
+      const { xml } = await moddle.toXML(parsed.rootElement);
       expect(xml).toContain('camunda:asyncBefore="true"');
       expect(xml).toContain('<KafkaReceiver:kafkaReceiver id="Receiver_1" name="orders" />');
     });
@@ -157,13 +157,13 @@ describe('bpmn-editor additional modules', () => {
       // replaces the BPMN 2.0 schema and the same descriptor under any other key throws
       // "package with prefix <bpmn> already defined". The Vue editor's unused
       // `moddle-extensions/bpmn.json` is exactly that descriptor, which is why it is not here.
-      const stock = build({}).getPackages() as unknown as { prefix: string; uri: string }[];
+      const stock = build({}).getPackages();
       const prefixes = stock.map(({ prefix }) => prefix);
       const uris = stock.map(({ uri }) => uri);
 
       for (const engine of engines) {
         for (const [key, descriptor] of Object.entries(moddleExtensionsFor(settingsWith({ processEngine: engine })))) {
-          const { prefix, uri } = descriptor as { prefix: string; uri: string };
+          const { prefix, uri } = descriptor as Package;
 
           expect(prefixes, `${key} prefix`).not.toContain(prefix);
           expect(uris, `${key} uri`).not.toContain(uri);

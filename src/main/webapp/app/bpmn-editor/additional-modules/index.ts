@@ -61,7 +61,8 @@ const integrationModuleExtensions: Record<string, unknown> = {
  * cdrParser are the Camunda moddle with the prefix renamed — so exactly one may be registered.
  *
  * Registering camunda and cdrParser together is also a hard failure: both extend bpmn:Definitions
- * with an unprefixed `diagramRelationId`, and moddle refuses the second one ("property
+ * with a `diagramRelationId` — `camunda:` on one side, `cdrParser:` on the other, but moddle
+ * collides on the local name — and it refuses the second one ("property
  * <diagramRelationId> already defined"). It does not refuse it at construction — moddle builds
  * type descriptors lazily, so `new BpmnModeler(...)` succeeds and the first createDiagram or
  * importXML is what throws. activiti and flowable extend bpmn:Definitions not at all and would

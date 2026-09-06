@@ -42,6 +42,43 @@ test.describe('BPMN editor', () => {
     await expect(page.locator('.bpmn-canvas .djs-element')).not.toHaveCount(0);
   });
 
+  test('the Delete key removes an element once its label editor is closed', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    // Placing an element opens its label editor and puts the caret inside it, so Delete belongs
+    // to the text until Escape closes it. Worth pinning, because the sequence looks like the key
+    // being unbound — it is not — and the shortcut dialog tells users about the Escape.
+    const canvas = page.locator('.bpmn-canvas .djs-container');
+    await page.locator('.djs-palette .bpmn-icon-task').click();
+    const box = await canvas.boundingBox();
+    await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+
+    const withTask = await page.locator('.bpmn-canvas .djs-element').count();
+    await page.keyboard.press('Delete');
+    await expect(page.locator('.bpmn-canvas .djs-element')).toHaveCount(withTask);
+
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('Delete');
+
+    await expect(page.locator('.bpmn-canvas .djs-element')).toHaveCount(withTask - 1);
+  });
+
+  test('the Delete key cannot remove the start event either', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    // The context pad hides its trash button, but the keyboard goes straight to the editor
+    // action — so this is the path that would bypass CustomRules if the rule were only cosmetic.
+    const before = await page.locator('.bpmn-canvas .djs-element').count();
+    await page.locator('.bpmn-canvas .djs-element[data-element-id^="StartEvent"]').first().click();
+    await page.keyboard.press('Delete');
+
+    await expect(page.locator('.bpmn-canvas .djs-element')).toHaveCount(before);
+  });
+
   test('offers no delete on the start event', async ({ page, mockApi }) => {
     await mockApi({ account: 'admin' });
 
@@ -202,8 +239,115 @@ test.describe('BPMN editor', () => {
 
     await page.goto('/bpmn-editor');
 
-    for (const title of ['Save', 'Export', 'Import', 'Undo', 'Redo']) {
+    for (const title of ['Save', 'Export', 'Import', 'Cancel', 'Undo', 'Redo', 'Restart', 'Zoom out', 'Zoom in', 'Preview as XML']) {
       await expect(page.locator(`.toolbar button[title="${title}"]`), `toolbar ${title}`).toBeVisible();
     }
+  });
+
+  test('draws an icon in every toolbar button', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    // This project ships FontAwesome as SVG components and loads no webfont stylesheet, so the
+    // `<i class="fas fa-save">` markup the toolbar used before drew nothing at all. Counting the
+    // rendered SVGs is what tells the two apart — the buttons look fine either way in a DOM dump.
+    const buttons = page.locator('.toolbar button');
+    const iconButtons = page.locator('.toolbar button svg.svg-inline--fa');
+
+    // Every button but the zoom percentage carries an icon.
+    await expect(iconButtons).toHaveCount((await buttons.count()) - 1);
+  });
+
+  test('zooms the canvas and reports the scale', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    const level = page.getByTestId('bpmnZoomFit');
+    await expect(level).toHaveText('100%');
+
+    await page.getByTestId('bpmnZoomIn').click();
+    await expect(level).toHaveText('110%');
+
+    // One assertion per click: two in a row are delivered faster than the canvas redraws, and
+    // the second then lands on a button Angular is mid-render on and is lost.
+    await page.getByTestId('bpmnZoomOut').click();
+    await expect(level).toHaveText('100%');
+    await page.getByTestId('bpmnZoomOut').click();
+    await expect(level).toHaveText('90%');
+
+    // Fit-to-viewport lands on an arbitrary scale, and the label has to follow a zoom the
+    // buttons did not cause.
+    await level.click();
+    await expect(level).not.toHaveText('90%');
+  });
+
+  test('previews the XML the editor would save', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    await page.getByTestId('bpmnPreviewXml').click();
+
+    const preview = page.getByTestId('bpmnXmlPreview');
+    await expect(preview).toBeVisible();
+    // The real serialisation, not a placeholder: the seeded start event has to be in it.
+    await expect(preview).toContainText('<bpmn:startEvent');
+    await expect(preview).toContainText('bpmn:definitions');
+
+    await page.locator('.modal-footer .btn-secondary').click();
+    await expect(preview).toHaveCount(0);
+  });
+
+  test('restarts onto a fresh diagram', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    const canvas = page.locator('.bpmn-canvas .djs-container');
+    await page.locator('.djs-palette .bpmn-icon-task').click();
+    const box = await canvas.boundingBox();
+    await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+    await page.keyboard.press('Escape');
+    const withTask = await page.locator('.bpmn-canvas .djs-element').count();
+
+    await page.getByTestId('bpmnRestart').click();
+
+    // Back to the seeded diagram: the start event and nothing else.
+    await expect(page.locator('.bpmn-canvas .djs-element')).toHaveCount(withTask - 1);
+    await expect(page.locator('.bpmn-canvas .djs-element[data-element-id^="StartEvent"]')).toHaveCount(1);
+  });
+
+  test('lists the keyboard shortcuts', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    await page.getByTestId('bpmnShortcuts').click();
+
+    const dialog = page.locator('.modal-body.shortcut-keys');
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator('h5')).toHaveText(['Editing', 'Tools', 'View']);
+    await expect(dialog.getByText('Delete selection')).toBeVisible();
+  });
+
+  test('opens and closes the minimap', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    // The module is registered by the `miniMap` setting, and the stylesheet hides the minimap's
+    // own toggle — so if this button did nothing there would be no way to see the minimap at all.
+    // diagram-js-minimap marks the open state with `open` on its own container and starts closed.
+    const minimap = page.locator('.djs-minimap');
+    await expect(minimap).toHaveCount(1);
+    await expect(minimap).not.toHaveClass(/\bopen\b/);
+
+    await page.getByTestId('bpmnToggleMinimap').click();
+    await expect(minimap).toHaveClass(/\bopen\b/);
+
+    await page.getByTestId('bpmnToggleMinimap').click();
+    await expect(minimap).not.toHaveClass(/\bopen\b/);
   });
 });

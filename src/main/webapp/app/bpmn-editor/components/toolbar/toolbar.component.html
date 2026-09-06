@@ -1,13 +1,54 @@
 <div class="toolbar">
   <div class="toolbar-section">
-    <button class="toolbar-btn" title="Save" data-cy="bpmnSave" (click)="onSave()"><i class="fas fa-save"></i> Save</button>
-    <button class="toolbar-btn" title="Export" (click)="onExport()"><i class="fas fa-download"></i> Export</button>
-    <button class="toolbar-btn" title="Import" (click)="onImport()"><i class="fas fa-upload"></i> Import</button>
-    <button class="toolbar-btn" title="Cancel" data-cy="bpmnCancel" (click)="onCancel()"><i class="fas fa-times"></i> Cancel</button>
+    <button class="toolbar-btn" title="Save" data-cy="bpmnSave" (click)="onSave()"><fa-icon [icon]="icons.save"></fa-icon> Save</button>
+    <button class="toolbar-btn" title="Export" (click)="onExport()"><fa-icon [icon]="icons.export"></fa-icon> Export</button>
+    <button class="toolbar-btn" title="Import" (click)="onImport()"><fa-icon [icon]="icons.import"></fa-icon> Import</button>
+    <button class="toolbar-btn" title="Cancel" data-cy="bpmnCancel" (click)="onCancel()">
+      <fa-icon [icon]="icons.cancel"></fa-icon> Cancel
+    </button>
   </div>
 
   <div class="toolbar-section">
-    <button class="toolbar-btn" title="Undo" (click)="onUndo()"><i class="fas fa-undo"></i> Undo</button>
-    <button class="toolbar-btn" title="Redo" (click)="onRedo()"><i class="fas fa-redo"></i> Redo</button>
+    <button class="toolbar-btn" title="Undo" (click)="onUndo()"><fa-icon [icon]="icons.undo"></fa-icon> Undo</button>
+    <button class="toolbar-btn" title="Redo" (click)="onRedo()"><fa-icon [icon]="icons.redo"></fa-icon> Redo</button>
+    <button class="toolbar-btn" title="Restart" data-cy="bpmnRestart" (click)="onRestart()">
+      <fa-icon [icon]="icons.restart"></fa-icon> Restart
+    </button>
+  </div>
+
+  <div class="toolbar-section">
+    <button class="toolbar-btn toolbar-btn-icon" title="Zoom out" data-cy="bpmnZoomOut" (click)="zoomOut()">
+      <fa-icon [icon]="icons.zoomOut"></fa-icon>
+    </button>
+    <button class="toolbar-btn toolbar-zoom-level" title="Fit the diagram to the viewport" data-cy="bpmnZoomFit" (click)="zoomToFit()">
+      {{ zoomPercent }}%
+    </button>
+    <button class="toolbar-btn toolbar-btn-icon" title="Zoom in" data-cy="bpmnZoomIn" (click)="zoomIn()">
+      <fa-icon [icon]="icons.zoomIn"></fa-icon>
+    </button>
+  </div>
+
+  <div class="toolbar-section">
+    <button class="toolbar-btn" title="Preview as XML" data-cy="bpmnPreviewXml" (click)="onPreviewXml()">
+      <fa-icon [icon]="icons.previewXml"></fa-icon> Preview as XML
+    </button>
+    <button
+      *ngIf="showMinimap"
+      class="toolbar-btn toolbar-btn-icon"
+      title="Toggle the minimap"
+      data-cy="bpmnToggleMinimap"
+      (click)="onToggleMinimap()"
+    >
+      <fa-icon [icon]="icons.minimap"></fa-icon>
+    </button>
+    <button
+      *ngIf="showShortcuts"
+      class="toolbar-btn toolbar-btn-icon"
+      title="Keyboard shortcuts"
+      data-cy="bpmnShortcuts"
+      (click)="onShowShortcuts()"
+    >
+      <fa-icon [icon]="icons.shortcuts"></fa-icon>
+    </button>
   </div>
 </div>

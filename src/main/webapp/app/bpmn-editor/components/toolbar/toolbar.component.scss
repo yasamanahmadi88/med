@@ -38,7 +38,19 @@
     background-color: #d0d0d0;
   }
 
-  i {
+  fa-icon {
     font-size: 1rem;
   }
+}
+
+.toolbar-btn-icon {
+  // Icon-only buttons still need the text buttons' height, so the row does not jog.
+  padding: 0.5rem 0.75rem;
+}
+
+.toolbar-zoom-level {
+  // Fixed so the row does not shift as the number goes from 90% to 100%.
+  min-width: 4.5rem;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
 }

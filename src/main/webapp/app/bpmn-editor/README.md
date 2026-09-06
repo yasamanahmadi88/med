@@ -267,6 +267,96 @@ Chinese** carried over from `zh_CN`: all 25 entries in `elements/tasks.ts`, 30 i
 So this needs a decision about the product's language before it needs code, and it is not in this
 change.
 
+### The toolbar
+
+Nine Vue files under `components/Toolbar`. Resolved the same way — by what each one renders, not
+by its name. **Two of them render nothing at all**, because `setup()` builds the handlers and
+never returns a render function.
+
+| Vue file            | Renders? | What it does                                                                                                            |
+| ------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `Previews.tsx`      | yes      | "Preview as XML" dialog, and a Cancel button. **Ported** (the JSON preview it also defines is never rendered).          |
+| `Scales.tsx`        | yes      | Zoom out / fit-to-viewport with a live percentage / zoom in. **Ported.**                                                |
+| `Commands.tsx`      | yes      | Undo / redo / restart. Restart **ported**; undo and redo already existed.                                               |
+| `ExternalTools.tsx` | yes      | Minimap toggle, shortcut-key dialog, token-simulation toggle, lint toggle, event-listener dialog. First two **ported**. |
+| `Exports.tsx`       | yes      | One Save button. Superseded — see below.                                                                                |
+| `Imports.tsx`       | **no**   | `setup()` returns nothing. Angular already has a working Import button.                                                 |
+| `Aligns.tsx`        | **no**   | `setup()` returns nothing. And bpmn-js ships alignment anyway — see below.                                              |
+| `index.tsx`         | yes      | Layout only.                                                                                                            |
+| `index.vue`         | —        | The custom-icon upload; belongs with the icons work, not here.                                                          |
+
+#### Ported
+
+- **Preview as XML** — the serialised document in a dialog, with a Copy button. `Ctrl`/`⌘` + `C`
+  copies the whole document, but only when nothing is selected: the Vue original took the
+  keystroke even from a real selection and re-wrote that selection to the clipboard itself, which
+  is what the browser already does.
+- **Zoom** — 10% steps about the canvas origin, plus fit-to-viewport, with the live scale on the
+  middle button. Two changes: the label rounds (`83%`) where Vue truncated to 10% steps (`80%`),
+  which matters because fit-to-viewport lands on an arbitrary scale; and the steps are clamped to
+  `0.2`–`4`, the bounds diagram-js caps its own scroll zoom to. Vue's arithmetic walked to `0` and
+  then negative, and a canvas zoomed to zero cannot be zoomed back out.
+- **Restart** — clears the command stack, then seeds a fresh diagram through the same
+  `createNewDiagram` the designer uses, so it carries the configured `processId`/`processName`.
+- **Minimap** — `diagram-js-minimap` was already a dependency and its stylesheet was already
+  imported, but the module was never registered: `settings.miniMap` reached nothing, so the
+  setting did nothing in either position. It is registered now, and the toolbar toggles it.
+  `designer.scss` hides the minimap's own toggle widget, so this button is the only way in.
+- **Keyboard shortcuts** — see below.
+
+#### The shortcut list is derived, not copied
+
+Vue's dialog listed ten shortcuts and gated three more behind `templateChooser`. Checked against
+the modules `bpmn-js/lib/Modeler` actually registers, that list was both incomplete and wrong:
+`R`, `A` and `N` come from `BpmnKeyboardBindings` and `CreateAppendKeyboardBindings`, which are
+default modules, so they are always bound; and delete, copy, paste, find, the connect tool and
+every arrow-key binding were missing.
+
+`components/toolbar/shortcuts.ts` is written from those modules and confirmed by pressing the keys
+in the Playwright suite. A shortcut list that lies is worse than no list.
+
+**Correcting a note from the previous change.** That change reported the Delete key as "not bound
+in this configuration at all". It is bound — `KeyboardBindings` registers `removeSelection` for
+`Delete` and `Backspace`. What actually happens is that placing an element opens its label editor
+and puts the caret inside it, so the keystroke belongs to the text until `Escape` closes it. Two
+Playwright tests pin this: Delete after `Escape` removes a task, and the same sequence on the
+start event removes nothing — which is a stronger proof of the delete rule than the context-pad
+test, because the keyboard goes straight to the editor action.
+
+#### Not ported
+
+- **`Exports.tsx`** — its Save posts the diagram to the embedding page with
+  `window.parent.postMessage(xml, '*')`. A wildcard target origin hands the document to whatever
+  frame happens to be the parent. Angular's Save goes through `BpmnEditorHost`, which the route
+  that opened the editor provides. That is kept.
+
+  What Vue's Save also did, and this does not yet, is **disable itself while any URL, port, IP or
+  time field fails validation**. Those four validators are a separate piece of the port and this
+  button will gate on them when they land.
+
+- **`Aligns.tsx`** — never rendered, and bpmn-js 11's `Modeler` registers `AlignElementsModule`
+  by default, so aligning a multi-element selection already works from the context pad. Porting
+  six toolbar buttons would duplicate a shipped feature.
+
+- **`Imports.tsx`** — never rendered. Angular's Import button already reads a `.bpmn`/`.xml` file
+  and imports it.
+
+- **Token simulation** (`bpmn-js-token-simulation`) and **lint** (`bpmnlint`,
+  `bpmn-js-bpmnlint`) — neither dependency is installed. Adding them is your call, the same
+  question the lint module raised previously.
+
+- **The event-listener dialog** — lists the keys of `eventBus._listeners`, a private field, with a
+  search box. It is a debugging aid for someone working on the editor, not something to put in
+  front of a user drawing a process. Say the word if you want it behind a developer flag.
+
+#### Icons
+
+The toolbar's buttons were marked up as `<i class="fas fa-save">`. This project ships FontAwesome
+as SVG components (`@fortawesome/angular-fontawesome`) and loads no webfont stylesheet, so those
+elements rendered nothing — every button was its text label and an empty box. They are `<fa-icon>`
+now, with the definitions passed straight in rather than added to the app-wide icon registry, and
+a Playwright test counts the rendered SVGs so the two cases cannot be confused again.
+
 ## Future Enhancements
 
 - [ ] Token simulation

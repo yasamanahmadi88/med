@@ -1,0 +1,35 @@
+.shortcut-keys {
+  .shortcut-group + .shortcut-group {
+    margin-top: 1.25rem;
+  }
+
+  h5 {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+  }
+
+  dl {
+    display: grid;
+    // The action names are the stable column; the keys wrap if a binding grows a second form.
+    grid-template-columns: minmax(10rem, 1fr) auto;
+    gap: 0.35rem 1rem;
+    margin: 0;
+    align-items: baseline;
+  }
+
+  dt {
+    font-weight: 400;
+  }
+
+  dd {
+    margin: 0;
+    text-align: right;
+  }
+
+  kbd {
+    white-space: nowrap;
+  }
+}

@@ -4,6 +4,7 @@ import EnhancementRenderer from './Renderer/EnhancementRenderer';
 import RewriteRenderer from './Renderer/RewriteRenderer';
 import CustomElementFactory from './ElementFactory';
 import CustomRules from './Rules';
+import MinimapModule from 'diagram-js-minimap';
 import { additionalModulesFor, moddleExtensionsFor } from './index';
 import { defaultSettings } from '../config';
 import { EditorSettings } from '../types/editor/settings';
@@ -108,10 +109,17 @@ describe('bpmn-editor additional modules', () => {
       expect(modules).not.toContain(RewritePalette);
     });
 
-    it('tolerates missing settings, keeping only the delete rule', () => {
+    it('registers the minimap only when the setting asks for it', () => {
+      // The setting existed from the first commit of the port and reached nothing: no module was
+      // ever registered, so the toolbar's toggle had nothing to toggle either way.
+      expect(additionalModulesFor(settingsWith({ miniMap: true }))).toContain(MinimapModule);
+      expect(additionalModulesFor(settingsWith({ miniMap: false }))).not.toContain(MinimapModule);
+    });
+
+    it('tolerates missing settings, keeping the delete rule and the minimap', () => {
       // Nothing to select a palette or renderer from, but the diagram still deserves its
-      // start and end events.
-      expect(additionalModulesFor(undefined)).toEqual([CustomRules]);
+      // start and end events, and both flags default to on.
+      expect(additionalModulesFor(undefined)).toEqual([CustomRules, MinimapModule]);
     });
   });
 });

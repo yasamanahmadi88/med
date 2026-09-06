@@ -1,4 +1,5 @@
 import camundaModdleDescriptor from 'camunda-bpmn-moddle/resources/camunda.json';
+import MinimapModule from 'diagram-js-minimap';
 
 import EnhancementPalette from './Palette/EnhancementPalette';
 import RewritePalette from './Palette/RewritePalette';
@@ -86,6 +87,8 @@ export function moddleExtensionsFor(settings: EditorSettings | undefined): Recor
  * - `otherModule` carries the extras that are neither palette nor renderer. Only the delete rule
  *   travelled across; see the README for what the Vue editor kept under this flag and why the
  *   rest did not.
+ * - `miniMap` registers diagram-js-minimap. The setting has existed since the port began but
+ *   reached nothing, so turning it off changed nothing and turning it on gave no minimap.
  */
 export function additionalModulesFor(settings: EditorSettings | undefined): unknown[] {
   const modules: unknown[] = [];
@@ -112,6 +115,13 @@ export function additionalModulesFor(settings: EditorSettings | undefined): unkn
   // the rule protecting start and end events travelled under it.
   if (settings?.otherModule ?? true) {
     modules.push(CustomRules);
+  }
+
+  // `designer.scss` hides the minimap's own toggle widget, so the toolbar button is the only
+  // way to open it — and neither works unless the module is registered, which is what this
+  // setting now decides. Until this it decided nothing at all.
+  if (settings?.miniMap ?? true) {
+    modules.push(MinimapModule);
   }
 
   return modules;

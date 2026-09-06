@@ -186,6 +186,27 @@ test.describe('BPMN editor', () => {
     await expect(page.locator('.panel-content .bio-properties-panel')).toBeVisible();
   });
 
+  test('the panel header is not laid out around an icon it never draws', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    const header = page.locator('.panel > .panel-header');
+    await expect(header).toHaveText('Properties');
+
+    // `styles/panel.scss` carried the Vue `.panel-header` rule over whole: a grid whose first
+    // 40px column held `common/BpmnIcon.vue`, with two rows beside it for the element name and
+    // type. This header renders one word and no icon, so the title was squeezed into that column
+    // and wrapped — "Proper" over "ties". Counting line boxes is what catches it; the text reads
+    // the same either way, and a text assertion would pass over the top of it.
+    const lineBoxes = await header.evaluate(el => {
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      return range.getClientRects().length;
+    });
+    expect(lineBoxes).toBe(1);
+  });
+
   test('shows the custom integration modules in the palette', async ({ page, mockApi }) => {
     await mockApi({ account: 'admin' });
 
@@ -373,6 +394,61 @@ test.describe('BPMN editor', () => {
       .first()
       .click({ position: { x: 700, y: 420 } });
     await expect(groups.filter({ hasText: 'Execution listeners' })).toHaveCount(1);
+  });
+
+  test('the panel groups open and close from their header', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    // `common/CollapseTitle.vue` was the title row the Vue panel put inside a naive-ui collapse
+    // item — the hand-rolled half of a collapsible section. @bpmn-io/properties-panel's own
+    // `Group` is the whole thing: header, title, arrow and the open/closed state
+    // (`dist/index.esm.js:923`). Asserting the entries appear and disappear is what separates
+    // that from a header that only looks the part.
+    await page.locator('.bpmn-canvas .djs-element[data-element-id^="StartEvent"]').first().click();
+
+    const general = page
+      .locator('.bio-properties-panel-group')
+      .filter({ has: page.locator('.bio-properties-panel-group-header-title', { hasText: 'General' }) })
+      .first();
+    const header = general.locator('.bio-properties-panel-group-header');
+    const entries = general.locator('.bio-properties-panel-group-entries');
+
+    // Groups open closed, so the first click has to be the one that reveals the fields.
+    await expect(entries).toBeHidden();
+
+    await header.click();
+    await expect(entries).toBeVisible();
+    await expect(entries.locator('#bio-properties-panel-id')).toBeVisible();
+
+    await header.click();
+    await expect(entries).toBeHidden();
+  });
+
+  test('each property row labels its own control', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    // `common/EditItem.vue` was the Vue panel's label-and-slot row, and its label was a plain
+    // `<div>` at a fixed pixel width — text near a control, associated with nothing. The panel's
+    // entries render a real `<label for>` bound to the input, so clicking the label focuses the
+    // field. That association is the behaviour worth holding: a `<div>` beside an input satisfies
+    // any assertion about the label's text.
+    await page.locator('.bpmn-canvas .djs-element[data-element-id^="StartEvent"]').first().click();
+
+    const general = page
+      .locator('.bio-properties-panel-group')
+      .filter({ has: page.locator('.bio-properties-panel-group-header-title', { hasText: 'General' }) })
+      .first();
+    await general.locator('.bio-properties-panel-group-header').click();
+
+    const idLabel = general.locator('label.bio-properties-panel-label[for="bio-properties-panel-id"]');
+    await expect(idLabel).toHaveText('ID');
+
+    await idLabel.click();
+    await expect(page.locator('#bio-properties-panel-id')).toBeFocused();
   });
 
   test('exposes the toolbar actions', async ({ page, mockApi }) => {

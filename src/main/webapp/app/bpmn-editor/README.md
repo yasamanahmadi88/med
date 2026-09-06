@@ -611,6 +611,122 @@ in that comment that are not true:
   The rule is still right — one diagram carries one engine's schema — but it is enforced here, not
   by moddle.
 
+### `components/common/` and `styles/context-pad.scss` — 154 lines, nothing to port
+
+Four "common" components and one stylesheet, resolved the same way as everything else: by who
+imports each file, and then whether _that_ consumer is itself reachable from `App.tsx`. Two are
+dead in the Vue project, two are the hand-rolled version of something the stock properties panel
+now renders, and the stylesheet styles a class no code produces, using an image that is not there.
+
+| Vue file                  | Lines | Verdict                                                                                             |
+| ------------------------- | ----- | --------------------------------------------------------------------------------------------------- |
+| `common/BpmnIcon.vue`     | 23    | **Dead** — no import, no global registration, no template names it.                                 |
+| `common/CollapseTitle.vue` | 32   | Registered globally, but its only users are seven files nothing imports. Also the panel's own group header. |
+| `common/EditItem.vue`     | 54    | The same seven files. Also the panel's own labelled entry row.                                       |
+| `common/LucideIcon.vue`   | 38    | Live in Vue — and every call site that was ported already draws a `<fa-icon>` here.                  |
+| `styles/context-pad.scss` | 7     | Styles a class only commented-out code produces, from an image that does not exist.                  |
+
+#### `BpmnIcon.vue` is dead — and its stylesheet is why this panel header wrapped
+
+`main.ts:79-96` registers `LucideIcon`, `EditItem` and `CollapseTitle` globally. `BpmnIcon` is not
+among them, nothing imports it by path, and no template in the Vue source names `<BpmnIcon>` or
+`<bpmn-icon>`. The Vue panel header it was written for renders `<p>{bpmnElementName}</p>` and
+nothing else (`components/Panel/index.tsx:450-451`), so the component never reached a screen.
+
+Its **stylesheet** did reach this module, though. `styles/panel.scss` was carried over whole, and
+its `.panel-header` rule is the icon's layout: a grid with a 40px first column for the `<svg>`,
+spanning two rows for the element name and type. `PanelComponent` renders one word and no icon
+(`components/panel/panel.component.html:2`), so that column had nothing in it and the title was
+squeezed into it — measured in the browser: the header 117px tall, `grid-template-columns: 40px
+245px`, and "Properties" broken across two line boxes 39.7px and 31.0px wide with the 245px column
+beside it empty. `BpmnEditorComponent` uses `ViewEncapsulation.None`, which is how a global rule
+written for a Vue component reached an Angular one.
+
+The rule is removed. Its one non-layout declaration, the `#f5f5f7` tint, moves to
+`panel.component.scss` where the header that actually exists is styled, so the only visible change
+is the title fitting on its line.
+
+#### `CollapseTitle.vue` and `EditItem.vue` — seven consumers, none of them imported
+
+`<collapse-title>` and `<edit-item>` appear only in `components/Panel/components/Element*.vue` —
+`ElementAsyncContinuations`, `ElementConditional`, `ElementDocumentations`,
+`ElementExecutionListeners`, `ElementExtensionProperties`, `ElementGenerations`,
+`ElementJobExecution`. **Nothing in the Vue project imports any of those seven**, by path or by
+symbol. `Panel/index.tsx` renders `renderComponents` (`index.tsx:454-456`), and every branch that
+fills it (`index.tsx:172-380`) pushes only the module-specific `*Properties/*.vue` editors. So even
+though `penalMode` defaults to `custom` (`config/index.ts:10`) and `App.tsx:77` therefore mounts
+the custom panel, none of the seven ever mounts, and the two components they hold are unreachable.
+
+They are also duplicates. `@bpmn-io/properties-panel/dist/index.esm.js:923-947` is `Group`: the
+header, the title, the arrow and the open/closed state — the whole collapsible section, of which
+`CollapseTitle` was the title row inside a naive-ui `n-collapse-item`. And each entry renders
+`<label class="bio-properties-panel-label" for="…">` bound to its control, which is `EditItem`'s
+`<div class="edit-item_label">` row with an association it never had: clicking the panel's label
+focuses the field.
+
+One difference, stated rather than hidden: `EditItem` put the label to the left of the control at a
+fixed pixel width (`labelWidth`, default 80); the panel stacks the label above it. Same
+information, different shape, and no code of ours either way.
+
+#### `LucideIcon.vue` — live in Vue, already answered by `<fa-icon>`
+
+The one of the four that is genuinely reachable. Its call sites and what became of each:
+
+| Vue call site                       | Icon                     | Here                                                    |
+| ----------------------------------- | ------------------------ | ------------------------------------------------------- |
+| `Commands.tsx:40,50,60`             | `Undo2`, `Redo2`, `Eraser` | `icons.undo`, `icons.redo`, `icons.restart`            |
+| `Scales.tsx:49,71`                  | `ZoomOut`, `ZoomIn`      | `icons.zoomOut`, `icons.zoomIn`                         |
+| `ExternalTools.tsx:146,170`         | `Map`, `Keyboard`        | `icons.minimap`, `icons.shortcuts`                      |
+| `ExternalTools.tsx:125,135,158`     | `Bot`, `Podcast`, `FileCheck` | token simulation, lint, event-listener dialog — not ported |
+| `Aligns.tsx:7`                      | —                        | imported but never rendered; `setup()` returns nothing   |
+| `Setting/index.tsx:81`              | `Settings`               | inside a `{/* … */}` JSX comment                        |
+
+Every call site that was ported already draws its icon, and porting `LucideIcon` would mean adding
+a `lucide-angular` dependency — `package.json` has no lucide package — to redraw them. The toolbar
+icon test already counts one `svg.svg-inline--fa` per button, so a regression there is caught.
+
+#### `context-pad.scss` — a class nothing produces, pointing at an image that is not there
+
+Both halves fail independently.
+
+`.enhancement-op` appears exactly twice in the Vue source outside the stylesheet, and **both are
+commented out**: `additional-modules/ContextPad/RewriteContextPad/rewriteContextPadProvider.ts:65`
+and `:77`. `getContextPadEntries` returns the `actions` object it declared empty at `:60`. Nothing
+in this module produces the class either.
+
+And the image. The rule asks for `./logo.ico`, which resolves against `src/styles/`. The only
+`.ico` in the Vue repository is `public/logo.ico`; `src/styles/logo.ico` does not exist. Had the
+class ever been rendered, its background would still have been nothing.
+
+The provider it decorates is not here in any case: `RewriteContextPadProvider` is registered only
+under `contextPadMode: 'rewrite'`, and neither context-pad variant is ported — see "The six
+`additional-modules` left over" above. This module's `styles/index.scss` already omits the import.
+
+#### What this change does instead: hold the two coverage claims
+
+The dead files need no code. The two "the library already does it" claims do, because a future
+change could quietly drop the module — the same reason the `bpmn-icons` audit left tests behind.
+Three Playwright tests:
+
+- **the panel header is a single line box.** This is the assertion that catches the dead
+  `.panel-header` grid; the header reads "Properties" either way, so a text assertion walks
+  straight past a title broken in half.
+- **a group opens and closes from its header**, with its fields appearing and disappearing —
+  groups open closed, so the first click has to be the one that reveals them.
+- **the ID row's `<label for>` focuses its input when clicked**, which is the association
+  `EditItem`'s `<div>` never had.
+
+Each was falsified before being kept. Restoring the `.panel-header` rule turns the first from one
+line box into two. Dropping `BpmnPropertiesProviderModule` from `designer.component.ts` fails the
+other two. And the focus assertion was checked against a control: clicking the group header title —
+a `<div>`, not a label — leaves the input `inactive`, so it is the `<label for>` doing the work.
+
+**Left alone, and worth a word.** `styles/panel.scss` still carries naive-ui leftovers —
+`.n-collapse`, `.n-collapse-item*`, `.inline-large-button`, `.need-filled.n-form`. Unlike
+`.panel-header` these are inert: no element with an `n-collapse` class renders anywhere in this
+editor (counted in the browser: zero). They are the styling for the collapse the properties panel
+now provides. Say the word and they go with a follow-up that audits the rest of `Panel/`.
+
 ## Future Enhancements
 
 - [ ] Token simulation

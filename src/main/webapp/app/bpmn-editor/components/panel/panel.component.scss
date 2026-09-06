@@ -11,6 +11,10 @@
     font-weight: 500;
     border-bottom: 1px solid #e0e0e0;
     font-size: 0.875rem;
+    // The tint is all that survives the Vue `.panel-header` rule in styles/panel.scss. The rest of
+    // it laid out `common/BpmnIcon.vue` — a 40px grid column, plus two rows for the element name
+    // and type — none of which this header renders, so it squeezed "Properties" into that column.
+    background: #f5f5f7;
   }
 
   .panel-content {

@@ -1,16 +1,105 @@
+.home-page {
+  position: relative;
+  min-height: calc(100vh - 100px);
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #07162d 0%, #0c2346 45%, #143764 100%);
+}
+
+/* Event stream در سرتاسر صفحه Home */
+.event-stream {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.event-node {
+  position: absolute;
+  top: var(--top);
+  width: var(--size);
+  height: calc(var(--size) * 0.86);
+  opacity: 0.3;
+  filter: drop-shadow(0 0 5px rgba(120, 220, 255, 0.18));
+}
+
+.event-node polygon {
+  fill: rgba(30, 65, 110, 0.04);
+  stroke: rgba(185, 232, 255, 0.42);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.event-node.l2r {
+  animation: event-l2r var(--dur) linear infinite;
+  animation-delay: var(--delay);
+}
+
+.event-node.r2l {
+  animation: event-r2l var(--dur) linear infinite;
+  animation-delay: var(--delay);
+}
+
+@keyframes event-l2r {
+  from {
+    transform: translate3d(-20vw, 0, 0) rotate(0deg);
+  }
+  to {
+    transform: translate3d(120vw, 0, 0) rotate(360deg);
+  }
+}
+
+@keyframes event-r2l {
+  from {
+    transform: translate3d(120vw, 0, 0) rotate(360deg);
+  }
+  to {
+    transform: translate3d(-20vw, 0, 0) rotate(0deg);
+  }
+}
+
+.home-wrapper {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  width: 100%;
+}
+
+.home-card {
+  background: rgb(60 81 114);
+  padding: 3rem;
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  max-width: 650px;
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 /* ==========================================================================
-Main page styles
+Main page styles (Hipster avatar)
 ========================================================================== */
 
 .hipster {
   display: inline-block;
-  width: 347px;
-  height: 497px;
+  width: 180px;
+  height: 220px;
+  margin: 0 auto;
   background: url('../../content/images/jhipster_family_member_0.svg') no-repeat center top;
   background-size: contain;
 }
 
-/* wait autoprefixer update to allow simple generation of high pixel density media query */
 @media only screen and (-webkit-min-device-pixel-ratio: 2),
   only screen and (-moz-min-device-pixel-ratio: 2),
   only screen and (-o-min-device-pixel-ratio: 2/1),
@@ -19,5 +108,37 @@ Main page styles
   .hipster {
     background: url('../../content/images/jhipster_family_member_0.svg') no-repeat center top;
     background-size: contain;
+  }
+}
+
+.alert-success {
+  background-color: #0b2040;
+  border-color: #4a5970;
+  color: rgb(110 134 172);
+  font-size: 1.05rem;
+  margin-bottom: 0;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 576px) {
+  .home-wrapper {
+    padding: 1rem;
+  }
+  .home-card {
+    padding: 2rem 1.5rem;
+  }
+  .hipster {
+    width: 130px;
+    height: 160px;
   }
 }

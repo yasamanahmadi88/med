@@ -1,1 +1,9 @@
-<!-- Context menu placeholder -->
+<div *ngIf="open" class="bpmn-context-menu" [style.left.px]="x" [style.top.px]="y" (click)="$event.stopPropagation()">
+  <div class="context-menu_header">Create Element</div>
+  <div class="context-menu_body">
+    <div *ngFor="let option of options" class="context-menu_item" (click)="select(option, $event)">
+      <i class="context-menu_item_icon" [ngClass]="option.className"></i>
+      <span>{{ label(option) }}</span>
+    </div>
+  </div>
+</div>

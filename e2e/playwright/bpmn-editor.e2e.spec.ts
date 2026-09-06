@@ -42,6 +42,73 @@ test.describe('BPMN editor', () => {
     await expect(page.locator('.bpmn-canvas .djs-element')).not.toHaveCount(0);
   });
 
+  test('right-clicking an element offers the types it can become', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    // The seeded start event is a replaceable element, so ContextMenuProvider hands it to the
+    // stock bpmn-replace popup rather than to our create menu.
+    const startEvent = page.locator('.bpmn-canvas .djs-element[data-element-id^="StartEvent"]').first();
+    await startEvent.click({ button: 'right' });
+
+    await expect(page.locator('.djs-popup [data-id="replace-with-message-start"]')).toBeVisible();
+    await expect(page.locator('.bpmn-context-menu')).toHaveCount(0);
+  });
+
+  test('right-clicking bare canvas offers elements to create', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    // The canvas resolves to the Process, which has no type to swap — bpmn-replace is empty for
+    // it, so this is the case our own menu exists to cover.
+    await page
+      .locator('.bpmn-canvas .djs-container svg')
+      .first()
+      .click({ button: 'right', position: { x: 420, y: 320 } });
+
+    const menu = page.locator('.bpmn-context-menu');
+    await expect(menu).toBeVisible();
+    await expect(menu.locator('.context-menu_header')).toHaveText('Create Element');
+    await expect(menu.locator('.context-menu_item')).not.toHaveCount(0);
+  });
+
+  test('picking from the create menu places that element', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+    const before = await page.locator('.bpmn-canvas .djs-element').count();
+
+    await page
+      .locator('.bpmn-canvas .djs-container svg')
+      .first()
+      .click({ button: 'right', position: { x: 420, y: 320 } });
+
+    // The chosen shape attaches to the cursor, exactly as dragging from the palette does, so a
+    // second click is what commits it to the canvas.
+    await page.locator('.bpmn-context-menu .context-menu_item', { hasText: 'Task' }).first().click();
+    await page.locator('.bpmn-canvas .djs-container').click({ position: { x: 500, y: 380 } });
+
+    await expect(page.locator('.bpmn-canvas .djs-element')).not.toHaveCount(before);
+  });
+
+  test('the create menu closes on a click elsewhere', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    await page
+      .locator('.bpmn-canvas .djs-container svg')
+      .first()
+      .click({ button: 'right', position: { x: 420, y: 320 } });
+    await expect(page.locator('.bpmn-context-menu')).toBeVisible();
+
+    await page.locator('.bpmn-canvas').click({ position: { x: 200, y: 200 } });
+
+    await expect(page.locator('.bpmn-context-menu')).toHaveCount(0);
+  });
+
   test('renders the properties panel into the panel component', async ({ page, mockApi }) => {
     await mockApi({ account: 'admin' });
 

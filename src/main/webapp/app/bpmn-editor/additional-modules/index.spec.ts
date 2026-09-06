@@ -3,6 +3,7 @@ import RewritePalette from './Palette/RewritePalette';
 import EnhancementRenderer from './Renderer/EnhancementRenderer';
 import RewriteRenderer from './Renderer/RewriteRenderer';
 import CustomElementFactory from './ElementFactory';
+import CustomRules from './Rules';
 import { additionalModulesFor, moddleExtensionsFor } from './index';
 import { defaultSettings } from '../config';
 import { EditorSettings } from '../types/editor/settings';
@@ -85,8 +86,19 @@ describe('bpmn-editor additional modules', () => {
       expect(additionalModulesFor(settingsWith({ paletteMode: 'enhancement', rendererMode: 'default' }))).toContain(CustomElementFactory);
     });
 
-    it('registers nothing when both are left on the stock behaviour', () => {
-      expect(additionalModulesFor(settingsWith({ paletteMode: 'default', rendererMode: 'default' }))).toEqual([]);
+    it('registers no palette or renderer module when both are left on the stock behaviour', () => {
+      const modules = additionalModulesFor(settingsWith({ paletteMode: 'default', rendererMode: 'default' }));
+
+      for (const module of [EnhancementPalette, RewritePalette, EnhancementRenderer, RewriteRenderer, CustomElementFactory]) {
+        expect(modules).not.toContain(module);
+      }
+    });
+
+    it('protects the start and end events unless otherModule is off', () => {
+      // The one extra the Vue editor kept under `otherModule` that carries behaviour; without it
+      // a stray Delete leaves a process no engine will run.
+      expect(additionalModulesFor(settingsWith({ otherModule: true }))).toContain(CustomRules);
+      expect(additionalModulesFor(settingsWith({ otherModule: false }))).not.toContain(CustomRules);
     });
 
     it('treats the separate Angular palette panel as not needing a bpmn-js palette module', () => {
@@ -96,8 +108,10 @@ describe('bpmn-editor additional modules', () => {
       expect(modules).not.toContain(RewritePalette);
     });
 
-    it('tolerates missing settings', () => {
-      expect(additionalModulesFor(undefined)).toEqual([]);
+    it('tolerates missing settings, keeping only the delete rule', () => {
+      // Nothing to select a palette or renderer from, but the diagram still deserves its
+      // start and end events.
+      expect(additionalModulesFor(undefined)).toEqual([CustomRules]);
     });
   });
 });

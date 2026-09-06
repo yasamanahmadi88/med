@@ -12,3 +12,5 @@ export default {
 export { ModulePropertiesProvider };
 export * from './schema';
 export * from './schemas';
+export * from './validators';
+export * from './validation';

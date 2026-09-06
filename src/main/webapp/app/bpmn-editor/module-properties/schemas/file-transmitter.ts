@@ -12,14 +12,14 @@ import { ModuleSchema } from '../schema';
  * All eleven components in the Vue directory are rendered by that case, so nothing here is an
  * orphan and the panel's eleven fields are the module's eleven properties.
  *
- * Two caveats carried over from the Vue source, both flagged in the port report:
+ * One caveat carried over from the Vue source, flagged in the port report:
  *
  *  - `Auth Password` was a password input with a show/hide eye toggle. `FieldKind` has no masked
  *    kind, so it is `text` here, exactly as the ported `HttpReceiver.authPassword` is.
- *  - `IP Address` and `Port` carried client-side validation (a regex and an inline error message).
- *    The generic provider has no hook for per-field validation, so both are plain `text` and an
- *    invalid value is now accepted; `Port` was a text input in the Vue form too, not a number one,
- *    so typing it as `number` would change what the panel writes.
+ *
+ * `IP Address` and `Port` carry the client-side validation the Vue components had; both stay
+ * `text` because `Port` was a text input in the Vue form too, and typing it as `number` would
+ * change what the panel writes.
  */
 export const fileTransmitterSchema: ModuleSchema = {
   type: 'FileTransmitter:FileTransmitter',
@@ -32,8 +32,8 @@ export const fileTransmitterSchema: ModuleSchema = {
     { name: 'directoryPath', label: 'Directory Path', kind: 'text' },
     { name: 'pathSeparator', label: 'Path Separator', kind: 'text' },
     // Labelled "IP Address" here where the sibling `FileReceiver` labels the same property "Ip".
-    { name: 'ip', label: 'IP Address', kind: 'text' },
-    { name: 'port', label: 'Port', kind: 'text' },
+    { name: 'ip', label: 'IP Address', kind: 'text', validate: 'ipv4' },
+    { name: 'port', label: 'Port', kind: 'text', validate: 'port' },
     { name: 'username', label: 'Username', kind: 'text' },
     { name: 'password', label: 'Auth Password', kind: 'text' },
     // Capitalised `FileNameJslt` in the moddle, not `fileNameJslt`: `fileTransmitterFileNameJsltUtil`

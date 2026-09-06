@@ -330,9 +330,8 @@ test, because the keyboard goes straight to the editor action.
   frame happens to be the parent. Angular's Save goes through `BpmnEditorHost`, which the route
   that opened the editor provides. That is kept.
 
-  What Vue's Save also did, and this does not yet, is **disable itself while any URL, port, IP or
-  time field fails validation**. Those four validators are a separate piece of the port and this
-  button will gate on them when they land.
+  What Vue's Save also did is **disable itself while any URL, port, IP or time field fails
+  validation**. That gate is now in place — see "The four validators" below.
 
 - **`Aligns.tsx`** — never rendered, and bpmn-js 11's `Modeler` registers `AlignElementsModule`
   by default, so aligning a multi-element selection already works from the context pad. Porting
@@ -356,6 +355,74 @@ as SVG components (`@fortawesome/angular-fontawesome`) and loads no webfont styl
 elements rendered nothing — every button was its text label and an empty box. They are `<fa-icon>`
 now, with the definitions passed straight in rather than added to the app-wide icon registry, and
 a Playwright test counts the rendered SVGs so the two cases cannot be confused again.
+
+### The four validators
+
+Four `store/*Validation.ts` files, 669 lines, and every one of them is the same generic error bag
+with one validator bolted on. Only **four fields** in the whole panel ever used them:
+
+| Field                     | Rule             | Vue message                                   |
+| ------------------------- | ---------------- | --------------------------------------------- |
+| `fileTransmitter.ip`      | IPv4 dotted quad | `Invalid IPv4 format (e.g., 192.168.1.1)`     |
+| `fileTransmitter.port`    | integer 0–65535  | `Port must be an integer between 0 and 65535` |
+| `httpTransmitter.authUrl` | URL pattern      | `Invalid URL format` / spaces / scheme        |
+| `merger.expireTimeOfDay`  | `HH:mm:ss`       | `Time must be in HH:mm:ss format`             |
+
+`validators.ts` holds those four rules and their messages. A schema field opts in by naming one
+(`validate: 'ipv4'`); nothing validates by default. An empty value is always accepted — none of
+these properties is required, and every Vue component cleared its error before testing the
+pattern.
+
+The message appears under the field, because `@bpmn-io/properties-panel` entries already take a
+`validate` callback and render what it returns. That replaces four hand-written components' worth
+of error markup with one line in the provider.
+
+#### The gate reads the whole diagram, not the selected element
+
+The Vue stores were keyed by element, but every field component called `clearError` in
+`onUnmounted` — so selecting a different element **erased the record of the invalid one**, and
+Save went back to enabled with the bad value still in the diagram. An invalid value only blocked
+the save while you were looking straight at it.
+
+`validation.ts` walks the element registry instead, on every `commandStack.changed` and after
+every import. What gates Save is the state of the whole diagram, including elements the user has
+never selected and values that arrived through a file.
+
+And the banner says which element, which field and why. The Vue button greyed itself out with no
+explanation anywhere on the page — and worse, `App.tsx` hid the **entire toolbar** when a URL
+error existed (`canShowToolbar = showToolbar && !urlValidationStore.hasErrors`), taking Cancel
+away with it, so a mistyped URL left the user with no way out of the editor. That is not ported.
+
+#### Two rules changed, deliberately
+
+- **`http://localhost:8080` was rejected.** The Vue URL pattern made the scheme optional but
+  always demanded a dot in the host, so a service name inside a compose network or a cluster —
+  which is what these fields usually hold — failed, and with the Save gate the flow could not be
+  saved at all. The pattern now accepts either a scheme with any host or a dotted host on its
+  own. Widening only: nothing Vue accepted is rejected now.
+- **`1e2`, `0x10`, `12.0` and `-0` were valid ports.** Vue ran `Number(value)` and asked whether
+  the result was an integer in range. None of those is a port number; the check is digits-only
+  now. This one is a narrowing, and it is the point of the field.
+
+The URL messages are Vue's, with one reordering: a value holding a space is reported as such even
+when it also lacks a scheme. Vue tested the scheme first, so `http://a b.com` — where the space is
+the real problem — was reported as missing the `http://` it plainly has.
+
+#### Fields that could be validated and are not
+
+Only the four Vue validated are gated, because the gate blocks saving: turning it on for a field
+nobody validated before can block a flow that has been saving fine for years. The candidates, if
+you want them:
+
+| Field                      | Module            | Note                                                                                         |
+| -------------------------- | ----------------- | -------------------------------------------------------------------------------------------- |
+| `ip`, `port`               | `FileReceiver`    | The same two properties, same labels, on the sibling module. The strongest candidate by far. |
+| `partyUrl`                 | `HttpTransmitter` | An http URL, like the `authUrl` next to it.                                                  |
+| `authTokenVerificationUrl` | `HttpReceiver`    | An http URL.                                                                                 |
+| `url`                      | `DbTransmitter`   | A **JDBC** URL — the http pattern would be wrong here; it needs its own rule.                |
+
+Adding one is a single word in the schema. Say which, and whether the risk of blocking an
+existing flow is worth it for that field.
 
 ## Future Enhancements
 

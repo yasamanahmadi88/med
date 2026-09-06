@@ -4,6 +4,7 @@ import { Base } from 'diagram-js/lib/model';
 
 import { ModuleField, ModuleSchema } from './schema';
 import { schemaForType } from './schemas';
+import { validateField } from './validators';
 
 /**
  * Adds one properties-panel group per custom integration module, built from `schema.ts`.
@@ -91,6 +92,14 @@ export default class ModulePropertiesProvider {
       setValue,
       debounce: (fn: unknown) => fn,
     };
+
+    if (field.validate) {
+      // The entry components render whatever this returns under the input and mark the row with
+      // `has-error`. They still commit the value — an invalid one reaches the diagram exactly as
+      // it did in the Vue panel — so the toolbar's Save gate is what actually stops it leaving.
+      const validator = field.validate;
+      entry['validate'] = (value: unknown): string | undefined => validateField(validator, value);
+    }
 
     if (field.kind === 'select') {
       // The panel renders an empty first option so a property can be cleared, matching the Vue

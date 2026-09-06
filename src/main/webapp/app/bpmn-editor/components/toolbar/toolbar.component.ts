@@ -8,6 +8,7 @@ import {
   faEraser,
   faKeyboard,
   faMap,
+  faTriangleExclamation,
   faRedo,
   faSave,
   faSearchMinus,
@@ -21,6 +22,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
 import { BPMN_EDITOR_HOST, BpmnEditorHost } from '../../services/bpmn-editor-host';
 import { createNewDiagram } from '../../utils/empty-diagram';
+import { ModulePropertyProblem, describeProblem, moduleValidationProblems } from '../../module-properties';
 import { XmlPreviewDialogComponent } from './xml-preview-dialog.component';
 import { ShortcutKeysDialogComponent } from './shortcut-keys-dialog.component';
 
@@ -58,6 +60,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
     previewXml: faCode,
     minimap: faMap,
     shortcuts: faKeyboard,
+    problem: faTriangleExclamation,
   };
 
   /** Live canvas zoom, so the label keeps up with the wheel and with fit-to-viewport. */
@@ -66,6 +69,12 @@ export class ToolbarComponent implements OnInit, OnDestroy {
   /** `miniMap` and `otherModule` gate two buttons, exactly as they did in the Vue toolbar. */
   showMinimap = false;
   showShortcuts = true;
+
+  /**
+   * Invalid module properties anywhere in the diagram. Save is blocked while this is non-empty,
+   * which is what the Vue Save button did — except it only ever saw the selected element.
+   */
+  problems: readonly ModulePropertyProblem[] = [];
 
   private readonly destroy$ = new Subject<void>();
 
@@ -87,12 +96,17 @@ export class ToolbarComponent implements OnInit, OnDestroy {
         return;
       }
       this.zoom = this.canvas()?.zoom() ?? 1;
+      this.refreshProblems();
       // Fired by the wheel, by fit-to-viewport and by our own buttons alike, and always from
       // outside Angular's awareness of what changed.
       modeler.on('canvas.viewbox.changed', ({ viewbox }: { viewbox: { scale: number } }) => {
         this.zoom = viewbox.scale;
         this.changeDetector.detectChanges();
       });
+      // Every edit goes through the command stack, including the properties panel's writes and a
+      // whole import, so this is the one place that sees all of them.
+      modeler.on('commandStack.changed', () => this.refreshProblems());
+      modeler.on('import.done', () => this.refreshProblems());
     });
   }
 
@@ -103,6 +117,16 @@ export class ToolbarComponent implements OnInit, OnDestroy {
 
   /** The zoom as a whole percentage. Rounded, not truncated to 10% steps as the Vue label was,
    *  so fit-to-viewport reports the scale it actually applied. */
+  /** Save is disabled while the diagram holds a property no engine would accept. */
+  get canSave(): boolean {
+    return this.problems.length === 0;
+  }
+
+  /** The tooltip on a disabled Save, and the text of the warning beside it. */
+  get problemSummary(): string {
+    return this.problems.map(describeProblem).join('\n');
+  }
+
   get zoomPercent(): number {
     return Math.round(this.zoom * 100);
   }
@@ -123,6 +147,11 @@ export class ToolbarComponent implements OnInit, OnDestroy {
   /** Keep the current diagram in the editor service so other views can read it back, then let
    *  the host persist it wherever it came from. */
   onSave(): Promise<void> {
+    // Belt and braces: the button is disabled, but a caller reaching the method directly must not
+    // be able to persist a diagram the properties panel has already flagged.
+    if (!this.canSave) {
+      return Promise.resolve();
+    }
     return this.currentXml().then(xml => {
       if (xml) {
         this.bpmnEditorService.setProcessXml(xml);
@@ -235,6 +264,16 @@ export class ToolbarComponent implements OnInit, OnDestroy {
 
   onShowShortcuts(): void {
     this.modalService.open(ShortcutKeysDialogComponent, { size: 'lg', scrollable: true });
+  }
+
+  /**
+   * Re-reads the whole diagram's module properties.
+   *
+   * Called from bpmn-js events, which Angular knows nothing about, so the view has to be told.
+   */
+  private refreshProblems(): void {
+    this.problems = moduleValidationProblems(this.bpmnEditorService.getBpmnModeler());
+    this.changeDetector.detectChanges();
   }
 
   private setZoom(value: number): void {

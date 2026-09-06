@@ -37,7 +37,7 @@ export const mergerSchema: ModuleSchema = {
     { name: 'expirationTime', label: 'Expiration Time (ms)', kind: 'number' },
     // A free-text `hh:mm:ss` field. The Vue component validated the format inline and showed its
     // own error; the panel has no validated entry, so it stores whatever is typed.
-    { name: 'expireTimeOfDay', label: 'Expire Time Of Day', kind: 'text' },
+    { name: 'expireTimeOfDay', label: 'Expire Time Of Day', kind: 'text', validate: 'timeOfDay' },
     { name: 'commentDesc', label: 'Comment Desc', kind: 'text' },
     { name: 'expiredMsgType', label: 'Expired Message Type', kind: 'text' },
     { name: 'mergedMsgType', label: 'Merged Message Type', kind: 'text' },

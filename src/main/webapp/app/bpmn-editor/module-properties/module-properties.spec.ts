@@ -180,4 +180,42 @@ describe('module properties', () => {
       });
     });
   });
+
+  describe('field validation', () => {
+    /** The entry the panel builds for one named field of one module. */
+    const entryFor = (type: string, fieldName: string): any => {
+      const { provider } = build('camunda');
+      const groups = provider.getGroups(makeElement(type) as any)([]) as any[];
+      return groups[0].entries.find((entry: any) => entry.id === fieldName);
+    };
+
+    it('gives the four validated fields a validate callback', () => {
+      // The entry components render whatever this returns under the input; without it the field
+      // accepts anything silently, which is what the panel did before.
+      for (const [type, field] of [
+        ['FileTransmitter:FileTransmitter', 'ip'],
+        ['FileTransmitter:FileTransmitter', 'port'],
+        ['HttpTransmitter:HttpTransmitter', 'authUrl'],
+        ['Merger:Merger', 'expireTimeOfDay'],
+      ] as const) {
+        expect(entryFor(type, field).validate, `${type}.${field}`).toBeTypeOf('function');
+      }
+    });
+
+    it('leaves every other field unvalidated', () => {
+      // Only the four the Vue editor validated. Gating Save on a field nobody validated before
+      // would block flows that have been saving fine for as long as they have existed.
+      expect(entryFor('FileTransmitter:FileTransmitter', 'agreementMode').validate).toBeUndefined();
+      expect(entryFor('HttpTransmitter:HttpTransmitter', 'partyUrl').validate).toBeUndefined();
+    });
+
+    it('returns the message the validator produces', () => {
+      expect(entryFor('FileTransmitter:FileTransmitter', 'ip').validate('999.1.1.1')).toBe('Invalid IPv4 format (e.g., 192.168.1.1)');
+      expect(entryFor('FileTransmitter:FileTransmitter', 'ip').validate('10.0.0.1')).toBeUndefined();
+    });
+
+    it('accepts a field left empty', () => {
+      expect(entryFor('Merger:Merger', 'expireTimeOfDay').validate('')).toBeUndefined();
+    });
+  });
 });

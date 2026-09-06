@@ -234,6 +234,69 @@ test.describe('BPMN editor', () => {
     await expect(page.locator('.bpmn-canvas .djs-element')).not.toHaveCount(before);
   });
 
+  test('blocks saving while a module property is invalid, and says why', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    // A FileTransmitter carries the IP field the Vue editor validated.
+    const canvas = page.locator('.bpmn-canvas .djs-container');
+    await page.locator('.djs-palette .fileTransmitter-module').click();
+    const box = await canvas.boundingBox();
+    await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+    await page.keyboard.press('Escape');
+
+    const save = page.getByTestId('bpmnSave');
+    await expect(save).toBeEnabled();
+
+    // The panel renders each group collapsed; the fields exist but are not reachable until the
+    // header is opened.
+    await page.locator('.panel-content .bio-properties-panel-group-header', { hasText: 'FileTransmitter' }).click();
+
+    const ip = page.locator('.panel-content [data-entry-id="ip"] input');
+    await expect(ip).toBeVisible();
+    await ip.fill('999.1.1.1');
+    await ip.blur();
+
+    // The panel says so on the field itself...
+    await expect(page.locator('.panel-content [data-entry-id="ip"] .bio-properties-panel-error')).toHaveText(
+      'Invalid IPv4 format (e.g., 192.168.1.1)',
+    );
+    // ...and the toolbar refuses to let it leave, naming the element and the reason. The Vue
+    // Save button disabled itself with no explanation anywhere on the page.
+    await expect(save).toBeDisabled();
+    const problems = page.getByTestId('bpmnProblems');
+    await expect(problems).toBeVisible();
+    await expect(problems).toContainText('IP Address');
+    await expect(problems).toContainText('Invalid IPv4 format');
+
+    await ip.fill('10.0.0.1');
+    await ip.blur();
+
+    await expect(save).toBeEnabled();
+    await expect(problems).toHaveCount(0);
+  });
+
+  test('leaves an unfilled property alone', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    // None of the validated properties is required. A module dropped on the canvas and not yet
+    // configured must not block the save.
+    const canvas = page.locator('.bpmn-canvas .djs-container');
+    await page.locator('.djs-palette .fileTransmitter-module').click();
+    const box = await canvas.boundingBox();
+    await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+    await page.keyboard.press('Escape');
+
+    await page.locator('.panel-content .bio-properties-panel-group-header', { hasText: 'FileTransmitter' }).click();
+
+    await expect(page.locator('.panel-content [data-entry-id="ip"] input')).toHaveValue('');
+    await expect(page.getByTestId('bpmnSave')).toBeEnabled();
+    await expect(page.getByTestId('bpmnProblems')).toHaveCount(0);
+  });
+
   test('exposes the toolbar actions', async ({ page, mockApi }) => {
     await mockApi({ account: 'admin' });
 

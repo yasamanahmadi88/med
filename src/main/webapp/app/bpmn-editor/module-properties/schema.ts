@@ -14,6 +14,8 @@
  * editor persisted them and how they persist here.
  */
 
+import { ValidatorName } from './validators';
+
 /** How a field is rendered. Mirrors the control the Vue component used. */
 export type FieldKind = 'text' | 'textarea' | 'select' | 'number';
 
@@ -31,6 +33,11 @@ export interface ModuleField {
   readonly kind: FieldKind;
   /** Allowed values, for `select` only. Taken from the Vue component's <option> list. */
   readonly options?: readonly FieldOption[];
+  /**
+   * Client-side validation, by name. Only the four fields the Vue editor validated carry one;
+   * see `validators.ts`. An empty value is always accepted — none of these is required.
+   */
+  readonly validate?: ValidatorName;
 }
 
 export interface ModuleSchema {

@@ -23,7 +23,7 @@ export const httpTransmitterSchema: ModuleSchema = {
     { name: 'httpHeaders', label: 'Http Headers', kind: 'textarea' },
     { name: 'httpBody', label: 'Http Body', kind: 'textarea' },
     { name: 'queryParams', label: 'Query Params', kind: 'textarea' },
-    { name: 'authUrl', label: 'Auth Url', kind: 'text' },
+    { name: 'authUrl', label: 'Auth Url', kind: 'text', validate: 'url' },
     { name: 'authHeaders', label: 'Auth Headers', kind: 'textarea' },
     { name: 'authBody', label: 'Auth Body', kind: 'textarea' },
     { name: 'authKey', label: 'Auth Key', kind: 'textarea' },

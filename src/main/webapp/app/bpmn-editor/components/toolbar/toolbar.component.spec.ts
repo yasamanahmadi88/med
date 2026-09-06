@@ -30,7 +30,9 @@ describe('ToolbarComponent', () => {
   };
   let minimap: { toggle: ReturnType<typeof vi.fn> };
   let modeler: any;
+  let elements: any[];
   let viewboxListener: ((event: { viewbox: { scale: number } }) => void) | undefined;
+  let commandStackListener: (() => void) | undefined;
 
   beforeEach(async () => {
     canvas = { zoom: vi.fn().mockReturnValue(1) };
@@ -43,17 +45,24 @@ describe('ToolbarComponent', () => {
     };
     minimap = { toggle: vi.fn() };
     viewboxListener = undefined;
+    commandStackListener = undefined;
+
+    elements = [];
 
     modeler = {
       get: vi.fn((name: string) => {
         if (name === 'canvas') return canvas;
         if (name === 'commandStack') return commandStack;
         if (name === 'minimap') return minimap;
+        if (name === 'elementRegistry') return { getAll: () => elements };
         return undefined;
       }),
       on: vi.fn((event: string, listener: any) => {
         if (event === 'canvas.viewbox.changed') {
           viewboxListener = listener;
+        }
+        if (event === 'commandStack.changed') {
+          commandStackListener = listener;
         }
       }),
       saveXML: vi.fn().mockResolvedValue({ xml: '<definitions />' }),
@@ -266,6 +275,83 @@ describe('ToolbarComponent', () => {
       attachModeler();
 
       expect(() => component.onToggleMinimap()).not.toThrow();
+    });
+  });
+
+  describe('the save gate', () => {
+    /** An element carrying one module property, shaped the way the registry hands them back. */
+    const moduleElement = (id: string, type: string, properties: Record<string, unknown>): any => ({
+      id,
+      businessObject: { $type: type, get: (property: string) => properties[property] },
+    });
+
+    it('allows saving a diagram with no module properties at all', () => {
+      attachModeler();
+
+      expect(component.canSave).toBe(true);
+      expect(fixture.nativeElement.querySelector('[data-cy="bpmnSave"]').disabled).toBe(false);
+      expect(fixture.nativeElement.querySelector('[data-cy="bpmnProblems"]')).toBeNull();
+    });
+
+    it('blocks saving while a module property is invalid', () => {
+      elements = [moduleElement('F', 'FileTransmitter:FileTransmitter', { 'camunda:ip': '999.1.1.1' })];
+      attachModeler();
+
+      expect(component.canSave).toBe(false);
+      expect(fixture.nativeElement.querySelector('[data-cy="bpmnSave"]').disabled).toBe(true);
+    });
+
+    it('says what is wrong and where, rather than only greying the button out', () => {
+      // The Vue Save button disabled itself with no explanation anywhere on the page.
+      elements = [moduleElement('F', 'FileTransmitter:FileTransmitter', { 'camunda:port': '70000' })];
+      attachModeler();
+
+      const banner = fixture.nativeElement.querySelector('[data-cy="bpmnProblems"]');
+      expect(banner.textContent).toContain('Port');
+      expect(banner.textContent).toContain('Port must be an integer between 0 and 65535');
+      expect(banner.textContent).toContain('F');
+    });
+
+    it('refuses to save even when the method is called directly', async () => {
+      elements = [moduleElement('F', 'FileTransmitter:FileTransmitter', { 'camunda:ip': 'nonsense' })];
+      attachModeler();
+
+      await component.onSave();
+
+      expect(host.save).not.toHaveBeenCalled();
+    });
+
+    it('re-checks the diagram on every edit', () => {
+      // The properties panel writes through the command stack, so this is how a fix to the value
+      // re-enables the button.
+      elements = [moduleElement('F', 'FileTransmitter:FileTransmitter', { 'camunda:ip': 'nonsense' })];
+      attachModeler();
+      expect(component.canSave).toBe(false);
+
+      elements = [moduleElement('F', 'FileTransmitter:FileTransmitter', { 'camunda:ip': '10.0.0.1' })];
+      commandStackListener!();
+
+      expect(component.canSave).toBe(true);
+      expect(fixture.nativeElement.querySelector('[data-cy="bpmnProblems"]')).toBeNull();
+    });
+
+    it('catches an element the user has never selected', () => {
+      // The Vue store held only the selected element's errors and cleared them when the selection
+      // moved on, so this diagram saved with the bad value in it.
+      elements = [
+        moduleElement('Ok', 'FileTransmitter:FileTransmitter', { 'camunda:ip': '10.0.0.1' }),
+        moduleElement('Bad', 'Merger:Merger', { 'camunda:expireTimeOfDay': 'noon' }),
+      ];
+      attachModeler();
+
+      expect(component.problems.map(problem => problem.elementId)).toEqual(['Bad']);
+    });
+
+    it('explains itself in the tooltip of the disabled button', () => {
+      elements = [moduleElement('M', 'Merger:Merger', { 'camunda:expireTimeOfDay': '25:00:00' })];
+      attachModeler();
+
+      expect(fixture.nativeElement.querySelector('[data-cy="bpmnSave"]').title).toContain('HH:mm:ss');
     });
   });
 

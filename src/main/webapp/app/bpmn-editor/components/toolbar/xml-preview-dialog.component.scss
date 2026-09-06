@@ -1,0 +1,18 @@
+.xml-preview {
+  max-height: 64vh;
+  overflow: auto;
+
+  pre {
+    margin: 0;
+    // The document is machine-formatted, so its own line breaks are the readable ones; wrapping
+    // would hide the nesting the indentation shows.
+    white-space: pre;
+    font-size: 0.8125rem;
+  }
+}
+
+.copy-state {
+  margin-right: auto;
+  font-size: 0.8125rem;
+  color: #6c757d;
+}

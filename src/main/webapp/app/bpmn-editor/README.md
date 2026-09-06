@@ -424,6 +424,85 @@ you want them:
 Adding one is a single word in the schema. Say which, and whether the risk of blocking an
 existing flow is worth it for that field.
 
+### `config/bpmnEnums.ts`, `config/selectOptions.ts` and `bpmn-icons/` — 228 lines, nothing to port
+
+Audited the same way as everything else: by resolving each file's consumers, then checking
+whether the library already ships what it does. All four turn out to be library code copied out,
+or dead.
+
+| Vue file                    | Lines | What it is                                                        |
+| --------------------------- | ----- | ----------------------------------------------------------------- |
+| `config/bpmnEnums.ts`       | 8     | `LISTENER_ALLOWED_TYPES`, copied out of bpmn-js-properties-panel. |
+| `config/selectOptions.ts`   | 7     | **Dead** — nothing imports it.                                    |
+| `bpmn-icons/getIconType.ts` | 90    | `getConcreteType`, copied out of bpmn-js-properties-panel.        |
+| `bpmn-icons/index.ts`       | 123   | The panel's `iconsByType` map, as font classes.                   |
+
+#### `bpmnEnums.ts` is the library's own constant
+
+```ts
+// Vue: src/config/bpmnEnums.ts
+export const LISTENER_ALLOWED_TYPES = [
+  'bpmn:Activity',
+  'bpmn:Event',
+  'bpmn:Gateway',
+  'bpmn:SequenceFlow',
+  'bpmn:Process',
+  'bpmn:Participant',
+];
+```
+
+`bpmn-js-properties-panel/dist/index.esm.js:15289` declares a constant of the **same name** with
+the **same six entries in the same order**, and gates its own Execution listeners group on it:
+
+```js
+function ExecutionListenerProps({ element, injector }) {
+  if (!isAny(element, LISTENER_ALLOWED_TYPES)) return;
+  if (is(element, 'bpmn:Participant') && !element.businessObject.processRef) return;
+```
+
+That second line is also in the Vue copy, as `isExecutable()` in `bo-utils/executionListenersUtil.ts`
+— the enum's only consumer. The whole thing is one library function reimplemented around one
+library constant, and `CamundaPlatformPropertiesProviderModule` already renders the group.
+
+#### `getIconType.ts` is `getConcreteType`, comment numbering included
+
+Vue's 90 lines are `getConcreteType` from `bpmn-js-properties-panel/dist/index.esm.js:1219`,
+line for line, down to the `// (1) event definition types` / `// (2) sub process types` /
+`// (3) conditional + default flows` comments and the four helpers below them.
+
+The panel calls it in `PanelHeaderProvider` to pick the header icon out of `iconsByType`
+(`index.esm.js:1107`, the same ~90 keys as `bpmn-icons/index.ts`) and to build the header's type
+label. The Vue panel's header did exactly that and no more, so the map and the function are both
+already on screen in this editor.
+
+#### `selectOptions.ts` is dead, and its labels are Chinese
+
+```ts
+export const scriptTypeOptions = ref<Record<string, string>[]>([
+  { label: '外链脚本( External Resource )', value: 'external' },
+  ...
+])
+```
+
+Nothing imports it. The two components that use a `scriptTypeOptions` — `ElementExecutionListeners.vue`
+and `ElementConditional.vue` — each declare their own local copy. The panel's equivalent offers
+`resource` / `script`, which are the values that actually write `camunda:resource` or an inline
+`camunda:script`; `external` / `inline` / `none` were never wired to anything.
+
+#### What this change does instead: prove the coverage
+
+"The library already does it" is worth nothing if a future change quietly drops the module, so
+three Playwright tests now hold the claims:
+
+- the header names the selected element by its **concrete** type — `Exclusive Gateway`, not
+  `Gateway`, which is the whole reason `getConcreteType` exists;
+- the header icon **differs** between a start event and a task, so a single fallback icon fails
+  the test where a presence check would pass;
+- the Execution listeners group appears on a start event, a gateway and the process.
+
+The third was falsified before being kept: with `CamundaPlatformPropertiesProviderModule` removed
+from `designer.component.ts` it fails on the first assertion, and passes again once restored.
+
 ## Future Enhancements
 
 - [ ] Token simulation

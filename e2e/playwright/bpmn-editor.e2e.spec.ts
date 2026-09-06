@@ -297,6 +297,84 @@ test.describe('BPMN editor', () => {
     await expect(page.getByTestId('bpmnProblems')).toHaveCount(0);
   });
 
+  test('names the selected element by its concrete type', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    // `bpmn-icons/getIconType.ts` in the Vue editor derived this name so the panel header could
+    // show it. bpmn-js-properties-panel's `PanelHeaderProvider` computes the same name from the
+    // same function, so what the port needed here was nothing — and this is the test that says
+    // so, rather than an assumption in a comment.
+    const header = page.locator('.bio-properties-panel-header');
+
+    await page.locator('.bpmn-canvas .djs-element[data-element-id^="StartEvent"]').first().click();
+    await expect(header).toContainText(/start event/i);
+
+    const canvas = page.locator('.bpmn-canvas .djs-container');
+    await page.locator('.djs-palette .bpmn-icon-gateway-none').click();
+    const box = await canvas.boundingBox();
+    await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+    await page.keyboard.press('Escape');
+
+    // Not "Gateway": the concrete type, which is what tells an exclusive gateway from a parallel
+    // one in a diagram where both are drawn as diamonds.
+    await expect(header).toContainText(/exclusive gateway/i);
+  });
+
+  test('draws a different header icon per element type', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    // The other half of what `bpmn-icons/` existed for: 123 lines mapping a concrete type to an
+    // icon. The panel ships the same map. Comparing the two rendered icons is what distinguishes
+    // "the right icon" from "an icon" — a fallback would pass a mere presence check.
+    const icon = page.locator('.bio-properties-panel-header-icon svg');
+
+    await page.locator('.bpmn-canvas .djs-element[data-element-id^="StartEvent"]').first().click();
+    await expect(icon).toBeVisible();
+    const startEventIcon = await icon.innerHTML();
+
+    const canvas = page.locator('.bpmn-canvas .djs-container');
+    await page.locator('.djs-palette .bpmn-icon-task').click();
+    const box = await canvas.boundingBox();
+    await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+    await page.keyboard.press('Escape');
+
+    await expect(icon).toBeVisible();
+    expect(await icon.innerHTML()).not.toBe(startEventIcon);
+  });
+
+  test('offers execution listeners on the element types that accept them', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    // `config/bpmnEnums.ts` was one constant, `LISTENER_ALLOWED_TYPES`, with one consumer: the
+    // Vue execution-listener editor. bpmn-js-properties-panel declares a constant of the same
+    // name with the same six entries in the same order and gates its own Execution listeners
+    // group on it, so this group appearing is that constant doing its job.
+    const groups = page.locator('.bio-properties-panel-group-header-title');
+
+    await page.locator('.bpmn-canvas .djs-element[data-element-id^="StartEvent"]').first().click();
+    await expect(groups.filter({ hasText: 'Execution listeners' })).toHaveCount(1);
+
+    const canvas = page.locator('.bpmn-canvas .djs-container');
+    await page.locator('.djs-palette .bpmn-icon-gateway-none').click();
+    const box = await canvas.boundingBox();
+    await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+    await page.keyboard.press('Escape');
+    await expect(groups.filter({ hasText: 'Execution listeners' })).toHaveCount(1);
+
+    // And on the process itself, reached by clicking bare canvas.
+    await page
+      .locator('.bpmn-canvas .djs-container svg')
+      .first()
+      .click({ position: { x: 700, y: 420 } });
+    await expect(groups.filter({ hasText: 'Execution listeners' })).toHaveCount(1);
+  });
+
   test('exposes the toolbar actions', async ({ page, mockApi }) => {
     await mockApi({ account: 'admin' });
 

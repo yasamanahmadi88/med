@@ -1,6 +1,8 @@
 <div class="toolbar">
   <div class="toolbar-section">
-    <button class="toolbar-btn" title="Save" data-cy="bpmnSave" (click)="onSave()"><fa-icon [icon]="icons.save"></fa-icon> Save</button>
+    <button class="toolbar-btn" [title]="canSave ? 'Save' : problemSummary" data-cy="bpmnSave" [disabled]="!canSave" (click)="onSave()">
+      <fa-icon [icon]="icons.save"></fa-icon> Save
+    </button>
     <button class="toolbar-btn" title="Export" (click)="onExport()"><fa-icon [icon]="icons.export"></fa-icon> Export</button>
     <button class="toolbar-btn" title="Import" (click)="onImport()"><fa-icon [icon]="icons.import"></fa-icon> Import</button>
     <button class="toolbar-btn" title="Cancel" data-cy="bpmnCancel" (click)="onCancel()">
@@ -51,4 +53,16 @@
       <fa-icon [icon]="icons.shortcuts"></fa-icon>
     </button>
   </div>
+</div>
+
+<div *ngIf="!canSave" class="toolbar-problems" role="alert" data-cy="bpmnProblems">
+  <fa-icon [icon]="icons.problem"></fa-icon>
+  <span class="toolbar-problems-title">
+    Saving is blocked by {{ problems.length }} invalid {{ problems.length === 1 ? 'property' : 'properties' }}:
+  </span>
+  <ul>
+    <li *ngFor="let problem of problems">
+      <strong>{{ problem.elementName }}</strong> &middot; {{ problem.fieldLabel }} — {{ problem.message }}
+    </li>
+  </ul>
 </div>

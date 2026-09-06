@@ -38,6 +38,18 @@
     background-color: #d0d0d0;
   }
 
+  // A disabled Save must not look or behave clickable; without this the hover rule above still
+  // lights it up and the pointer still says it can be pressed.
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+
+    &:hover {
+      background-color: #fff;
+      border-color: #ccc;
+    }
+  }
+
   fa-icon {
     font-size: 1rem;
   }
@@ -53,4 +65,28 @@
   min-width: 4.5rem;
   justify-content: center;
   font-variant-numeric: tabular-nums;
+}
+
+.toolbar-problems {
+  // Sits under the toolbar rather than inside it: the list grows with the diagram, and pushing
+  // the buttons around as elements are edited would be worse than taking a second row.
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #fff4f4;
+  border-bottom: 1px solid #f5c2c7;
+  color: #842029;
+  font-size: 0.8125rem;
+
+  .toolbar-problems-title {
+    font-weight: 600;
+  }
+
+  ul {
+    flex-basis: 100%;
+    margin: 0.25rem 0 0;
+    padding-left: 1.25rem;
+  }
 }

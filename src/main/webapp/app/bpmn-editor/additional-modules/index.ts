@@ -59,8 +59,14 @@ const integrationModuleExtensions: Record<string, unknown> = {
 /**
  * The four process engines are competing flavours of the same schema — activiti, flowable and
  * cdrParser are the Camunda moddle with the prefix renamed — so exactly one may be registered.
- * Registering more than one makes moddle refuse the duplicate extension of bpmn:Definitions
- * ("property <diagramRelationId> already defined") and the modeler fails to construct at all.
+ *
+ * Registering camunda and cdrParser together is also a hard failure: both extend bpmn:Definitions
+ * with an unprefixed `diagramRelationId`, and moddle refuses the second one ("property
+ * <diagramRelationId> already defined"). It does not refuse it at construction — moddle builds
+ * type descriptors lazily, so `new BpmnModeler(...)` succeeds and the first createDiagram or
+ * importXML is what throws. activiti and flowable extend bpmn:Definitions not at all and would
+ * quietly coexist with anything, which is why the one-engine rule is enforced here rather than
+ * left to moddle to catch. `index.spec.ts` holds both halves.
  */
 const engineExtensions: Record<string, unknown> = {
   camunda: camundaModdleDescriptor,

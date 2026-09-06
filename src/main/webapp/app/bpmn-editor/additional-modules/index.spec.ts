@@ -5,11 +5,25 @@ import RewriteRenderer from './Renderer/RewriteRenderer';
 import CustomElementFactory from './ElementFactory';
 import CustomRules from './Rules';
 import MinimapModule from 'diagram-js-minimap';
+import BpmnModdle, { ModdleElement, Package } from 'bpmn-moddle';
+import camundaModdleDescriptor from 'camunda-bpmn-moddle/resources/camunda.json';
 import { additionalModulesFor, moddleExtensionsFor } from './index';
 import { defaultSettings } from '../config';
 import { EditorSettings } from '../types/editor/settings';
 
 const settingsWith = (overrides: Partial<EditorSettings>): EditorSettings => ({ ...defaultSettings, ...overrides });
+
+const engines = ['camunda', 'activiti', 'flowable', 'cdrParser'] as const;
+
+// One element from a registered process engine and one from a registered integration module —
+// the two kinds of extension `moddleExtensionsFor` returns.
+const DIAGRAM = `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:KafkaReceiver="KafkaReceiver" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Process_1" isExecutable="true">
+    <bpmn:task id="Task_1" camunda:asyncBefore="true" />
+    <KafkaReceiver:kafkaReceiver id="Receiver_1" name="orders" />
+  </bpmn:process>
+</bpmn:definitions>`;
 
 describe('bpmn-editor additional modules', () => {
   describe('moddleExtensionsFor', () => {
@@ -43,20 +57,117 @@ describe('bpmn-editor additional modules', () => {
       }
     });
 
-    it('keeps camunda on the camunda-bpmn-moddle descriptor the properties provider expects', () => {
+    it('keeps camunda on the camunda-bpmn-moddle descriptor itself, not a copy of it', () => {
+      // The Vue editor carried `moddle-extensions/camunda.json`: camunda-bpmn-moddle 7.0.2's own
+      // resources/camunda.json with one unreferenced `cdrParserProperties` type bolted on. A copy
+      // like that keeps `name: 'Camunda'`, so identity is the only assertion that catches a fork.
       expect(defaultSettings.processEngine).toBe('camunda');
-      expect((moddleExtensions['camunda'] as { name?: string }).name).toBe('Camunda');
+      expect(moddleExtensions['camunda']).toBe(camundaModdleDescriptor);
     });
 
     it('registers exactly one process-engine schema', () => {
-      // activiti, flowable and cdrParser are the Camunda moddle with the prefix renamed. Two of
-      // them at once makes moddle reject the duplicate bpmn:Definitions extension and the modeler
-      // fails to construct, which is a runtime failure no build catches.
-      for (const engine of ['camunda', 'activiti', 'flowable', 'cdrParser'] as const) {
+      for (const engine of engines) {
         const registered = Object.keys(moddleExtensionsFor(settingsWith({ processEngine: engine })));
-        const engines = registered.filter(k => ['camunda', 'activiti', 'flowable', 'cdrParser'].includes(k));
 
-        expect(engines, `processEngine ${engine}`).toEqual([engine]);
+        expect(
+          registered.filter(key => (engines as readonly string[]).includes(key)),
+          `processEngine ${engine}`,
+        ).toEqual([engine]);
+      }
+    });
+  });
+
+  /**
+   * bpmn-js hands `moddleExtensions` straight to `new BpmnModdle(...)` (bpmn-js/lib/BaseViewer.js
+   * lines 61 and 646), so this is the object the editor really builds. Asserting on the keys alone
+   * — which is all the block above can do — never touches moddle, and moddle is where every way of
+   * getting this wrong shows up.
+   */
+  describe('the moddle those extensions build', () => {
+    // The local `types/declares/bpmn-moddle.d.ts` types the constructor as the array form only;
+    // bpmn-js passes the prefix-keyed object, which moddle accepts just as well.
+    const build = (extensions: Record<string, unknown>): BpmnModdle => new BpmnModdle(extensions as unknown as Package[]);
+
+    it('resolves bpmn:Definitions for every process engine', () => {
+      // moddle builds type descriptors lazily, so a clashing pair of extensions does NOT throw in
+      // the constructor: `new BpmnModeler(...)` succeeds and the first createDiagram/importXML is
+      // what fails. Resolving the type is what forces the descriptor, so that is what is asserted.
+      //
+      // Only camunda and cdrParser can clash: both add an unprefixed `diagramRelationId` to
+      // bpmn:Definitions (camunda-bpmn-moddle/resources/camunda.json lines 10-23,
+      // moddle-extensions/cdrParserProperties.json lines 10-21). activiti and flowable extend
+      // bpmn:Definitions not at all, so they would coexist with anything — the one-engine rule is
+      // about a diagram carrying one engine's schema, and only this pair also breaks the editor.
+      for (const engine of engines) {
+        const moddle = build(moddleExtensionsFor(settingsWith({ processEngine: engine })));
+
+        expect(() => moddle.getType('bpmn:Definitions'), `processEngine ${engine}`).not.toThrow();
+      }
+    });
+
+    it('resolves every type the custom palettes place', () => {
+      // These are the exact strings the two palette providers hand to elementFactory.createShape.
+      // An unresolved one throws "unknown type" the moment the entry is clicked.
+      const moddle = build(moddleExtensionsFor(defaultSettings));
+
+      for (const type of [
+        'CdrParser:CdrParser',
+        'CsvTransformer:CsvTransformer',
+        'DbReceiver:DbReceiver',
+        'DbTransmitter:DbTransmitter',
+        'EventaDbReceiver:EventaDbReceiver',
+        'FileReceiver:FileReceiver',
+        'FileTransmitter:FileTransmitter',
+        'Fragmenter:Fragmenter',
+        'HttpReceiver:HttpReceiver',
+        'HttpReceiverEventa:HttpReceiverEventa',
+        'HttpTransmitter:HttpTransmitter',
+        'KafkaReceiver:KafkaReceiver',
+        'KafkaTransmitter:KafkaTransmitter',
+        'Merger:Merger',
+        'Transformer:Transformer',
+        'miyue:SqlTask',
+      ]) {
+        expect(moddle.getType(type), type).toBeTruthy();
+      }
+    });
+
+    it('parses and re-serialises what the extensions exist for', async () => {
+      const moddle = build(moddleExtensionsFor(defaultSettings));
+      const parsed = (await moddle.fromXML(DIAGRAM, 'bpmn:Definitions')) as unknown as { rootElement: ModdleElement; warnings: Error[] };
+
+      expect(parsed.warnings.map(warning => warning.message)).toEqual([]);
+
+      // A namespace moddle does not know keeps its attributes as raw strings in `$attrs`, and its
+      // elements never become flow elements at all — so a boolean `true` and a resolved `$type`
+      // are what tell "the descriptor was applied" apart from "the value merely survived".
+      const [task, receiver] = parsed.rootElement.rootElements[0].flowElements as ModdleElement[];
+      expect(task.get('camunda:asyncBefore')).toBe(true);
+      expect(receiver.$type).toBe('KafkaReceiver:KafkaReceiver');
+      expect(receiver.get('name')).toBe('orders');
+
+      const { xml } = (await moddle.toXML(parsed.rootElement as unknown as string)) as unknown as { xml: string };
+      expect(xml).toContain('camunda:asyncBefore="true"');
+      expect(xml).toContain('<KafkaReceiver:kafkaReceiver id="Receiver_1" name="orders" />');
+    });
+
+    it('re-declares no package bpmn-moddle already owns', () => {
+      // bpmn-moddle merges the extensions over its own packages BY KEY
+      // (bpmn-moddle/dist/index.js lines 3730-3742), so a descriptor keyed `bpmn` silently
+      // replaces the BPMN 2.0 schema and the same descriptor under any other key throws
+      // "package with prefix <bpmn> already defined". The Vue editor's unused
+      // `moddle-extensions/bpmn.json` is exactly that descriptor, which is why it is not here.
+      const stock = build({}).getPackages() as unknown as { prefix: string; uri: string }[];
+      const prefixes = stock.map(({ prefix }) => prefix);
+      const uris = stock.map(({ uri }) => uri);
+
+      for (const engine of engines) {
+        for (const [key, descriptor] of Object.entries(moddleExtensionsFor(settingsWith({ processEngine: engine })))) {
+          const { prefix, uri } = descriptor as { prefix: string; uri: string };
+
+          expect(prefixes, `${key} prefix`).not.toContain(prefix);
+          expect(uris, `${key} uri`).not.toContain(uri);
+        }
       }
     });
   });

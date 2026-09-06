@@ -503,6 +503,114 @@ three Playwright tests now hold the claims:
 The third was falsified before being kept: with `CamundaPlatformPropertiesProviderModule` removed
 from `designer.component.ts` it fails on the first assertion, and passes again once restored.
 
+### The four `moddle-extensions` still in the Vue folder — none of them ported
+
+`moddle-extensions/` holds 23 files in the Vue editor and 19 here. The four missing ones were
+resolved the same way as everything else: by who imports them, and then by whether an npm package
+already ships them. All four stay out, and one of them would have done real damage.
+
+| Vue file                | Imported by                                                  | Verdict                                                                |
+| ----------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| `bpmn.json`             | **nobody**                                                   | `bpmn-moddle`'s own BPMN 2.0 schema. Registering it replaces it.       |
+| `camunda.json`          | `Designer/modulesAndModdle.ts:10`                            | `camunda-bpmn-moddle`'s own file, plus one type nothing names.         |
+| `zeebe.json`            | **nobody**                                                   | `zeebe-bpmn-moddle`'s schema, for an engine this editor never targets. |
+| `customIconModule.json` | `Designer/CustomIconIntegration.ts:3` — which nobody imports | Dead twice over, and it contradicts its own palette.                   |
+
+#### `bpmn.json` is BPMN 2.0 itself, and registering it is silent damage
+
+The file is `bpmn-moddle/resources/bpmn/json/bpmn.json` — 2957 normalised lines of it — with two
+extra `isAttr: true` flags, on `LinkEventDefinition#target` and `MessageEventDefinition#operationRef`.
+It carries `"prefix": "bpmn"` and `"uri": "http://www.omg.org/spec/BPMN/20100524/MODEL"`: the
+package `bpmn-moddle` registers for itself.
+
+The failure mode is what makes this worth spelling out. `bpmn-moddle` merges the extensions over
+its own packages **by key** (`bpmn-moddle/dist/index.js:3730-3742`,
+`assign({}, packages, additionalPackages)`), so:
+
+- keyed `bpmn`, the descriptor **replaces** the BPMN 2.0 schema — no error, no warning, and every
+  diagram is then parsed against a stale copy;
+- keyed anything else, moddle throws `package with prefix <bpmn> already defined`
+  (`moddle/dist/index.js:958`).
+
+The first is the one to guard, because nothing else would notice. `index.spec.ts` does now.
+
+#### `camunda.json` is the library file plus one type nothing names
+
+Normalised and diffed against `camunda-bpmn-moddle@7.0.2/resources/camunda.json`, the whole
+difference is 64 lines, all additions, all in one place:
+
+- a type `cdrParserProperties` — `camunda:ExecutionListener`'s shape under another name — which
+  appears nowhere in the Vue project but its own declaration (`moddle-extensions/camunda.json:1039`);
+- the string `camunda:cdrProperties` added to `Field`'s `meta.allowedIn`
+  (`moddle-extensions/camunda.json:695`), naming a type that does not exist — the type above is
+  declared as `cdrParserProperties`. `allowedIn` is inert here in any case: the only occurrence of
+  the word across `bpmn-js`, `bpmn-js-properties-panel`, `moddle`, `bpmn-moddle`,
+  `camunda-bpmn-moddle` and `diagram-js` is inside the resource file that declares it.
+
+`additional-modules/index.ts:1` already imports the npm descriptor. The CDR parser's real schema is
+the separate `cdrParserProperties.json`, which is ported, and which is what
+`Designer/modulesAndModdle.ts:100,171` registered for that panel.
+
+#### `zeebe.json` targets an engine this editor does not
+
+`zeebe-bpmn-moddle`'s schema — `ZeebeServiceTask`, `TaskDefinition`, `IoMapping`, `TaskHeaders` and
+twelve more, under `http://camunda.org/schema/zeebe/1.0`. Nothing imports it in the Vue project,
+`zeebe-bpmn-moddle` is not a dependency of this project, no Zeebe properties provider is
+registered, and no palette entry or property form emits a Zeebe element. It would register a
+namespace and change nothing.
+
+#### `customIconModule.json` is dead in the Vue project too
+
+Its one importer is `Designer/CustomIconIntegration.ts:3`, and `CustomIconIntegration` is imported
+by nothing — a whole-project grep returns only the file's own self-references. Reached, it would
+still not work:
+
+- `utils/customIconRegistry-fixed.ts:48` mints element types as `Custom:${icon.name}`, while the
+  file declares prefix `custom` with the single type `CustomElement`. The palette provider would
+  ask `elementFactory.createShape` for a namespace nobody registered.
+- `CustomIconIntegration.ts:1` reads the `-fixed` registry while
+  `Palette/EnhancementPalette/customIconPaletteProvider.ts:10` reads the other one, so the two
+  halves would not see the same icons.
+- `CustomIconIntegration.ts:29-53` only `new`s the provider into a field. It is never registered
+  with didi, so `getPaletteEntries` is never called.
+- the file spells its own `enumerations` key `emumerations`.
+
+Custom icons are blocked on a product decision, and this file is not the part that was missing.
+
+#### What this change does instead: hold the claims in moddle
+
+The `moddleExtensionsFor` tests could only read the keys of the returned object, which never
+touches moddle — and moddle is where every way of getting this wrong actually shows up. Four tests
+now build the real thing (`new BpmnModdle(extensions)`, which is what bpmn-js does with this object
+at `bpmn-js/lib/BaseViewer.js:61,646`), and each was falsified before being kept:
+
+| Test                                              | Falsified by                                                                              |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `bpmn:Definitions` resolves for every engine      | returning camunda and cdrParser together → `property <diagramRelationId> already defined` |
+| every type the palettes place resolves            | dropping `KafkaReceiver` → `expected undefined to be truthy`                              |
+| a diagram parses and re-serialises                | dropping the camunda descriptor → `expected 'true' to be true`                            |
+| no package `bpmn-moddle` already owns is declared | adding the BPMN 2.0 package → `expected [ 'bpmn', … ] to not include 'bpmn'`              |
+
+The third is the one worth reading twice. `camunda:asyncBefore="true"` comes back as the **string**
+`'true'` when the camunda descriptor is missing, because moddle keeps the attributes of an unknown
+namespace in `$attrs` verbatim. A test that only checked the value survived would pass either way;
+asserting the boolean is what makes it a test.
+
+#### Two corrections to what `additional-modules/index.ts` said
+
+Checking the one-engine rule against moddle rather than against the key list turned up two claims
+in that comment that are not true:
+
+- **"the modeler fails to construct at all."** It does not. moddle builds type descriptors lazily,
+  so the clash surfaces on the first `getType('bpmn:Definitions')` — that is, the first
+  `createDiagram` or `importXML`, with a modeler that constructed perfectly well. A test that only
+  constructs a modeler would miss it entirely.
+- **"registering more than one"** is not the trigger. Only camunda and cdrParser clash, because
+  only those two extend `bpmn:Definitions` (`camunda-bpmn-moddle/resources/camunda.json:10-23`,
+  `moddle-extensions/cdrParserProperties.json:10-21`). All five other pairs build a working moddle.
+  The rule is still right — one diagram carries one engine's schema — but it is enforced here, not
+  by moddle.
+
 ## Future Enhancements
 
 - [ ] Token simulation

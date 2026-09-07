@@ -655,4 +655,52 @@ test.describe('BPMN editor', () => {
     expect(background.repeat).toBe('repeat');
     expect(background.size).toBe('auto');
   });
+
+  // Two viewports, because the bug scaled with neither: the editor asked for a full `100vh`
+  // starting below the navbar, so it hung exactly one navbar past the bottom at every size.
+  for (const viewport of [
+    { width: 1280, height: 720 },
+    { width: 500, height: 640 },
+  ]) {
+    test(`the editor ends at the bottom of a ${viewport.width}x${viewport.height} viewport`, async ({ page, mockApi }) => {
+      await mockApi({ account: 'admin' });
+      await page.setViewportSize(viewport);
+
+      await page.goto('/bpmn-editor');
+      await expect(page.locator('.bpmn-canvas .bjs-container')).toBeVisible();
+      await expect(page.locator('jhi-panel')).toBeVisible();
+
+      // Measured, not asserted-to-exist. Before the fix every element below was present, visible
+      // and the right size — it was just drawn 47px lower than the screen goes, and
+      // `body { overflow: hidden }` from `bpmn-editor/styles/index.scss` meant nothing could
+      // scroll to it. Only the numbers show that.
+      const layout = await page.evaluate(() => {
+        const bottom = (selector: string) => document.querySelector(selector)!.getBoundingClientRect().bottom;
+        return {
+          viewportBottom: window.innerHeight,
+          navbarBottom: document.querySelector('jhi-navbar .navbar')!.getBoundingClientRect().bottom,
+          containerTop: document.querySelector('#designer-container')!.getBoundingClientRect().top,
+          containerBottom: bottom('#designer-container'),
+          canvasBottom: bottom('.bpmn-canvas'),
+          panelBottom: bottom('jhi-panel'),
+          documentScrollHeight: document.documentElement.scrollHeight,
+          documentClientHeight: document.documentElement.clientHeight,
+        };
+      });
+
+      // No overflow: the canvas and the properties panel both end on the bottom edge of the
+      // screen, not below it.
+      expect(layout.canvasBottom).toBeLessThanOrEqual(layout.viewportBottom);
+      expect(layout.panelBottom).toBeLessThanOrEqual(layout.viewportBottom);
+      expect(layout.containerBottom).toBeCloseTo(layout.viewportBottom, 0);
+      expect(layout.canvasBottom).toBeCloseTo(layout.viewportBottom, 0);
+      expect(layout.panelBottom).toBeCloseTo(layout.viewportBottom, 0);
+
+      // No gap: it starts where the navbar stops, so the whole space below the navbar is editor.
+      expect(layout.containerTop).toBeCloseTo(layout.navbarBottom, 0);
+
+      // And the route itself does not grow a scrollbar it would need in order to be whole.
+      expect(layout.documentScrollHeight).toBe(layout.documentClientHeight);
+    });
+  }
 });

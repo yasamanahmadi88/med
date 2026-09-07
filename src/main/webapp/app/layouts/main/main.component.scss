@@ -2,6 +2,40 @@
   min-height: 100vh;
 }
 
+// `/bpmn-editor` is the one route whose content sizes itself against the space it is given rather
+// than growing to fit — bpmn-js needs a canvas with a resolved height. `fullScreen` in
+// `main.component.ts` already marks that route, so the shell becomes a height-constrained column
+// here and nowhere else: the editor gets exactly what is left below the navbar, instead of a
+// second full `100vh` that the navbar then pushes off the bottom of the screen.
+//
+// Every other route keeps `.app-root { min-height: 100vh }` from above and scrolls the document
+// as before; nothing in this block matches without the `fullscreen-mode` class.
+.fullscreen-mode {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  // `min-height: 0` on both: a flex item's default `min-height: auto` refuses to shrink below its
+  // content, which would let the editor push the column past the viewport again.
+  > main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  // The `card` class is what `main.component.html` puts on this branch. Its 1px border is what
+  // held the editor 1px below the navbar; on this route the editor is the whole page, so there is
+  // no card to frame.
+  > main > .card {
+    flex: 1 1 auto;
+    min-height: 0;
+    border: 0;
+    border-radius: 0;
+  }
+}
+
 .login-mode {
   min-height: 100vh;
   overflow: hidden;

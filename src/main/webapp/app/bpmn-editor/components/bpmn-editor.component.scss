@@ -1,9 +1,25 @@
 @import '../styles/index.scss';
 
+// Angular puts this component's own host element between the shell's `.card` and the container
+// below, and a host element is `display: inline; height: auto` by default. That breaks the
+// percentage chain: `height: 100%` on `.designer-container` has nothing definite to resolve
+// against and silently falls back to the content height. So the host is made the column that
+// carries the room `fullscreen-mode` handed down (`layouts/main/main.component.scss`).
+// `min-height: 0` for the usual reason — a flex item will not shrink below its content without it.
+jhi-bpmn-editor {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 .designer-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  // Not `100vh`: this element sits below the navbar, so a viewport-height box ended 47px past the
+  // bottom of the screen with no way to scroll to it. `layouts/main/main.component.scss` gives the
+  // `fullscreen-mode` shell a height-constrained column, and `100%` takes exactly what is left.
+  height: 100%;
   width: 100%;
   overflow: hidden;
 

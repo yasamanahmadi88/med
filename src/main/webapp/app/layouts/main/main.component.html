@@ -12,7 +12,7 @@
 <!--    <jhi-footer *ngIf="!fullScreen"></jhi-footer>-->
 <!--  </div>-->
 <!--</div>-->
-<div class="app-root" [class.login-mode]="isLoginPage">
+<div class="app-root" [class.login-mode]="isLoginPage" [class.fullscreen-mode]="fullScreen">
   <ng-container *ngIf="!isLoginPage">
     <router-outlet name="navbar"></router-outlet>
   </ng-container>

@@ -252,4 +252,48 @@ test.describe('MedPortal entity lists', () => {
     await expect(page.locator('table tbody tr')).toHaveCount(1);
     await expect(page.locator('table thead fa-icon').first()).toBeVisible();
   });
+
+  test('a list longer than the viewport still scrolls to its last row', async ({ page, mockApi }) => {
+    // The BPMN editor route makes the shell a `height: 100vh; overflow: hidden` column so its
+    // canvas has a resolved height (`fullscreen-mode` in `layouts/main/main.component.scss`).
+    // That rule is the one change in this application that would break every long page at once
+    // if its scope ever slipped off the `fullScreen` branch, and it would break them invisibly:
+    // the rows are all still rendered and still "visible" to a presence assertion, they are just
+    // clipped where the document stops scrolling. So this measures instead.
+    const products = Array.from({ length: 60 }, (_, index) => ({
+      id: index + 1,
+      productName: `Product ${index + 1}`,
+      productDesc: `Description ${index + 1}`,
+    }));
+    await mockApi({ account: 'admin', collections: { '/api/products': products } });
+    await page.setViewportSize({ width: 1280, height: 720 });
+
+    await page.goto('/product');
+    await expect(page.locator('table tbody tr')).toHaveCount(60);
+
+    // `content/scss` sets `scroll-behavior: smooth` on the document, so a plain `scrollTo` has
+    // not landed by the time the next statement reads `scrollY`. Asking for an instant scroll is
+    // what makes the reading real rather than always-zero.
+    await page.evaluate(() => window.scrollTo({ top: 100_000, behavior: 'instant' as ScrollBehavior }));
+
+    const scrolled = await page.evaluate(() => ({
+      scrollY: window.scrollY,
+      documentScrollHeight: document.documentElement.scrollHeight,
+      documentClientHeight: document.documentElement.clientHeight,
+      lastRowBottom: document.querySelector('table tbody tr:last-child')!.getBoundingClientRect().bottom,
+      viewportBottom: window.innerHeight,
+      footerTop: document.querySelector('jhi-footer')!.getBoundingClientRect().top,
+    }));
+
+    // The page is genuinely taller than the screen, and the document actually moved.
+    expect(scrolled.documentScrollHeight).toBeGreaterThan(scrolled.documentClientHeight);
+    expect(scrolled.scrollY).toBeGreaterThan(0);
+    // Scrolled all the way down: the last row and the footer below it are both reachable.
+    expect(scrolled.scrollY).toBe(scrolled.documentScrollHeight - scrolled.documentClientHeight);
+    expect(scrolled.lastRowBottom).toBeLessThanOrEqual(scrolled.viewportBottom);
+    // The footer is the last thing in the document, so at the bottom of the scroll it sits on
+    // the bottom edge of the screen (`jhi-footer` renders an empty template today, which is a
+    // separate matter — its box is still the end of the page).
+    expect(scrolled.footerTop).toBeLessThanOrEqual(scrolled.viewportBottom + 1);
+  });
 });

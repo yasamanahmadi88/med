@@ -70,12 +70,6 @@ export class BpmnEditorComponent implements OnInit, OnDestroy {
     this.bpmnEditorService.setProcessXml(xml);
   }
 
-  onContextMenu(event: MouseEvent): void {
-    if (this.editorSettings?.contextmenu) {
-      event.preventDefault();
-    }
-  }
-
   onPropertiesPanelCollapsedChange(collapsed: boolean): void {
     this.propertiesPanelCollapsed = collapsed;
   }

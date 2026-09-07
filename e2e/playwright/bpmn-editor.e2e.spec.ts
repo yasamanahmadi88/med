@@ -41,6 +41,51 @@ test.describe('BPMN editor', () => {
     await expect(page.locator('.bpmn-canvas .djs-element')).not.toHaveCount(0);
   });
 
+  test('creates an element from the custom canvas context menu', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    const canvas = page.locator('.bpmn-canvas .djs-container');
+    await expect(canvas).toBeVisible();
+    const canvasBox = await canvas.boundingBox();
+    expect(canvasBox).not.toBeNull();
+
+    await page.mouse.click(canvasBox!.x + canvasBox!.width * 0.7, canvasBox!.y + canvasBox!.height * 0.7, { button: 'right' });
+
+    const menu = page.locator('[data-cy="bpmnContextMenu"]');
+    await expect(menu).toBeVisible();
+    await expect(menu).toContainText('Create Element');
+    await expect(menu.getByRole('menuitem', { name: 'Exclusive Gateway', exact: true })).toBeVisible();
+    await expect(menu.getByRole('menuitem', { name: 'Message Boundary Event', exact: true })).toBeVisible();
+    await expect(menu.getByRole('menuitem', { name: 'Task', exact: true })).toHaveCount(0);
+    const before = await page.locator('.bpmn-canvas .djs-element').count();
+
+    await menu.getByRole('menuitem', { name: 'Start Event', exact: true }).click();
+    await page.mouse.click(canvasBox!.x + canvasBox!.width * 0.6, canvasBox!.y + canvasBox!.height * 0.6);
+
+    await expect(page.locator('.bpmn-canvas .djs-element')).not.toHaveCount(before);
+    const createdStartEvent = page.locator('.bpmn-canvas .djs-shape[data-element-id^="StartEvent_"]').last();
+    await createdStartEvent.click();
+    await expect(page.locator('.bpmn-canvas .djs-context-pad [data-action="set-color"]')).toBeVisible();
+  });
+
+  test('does not suppress the browser context menu outside the canvas', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    for (const selector of ['jhi-toolbar', 'jhi-panel']) {
+      const defaultPrevented = await page.locator(selector).evaluate(element => {
+        const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+        element.dispatchEvent(event);
+        return event.defaultPrevented;
+      });
+
+      expect(defaultPrevented, `${selector} should allow the browser context menu`).toBe(false);
+    }
+  });
+
   test('renders the properties panel into the panel component', async ({ page, mockApi }) => {
     await mockApi({ account: 'admin' });
 

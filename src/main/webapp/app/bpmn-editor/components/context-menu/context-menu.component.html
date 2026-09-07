@@ -1,1 +1,25 @@
-<!-- Context menu placeholder -->
+<div
+  *ngIf="visible"
+  class="bpmn-context-menu"
+  role="menu"
+  data-cy="bpmnContextMenu"
+  [style.left.px]="x"
+  [style.top.px]="y"
+  (click)="$event.stopPropagation()"
+  (contextmenu)="$event.preventDefault()"
+>
+  <div class="context-menu_header">{{ title }}</div>
+  <div class="context-menu_body">
+    <button
+      *ngFor="let entry of entries"
+      type="button"
+      role="menuitem"
+      class="context-menu_item"
+      [attr.data-action]="entry.actionName"
+      (click)="triggerAction(entry, $event)"
+    >
+      <i class="context-menu_item_icon" [ngClass]="entry.className" aria-hidden="true"></i>
+      <span>{{ entry.label }}</span>
+    </button>
+  </div>
+</div>

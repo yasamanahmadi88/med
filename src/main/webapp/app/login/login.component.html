@@ -29,11 +29,7 @@
     <div class="card login-card my-auto">
       <h2 class="text-center mb-4 text-white" jhiTranslate="login.title">Sign in</h2>
 
-      <div
-        class="alert alert-danger login-alert"
-        *ngIf="authenticationError"
-        jhiTranslate="login.messages.error.authentication"
-      >
+      <div class="alert alert-danger login-alert" *ngIf="authenticationError" jhiTranslate="login.messages.error.authentication">
         <strong>Failed to sign in!</strong> Please check your credentials and try again.
       </div>
 

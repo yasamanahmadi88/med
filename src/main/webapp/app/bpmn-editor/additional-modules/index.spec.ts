@@ -3,6 +3,7 @@ import RewritePalette from './Palette/RewritePalette';
 import EnhancementRenderer from './Renderer/EnhancementRenderer';
 import RewriteRenderer from './Renderer/RewriteRenderer';
 import CustomElementFactory from './ElementFactory';
+import BpmnColorPicker from './ColorPicker';
 import { additionalModulesFor, moddleExtensionsFor } from './index';
 import { defaultSettings } from '../config';
 import { EditorSettings } from '../types/editor/settings';
@@ -85,8 +86,13 @@ describe('bpmn-editor additional modules', () => {
       expect(additionalModulesFor(settingsWith({ paletteMode: 'enhancement', rendererMode: 'default' }))).toContain(CustomElementFactory);
     });
 
+    it('registers the Vue-compatible color picker when other modules are enabled', () => {
+      expect(additionalModulesFor(defaultSettings)).toContain(BpmnColorPicker);
+      expect(additionalModulesFor(settingsWith({ otherModule: false }))).not.toContain(BpmnColorPicker);
+    });
+
     it('registers nothing when both are left on the stock behaviour', () => {
-      expect(additionalModulesFor(settingsWith({ paletteMode: 'default', rendererMode: 'default' }))).toEqual([]);
+      expect(additionalModulesFor(settingsWith({ paletteMode: 'default', rendererMode: 'default', otherModule: false }))).toEqual([]);
     });
 
     it('treats the separate Angular palette panel as not needing a bpmn-js palette module', () => {

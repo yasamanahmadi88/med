@@ -5,6 +5,7 @@ import RewritePalette from './Palette/RewritePalette';
 import EnhancementRenderer from './Renderer/EnhancementRenderer';
 import RewriteRenderer from './Renderer/RewriteRenderer';
 import CustomElementFactory from './ElementFactory';
+import BpmnColorPicker from './ColorPicker';
 
 import activiti from '../moddle-extensions/activiti.json';
 import flowable from '../moddle-extensions/flowable.json';
@@ -82,6 +83,7 @@ export function moddleExtensionsFor(settings: EditorSettings | undefined): Recor
  * - `rendererMode` picks how those custom element types are drawn. A custom palette without a
  *   renderer would place shapes bpmn-js cannot draw, so CustomElementFactory and a renderer are
  *   registered whenever a custom palette is active.
+ * - `otherModule` restores the Vue color picker in the element context pad.
  */
 export function additionalModulesFor(settings: EditorSettings | undefined): unknown[] {
   const modules: unknown[] = [];
@@ -98,6 +100,10 @@ export function additionalModulesFor(settings: EditorSettings | undefined): unkn
     modules.push(EnhancementRenderer);
   } else if (renderer === 'rewrite') {
     modules.push(RewriteRenderer);
+  }
+
+  if (settings?.otherModule) {
+    modules.push(BpmnColorPicker);
   }
 
   if (modules.length > 0) {

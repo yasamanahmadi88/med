@@ -89,6 +89,17 @@ jhi-context-menu {
   z-index: 999;
 }
 
+.djs-popup.color-picker {
+  .entry {
+    margin: 0;
+  }
+
+  .djs-popup-group {
+    display: grid;
+    grid: auto-flow / 1fr 1fr 1fr;
+  }
+}
+
 @media (max-width: 640px) {
   .designer-container {
     &.designer-with-penal .main-content {

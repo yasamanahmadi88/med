@@ -77,7 +77,7 @@ module.exports = async (config, options, targetOptions) => {
     );
   }
 
-  if (config.mode === 'production') {
+  if (config.mode === 'production' && process.env.ANALYZE === 'true') {
     config.plugins.push(
       new BundleAnalyzerPlugin({
         analyzerMode: 'static',

@@ -51,6 +51,16 @@ const FORBIDDEN_ELEMENTS = ['script', 'foreignobject', 'iframe', 'embed', 'objec
 
 const LINK_ATTRIBUTES = ['href', 'xlink:href'];
 
+/**
+ * A link an icon may carry: an embedded `data:` URI, or a reference to an element in the icon
+ * itself. Everything else — `http:`, a protocol-relative `//host`, a bare path — would have the
+ * browser fetch something at render time, which is what these rules exist to prevent.
+ */
+function isSelfContainedLink(value: string): boolean {
+  const link = value.toLowerCase();
+  return link.startsWith('data:') || link.startsWith('#');
+}
+
 export type SvgIconValidation = { ok: true; dataUri: string } | { ok: false; message: string };
 
 /** How many bytes this string occupies as UTF-8 — not `.length`, which counts UTF-16 units. */
@@ -109,7 +119,8 @@ export function fromIconDataUri(contents: unknown): string | undefined {
  * - `DOMParser` parses it without a parser error, and the root element is an SVG `<svg>`;
  * - no element is one of {@link FORBIDDEN_ELEMENTS};
  * - no attribute name begins with `on`, in any case — that is the whole event-handler surface;
- * - every `href` / `xlink:href` is a `data:` URI, so nothing reaches out of the document;
+ * - every `href` / `xlink:href` is a `data:` URI or a `#fragment`, so nothing reaches out of the
+ *   document;
  * - no attribute value carries a `javascript:` URI.
  *
  * What it does not do: it does not rewrite the SVG, so an icon that passes is stored byte for byte
@@ -155,7 +166,11 @@ export function validateSvgIcon(source: string): SvgIconValidation {
 
       const value = attribute.value.trim();
 
-      if (LINK_ATTRIBUTES.includes(attributeName) && !value.toLowerCase().startsWith('data:')) {
+      // A `#fragment` resolves inside the icon's own document and cannot reach out of it, and it
+      // is how every real drawing tool wires a gradient, a clip path or a `<use>`: rejecting it
+      // would refuse most icons a user actually has, with a message telling them the file is not
+      // self-contained when it plainly is.
+      if (LINK_ATTRIBUTES.includes(attributeName) && !isSelfContainedLink(value)) {
         return {
           ok: false,
           message: `That SVG links to something outside itself (${attribute.name}="${attribute.value}"). An icon has to be self-contained.`,

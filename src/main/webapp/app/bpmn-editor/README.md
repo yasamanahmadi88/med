@@ -823,9 +823,11 @@ blanked. But four declarations _were_ doing something. Blanking the rule moved `
 
 #### Left alone, deliberately
 
-- **`custom-icons.scss`** is not imported by `index.scss`, so none of it ever loads and all of its
-  selectors matched 0. Still untouched, and now dead with nothing waiting on it: the custom-icon
-  feature is built and its dialog carries its own scoped stylesheet. See "Custom icons" below.
+- **`custom-icons.scss` is gone.** It was never imported by `index.scss`, so none of it ever
+  loaded and all of its selectors matched 0. It was kept while the custom-icon feature was
+  undecided; that feature is built now (see "Custom icons" below), it stores its icons in the
+  diagram and its dialog carries its own scoped stylesheet, so nothing was ever going to claim
+  this file.
 - **`.djs-visual rect`** (`palette.scss`) stays, and it is worth knowing what it does. Three of its
   four declarations are inert: `RewriteRenderer` writes `stroke-width: 2px; fill: #fff;
 fill-opacity: …` as an _inline style_, which beats them — measured identical with them and
@@ -1059,9 +1061,9 @@ disagreement with each other, and icons that no other user could ever see.
 
 Two limits, both enforced in `CustomIconLibrary.add`, which is the only way into the library:
 
-| Cap | Value | Measured on | Why |
-| --- | --- | --- | --- |
-| Per icon | 32 KB | the SVG source, in UTF-8 bytes | The number a user can compare with the file on disk. About eight times a typical icon, with room for an editor export that kept its metadata. |
+| Cap         | Value  | Measured on                            | Why                                                                                                                                                                                                              |
+| ----------- | ------ | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Per icon    | 32 KB  | the SVG source, in UTF-8 bytes         | The number a user can compare with the file on disk. About eight times a typical icon, with room for an editor export that kept its metadata.                                                                    |
 | Per diagram | 192 KB | the stored `data:` URIs, in characters | This is what lands in `FlowEntity.flow` and is carried by every save, every load and every `/api/flows` row. ≈35 typical icons, or six at the per-icon cap, against a diagram that is otherwise a few kilobytes. |
 
 The units differ deliberately: the per-icon message is about a file the user chose, the per-diagram

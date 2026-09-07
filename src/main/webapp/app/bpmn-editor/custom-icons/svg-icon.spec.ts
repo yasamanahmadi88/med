@@ -87,13 +87,28 @@ describe('custom icon SVG validation', () => {
       expect(message(hostile)).toContain('foreignobject');
     });
 
-    it('refuses a link to anywhere but a data: URI', () => {
+    it('refuses a link that would fetch something at render time', () => {
       const remote = `<svg xmlns="http://www.w3.org/2000/svg"><image href="https://example.test/pixel.png" /></svg>`;
       const xlink = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><use xlink:href="http://example.test/x.svg#a" /></svg>`;
+      const protocolRelative = `<svg xmlns="http://www.w3.org/2000/svg"><image href="//example.test/pixel.png" /></svg>`;
 
       expect(validateSvgIcon(remote).ok).toBe(false);
       expect(message(remote)).toContain('outside itself');
       expect(validateSvgIcon(xlink).ok).toBe(false);
+      expect(validateSvgIcon(protocolRelative).ok).toBe(false);
+    });
+
+    it('accepts a reference to an element inside the icon itself', () => {
+      // A `#fragment` cannot leave the document, and it is how every drawing tool wires a
+      // gradient, a clip path or a `<use>`. Refusing it would reject most icons a user actually
+      // has — while telling them the file is not self-contained, which it plainly is.
+      const gradient = `<svg xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g"><stop offset="0" /></linearGradient></defs><rect fill="url(#g)" /></svg>`;
+      const reuse = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><rect id="r" /></defs><use xlink:href="#r" /></svg>`;
+      const clipped = `<svg xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="c"><circle r="8" /></clipPath></defs><rect clip-path="url(#c)" /></svg>`;
+
+      expect(validateSvgIcon(gradient).ok, message(gradient)).toBe(true);
+      expect(validateSvgIcon(reuse).ok, message(reuse)).toBe(true);
+      expect(validateSvgIcon(clipped).ok, message(clipped)).toBe(true);
     });
 
     it('refuses a javascript: URL in any attribute', () => {

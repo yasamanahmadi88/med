@@ -11,6 +11,8 @@ import com.behsa.medportal.domain.ProductEntity;
 import com.behsa.medportal.repository.FlowRepository;
 import com.behsa.medportal.service.dto.FlowDTO;
 import com.behsa.medportal.service.mapper.FlowMapper;
+import com.jayway.jsonpath.JsonPath;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
@@ -22,6 +24,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -38,8 +41,24 @@ class FlowResourceIT {
     private static final String DEFAULT_FLOW_DESC = "AAAAAAAAAA";
     private static final String UPDATED_FLOW_DESC = "BBBBBBBBBB";
 
+    // Left at ten characters on purpose. Every create/read/patch/delete test below asserts against
+    // these, and widening them would make those tests unreadable without telling us anything new
+    // about the column. The CLOB behaviour is covered by the fixture below instead, in the tests
+    // named ...AtDiagramSize and ...CustomIconLibrary..., so both sizes stay under test.
     private static final String DEFAULT_FLOW = "AAAAAAAAAA";
     private static final String UPDATED_FLOW = "BBBBBBBBBB";
+
+    // A real diagram at the size the custom-icon feature made possible: ~192 KB of base64 icon
+    // library inside the BPMN XML, with a Persian process name. See CustomIconFlowFixture.
+    private static final String CUSTOM_ICON_FLOW = CustomIconFlowFixture.flowWithIconLibrary(
+        CustomIconFlowFixture.CREATE_PROCESS_ID,
+        CustomIconFlowFixture.CREATE_TASK_ID
+    );
+
+    private static final String CUSTOM_ICON_FLOW_UPDATED = CustomIconFlowFixture.flowWithIconLibrary(
+        CustomIconFlowFixture.UPDATE_PROCESS_ID,
+        CustomIconFlowFixture.UPDATE_TASK_ID
+    );
 
     private static final String ENTITY_API_URL = "/api/flows";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
@@ -382,30 +401,47 @@ class FlowResourceIT {
         defaultFlowShouldBeFound("flowDesc.doesNotContain=" + UPDATED_FLOW_DESC);
     }
 
+    /**
+     * {@code flow} is a CLOB and Oracle will not use a LOB as a comparison key, at any value length:
+     * {@code ORA-22848: cannot use CLOB type as comparison key}. H2 runs both operators happily,
+     * which is exactly why this was reported from production while CI was green. FlowResource
+     * therefore refuses them on every database rather than emitting SQL one of them cannot run —
+     * see {@code FlowResource#rejectUncomparableFlowFilter}.
+     *
+     * <p>The operators are still under test; what is asserted is the refusal, at both the ten-character
+     * size the rest of this class uses and the diagram size the client now produces, because Oracle's
+     * objection has nothing to do with how big the value is.
+     */
     @Test
     @Transactional
-    void getAllFlowsByFlowIsEqualToSomething() throws Exception {
-        // Initialize the database
+    void getAllFlowsByFlowIsEqualToSomethingIsRejected() throws Exception {
         flowRepository.saveAndFlush(flowEntity);
 
-        // Get all the flowList where flow equals to DEFAULT_FLOW
-        defaultFlowShouldBeFound("flow.equals=" + DEFAULT_FLOW);
-
-        // Get all the flowList where flow equals to UPDATED_FLOW
-        defaultFlowShouldNotBeFound("flow.equals=" + UPDATED_FLOW);
+        flowFilterShouldBeRejected("flow.equals=" + DEFAULT_FLOW);
+        flowFilterShouldBeRejected("flow.equals=" + CustomIconFlowFixture.CREATE_TASK_ID);
+        flowFilterShouldBeRejected("flow.notEquals=" + DEFAULT_FLOW);
     }
 
     @Test
     @Transactional
-    void getAllFlowsByFlowIsInShouldWork() throws Exception {
-        // Initialize the database
+    void getAllFlowsByFlowIsInIsRejected() throws Exception {
         flowRepository.saveAndFlush(flowEntity);
 
-        // Get all the flowList where flow in DEFAULT_FLOW or UPDATED_FLOW
-        defaultFlowShouldBeFound("flow.in=" + DEFAULT_FLOW + "," + UPDATED_FLOW);
+        flowFilterShouldBeRejected("flow.in=" + DEFAULT_FLOW + "," + UPDATED_FLOW);
+        flowFilterShouldBeRejected("flow.notIn=" + UPDATED_FLOW);
+    }
 
-        // Get all the flowList where flow equals to UPDATED_FLOW
-        defaultFlowShouldNotBeFound("flow.in=" + UPDATED_FLOW);
+    /**
+     * The other filters on the same entity must keep working: the refusal is about the CLOB column,
+     * not about filtering flows.
+     */
+    @Test
+    @Transactional
+    void otherFlowFiltersStillAcceptEqualsAndIn() throws Exception {
+        flowRepository.saveAndFlush(flowEntity);
+
+        defaultFlowShouldBeFound("flowName.equals=" + DEFAULT_FLOW_NAME);
+        defaultFlowShouldBeFound("flowDesc.in=" + DEFAULT_FLOW_DESC + "," + UPDATED_FLOW_DESC);
     }
 
     @Test
@@ -468,6 +504,55 @@ class FlowResourceIT {
 
         // Get all the flowList where product equals to (productId + 1)
         defaultFlowShouldNotBeFound("productId.equals=" + (productId + 1));
+    }
+
+    /**
+     * Executes the search and checks that the flow carrying the icon library is returned, whole.
+     * Separate from {@link #defaultFlowShouldBeFound} because that one asserts the ten-character
+     * {@link #DEFAULT_FLOW}.
+     */
+    private void customIconFlowShouldBeFound(String filter) throws Exception {
+        restFlowMockMvc
+            .perform(get(ENTITY_API_URL + "?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.[*].id").value(hasItem(flowEntity.getId().intValue())))
+            .andExpect(jsonPath("$.[*].flow").value(hasItem(CUSTOM_ICON_FLOW)));
+
+        restFlowMockMvc
+            .perform(get(ENTITY_API_URL + "/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().string("1"));
+    }
+
+    private void customIconFlowShouldNotBeFound(String filter) throws Exception {
+        restFlowMockMvc
+            .perform(get(ENTITY_API_URL + "?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$").isEmpty());
+
+        restFlowMockMvc
+            .perform(get(ENTITY_API_URL + "/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().string("0"));
+    }
+
+    /**
+     * Checks that a filter is refused before it reaches the database, on both the list and the count
+     * endpoint — they take the criteria separately, so both have to be guarded.
+     */
+    private void flowFilterShouldBeRejected(String filter) throws Exception {
+        restFlowMockMvc
+            .perform(get(ENTITY_API_URL + "?sort=id,desc&" + filter))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.errorKey").value("flownotcomparable"))
+            .andExpect(header().string("X-medPortalApp-error", "error.flownotcomparable"));
+
+        restFlowMockMvc
+            .perform(get(ENTITY_API_URL + "/count?sort=id,desc&" + filter))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.errorKey").value("flownotcomparable"));
     }
 
     /**
@@ -757,6 +842,98 @@ class FlowResourceIT {
         // Validate the database contains one less item
         List<FlowEntity> flowList = flowRepository.findAll();
         assertThat(flowList).hasSize(databaseSizeBeforeDelete - 1);
+    }
+
+    /**
+     * A diagram at the size the custom-icon feature made possible has to come back byte for byte.
+     *
+     * <p>The persistence context is cleared before the assertion. Without that the entity read back
+     * is the instance the POST just left in the session, the column is never selected, and the test
+     * would pass against a database that had silently truncated the value.
+     */
+    @Test
+    @Transactional
+    void createFlowWithCustomIconLibraryRoundTripsUnchanged() throws Exception {
+        CustomIconFlowFixture.assertWithinEditorCaps();
+        flowEntity.setFlow(CUSTOM_ICON_FLOW);
+
+        FlowDTO flowDTO = flowMapper.toDto(flowEntity);
+        MvcResult created = restFlowMockMvc
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(flowDTO)))
+            .andExpect(status().isCreated())
+            .andReturn();
+        Long createdId = ((Number) JsonPath.read(created.getResponse().getContentAsString(StandardCharsets.UTF_8), "$.id")).longValue();
+
+        em.flush();
+        em.clear();
+
+        FlowEntity stored = flowRepository.findById(createdId).orElseThrow();
+        assertThat(stored.getFlow()).hasSize(CUSTOM_ICON_FLOW.length());
+        assertThat(stored.getFlow()).isEqualTo(CUSTOM_ICON_FLOW);
+        // Named separately: a database or driver that dropped to a single-byte character set would
+        // still satisfy a length check on an otherwise ASCII document.
+        assertThat(stored.getFlow()).contains(CustomIconFlowFixture.PERSIAN_PROCESS_NAME);
+
+        // And through the API, which is the only way a client ever sees the diagram back.
+        restFlowMockMvc
+            .perform(get(ENTITY_API_URL_ID, createdId))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.flow").value(CUSTOM_ICON_FLOW));
+    }
+
+    @Test
+    @Transactional
+    void updateFlowWithCustomIconLibraryRoundTripsUnchanged() throws Exception {
+        CustomIconFlowFixture.assertWithinEditorCaps();
+        flowRepository.saveAndFlush(flowEntity);
+
+        FlowEntity updatedFlowEntity = flowRepository.findById(flowEntity.getId()).orElseThrow();
+        em.detach(updatedFlowEntity);
+        updatedFlowEntity.flowName(UPDATED_FLOW_NAME).flowDesc(UPDATED_FLOW_DESC).flow(CUSTOM_ICON_FLOW_UPDATED);
+
+        FlowDTO flowDTO = flowMapper.toDto(updatedFlowEntity);
+        restFlowMockMvc
+            .perform(
+                put(ENTITY_API_URL_ID, flowDTO.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(TestUtil.convertObjectToJsonBytes(flowDTO))
+            )
+            .andExpect(status().isOk());
+
+        em.flush();
+        em.clear();
+
+        FlowEntity stored = flowRepository.findById(flowEntity.getId()).orElseThrow();
+        assertThat(stored.getFlow()).hasSize(CUSTOM_ICON_FLOW_UPDATED.length());
+        assertThat(stored.getFlow()).isEqualTo(CUSTOM_ICON_FLOW_UPDATED);
+        assertThat(stored.getFlow()).contains(CustomIconFlowFixture.PERSIAN_PROCESS_NAME);
+    }
+
+    /**
+     * {@code flow.contains} at the size the column really holds. The needle is the placed task's id,
+     * which first appears after the whole ~192 KB icon library, so a match means the database
+     * searched the CLOB rather than the first few hundred characters of it.
+     */
+    @Test
+    @Transactional
+    void getAllFlowsByFlowContainsSomethingAtDiagramSize() throws Exception {
+        flowEntity.setFlow(CUSTOM_ICON_FLOW);
+        flowRepository.saveAndFlush(flowEntity);
+        em.clear();
+
+        customIconFlowShouldBeFound("flow.contains=" + CustomIconFlowFixture.CREATE_TASK_ID);
+        customIconFlowShouldNotBeFound("flow.contains=" + CustomIconFlowFixture.UPDATE_TASK_ID);
+    }
+
+    @Test
+    @Transactional
+    void getAllFlowsByFlowNotContainsSomethingAtDiagramSize() throws Exception {
+        flowEntity.setFlow(CUSTOM_ICON_FLOW);
+        flowRepository.saveAndFlush(flowEntity);
+        em.clear();
+
+        customIconFlowShouldNotBeFound("flow.doesNotContain=" + CustomIconFlowFixture.CREATE_TASK_ID);
+        customIconFlowShouldBeFound("flow.doesNotContain=" + CustomIconFlowFixture.UPDATE_TASK_ID);
     }
 
     @Test

@@ -31,16 +31,34 @@ public class FlowEntity implements Serializable {
     @Column(name = "flow_desc", length = 300, nullable = false)
     private String flowDesc;
 
-    // The BPMN diagram XML. Deliberately left at the default length: Liquibase owns the real
-    // schema and declares this column ${clobType}, and ddl-auto is none in production, so this
-    // mapping only shapes the schemas Hibernate generates for tests and local runs.
+    // The BPMN diagram XML, which since the custom-icon feature also carries the diagram's icon
+    // library as base64 data: URIs — up to 192 KB of it. Liquibase owns the production schema and
+    // declares this column ${clobType}, and ddl-auto is none in production, so what is written here
+    // shapes only the schemas Hibernate generates. That is exactly why it has to agree with
+    // Liquibase: left at the default length it made every generated schema varchar(255), so neither
+    // the H2 suite nor the oracle-testcontainers suite could store a real flow, and the CLOB the
+    // application actually runs against went untested. FlowResourceIT covers it now.
     //
-    // It cannot be widened there. FlowCriteria exposes this field as a StringFilter, so
-    // /api/flows supports flow.equals, flow.in and flow.contains. Any length past Oracle's
-    // varchar2 limit makes Hibernate emit a clob, and Oracle cannot use a clob with = or IN;
-    // @Lob fails the same way on H2, which cannot LIKE one. Either breaks FlowResourceIT.
+    // columnDefinition rather than length or @Lob, and the difference matters. Widening the length
+    // past varchar (or adding @Lob) changes the *mapping*, and JHipster's StringFilter support then
+    // stops compiling a query at all:
+    //
+    //   FunctionArgumentException: Parameter 1 of function 'upper()' has type 'STRING',
+    //   but argument is of type 'java.lang.String' mapped to 'CLOB'
+    //
+    // — from Hibernate, on every database, which takes flow.contains with it. columnDefinition
+    // changes only the generated DDL; the attribute stays an ordinary String bound as a varchar,
+    // which is precisely the arrangement production has always had (String over ${clobType}).
+    // Only testdev (H2, create-drop) and testcontainers (Oracle, update) generate DDL, and both
+    // accept "clob"; every other profile runs ddl-auto: none. A future profile generating DDL on
+    // PostgreSQL would not — "clob" is not a PostgreSQL type — and would need a dialect-aware column.
+    //
+    // The consequence of the column being a CLOB, measured on Oracle Free 23.26: = and IN against it
+    // fail with "ORA-22848: cannot use CLOB type as comparison key", at any value length, while H2
+    // accepts both. FlowResource therefore refuses flow.equals/flow.notEquals/flow.in/flow.notIn.
+    // LIKE is fine against a LOB on both, so flow.contains and flow.doesNotContain are unaffected.
     @NotNull
-    @Column(name = "flow", nullable = false)
+    @Column(name = "flow", nullable = false, columnDefinition = "clob")
     private String flow;
 
     @ManyToOne(optional = false)

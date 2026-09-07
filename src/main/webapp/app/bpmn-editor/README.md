@@ -185,7 +185,7 @@ and id validation. `designer.component.ts` registers `BpmnPropertiesProviderModu
 
 | Vue file                                                  | Waiting on                                                                                                                                  |
 | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `customIconRegistry.ts` (and its `-fixed` near-duplicate) | Custom icon upload — registry, palette provider, upload UI and service together.                                                            |
+| `customIconRegistry.ts` (and its `-fixed` near-duplicate) | Nothing: custom icons are built, and they store the library in the diagram rather than in `localStorage`. See "Custom icons" below.         |
 | `Logger.ts`                                               | Its two consumers (the Vue panel shell and `CustomRules`) are unported. The orphan `types/editor/utils.d.ts` declaring it has been removed. |
 
 ### The context menu
@@ -575,7 +575,9 @@ still not work:
   with didi, so `getPaletteEntries` is never called.
 - the file spells its own `enumerations` key `emumerations`.
 
-Custom icons are blocked on a product decision, and this file is not the part that was missing.
+Custom icons were blocked on a product decision, and this file is not the part that was missing.
+The decision has since been made — see "Custom icons" below — and this descriptor is still not part
+of it.
 
 #### What this change does instead: hold the claims in moddle
 
@@ -822,7 +824,8 @@ blanked. But four declarations _were_ doing something. Blanking the rule moved `
 #### Left alone, deliberately
 
 - **`custom-icons.scss`** is not imported by `index.scss`, so none of it ever loads and all of its
-  selectors matched 0. Untouched: it belongs with the blocked custom-icon feature.
+  selectors matched 0. Still untouched, and now dead with nothing waiting on it: the custom-icon
+  feature is built and its dialog carries its own scoped stylesheet. See "Custom icons" below.
 - **`.djs-visual rect`** (`palette.scss`) stays, and it is worth knowing what it does. Three of its
   four declarations are inert: `RewriteRenderer` writes `stroke-width: 2px; fill: #fff;
 fill-opacity: …` as an _inline style_, which beats them — measured identical with them and
@@ -993,11 +996,133 @@ enhancement palette matches entry for entry, including the two entries Vue left 
 `Palette/index.tsx` (the custom palette) is a Chinese-language stub that only mounts under
 `paletteMode: 'custom'`, which is not the default and not what this editor uses.
 
+## Custom icons
+
+A user uploads an SVG, names it, and places it on the canvas like any other palette entry. The
+icons live in the diagram's own XML, so they travel with the flow: whoever opens that flow next
+sees the same icons, with no second store to keep in step and nothing to migrate.
+
+This is a build rather than a port. The Vue files for this feature never ran — `CustomIconIntegration.ts`,
+`customIconService.ts`, `CustomIconManager.vue`, `customIconPaletteProvider.ts` and `Toolbar/index.vue`
+have no reachable importer, and reached, the palette would have asked `createShape` for a
+`Custom:<name>` namespace nothing registers. What was taken from them is the intent. See "The four
+`moddle-extensions` still in the Vue folder" above for how that was established.
+
+### Where an icon is stored
+
+`bpmn:Definitions` → `bpmn:extensionElements` → `customIcon:iconLibrary`, one library per document.
+A placed shape is a `customIcon:customTask` carrying the icon's id. Real exported output:
+
+```xml
+<bpmn:definitions xmlns:bpmn="…" xmlns:bpmndi="…" xmlns:dc="…"
+                  xmlns:customIcon="http://medportal.behsa.com/schema/bpmn/custom-icons"
+                  id="Definitions_Process_1788748197978" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:extensionElements>
+    <customIcon:iconLibrary>
+      <customIcon:icon iconId="Icon_1" name="Payment" contents="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9…" />
+    </customIcon:iconLibrary>
+  </bpmn:extensionElements>
+  <bpmn:process id="Process_1788748197978" name="processName" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1" />
+    <customIcon:customTask id="Activity_0ip6hnb" name="Payment" iconId="Icon_1" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1788748197978">
+      <bpmndi:BPMNShape id="Activity_0ip6hnb_di" bpmnElement="Activity_0ip6hnb">
+        <dc:Bounds x="400" y="260" width="120" height="120" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
+```
+
+(The `contents` attribute and the namespace declarations are elided; everything else is verbatim,
+including the 120x120 bounds `DEFAULT_ELEMENT_SIZES` gives a `bpmn:Task`.)
+
+Three decisions worth stating, because each has a failure mode:
+
+- **No property is added to `bpmn:Definitions`.** It extends `bpmn:BaseElement`
+  (`bpmn-moddle/resources/bpmn/json/bpmn.json`), so `extensionElements` is already there. Extending
+  it is what makes `camunda` and `cdrParser` mutually exclusive — both add `diagramRelationId` and
+  moddle refuses the second — and `additional-modules/index.spec.ts` holds that line for all four
+  engines. `customIcons.json` declares no `extends` at all, and a test asserts it.
+- **One moddle type for every icon**, `customIcon:CustomTask`, with the icon id as an attribute.
+  Minting a type per icon is exactly what made the Vue palette throw.
+- **The extension is always registered**, alongside the integration modules rather than with the
+  engine schemas: a diagram that carries a library has to be readable whichever engine is selected.
+
+`bpmn:Definitions` is also the only place the editor reads from. There is no module-scope registry
+and no `localStorage` — the Vue version had two singletons over one `localStorage` key, in
+disagreement with each other, and icons that no other user could ever see.
+
+### Size caps
+
+Two limits, both enforced in `CustomIconLibrary.add`, which is the only way into the library:
+
+| Cap | Value | Measured on | Why |
+| --- | --- | --- | --- |
+| Per icon | 32 KB | the SVG source, in UTF-8 bytes | The number a user can compare with the file on disk. About eight times a typical icon, with room for an editor export that kept its metadata. |
+| Per diagram | 192 KB | the stored `data:` URIs, in characters | This is what lands in `FlowEntity.flow` and is carried by every save, every load and every `/api/flows` row. ≈35 typical icons, or six at the per-icon cap, against a diagram that is otherwise a few kilobytes. |
+
+The units differ deliberately: the per-icon message is about a file the user chose, the per-diagram
+one is about what the flow will cost. base64 inflates by a third, so 192 KB stored is ≈144 KB of SVG.
+
+### What is rejected, and what is knowingly allowed
+
+The SVG is user-uploaded content shown to other users, so it is treated as hostile. `svg-icon.ts`
+is the whole boundary; `accept=".svg"` is a filter on the file dialog and is not one of the checks.
+
+Rejected: a source over the per-icon cap; anything `DOMParser` reports a parser error for; a root
+element that is not an SVG `<svg>`; `<script>`, `<foreignObject>`, `<iframe>`, `<embed>`,
+`<object>`, `<audio>`, `<video>`, `<handler>`; any attribute whose name starts with `on`, in any
+case; any `href`/`xlink:href` that is not a `data:` URI; any attribute value carrying `javascript:`.
+
+Allowed on purpose, with the reason: `<style>` elements and CSS `url(#…)` references, which are
+ordinary in exported icons; SMIL animation elements, which cannot script and whose one dangerous
+target — `href` — is already restricted; and `data:` URIs inside the icon, which are self-contained.
+
+Where the icon ends up is the other half of the control. It reaches the DOM only as a `data:` URI
+in an `<img src>` (the palette entry, built by diagram-js at `Palette.js:275-280`, and the dialog's
+preview) and in an SVG `<image href>` on the canvas — the same way `RewriteRenderer` draws the
+integration modules' corner icons. Both are image contexts: a browser runs no script in an SVG
+loaded that way and resolves no external reference from it. Nothing is ever assigned as markup, and
+nothing goes through `bypassSecurityTrust*`.
+
+Two limits to be explicit about:
+
+- The bytes are **not rewritten**. An icon that passes is stored exactly as it arrived, so the
+  safety of what is stored rests on where it is used, not on the file having been sanitised.
+- The parse-time rules also run on **read**, not only on upload: a `.bpmn` file is user input, and
+  `readIconLibrary` drops any icon whose `contents` is not the exact encoding this module produces
+  or whose decoded SVG would not have passed. That costs one parse per import, cached thereafter.
+
+### An icon a diagram does not have
+
+`customIcon:customTask` keeps its `iconId` whether or not the library still holds it. A shape whose
+icon is missing — removed here, or a hand-edited file — draws a dashed outline carrying
+`custom-icon-missing` plus the element's own name, and the diagram opens normally. Removing an icon
+that is in use therefore leaves the task in place rather than deleting it; the command reports every
+`customIcon:CustomTask` as changed, which is what makes those shapes redraw as placeholders.
+
+Every change to the library goes through one command (`custom-icons.updateLibrary`), so uploads and
+removals are undoable and mark the diagram dirty like any other edit.
+
+### Not carried over from the Vue files
+
+- **Per-icon "parameters"** (`CustomIconUpload.vue:41-73`). They were stored on the element and read
+  by nothing. Module properties are what configure a shape here.
+- **Generated CSS classes** (`customIconRegistry-fixed.ts:78-113`), which wrote a `<style>` element
+  per icon. diagram-js already renders a palette entry's `imageUrl` as an `<img>`.
+- **`styles/custom-icons.scss`** stays unimported and untouched. It styles naive-ui modal internals;
+  the Angular dialog has its own scoped stylesheet. It is now dead with no feature waiting on it —
+  say the word and it goes.
+- **`moddle-extensions/customIconModule.json`** stays out. It declares prefix `custom` with a single
+  `CustomElement` type, which is neither the shape the palette placed nor anything this design uses.
+
 ## Future Enhancements
 
 - [ ] Token simulation
 - [ ] Color picker
-- [ ] Custom icons upload
 - [ ] BPMN linting
 - [ ] Element templates
 - [ ] Advanced validation

@@ -262,3 +262,18 @@
 // entries out 1341px wide inside a 300px popup: eight spilled past its right edge, three of them
 // under `.djs-popup-backdrop` where a click dismisses the menu instead of choosing a type, and
 // four off the side of a 1280px viewport entirely.
+
+// A custom-icon palette entry is drawn by diagram-js as an `<img>` inside the 46px square every
+// entry is (`diagram-js/assets/diagram-js.css:424,446-449`), and the library caps its width only.
+// The image is a user-uploaded SVG at any aspect ratio, so a tall one overflows the entry and
+// pushes the rows below it apart; both axes have to be capped here.
+.djs-palette .custom-icon-entry {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    max-width: 28px;
+    max-height: 28px;
+  }
+}

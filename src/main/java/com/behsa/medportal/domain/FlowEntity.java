@@ -49,14 +49,31 @@ public class FlowEntity implements Serializable {
     // — from Hibernate, on every database, which takes flow.contains with it. columnDefinition
     // changes only the generated DDL; the attribute stays an ordinary String bound as a varchar,
     // which is precisely the arrangement production has always had (String over ${clobType}).
-    // Only testdev (H2, create-drop) and testcontainers (Oracle, update) generate DDL, and both
-    // accept "clob"; every other profile runs ddl-auto: none. A future profile generating DDL on
-    // PostgreSQL would not — "clob" is not a PostgreSQL type — and would need a dialect-aware column.
+    //
+    // "clob" is a literal type name, so the set of profiles that generate DDL from this mapping is
+    // what makes it safe. There are three, and all three accept it: test and testdev (both H2,
+    // create-drop — application-test.yml is the base profile the whole IT suite runs under) and
+    // testcontainers (Oracle, update). The other three — application.yml, testprod (PostgreSQL) and
+    // oracleliquibase — are all ddl-auto: none, so no PostgreSQL schema is ever generated from this
+    // mapping. One that was would need a dialect-aware type: "clob" is not a PostgreSQL type.
     //
     // The consequence of the column being a CLOB, measured on Oracle Free 23.26: = and IN against it
     // fail with "ORA-22848: cannot use CLOB type as comparison key", at any value length, while H2
     // accepts both. FlowResource therefore refuses flow.equals/flow.notEquals/flow.in/flow.notIn.
     // LIKE is fine against a LOB on both, so flow.contains and flow.doesNotContain are unaffected.
+    //
+    // distinct=true looks like it should fail the same way and does not, which is worth writing down
+    // because the reasoning is not obvious. It really does put this column into a SELECT DISTINCT:
+    //
+    //   select distinct fe1_0.flow_key,fe1_0.flow,fe1_0.flow_desc,fe1_0.flow_name,fe1_0.product_name
+    //   from tbl_flows fe1_0 order by fe1_0.flow_key desc offset ? rows fetch first ? rows only
+    //
+    // Oracle accepts that, because flow_key is the primary key: with a unique key in the select list
+    // the rows are already distinct, so the optimizer drops the operation and never compares the
+    // CLOB. The same statement against a table without a primary key is ORA-22848, and so is
+    // "select distinct flow" on either table. Hibernate always selects the id here, so the endpoint
+    // is safe — but it is safe by way of the key, not because a LOB can be de-duplicated.
+    @NotNull
     @NotNull
     @Column(name = "flow", nullable = false, columnDefinition = "clob")
     private String flow;

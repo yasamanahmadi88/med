@@ -13,6 +13,7 @@ import {
   faSave,
   faSearchMinus,
   faSearchPlus,
+  faShapes,
   faTimes,
   faUndo,
   faUpload,
@@ -23,6 +24,7 @@ import { BpmnEditorService } from '../../services/bpmn-editor.service';
 import { BPMN_EDITOR_HOST, BpmnEditorHost } from '../../services/bpmn-editor-host';
 import { createNewDiagram } from '../../utils/empty-diagram';
 import { ModulePropertyProblem, describeProblem, moduleValidationProblems } from '../../module-properties';
+import { CustomIconsDialogComponent } from './custom-icons-dialog.component';
 import { XmlPreviewDialogComponent } from './xml-preview-dialog.component';
 import { ShortcutKeysDialogComponent } from './shortcut-keys-dialog.component';
 
@@ -60,6 +62,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
     previewXml: faCode,
     minimap: faMap,
     shortcuts: faKeyboard,
+    customIcons: faShapes,
     problem: faTriangleExclamation,
   };
 
@@ -264,6 +267,21 @@ export class ToolbarComponent implements OnInit, OnDestroy {
 
   onShowShortcuts(): void {
     this.modalService.open(ShortcutKeysDialogComponent, { size: 'lg', scrollable: true });
+  }
+
+  /**
+   * Manage the icons this diagram carries.
+   *
+   * The library is a modeler service rather than anything of the toolbar's, because it reads and
+   * writes the open diagram; without a modeler there is no library and nothing to show.
+   */
+  onCustomIcons(): void {
+    const library = this.bpmnEditorService.getBpmnModeler()?.get('customIcons', false);
+    if (!library) {
+      return;
+    }
+    const modalRef = this.modalService.open(CustomIconsDialogComponent, { size: 'lg', scrollable: true });
+    modalRef.componentInstance.library = library;
   }
 
   /**

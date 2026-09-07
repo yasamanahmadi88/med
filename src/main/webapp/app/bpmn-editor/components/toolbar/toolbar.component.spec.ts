@@ -4,6 +4,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ToolbarComponent } from './toolbar.component';
 import { XmlPreviewDialogComponent } from './xml-preview-dialog.component';
 import { ShortcutKeysDialogComponent } from './shortcut-keys-dialog.component';
+import { CustomIconsDialogComponent } from './custom-icons-dialog.component';
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
 import { BPMN_EDITOR_HOST, BpmnEditorHost } from '../../services/bpmn-editor-host';
 
@@ -29,6 +30,7 @@ describe('ToolbarComponent', () => {
     canRedo: ReturnType<typeof vi.fn>;
   };
   let minimap: { toggle: ReturnType<typeof vi.fn> };
+  let customIcons: { getIcons: ReturnType<typeof vi.fn> };
   let modeler: any;
   let elements: any[];
   let viewboxListener: ((event: { viewbox: { scale: number } }) => void) | undefined;
@@ -44,6 +46,7 @@ describe('ToolbarComponent', () => {
       canRedo: vi.fn().mockReturnValue(true),
     };
     minimap = { toggle: vi.fn() };
+    customIcons = { getIcons: vi.fn(() => []) };
     viewboxListener = undefined;
     commandStackListener = undefined;
 
@@ -54,6 +57,7 @@ describe('ToolbarComponent', () => {
         if (name === 'canvas') return canvas;
         if (name === 'commandStack') return commandStack;
         if (name === 'minimap') return minimap;
+        if (name === 'customIcons') return customIcons;
         if (name === 'elementRegistry') return { getAll: () => elements };
         return undefined;
       }),
@@ -241,6 +245,28 @@ describe('ToolbarComponent', () => {
       component.onShowShortcuts();
 
       expect(open).toHaveBeenCalledWith(ShortcutKeysDialogComponent, expect.anything());
+    });
+
+    it('hands the icon dialog the library belonging to the open diagram', () => {
+      // The icons live in the diagram, so the dialog edits a modeler service rather than anything
+      // of the toolbar's. Handing it the wrong object — or none — is a dialog that lists nothing
+      // and saves nowhere.
+      const componentInstance: Record<string, unknown> = {};
+      const open = vi.spyOn(modal, 'open').mockReturnValue({ componentInstance } as any);
+
+      component.onCustomIcons();
+
+      expect(open).toHaveBeenCalledWith(CustomIconsDialogComponent, expect.anything());
+      expect(componentInstance['library']).toBe(customIcons);
+    });
+
+    it('opens no icon dialog before there is a diagram', () => {
+      service.setBpmnModeler(null);
+      const open = vi.spyOn(modal, 'open');
+
+      component.onCustomIcons();
+
+      expect(open).not.toHaveBeenCalled();
     });
   });
 

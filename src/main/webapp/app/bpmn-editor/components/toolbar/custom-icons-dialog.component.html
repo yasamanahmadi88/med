@@ -1,0 +1,45 @@
+<div class="modal-header">
+  <h4 class="modal-title">Custom icons</h4>
+  <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+</div>
+
+<div class="modal-body custom-icons">
+  <p class="custom-icons-intro">
+    Icons are stored in this diagram, so they travel with the flow: everyone who opens it sees them. An icon may be at most
+    {{ maxIconLabel }}, and one diagram may carry {{ maxLibraryLabel }} of them.
+  </p>
+
+  <div class="custom-icons-upload">
+    <label for="bpmnIconFile">SVG file</label>
+    <input id="bpmnIconFile" type="file" accept="image/svg+xml,.svg" data-cy="bpmnIconFile" (change)="onFileSelected($event)" />
+
+    <label for="bpmnIconName">Name</label>
+    <input id="bpmnIconName" type="text" name="iconName" [(ngModel)]="name" data-cy="bpmnIconName" placeholder="Payment gateway" />
+
+    <span class="custom-icon-preview">
+      <img *ngIf="preview" [src]="preview" alt="" data-cy="bpmnIconPreview" />
+    </span>
+
+    <button type="button" class="btn btn-primary" data-cy="bpmnIconAdd" [disabled]="!canAdd" (click)="add()">Add icon</button>
+  </div>
+
+  <p *ngIf="error" class="custom-icons-error" role="alert" data-cy="bpmnIconError">{{ error }}</p>
+
+  <ul class="custom-icons-list" data-cy="bpmnIconList">
+    <li *ngFor="let icon of icons" [attr.data-icon-id]="icon.id">
+      <img class="custom-icon-preview" [src]="icon.contents" alt="" />
+      <span class="custom-icon-name">{{ icon.name }}</span>
+      <code class="custom-icon-id">{{ icon.id }}</code>
+      <button type="button" class="btn btn-outline-danger btn-sm" [attr.data-cy]="'bpmnIconRemove-' + icon.id" (click)="remove(icon.id)">
+        Remove
+      </button>
+    </li>
+  </ul>
+
+  <p *ngIf="icons.length === 0" class="custom-icons-empty">This diagram carries no custom icons yet.</p>
+</div>
+
+<div class="modal-footer">
+  <span class="custom-icons-usage" data-cy="bpmnIconUsage">{{ usage }}</span>
+  <button type="button" class="btn btn-secondary" (click)="close()">Close</button>
+</div>

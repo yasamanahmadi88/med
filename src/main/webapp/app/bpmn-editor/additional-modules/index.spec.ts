@@ -4,6 +4,7 @@ import EnhancementRenderer from './Renderer/EnhancementRenderer';
 import RewriteRenderer from './Renderer/RewriteRenderer';
 import CustomElementFactory from './ElementFactory';
 import CustomRules from './Rules';
+import CustomIcons from '../custom-icons';
 import MinimapModule from 'diagram-js-minimap';
 import BpmnModdle, { ModdleElement, Package } from 'bpmn-moddle';
 import camundaModdleDescriptor from 'camunda-bpmn-moddle/resources/camunda.json';
@@ -48,6 +49,15 @@ describe('bpmn-editor additional modules', () => {
         'miyue',
       ]) {
         expect(moddleExtensions[prefix]).toBeTruthy();
+      }
+    });
+
+    it('registers the custom-icon library, whatever the engine', () => {
+      // The library lives in every diagram's own bpmn:Definitions, so a diagram that carries one
+      // has to be readable under any process engine — this is not one of the mutually exclusive
+      // schemas below.
+      for (const engine of engines) {
+        expect(moddleExtensionsFor(settingsWith({ processEngine: engine }))['customIcon'], `processEngine ${engine}`).toBeTruthy();
       }
     });
 
@@ -127,6 +137,7 @@ describe('bpmn-editor additional modules', () => {
         'Merger:Merger',
         'Transformer:Transformer',
         'miyue:SqlTask',
+        'customIcon:CustomTask',
       ]) {
         expect(moddle.getType(type), type).toBeTruthy();
       }
@@ -227,10 +238,24 @@ describe('bpmn-editor additional modules', () => {
       expect(additionalModulesFor(settingsWith({ miniMap: false }))).not.toContain(MinimapModule);
     });
 
-    it('tolerates missing settings, keeping the delete rule and the minimap', () => {
+    it('registers the custom icons whatever the palette and renderer settings say', () => {
+      // The icons are part of the diagram rather than part of the look: its renderer outranks
+      // whichever renderer is selected, and its palette entries merge into whichever palette
+      // provider is in force, so there is no combination that may leave them out.
+      for (const settings of [
+        defaultSettings,
+        settingsWith({ paletteMode: 'default', rendererMode: 'default' }),
+        settingsWith({ paletteMode: 'rewrite', rendererMode: 'enhancement' }),
+        settingsWith({ otherModule: false, miniMap: false }),
+      ]) {
+        expect(additionalModulesFor(settings), `${settings.paletteMode}/${settings.rendererMode}`).toContain(CustomIcons);
+      }
+    });
+
+    it('tolerates missing settings, keeping the delete rule, the minimap and the custom icons', () => {
       // Nothing to select a palette or renderer from, but the diagram still deserves its
       // start and end events, and both flags default to on.
-      expect(additionalModulesFor(undefined)).toEqual([CustomRules, MinimapModule]);
+      expect(additionalModulesFor(undefined)).toEqual([CustomRules, MinimapModule, CustomIcons]);
     });
   });
 });

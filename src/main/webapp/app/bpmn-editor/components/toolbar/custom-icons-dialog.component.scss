@@ -1,0 +1,93 @@
+.custom-icons-intro {
+  font-size: 0.8125rem;
+  color: #6c757d;
+}
+
+.custom-icons-upload {
+  display: grid;
+  // File, name and preview on one row with the button at the end; the labels sit above their
+  // controls so a long validation message below does not push the row around.
+  grid-template-columns: 1fr 1fr auto auto;
+  gap: 0.25rem 0.75rem;
+  align-items: center;
+
+  label {
+    grid-row: 1;
+    font-size: 0.8125rem;
+    color: #495057;
+  }
+
+  input {
+    grid-row: 2;
+  }
+
+  input[type='text'] {
+    padding: 0.375rem 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  .custom-icon-preview,
+  button {
+    grid-row: 2;
+  }
+}
+
+// A user-supplied SVG has no aspect ratio we control, so both axes are capped and the box keeps
+// its size whether or not there is an image in it.
+.custom-icon-preview {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+
+  img {
+    max-width: 100%;
+    max-height: 100%;
+  }
+}
+
+.custom-icons-error {
+  margin: 0.75rem 0 0;
+  padding: 0.5rem 0.75rem;
+  background: #fff4f4;
+  border: 1px solid #f5c2c7;
+  border-radius: 4px;
+  color: #842029;
+  font-size: 0.8125rem;
+}
+
+.custom-icons-list {
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.375rem 0;
+    border-top: 1px solid #e9ecef;
+  }
+}
+
+.custom-icon-name {
+  flex: 1;
+}
+
+.custom-icon-id {
+  color: #6c757d;
+  font-size: 0.75rem;
+}
+
+.custom-icons-empty,
+.custom-icons-usage {
+  margin: 1rem 0 0;
+  color: #6c757d;
+  font-size: 0.8125rem;
+}
+
+.custom-icons-usage {
+  margin: 0 auto 0 0;
+}

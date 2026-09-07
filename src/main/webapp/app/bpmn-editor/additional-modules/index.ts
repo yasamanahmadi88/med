@@ -7,12 +7,14 @@ import EnhancementRenderer from './Renderer/EnhancementRenderer';
 import RewriteRenderer from './Renderer/RewriteRenderer';
 import CustomElementFactory from './ElementFactory';
 import CustomRules from './Rules';
+import CustomIcons from '../custom-icons';
 
 import activiti from '../moddle-extensions/activiti.json';
 import flowable from '../moddle-extensions/flowable.json';
 import cdrParser from '../moddle-extensions/cdrParserProperties.json';
 import CdrParser from '../moddle-extensions/cdrParserModule.json';
 import CsvTransformer from '../moddle-extensions/csvTransformerCornerModule.json';
+import customIcon from '../moddle-extensions/customIcons.json';
 import DbReceiver from '../moddle-extensions/dbReceiverModule.json';
 import DbTransmitter from '../moddle-extensions/dbTransmitterModule.json';
 import EventaDbReceiver from '../moddle-extensions/eventaDbReceiverModule.json';
@@ -31,7 +33,7 @@ import Transformer from '../moddle-extensions/transformerModule.json';
 import { EditorSettings } from '../types/editor/settings';
 
 /**
- * Moddle extensions for the editor's own integration modules.
+ * Moddle extensions for the editor's own integration modules, plus the custom-icon library.
  *
  * Each key is the namespace prefix the palette builds shapes with — creating, say, a
  * `KafkaReceiver:KafkaReceiver` shape only resolves once `KafkaReceiver` is registered, so these
@@ -54,6 +56,11 @@ const integrationModuleExtensions: Record<string, unknown> = {
   Merger,
   miyue,
   Transformer,
+  // Not an integration module, but registered on the same terms: the icon library lives in every
+  // diagram's own `bpmn:Definitions`, and a `customIcon:CustomTask` cannot be created — or read
+  // back — without it. It adds no property to `bpmn:Definitions` itself, which is the collision
+  // the one-engine rule below exists for.
+  customIcon,
 };
 
 /**
@@ -130,6 +137,12 @@ export function additionalModulesFor(settings: EditorSettings | undefined): unkn
   if (settings?.miniMap ?? true) {
     modules.push(MinimapModule);
   }
+
+  // Custom icons are not behind a setting. The library is part of the diagram, so a diagram that
+  // carries one has to draw it whatever the editor is configured to look like; the renderer
+  // outranks whichever of the two custom renderers `rendererMode` selected, and the palette
+  // entries are merged into whichever palette provider is in force.
+  modules.push(CustomIcons);
 
   return modules;
 }

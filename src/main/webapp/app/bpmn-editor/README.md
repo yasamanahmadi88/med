@@ -1247,6 +1247,21 @@ Pinned by "the editor keeps its geometry in RTL, and its dividers follow the fli
 The element is in the document and in the right place; there is simply nothing in it. Empty since
 the `7f0f6df` baseline, so nothing here broke it. Unrelated to this change and left alone.
 
+**Three English-side content questions**, surfaced while translating and deliberately not touched —
+`en` is the source language, and changing it is a product decision rather than a translation one:
+
+- `i18n/en/reportLogs.json` → `medPortalApp.reportLogs.properties` reads `"P roperties"`, with a
+  stray space. The Persian is `خواص`.
+- `i18n/en/flow.json` → `medPortalApp.flow.home.createLabelFor` reads `"Create a new Flow For "`
+  with a trailing space. That space is load-bearing: `flow-new.component.html` puts the product
+  name in a second inline `<span>` immediately after it, so it is the only separator between the
+  label and the name. The Persian had lost it and now carries it too.
+- `i18n/en/metrics.json` → `metrics.jvm.http.title` says `"HTTP requests (time in millisecond)"`
+  while the Persian said `"HTTP requests (events per second)"` — a genuine disagreement about what
+  the panel measures, not a translation slip. The Persian was aligned to the English meaning
+  (`درخواست های HTTP (زمان به میلی ثانیه)`) on the grounds that `en` is the reference, but if the
+  Persian was right then **both** files are wrong and the fix belongs on the English side.
+
 ### Persian, now actually loaded
 
 Previously reported here as unaddressed, and since fixed. `webpack.custom.js` merged only
@@ -1260,15 +1275,27 @@ neither the text nor the direction.
 regeneration writes). `MergeJsonWebpackPlugin` produces `i18n/fa.json` from all 28 files — 511 leaf
 keys, deep-merged, verified per source file rather than by the file merely existing.
 
-Coverage ended at **511 of 511 keys translated, up from 509 of 511**, of which 198 were English
-text sitting in the Persian bundle. `entity.validation.patternLogin` and
-`health.status.OUT_OF_SERVICE` were missing outright and were added. 16 values remain
-byte-identical to English on purpose: the product name (`global.title`, `home.title`), `GitHub`,
-the eight `p50`/`p75`/`p95`/`p99` percentile column headers, the three
+Coverage ended at **511 of 511 keys translated, up from 509 of 511**. 198 values were English text
+byte-identical to their English original, and a further 12 were English text that merely differed
+from it — "Create a new Custom Audit Event" against `en`'s "Create a new Audit Log", `"Usage"`,
+`"Config"`, `"Properties"` — which an equality check cannot see. Both sets are translated.
+`entity.validation.patternLogin` and `health.status.OUT_OF_SERVICE` were missing outright and were
+added. 16 values remain byte-identical to English on purpose: the product name (`global.title`,
+`home.title`), `GitHub`, the eight `p50`/`p75`/`p95`/`p99` percentile column headers, the three
 `jhipster-needle-menu-add-*` markers whose own text reads "(do not translate!)", and the two
-`"null": ""` blanks that are the empty option of an enum dropdown. Structural parity and
-placeholder integrity are pinned by `shared/language/i18n-parity.spec.ts`, which fails on a
-dropped or renamed `{{ placeholder }}` and on mangled inline HTML, per file and per key.
+`"null": ""` blanks that are the empty option of an enum dropdown.
+
+One Persian value could not be interpolated at all. `userManagement.delete.question` read
+`{{ login  }}` with two spaces, and ngx-translate's `templateMatcher` is `/{{\s?([^{}\s]*)\s?}}/g`
+— `\s?` is zero or _one_ space, so the occurrence did not match, no substitution ran, and the
+delete-user dialog showed the literal braces instead of the username. Pre-existing at `4e78c5b`,
+but unreachable until this change made Persian load, so it is fixed here.
+
+Structural parity and placeholder integrity are pinned by `shared/language/i18n-parity.spec.ts`:
+per file and per key it fails on a dropped or renamed `{{ placeholder }}`, on mangled inline HTML,
+and — using ngx-translate's own matcher rather than an idealised one — on any `{{…}}` occurrence in
+either language that the runtime would not interpolate. Comparing placeholder _names_ is not
+enough: `{{ login  }}` and `{{ login }}` are both named `login`.
 
 Consequently the RTL test above **no longer serves the bundle itself**. It previously installed a
 `page.route('**/i18n/fa.json*')` handler that read `i18n/fa/` off disk, because the real bundle did

@@ -41,6 +41,18 @@ describe('i18n bundle parity', () => {
   const placeholders = (value: string): string[] => (value.match(/\{\{[^}]*\}\}/g) ?? []).map(token => token.replace(/\s+/g, '')).sort();
   const tags = (value: string): string[] => (value.match(/<[^>]+>/g) ?? []).sort();
 
+  /**
+   * The matcher ngx-translate actually interpolates with, copied verbatim from
+   * `TranslateDefaultParser.templateMatcher` in
+   * `@ngx-translate/core` (`fesm2022/ngx-translate-core.mjs`), where `interpolateString` runs
+   * `expr.replace(this.templateMatcher, …)`. Note `\s?` — zero or *one* space on each side. A
+   * second space is not a formatting nit: the occurrence stops matching, no substitution happens,
+   * and the raw `{{ login  }}` is what the user reads.
+   */
+  const NGX_TEMPLATE_MATCHER = /{{\s?([^{}\s]*)\s?}}/g;
+  /** Anything a translator would take for a placeholder, whether or not the runtime agrees. */
+  const looksLikePlaceholder = (value: string): string[] => value.match(/\{\{[^{}]*\}\}/g) ?? [];
+
   it('ships the same 28 files in every language', () => {
     expect(
       readdirSync(join(I18N, 'fa'))
@@ -67,6 +79,17 @@ describe('i18n bundle parity', () => {
           key,
           placeholders: expect.arrayContaining(placeholders(source)),
         });
+      }
+    });
+
+    it.each(['en', 'fa'])('writes every %s placeholder in a form ngx-translate can interpolate', lang => {
+      for (const [key, value] of Object.entries(read(lang, file))) {
+        for (const occurrence of looksLikePlaceholder(value)) {
+          // Tested per occurrence rather than over the whole value, so one unmatched placeholder
+          // cannot hide behind a well-formed one earlier in the same string.
+          const matcher = new RegExp(NGX_TEMPLATE_MATCHER.source, 'g');
+          expect({ key, occurrence, interpolated: matcher.test(occurrence) }).toEqual({ key, occurrence, interpolated: true });
+        }
       }
     });
 

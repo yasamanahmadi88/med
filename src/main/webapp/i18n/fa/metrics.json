@@ -39,7 +39,7 @@
         "scavengetime": "زمان Scavenge"
       },
       "http": {
-        "title": "HTTP requests (events per second)",
+        "title": "درخواست های HTTP (زمان به میلی ثانیه)",
         "active": "درخواست های فعال:",
         "total": "همه درخواست ها:",
         "table": {
@@ -86,7 +86,7 @@
       "averageRemoveTime": "میانگین زمان حذف (µs)"
     },
     "datasource": {
-      "usage": "Usage",
+      "usage": "میزان استفاده از استخر اتصال",
       "title": "آمار DataSource (زمان به میلی ثانیه)",
       "name": "میزان استفاده از استخر",
       "count": "تعداد",

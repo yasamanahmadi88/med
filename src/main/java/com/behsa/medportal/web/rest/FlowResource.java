@@ -31,6 +31,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import tech.jhipster.service.filter.StringFilter;
 import tech.jhipster.web.util.HeaderUtil;
 import tech.jhipster.web.util.PaginationUtil;
 import tech.jhipster.web.util.ResponseUtil;
@@ -231,6 +232,7 @@ public class FlowResource {
         FlowCriteria criteria,
         @org.springdoc.core.annotations.ParameterObject Pageable pageable
     ) {
+        rejectUncomparableFlowFilter(criteria);
         Page<FlowDTO> page = flowQueryService.findByCriteria(criteria, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
@@ -246,7 +248,39 @@ public class FlowResource {
     @Secured(ENTITY_NAME)
     public ResponseEntity<Long> countFlows(FlowCriteria criteria) {
         log.debug("REST request to count Flows by criteria: {}", criteria);
+        rejectUncomparableFlowFilter(criteria);
         return ResponseEntity.ok().body(flowQueryService.countByCriteria(criteria));
+    }
+
+    /**
+     * Refuses the four equality operators on the {@code flow} filter.
+     *
+     * <p>{@code flow} holds the whole BPMN document and is a CLOB: Liquibase declares the column
+     * {@code ${clobType}}, and {@link FlowEntity} names the same type so generated schemas agree. Oracle
+     * will not use a LOB as a comparison key — {@code ORA-22848: cannot use CLOB type as comparison
+     * key} — for {@code =} or {@code IN}, and it refuses at <b>any</b> value length, not only large
+     * ones. H2 accepts both, which is why {@code flow.equals} and {@code flow.in} were reported
+     * failing in production while CI stayed green.
+     *
+     * <p>So they are refused here, for every database, with a 400 that names the problem instead of
+     * a 500 out of the driver. Nothing loses a feature: the flow list sends only
+     * {@code filter[productId.in]} (flow.component.ts) and offers no filter control for the diagram
+     * column, so no caller asks for an exact match on a whole BPMN document. {@code LIKE} is fine
+     * against a LOB on both databases, so {@code flow.contains}, {@code flow.doesNotContain} and
+     * {@code flow.specified} are untouched.
+     */
+    private void rejectUncomparableFlowFilter(FlowCriteria criteria) {
+        if (criteria == null || criteria.getFlow() == null) {
+            return;
+        }
+        StringFilter flow = criteria.getFlow();
+        if (flow.getEquals() != null || flow.getNotEquals() != null || flow.getIn() != null || flow.getNotIn() != null) {
+            throw new BadRequestAlertException(
+                "flow holds the BPMN document and is stored as a CLOB, which cannot be compared with equals, notEquals, in or notIn. Use flow.contains.",
+                ENTITY_NAME,
+                "flownotcomparable"
+            );
+        }
     }
 
     /**

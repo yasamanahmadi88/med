@@ -1256,11 +1256,16 @@ the `7f0f6df` baseline, so nothing here broke it. Unrelated to this change and l
   with a trailing space. That space is load-bearing: `flow-new.component.html` puts the product
   name in a second inline `<span>` immediately after it, so it is the only separator between the
   label and the name. The Persian had lost it and now carries it too.
-- `i18n/en/metrics.json` → `metrics.jvm.http.title` says `"HTTP requests (time in millisecond)"`
-  while the Persian said `"HTTP requests (events per second)"` — a genuine disagreement about what
-  the panel measures, not a translation slip. The Persian was aligned to the English meaning
-  (`درخواست های HTTP (زمان به میلی ثانیه)`) on the grounds that `en` is the reference, but if the
-  Persian was right then **both** files are wrong and the fix belongs on the English side.
+- `metrics.jvm.http.title` said `"HTTP requests (time in millisecond)"` in English and
+  `"HTTP requests (events per second)"` in Persian — a genuine disagreement about what the panel
+  measures, not a translation slip. **Settled: the English is right.** The panel is rendered by
+  `admin/metrics/blocks/metrics-request/metrics-request.component.html`, whose columns are Code,
+  Count, Mean and Max, and those numbers come from `JHipsterMetricsEndpoint.httpRequestsMetrics`
+  in `tech.jhipster:jhipster-framework:9.1.0`, which builds them as
+  `Timer.totalTime(TimeUnit.MILLISECONDS)` and `Timer.max(TimeUnit.MILLISECONDS)` (read from the
+  bytecode). So the values really are milliseconds of latency per HTTP status code, and "events
+  per second" was simply wrong. The Persian now reads
+  `درخواست های HTTP (زمان به میلی ثانیه)`; no English-side change is needed.
 
 ### Persian, now actually loaded
 

@@ -28,7 +28,7 @@ jhi-bpmn-editor {
     grid-template-columns: auto 1fr auto;
 
     jhi-palette {
-      border-right: 1px solid #e0e0e0;
+      border-inline-end: 1px solid #e0e0e0;
       overflow-y: auto;
       width: 200px;
       height: 100%;
@@ -40,7 +40,7 @@ jhi-bpmn-editor {
     grid-template-columns: 1fr auto;
 
     jhi-panel {
-      border-left: 1px solid #e0e0e0;
+      border-inline-start: 1px solid #e0e0e0;
       overflow-y: auto;
       width: 350px;
       height: 100%;
@@ -71,7 +71,7 @@ jhi-bpmn-editor {
 
   .camunda-penal {
     width: 350px;
-    border-left: 1px solid #e0e0e0;
+    border-inline-start: 1px solid #e0e0e0;
     overflow-y: auto;
     background-color: #fff;
   }

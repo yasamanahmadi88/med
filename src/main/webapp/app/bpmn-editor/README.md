@@ -1209,11 +1209,52 @@ That is the difference between measuring the scroll and always reading 0.
   last row". Making the shell rule global (`.app-root` instead of `.fullscreen-mode`) fails it:
   `scrollHeight` collapses from 3265 to 720.
 
+### RTL, measured rather than reasoned about
+
+This application ships Persian (`config/language.constants.ts`) and `MainComponent` writes `dir` on
+`<html>` from it (`main.component.ts:84-88`), so RTL is a direction users actually run the editor
+in. The height chain is a column flex, which is direction-neutral by construction — but that was an
+argument, not a measurement. Measured at 1280x720, LTR against RTL:
+
+|                                     | LTR         | RTL         |
+| ----------------------------------- | ----------- | ----------- |
+| navbar bottom                       | 46.375      | 46.375      |
+| `#designer-container` top           | 46.375      | 46.375      |
+| `#designer-container` bottom        | 720         | 720         |
+| canvas bottom / panel bottom        | 720 / 720   | 720 / 720   |
+| `scrollHeight` / `clientHeight`     | 720 / 720   | 720 / 720   |
+| canvas left / properties panel left | 0 / 930     | 350 / 0     |
+| `scrollWidth` / `clientWidth`       | 1280 / 1280 | 1280 / 1280 |
+
+Every vertical number is identical, and the layout mirrors horizontally without overflowing.
+
+**One thing did not mirror.** The 1px rules that separate the panes were physical — `border-left`
+on the properties panel, `border-right` on the palette. Measured in RTL, `jhi-panel` moved to the
+left of the canvas but kept `border-left: 1px` / `border-right: 0px`, so the divider between panel
+and canvas disappeared and a stray line sat on the outer edge of the window instead. The six
+direction-sensitive borders in this editor are now logical properties — `border-inline-start` /
+`border-inline-end`, and `padding-inline-start` for the toolbar's group separator — which put the
+line on the edge that faces the canvas in either direction. Re-measured: `border-right: 1px` and
+`border-left: 0px` on the panel in RTL, unchanged in LTR.
+
+Pinned by "the editor keeps its geometry in RTL, and its dividers follow the flip" in
+`bpmn-editor.e2e.spec.ts`. Falsified by restoring `border-left` on `jhi-panel`: it fails on
+`expect(rtl.panelBorderRight).toBe('1px')` with `0px`.
+
 ### Not addressed here
 
 `layouts/footer/footer.component.html` is a zero-byte file, so `<jhi-footer>` renders an empty box.
-The element is in the document and in the right place; there is simply nothing in it. Unrelated to
-this change and left alone.
+The element is in the document and in the right place; there is simply nothing in it. Empty since
+the `7f0f6df` baseline, so nothing here broke it. Unrelated to this change and left alone.
+
+**Persian never loads.** `webpack.custom.js:126` merges only `./src/main/webapp/i18n/en/*.json`
+into a bundle; the `fa` entry was never added at the `jhipster-needle-i18n-language-webpack` line
+directly below it, even though `src/main/webapp/i18n/fa/` holds 28 translation files and `fa` is in
+`LANGUAGES`. So `i18n/fa.json` 404s, the ngx-translate loader rejects, `onLangChange` never fires,
+and picking Persian in the running application changes neither the text nor the direction. The RTL
+test above serves that bundle itself in order to reach the RTL code path at all. This is a
+one-line build change with product consequences well outside this editor — every untranslated
+string in the application would surface at once — so it is reported here rather than made.
 
 ## Future Enhancements
 

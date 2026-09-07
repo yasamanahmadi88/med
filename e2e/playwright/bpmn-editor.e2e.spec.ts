@@ -655,4 +655,132 @@ test.describe('BPMN editor', () => {
     expect(background.repeat).toBe('repeat');
     expect(background.size).toBe('auto');
   });
+
+  // Two viewports, because the bug scaled with neither: the editor asked for a full `100vh`
+  // starting below the navbar, so it hung exactly one navbar past the bottom at every size.
+  for (const viewport of [
+    { width: 1280, height: 720 },
+    { width: 500, height: 640 },
+  ]) {
+    test(`the editor ends at the bottom of a ${viewport.width}x${viewport.height} viewport`, async ({ page, mockApi }) => {
+      await mockApi({ account: 'admin' });
+      await page.setViewportSize(viewport);
+
+      await page.goto('/bpmn-editor');
+      await expect(page.locator('.bpmn-canvas .bjs-container')).toBeVisible();
+      await expect(page.locator('jhi-panel')).toBeVisible();
+
+      // Measured, not asserted-to-exist. Before the fix every element below was present, visible
+      // and the right size — it was just drawn 47px lower than the screen goes, and
+      // `body { overflow: hidden }` from `bpmn-editor/styles/index.scss` meant nothing could
+      // scroll to it. Only the numbers show that.
+      const layout = await page.evaluate(() => {
+        const bottom = (selector: string) => document.querySelector(selector)!.getBoundingClientRect().bottom;
+        return {
+          viewportBottom: window.innerHeight,
+          navbarBottom: document.querySelector('jhi-navbar .navbar')!.getBoundingClientRect().bottom,
+          containerTop: document.querySelector('#designer-container')!.getBoundingClientRect().top,
+          containerBottom: bottom('#designer-container'),
+          canvasBottom: bottom('.bpmn-canvas'),
+          panelBottom: bottom('jhi-panel'),
+          documentScrollHeight: document.documentElement.scrollHeight,
+          documentClientHeight: document.documentElement.clientHeight,
+        };
+      });
+
+      // No overflow: the canvas and the properties panel both end on the bottom edge of the
+      // screen, not below it.
+      expect(layout.canvasBottom).toBeLessThanOrEqual(layout.viewportBottom);
+      expect(layout.panelBottom).toBeLessThanOrEqual(layout.viewportBottom);
+      expect(layout.containerBottom).toBeCloseTo(layout.viewportBottom, 0);
+      expect(layout.canvasBottom).toBeCloseTo(layout.viewportBottom, 0);
+      expect(layout.panelBottom).toBeCloseTo(layout.viewportBottom, 0);
+
+      // No gap: it starts where the navbar stops, so the whole space below the navbar is editor.
+      expect(layout.containerTop).toBeCloseTo(layout.navbarBottom, 0);
+
+      // And the route itself does not grow a scrollbar it would need in order to be whole.
+      expect(layout.documentScrollHeight).toBe(layout.documentClientHeight);
+    });
+  }
+
+  // This application ships Persian (`config/language.constants.ts`), and `MainComponent`
+  // writes `dir` on `<html>` from it (`main.component.ts:84-88`), so RTL is a direction real
+  // users run the editor in rather than an edge case. The height fix above is direction-neutral
+  // by construction — a column flex chain — but "by construction" is what this test replaces
+  // with numbers.
+  test('the editor keeps its geometry in RTL, and its dividers follow the flip', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+    // `webpack.custom.js:126` merges only `i18n/en/*.json` into a bundle — the `fa` entry was
+    // never added at the JHipster needle on the line below it — so `i18n/fa.json` 404s, the
+    // ngx-translate loader rejects, and `onLangChange` never fires. That is a separate,
+    // pre-existing bug (see README, "Not addressed here"). Serving the bundle that build step
+    // should have produced is what lets this test reach `updatePageDirection` at all, instead of
+    // silently measuring a second LTR run.
+    await page.route('**/i18n/fa.json*', async route => {
+      const { readdirSync, readFileSync } = await import('node:fs');
+      const { join } = await import('node:path');
+      const dir = join(process.cwd(), 'src/main/webapp/i18n/fa');
+      const merged = readdirSync(dir)
+        .filter(file => file.endsWith('.json'))
+        .reduce<Record<string, unknown>>((acc, file) => ({ ...acc, ...JSON.parse(readFileSync(join(dir, file), 'utf8')) }), {});
+      await route.fulfill({ status: 200, headers: { 'content-type': 'application/json' }, body: JSON.stringify(merged) });
+    });
+    await page.setViewportSize({ width: 1280, height: 720 });
+
+    await page.goto('/bpmn-editor');
+    await expect(page.locator('.bpmn-canvas .bjs-container')).toBeVisible();
+    await expect(page.locator('jhi-panel')).toBeVisible();
+
+    // Switched through the navbar the way a user does, and switched here rather than before
+    // navigating: `updatePageDirection` is only reached from the `onLangChange` subscription, and
+    // on a fresh load `TranslationModule` calls `use(langKey)` before `MainComponent` subscribes,
+    // so a reload lands back on `dir="ltr"`.
+    await page.locator('#languagesnavBarDropdown').click();
+    await page.locator('.dropdown-menu a.dropdown-item', { hasText: 'فارسی' }).click();
+    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+
+    const rtl = await page.evaluate(() => {
+      const rect = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
+      const panel = document.querySelector('jhi-panel')!;
+      return {
+        // Read alongside the geometry, so these numbers cannot quietly be an LTR run.
+        direction: getComputedStyle(document.documentElement).direction,
+        viewportBottom: window.innerHeight,
+        navbarBottom: rect('jhi-navbar .navbar').bottom,
+        containerTop: rect('#designer-container').top,
+        canvasBottom: rect('.bpmn-canvas').bottom,
+        panelBottom: rect('jhi-panel').bottom,
+        documentScrollHeight: document.documentElement.scrollHeight,
+        documentClientHeight: document.documentElement.clientHeight,
+        canvasLeft: rect('.bpmn-canvas').left,
+        panelLeft: rect('jhi-panel').left,
+        documentScrollWidth: document.documentElement.scrollWidth,
+        documentClientWidth: document.documentElement.clientWidth,
+        panelBorderLeft: getComputedStyle(panel).borderLeftWidth,
+        panelBorderRight: getComputedStyle(panel).borderRightWidth,
+      };
+    });
+
+    expect(rtl.direction).toBe('rtl');
+
+    // Vertically identical to LTR: the fix holds in both directions.
+    expect(rtl.containerTop).toBeCloseTo(rtl.navbarBottom, 0);
+    expect(rtl.canvasBottom).toBeCloseTo(rtl.viewportBottom, 0);
+    expect(rtl.panelBottom).toBeCloseTo(rtl.viewportBottom, 0);
+    expect(rtl.documentScrollHeight).toBe(rtl.documentClientHeight);
+
+    // Horizontally mirrored, and no wider than the screen: the properties panel moves to the
+    // left of the canvas instead of its right.
+    expect(rtl.panelLeft).toBe(0);
+    expect(rtl.canvasLeft).toBeGreaterThan(rtl.panelLeft);
+    expect(rtl.documentScrollWidth).toBe(rtl.documentClientWidth);
+
+    // The 1px divider is the reason these are logical properties and not `border-left`. With a
+    // physical border it stayed on the panel's left edge, which in RTL is the outside of the
+    // window: the divider between panel and canvas vanished and a stray line appeared at the
+    // edge of the screen. It has to face the canvas in whichever direction the panel sits.
+    expect(rtl.panelBorderRight).toBe('1px');
+    expect(rtl.panelBorderLeft).toBe('0px');
+  });
 });

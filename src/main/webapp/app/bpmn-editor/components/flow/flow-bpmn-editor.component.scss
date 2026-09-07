@@ -1,0 +1,12 @@
+// This component is the routed element on `/bpmn-editor`, so it is the flex item the shell's
+// `fullscreen-mode` column hands the room below the navbar to
+// (`layouts/main/main.component.scss`). Left at the default `height: auto` it sized itself to the
+// editor's content instead, and the percentage heights below it had nothing definite to resolve
+// against — which is how a canvas that asked for `100%` ended up 173px short of the card holding
+// it. `min-height: 0` because a flex item will not shrink below its content without it.
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}

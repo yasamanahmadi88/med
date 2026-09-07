@@ -841,9 +841,12 @@ fill-opacity: …` as an _inline style_, which beats them — measured identical
   `width: 360px` is out-specified by `palette.component.scss` (200px either way), leaving
   `padding: 16px` as its only effect. Kept — removing it is a visual change, not a dead-rule fix.
 - **`body, html, .designer-container`** in `index.scss`. `#app` came out of the selector list; the
-  rest stays, and it has a problem this change does not fix. See below.
+  rest stayed at the time, and it had a problem that change did not fix. See below.
 
-#### One bug found and **not** fixed: 47px of the editor is unreachable
+#### One bug found and not fixed _at the time_: 47px of the editor is unreachable
+
+**Fixed since — see "The 47px, fixed" below. The diagnosis in this section still stands; only its
+last sentence, that it wants its own change, has been overtaken.**
 
 Measured on `/bpmn-editor` at a 720px viewport: the navbar is 46.4px tall, `.designer-container`
 starts at y=47 and is `height: 100vh`, so it ends at y=767 — 47px below the bottom of the screen.
@@ -859,7 +862,8 @@ _was_ the document — but the fix is not a stylesheet edit:
   (`body > jhi-main > .app-root > main > .card`) to become a height-constrained column, which is
   `layouts/main/main.component.scss` and affects every route.
 
-So it is written down rather than guessed at. It wants its own change.
+The third point turned out to be the one that was wrong, and it is why the change looked bigger
+than it is: the shell already branches on this route.
 
 #### What this does to the budget
 
@@ -1121,6 +1125,137 @@ removals are undoable and mark the diagram dirty like any other edit.
 - **`moddle-extensions/customIconModule.json`** stays out. It declares prefix `custom` with a single
   `CustomElement` type, which is neither the shape the palette placed nor anything this design uses.
 
+## The 47px, fixed
+
+The bug recorded above under "One bug found and not fixed" is fixed. Measured on `/bpmn-editor` at
+1280x720, before and after:
+
+|                                            | before  | after  |
+| ------------------------------------------ | ------- | ------ |
+| navbar bottom                              | 46.375  | 46.375 |
+| `#designer-container` top                  | 47.375  | 46.375 |
+| `#designer-container` bottom               | 767.375 | 720    |
+| canvas (`.bpmn-canvas`) bottom             | 767.375 | 720    |
+| properties panel (`jhi-panel`) bottom      | 767.375 | 720    |
+| `document.documentElement.scrollHeight`    | 720     | 720    |
+| `window.scrollY` after `scrollTo(0, 5000)` | 0       | 0      |
+
+The same 47.375px overhang measured at 500x640 (bottom 687.375 against a 640px viewport) and at
+360x640. After the change the editor ends on the viewport bottom at 1280x720, 1440x900, 500x640 and
+360x640, and the document still has nothing to scroll — it no longer needs to.
+
+### Why the shell change is editor-only
+
+The earlier note said the fix "affects every route". It does not have to. `main.component.ts:62`
+already sets `fullScreen = path.includes('/bpmn-editor')`, and `main.component.html` already
+branches on it (`card` versus `card jh-card`, and no footer). The fix rides that branch:
+`.app-root` gains `fullscreen-mode` from `[class.fullscreen-mode]="fullScreen"`, and every new rule
+in `main.component.scss` is nested under that class. Nothing outside `/bpmn-editor` matches it.
+
+### The chain, and the two host elements in the middle
+
+`height: 100%` needs a definite height at every step, and the route has two Angular host elements
+between the shell's `.card` and the editor's container — both `display: inline; height: auto` by
+default, both invisible in the template:
+
+```
+body > jhi-main > .app-root.fullscreen-mode > main > .card
+     > jhi-flow-bpmn-editor > jhi-bpmn-editor > #designer-container
+```
+
+Missing either one is what makes the percentage silently fall back to the content height. With
+`fullscreen-mode` in place but the host elements left alone, `.card` measured the right 673.625px
+and the container inside it measured 500px — a 173.6px gap instead of a 47px overhang. So:
+
+- `layouts/main/main.component.scss` — `.fullscreen-mode` is a `100vh` flex column; `> main` and
+  `> main > .card` are `flex: 1 1 auto; min-height: 0`. The `.card` border is zeroed on this branch
+  only, which is the 1px that held the editor below the navbar.
+- `components/flow/flow-bpmn-editor.component.scss` (new) — a `:host` rule making the routed
+  component the flex item that carries that room. Emulated encapsulation, so it is this component
+  and nothing else.
+- `components/bpmn-editor.component.scss` — the same for `jhi-bpmn-editor`, and
+  `.designer-container` is `height: 100%` rather than `100vh`.
+- `styles/index.scss` — `body, html` left the selector list. `ViewEncapsulation.None` made those
+  global rules, and the `height: 100vh; overflow: hidden` on them is what made the missing 47px
+  unscrollable as well as off-screen. The shell now sizes the route, so the document needs no help.
+
+### What was measured on the other routes
+
+Every number below is identical before and after the change, at 1280x720 with the same mocks:
+
+- **product list, 60 rows** — `scrollHeight` 3265 against a 720 client height, `scrollY` 2545 after
+  an instant `scrollTo`, last row bottom 607.09, footer top 720.42. It scrolls to the end.
+- **login** (`isLoginPage` branch) — `.app-root` 745.656px tall, `scrollHeight` 746, `scrollY` 26;
+  and at 360x480, `scrollHeight` 697 with `scrollY` 217 and the submit button reachable.
+- **home**, **`/admin/user-management`** — both shorter than the viewport (`scrollHeight` 720),
+  `bodyOverflow` visible, footer present and on screen.
+- **404** — `scrollHeight` 740, `scrollY` 20 after scrolling.
+
+The `bpmn-editor.component.scss` budget warning moved from 58.73 kB to **58.81 kB** — the comments
+this change adds. The warning is pre-existing and unrelated to the size; see "What this does to the
+budget" above for why the number is library CSS rather than ours.
+
+Note that `scroll-behavior: smooth` is set on the document, so a plain `window.scrollTo` has not
+landed by the time the next line reads `scrollY`; every reading above used `behavior: 'instant'`.
+That is the difference between measuring the scroll and always reading 0.
+
+### Pinned by
+
+- `e2e/playwright/bpmn-editor.e2e.spec.ts` — "the editor ends at the bottom of a WxH viewport", at
+  1280x720 and 500x640. It compares the canvas and panel bottoms to `window.innerHeight` and the
+  container top to the navbar bottom, so it fails on the overhang (767.375) _and_ on the gap
+  (546.375) that a half-applied fix produces. Both failures were reproduced deliberately.
+- `e2e/playwright/medportal.e2e.spec.ts` — "a list longer than the viewport still scrolls to its
+  last row". Making the shell rule global (`.app-root` instead of `.fullscreen-mode`) fails it:
+  `scrollHeight` collapses from 3265 to 720.
+
+### RTL, measured rather than reasoned about
+
+This application ships Persian (`config/language.constants.ts`) and `MainComponent` writes `dir` on
+`<html>` from it (`main.component.ts:84-88`), so RTL is a direction users actually run the editor
+in. The height chain is a column flex, which is direction-neutral by construction — but that was an
+argument, not a measurement. Measured at 1280x720, LTR against RTL:
+
+|                                     | LTR         | RTL         |
+| ----------------------------------- | ----------- | ----------- |
+| navbar bottom                       | 46.375      | 46.375      |
+| `#designer-container` top           | 46.375      | 46.375      |
+| `#designer-container` bottom        | 720         | 720         |
+| canvas bottom / panel bottom        | 720 / 720   | 720 / 720   |
+| `scrollHeight` / `clientHeight`     | 720 / 720   | 720 / 720   |
+| canvas left / properties panel left | 0 / 930     | 350 / 0     |
+| `scrollWidth` / `clientWidth`       | 1280 / 1280 | 1280 / 1280 |
+
+Every vertical number is identical, and the layout mirrors horizontally without overflowing.
+
+**One thing did not mirror.** The 1px rules that separate the panes were physical — `border-left`
+on the properties panel, `border-right` on the palette. Measured in RTL, `jhi-panel` moved to the
+left of the canvas but kept `border-left: 1px` / `border-right: 0px`, so the divider between panel
+and canvas disappeared and a stray line sat on the outer edge of the window instead. The six
+direction-sensitive borders in this editor are now logical properties — `border-inline-start` /
+`border-inline-end`, and `padding-inline-start` for the toolbar's group separator — which put the
+line on the edge that faces the canvas in either direction. Re-measured: `border-right: 1px` and
+`border-left: 0px` on the panel in RTL, unchanged in LTR.
+
+Pinned by "the editor keeps its geometry in RTL, and its dividers follow the flip" in
+`bpmn-editor.e2e.spec.ts`. Falsified by restoring `border-left` on `jhi-panel`: it fails on
+`expect(rtl.panelBorderRight).toBe('1px')` with `0px`.
+
+### Not addressed here
+
+`layouts/footer/footer.component.html` is a zero-byte file, so `<jhi-footer>` renders an empty box.
+The element is in the document and in the right place; there is simply nothing in it. Empty since
+the `7f0f6df` baseline, so nothing here broke it. Unrelated to this change and left alone.
+
+**Persian never loads.** `webpack.custom.js:126` merges only `./src/main/webapp/i18n/en/*.json`
+into a bundle; the `fa` entry was never added at the `jhipster-needle-i18n-language-webpack` line
+directly below it, even though `src/main/webapp/i18n/fa/` holds 28 translation files and `fa` is in
+`LANGUAGES`. So `i18n/fa.json` 404s, the ngx-translate loader rejects, `onLangChange` never fires,
+and picking Persian in the running application changes neither the text nor the direction. The RTL
+test above serves that bundle itself in order to reach the RTL code path at all. This is a
+one-line build change with product consequences well outside this editor — every untranslated
+string in the application would surface at once — so it is reported here rather than made.
+
 ## Future Enhancements
 
 - [ ] Token simulation
@@ -1133,7 +1268,7 @@ removals are undoable and mark the diagram dirty like any other edit.
 
 ### Canvas not rendering
 
-Ensure the canvas container div has width and height set. The component expects `height: 100vh` and `width: 100%`.
+Ensure the canvas container div has width and height set. The component expects `height: 100%` and `width: 100%`, and therefore a parent with a resolved height — on `/bpmn-editor` that is the shell's `fullscreen-mode` column. See "The 47px, fixed" for the chain it depends on.
 
 ### BPMN.js modules not loading
 

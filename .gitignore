@@ -2,7 +2,10 @@
 # Node
 ######################
 /node/
-node_modules/
+# No trailing slash: the agent harness links `node_modules` into each scratch worktree rather
+# than copying it, and a trailing slash matches only a directory, so the symlink showed up as an
+# untracked file in every one of them.
+node_modules
 
 ######################
 # Build / target / Angular

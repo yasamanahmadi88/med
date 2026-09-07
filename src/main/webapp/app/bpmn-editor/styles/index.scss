@@ -15,11 +15,15 @@
 // The Vue editor was the whole document, so its shell sized itself against the viewport. Here it
 // is one route below the application navbar. `#app` — Vue's mount point — went with the rest of
 // that assumption: it matched nothing.
-body,
-html,
+//
+// `body, html` went with it too. `ViewEncapsulation.None` made them global rules, and the
+// `height: 100vh; overflow: hidden` they carried is what left the bottom 47px of the editor both
+// off-screen and unscrollable. The shell now sizes this route itself — see `fullscreen-mode` in
+// `layouts/main/main.component.scss` — so the document needs no help, and `100%` here means "the
+// room the shell gave us" rather than "the whole viewport, starting below the navbar".
 .designer-container {
-  height: 100vh;
-  width: 100vw;
+  height: 100%;
+  width: 100%;
   margin: 0;
   padding: 0;
   overflow: hidden;

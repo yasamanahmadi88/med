@@ -1,20 +1,20 @@
 {
   "medPortalApp": {
     "reportLogs": {
-      "msgType": "Message Type",
-      "correlationId": "Correlation Id",
-      "referenceType": "Reference Type",
-      "reference": "Reference",
-      "moduleSource": "Module Source",
-      "moduleDestination":"Module Destination",
+      "msgType": "نوع پیام",
+      "correlationId": "شناسه همبستگی",
+      "referenceType": "نوع مرجع",
+      "reference": "مرجع",
+      "moduleSource": "ماژول مبدا",
+      "moduleDestination": "ماژول مقصد",
       "properties": "Properties",
-      "reqMessage":"Request Message",
-      "resMessage": "Response Message",
-      "error":"Error",
-      "errorDetails": "Error Details",
-      "initialDate":"Initial Date",
-      "createDate": "Create Date",
-      "logType":"Log Type",
+      "reqMessage": "پیام درخواست",
+      "resMessage": "پیام پاسخ",
+      "error": "خطا",
+      "errorDetails": "جزییات خطا",
+      "initialDate": "زمان اولیه",
+      "createDate": "زمان ایجاد",
+      "logType": "نوع لاگ",
       "detail.title": "جزئیات گزارش لاگ"
     }
   }

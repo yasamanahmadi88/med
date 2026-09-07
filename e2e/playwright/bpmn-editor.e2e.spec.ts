@@ -711,21 +711,12 @@ test.describe('BPMN editor', () => {
   // with numbers.
   test('the editor keeps its geometry in RTL, and its dividers follow the flip', async ({ page, mockApi }) => {
     await mockApi({ account: 'admin' });
-    // `webpack.custom.js:126` merges only `i18n/en/*.json` into a bundle — the `fa` entry was
-    // never added at the JHipster needle on the line below it — so `i18n/fa.json` 404s, the
-    // ngx-translate loader rejects, and `onLangChange` never fires. That is a separate,
-    // pre-existing bug (see README, "Not addressed here"). Serving the bundle that build step
-    // should have produced is what lets this test reach `updatePageDirection` at all, instead of
-    // silently measuring a second LTR run.
-    await page.route('**/i18n/fa.json*', async route => {
-      const { readdirSync, readFileSync } = await import('node:fs');
-      const { join } = await import('node:path');
-      const dir = join(process.cwd(), 'src/main/webapp/i18n/fa');
-      const merged = readdirSync(dir)
-        .filter(file => file.endsWith('.json'))
-        .reduce<Record<string, unknown>>((acc, file) => ({ ...acc, ...JSON.parse(readFileSync(join(dir, file), 'utf8')) }), {});
-      await route.fulfill({ status: 200, headers: { 'content-type': 'application/json' }, body: JSON.stringify(merged) });
-    });
+    // `i18n/fa.json` is served by the build: `webpack.custom.js` registers `fa` alongside `en` at
+    // the `jhipster-needle-i18n-language-webpack` line, so `MergeJsonWebpackPlugin` merges the 28
+    // files in `i18n/fa/` into the bundle the dev server hands back here. Nothing about Persian is
+    // faked in this test — `mockApi` routes `/api/**` and `/management/**` only — so the language
+    // switch below exercises the same loader, `onLangChange` subscription and
+    // `updatePageDirection` call that a real user reaches.
     await page.setViewportSize({ width: 1280, height: 720 });
 
     await page.goto('/bpmn-editor');

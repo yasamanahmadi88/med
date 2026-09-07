@@ -11,11 +11,11 @@
       "error": "خطا"
     },
     "indicator": {
-      "diskSpace": "Disk space",
-      "mail": "Email",
-      "livenessState": "Liveness state",
-      "readinessState": "Readiness state",
-      "ping": "Application",
+      "diskSpace": "فضای دیسک",
+      "mail": "رایانامه",
+      "livenessState": "وضعیت زنده بودن",
+      "readinessState": "وضعیت آمادگی",
+      "ping": "برنامه",
       "db": "پایگاه داده"
     },
     "table": {
@@ -23,9 +23,10 @@
       "status": "وضعیت"
     },
     "status": {
-      "UNKNOWN": "UNKNOWN",
-      "UP": "UP",
-      "DOWN": "DOWN"
+      "UNKNOWN": "نامشخص",
+      "UP": "فعال",
+      "OUT_OF_SERVICE": "خارج از سرویس",
+      "DOWN": "از کار افتاده"
     }
   }
 }

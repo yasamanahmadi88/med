@@ -2,25 +2,25 @@
   "medPortalApp": {
     "version": {
       "home": {
-        "title": "Versions",
-        "refreshListLabel": "Refresh list",
-        "createLabel": "Create a new Version",
-        "createOrEditLabel": "Create or edit a Version",
-        "notFound": "No Versions found"
+        "title": "نسخه ها",
+        "refreshListLabel": "به روز رسانی",
+        "createLabel": "ایجاد نسخه جدید",
+        "createOrEditLabel": "ایجاد یا ویرایش نسخه",
+        "notFound": "موردی یافت نشد"
       },
-      "created": "A new Version is created with identifier {{ param }}",
-      "updated": "A Version is updated with identifier {{ param }}",
-      "deleted": "A Version is deleted with identifier {{ param }}",
+      "created": "یک نسخه جدید با شناسه {{ param }} ایجاد شد",
+      "updated": "یک نسخه با شناسه {{ param }} بروز رسانی شد",
+      "deleted": "یک نسخه با شناسه {{ param }} حذف شد",
       "delete": {
-        "question": "Are you sure you want to delete Version {{ id }}?"
+        "question": "آیا از حذف نسخه {{ id }} مطمئن هستید؟"
       },
       "detail": {
-        "title": "Version"
+        "title": "نسخه"
       },
-      "id": "ID",
-      "tableName": "Table Name",
-      "moduleName": "Module Name",
-      "tableVersion": "Table Version"
+      "id": "شناسه",
+      "tableName": "نام جدول",
+      "moduleName": "نام ماژول",
+      "tableVersion": "نسخه جدول"
     }
   }
 }

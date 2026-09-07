@@ -2,26 +2,26 @@
   "medPortalApp": {
     "product": {
       "home": {
-        "title": "Products",
-        "refreshListLabel": "Refresh list",
-        "createLabel": "Create a new Product",
-        "createOrEditLabel": "Create or edit a Product",
-        "notFound": "No Products found"
+        "title": "محصولات",
+        "refreshListLabel": "به روز رسانی",
+        "createLabel": "ایجاد محصول جدید",
+        "createOrEditLabel": "ایجاد یا ویرایش محصول",
+        "notFound": "موردی یافت نشد"
       },
-      "created": "A new Product is created with identifier {{ param }}",
-      "updated": "A Product is updated with identifier {{ param }}",
-      "deleted": "A Product is deleted with identifier {{ param }}",
+      "created": "یک محصول جدید با شناسه {{ param }} ایجاد شد",
+      "updated": "یک محصول با شناسه {{ param }} بروز رسانی شد",
+      "deleted": "یک محصول با شناسه {{ param }} حذف شد",
       "delete": {
-        "question": "Are you sure you want to delete Product \" {{ name }} \" ?"
+        "question": "آیا از حذف محصول \" {{ name }} \" مطمئن هستید؟"
       },
       "detail": {
-        "title": "Product"
+        "title": "محصول"
       },
-      "id": "ID",
-      "productName": "Product Name",
-      "productDesc": "Product Desc",
-      "flows": "Flows",
-      "addFlow": "Add Flow"
+      "id": "شناسه",
+      "productName": "نام محصول",
+      "productDesc": "توضیح محصول",
+      "flows": "فلوها",
+      "addFlow": "اضافه کردن فلو"
     }
   }
 }

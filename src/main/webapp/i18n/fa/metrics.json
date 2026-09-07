@@ -12,31 +12,31 @@
         "nonheap": "Non-Heap حافظه"
       },
       "threads": {
-        "title": "Threads",
-        "all": "All",
-        "runnable": "Runnable",
-        "timedwaiting": "Timed waiting",
-        "waiting": "Waiting",
-        "blocked": "Blocked",
+        "title": "نخ ها",
+        "all": "همه",
+        "runnable": "قابل اجرا",
+        "timedwaiting": "انتظار زمان‌دار",
+        "waiting": "در انتظار",
+        "blocked": "مسدود",
         "dump": {
-          "title": "Threads dump",
+          "title": "تخلیه نخ ها",
           "id": "شناسه: ",
-          "blockedtime": "Blocked Time",
-          "blockedcount": "Blocked Count",
-          "waitedtime": "Waited Time",
-          "waitedcount": "Waited Count",
-          "lockname": "Lock name",
-          "stacktrace": "Stacktrace",
-          "show": "Show Stacktrace",
-          "hide": "Hide Stacktrace"
+          "blockedtime": "زمان مسدودی",
+          "blockedcount": "تعداد مسدودی",
+          "waitedtime": "زمان انتظار",
+          "waitedcount": "تعداد انتظار",
+          "lockname": "نام قفل",
+          "stacktrace": "وقایع برای عیب یابی",
+          "show": "نمایش وقایع برای عیب یابی",
+          "hide": "پنهان کردن وقایع برای عیب یابی"
         }
       },
       "gc": {
-        "title": "Garbage collections",
-        "marksweepcount": "Mark Sweep count",
-        "marksweeptime": "Mark Sweep time",
-        "scavengecount": "Scavenge count",
-        "scavengetime": "Scavenge time"
+        "title": "جمع آوری زباله",
+        "marksweepcount": "تعداد Mark Sweep",
+        "marksweeptime": "زمان Mark Sweep",
+        "scavengecount": "تعداد Scavenge",
+        "scavengetime": "زمان Scavenge"
       },
       "http": {
         "title": "HTTP requests (events per second)",
@@ -47,17 +47,17 @@
           "count": "تعداد",
           "mean": "حد وسط",
           "average": "میانگین",
-          "max": "Max"
+          "max": "بیشترین"
         },
         "code": {
-          "ok": "Ok",
+          "ok": "موفق",
           "notfound": "پیدا نشد",
           "servererror": "خطا سرور"
         }
       }
     },
     "servicesstats": {
-      "title": "Services statistics (time in millisecond)",
+      "title": "آمار سرویس ها (زمان به میلی ثانیه)",
       "table": {
         "name": "نام سرویس",
         "count": "تعداد",
@@ -71,24 +71,24 @@
       }
     },
     "cache": {
-      "title": "Cache statistics",
-      "cachename": "Cache name",
-      "hits": "Cache Hits",
-      "misses": "Cache Misses",
-      "gets": "Cache Gets",
-      "puts": "Cache Puts",
-      "removals": "Cache Removals",
-      "evictions": "Cache Evictions",
-      "hitPercent": "Cache Hit %",
-      "missPercent": "Cache Miss %",
-      "averageGetTime": "Average get time (µs)",
-      "averagePutTime": "Average put time (µs)",
-      "averageRemoveTime": "Average remove time (µs)"
+      "title": "آمار کش",
+      "cachename": "نام کش",
+      "hits": "اصابت کش",
+      "misses": "عدم اصابت کش",
+      "gets": "خواندن از کش",
+      "puts": "نوشتن در کش",
+      "removals": "حذف از کش",
+      "evictions": "تخلیه کش",
+      "hitPercent": "درصد اصابت کش",
+      "missPercent": "درصد عدم اصابت کش",
+      "averageGetTime": "میانگین زمان خواندن (µs)",
+      "averagePutTime": "میانگین زمان نوشتن (µs)",
+      "averageRemoveTime": "میانگین زمان حذف (µs)"
     },
     "datasource": {
       "usage": "Usage",
-      "title": "DataSource statistics (time in millisecond)",
-      "name": "Pool usage",
+      "title": "آمار DataSource (زمان به میلی ثانیه)",
+      "name": "میزان استفاده از استخر",
       "count": "تعداد",
       "mean": "حد وسط",
       "min": "کمترین",

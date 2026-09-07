@@ -2,27 +2,27 @@
   "medPortalApp": {
     "flow": {
       "home": {
-        "title": "Flows",
-        "refreshListLabel": "Refresh list",
-        "createLabel": "Create a new Flow",
+        "title": "فلوها",
+        "refreshListLabel": "به روز رسانی",
+        "createLabel": "ایجاد فلوی جدید",
         "createLabelFor": "Create a new Flow For",
-        "createOrEditLabel": "Edit a Flow",
-        "notFound": "No Flows found"
+        "createOrEditLabel": "ویرایش فلو",
+        "notFound": "موردی یافت نشد"
       },
-      "created": "A new Flow is created with identifier {{ param }}",
-      "updated": "A Flow is updated with identifier {{ param }}",
-      "deleted": "A Flow is deleted with identifier {{ param }}",
+      "created": "یک فلوی جدید با شناسه {{ param }} ایجاد شد",
+      "updated": "یک فلو با شناسه {{ param }} بروز رسانی شد",
+      "deleted": "یک فلو با شناسه {{ param }} حذف شد",
       "delete": {
-        "question": "Are you sure you want to delete Flow \" {{ name }} \" ?"
+        "question": "آیا از حذف فلوی \" {{ name }} \" مطمئن هستید؟"
       },
       "detail": {
-        "title": "Flow"
+        "title": "فلو"
       },
-      "id": "ID",
-      "flowName": "Flow Name",
-      "flowDesc": "Flow Desc",
-      "flow": "Flow",
-      "product": "Product",
+      "id": "شناسه",
+      "flowName": "نام فلو",
+      "flowDesc": "توضیح فلو",
+      "flow": "فلو",
+      "product": "محصول",
       "invalidFlowName": "نام فلو مشابه نام فلوی دیگری می باشد"
     }
   }

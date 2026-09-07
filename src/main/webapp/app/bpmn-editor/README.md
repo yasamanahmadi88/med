@@ -1247,14 +1247,40 @@ Pinned by "the editor keeps its geometry in RTL, and its dividers follow the fli
 The element is in the document and in the right place; there is simply nothing in it. Empty since
 the `7f0f6df` baseline, so nothing here broke it. Unrelated to this change and left alone.
 
-**Persian never loads.** `webpack.custom.js:126` merges only `./src/main/webapp/i18n/en/*.json`
-into a bundle; the `fa` entry was never added at the `jhipster-needle-i18n-language-webpack` line
-directly below it, even though `src/main/webapp/i18n/fa/` holds 28 translation files and `fa` is in
-`LANGUAGES`. So `i18n/fa.json` 404s, the ngx-translate loader rejects, `onLangChange` never fires,
-and picking Persian in the running application changes neither the text nor the direction. The RTL
-test above serves that bundle itself in order to reach the RTL code path at all. This is a
-one-line build change with product consequences well outside this editor — every untranslated
-string in the application would surface at once — so it is reported here rather than made.
+### Persian, now actually loaded
+
+Previously reported here as unaddressed, and since fixed. `webpack.custom.js` merged only
+`./src/main/webapp/i18n/en/*.json` into a bundle; the `fa` entry had never been added at the
+`jhipster-needle-i18n-language-webpack` line directly below it, even though
+`src/main/webapp/i18n/fa/` holds 28 translation files and `fa` is in `LANGUAGES`. So `i18n/fa.json`
+404'd, the ngx-translate loader rejected, `onLangChange` never fired, and picking Persian changed
+neither the text nor the direction.
+
+`fa` is now registered at that needle (the needle itself stays last in the array, where a JHipster
+regeneration writes). `MergeJsonWebpackPlugin` produces `i18n/fa.json` from all 28 files — 511 leaf
+keys, deep-merged, verified per source file rather than by the file merely existing.
+
+Coverage ended at **511 of 511 keys translated, up from 509 of 511**, of which 198 were English
+text sitting in the Persian bundle. `entity.validation.patternLogin` and
+`health.status.OUT_OF_SERVICE` were missing outright and were added. 16 values remain
+byte-identical to English on purpose: the product name (`global.title`, `home.title`), `GitHub`,
+the eight `p50`/`p75`/`p95`/`p99` percentile column headers, the three
+`jhipster-needle-menu-add-*` markers whose own text reads "(do not translate!)", and the two
+`"null": ""` blanks that are the empty option of an enum dropdown. Structural parity and
+placeholder integrity are pinned by `shared/language/i18n-parity.spec.ts`, which fails on a
+dropped or renamed `{{ placeholder }}` and on mangled inline HTML, per file and per key.
+
+Consequently the RTL test above **no longer serves the bundle itself**. It previously installed a
+`page.route('**/i18n/fa.json*')` handler that read `i18n/fa/` off disk, because the real bundle did
+not exist; that mock also shallow-merged the 28 files with an object spread, so the 12 files
+sharing a `medPortalApp` root overwrote one another — as did the two sharing `MedPortalApp` and the
+two sharing `error` — and it served 327 of 509 keys. The test now
+switches language against the genuinely built bundle, and "switching to Persian through the navbar
+retranslates the page and flips it to RTL" in `medportal.e2e.spec.ts` covers the switch itself:
+it reads the expected strings out of `i18n/en/global.json` and `i18n/fa/global.json` and asserts
+the navbar text becomes the Persian one and `document.documentElement.dir` becomes `rtl`.
+Falsified by removing the `fa` line from `webpack.custom.js`: `i18n/fa.json` 404s and the test
+fails on both the text and the direction.
 
 ## Future Enhancements
 

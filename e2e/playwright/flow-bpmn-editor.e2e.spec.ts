@@ -75,7 +75,7 @@ test.describe('Flow BPMN editor', () => {
     await page.getByTestId('bpmnSave').click();
 
     // The whole flow goes back, with what bpmn-js serialised in place of the diagram it was given.
-    const body = (await update).postDataJSON();
+    const body = (await update).postDataJSON() as { id: number; flowName: string; flow: string };
     expect(body.id).toBe(7);
     expect(body.flowName).toBe('seeded flow');
     expect(body.flow).toContain('SeededTask');

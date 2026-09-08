@@ -2,32 +2,32 @@
   "medPortalApp": {
     "instance": {
       "home": {
-        "title": "Instances",
-        "refreshListLabel": "Refresh list",
-        "createLabel": "Create a new Instance",
-        "createOrEditLabel": "Create or edit a Instance",
-        "notFound": "No Instances found"
+        "title": "نمونه ها",
+        "refreshListLabel": "به روز رسانی",
+        "createLabel": "ایجاد نمونه جدید",
+        "createOrEditLabel": "ایجاد یا ویرایش نمونه",
+        "notFound": "موردی یافت نشد"
       },
-      "created": "A new Instance is created with identifier {{ param }}",
-      "updated": "A Instance is updated with identifier {{ param }}",
-      "deleted": "A Instance is deleted with identifier {{ param }}",
+      "created": "یک نمونه جدید با شناسه {{ param }} ایجاد شد",
+      "updated": "یک نمونه با شناسه {{ param }} بروز رسانی شد",
+      "deleted": "یک نمونه با شناسه {{ param }} حذف شد",
       "delete": {
-        "question": "Are you sure you want to delete Instance {{ id }}?"
+        "question": "آیا از حذف نمونه {{ id }} مطمئن هستید؟"
       },
       "detail": {
-        "title": "Instance"
+        "title": "نمونه"
       },
-      "id": "ID",
-      "moduleName": "Module Name",
-      "port": "Port",
-      "moduleStatus": "Module Status",
-      "lastUpdateDate": "Last Update Date",
-      "threadPoolQueueSize": "Thread Pool Queue Size",
-      "moduleStartTime": "Module Start Time",
-      "totalProcessedWork": "Total Processed Work",
-      "totalProcessedTask": "Total Processed Task",
-      "processedStatistics": "Processed Statistics",
-      "hostName": "Host Name"
+      "id": "شناسه",
+      "moduleName": "نام ماژول",
+      "port": "پورت",
+      "moduleStatus": "وضعیت ماژول",
+      "lastUpdateDate": "زمان آخرین به روز رسانی",
+      "threadPoolQueueSize": "اندازه صف استخر نخ",
+      "moduleStartTime": "زمان شروع ماژول",
+      "totalProcessedWork": "کل کارهای پردازش شده",
+      "totalProcessedTask": "کل وظایف پردازش شده",
+      "processedStatistics": "آمار پردازش",
+      "hostName": "نام میزبان"
     }
   }
 }

@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import {
   adminMenuItems,
   clickNavbarLink,
@@ -295,5 +297,39 @@ test.describe('MedPortal entity lists', () => {
     // the bottom edge of the screen (`jhi-footer` renders an empty template today, which is a
     // separate matter — its box is still the end of the page).
     expect(scrolled.footerTop).toBeLessThanOrEqual(scrolled.viewportBottom + 1);
+  });
+});
+
+test.describe('MedPortal language', () => {
+  test('switching to Persian through the navbar retranslates the page and flips it to RTL', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    // The expected strings are read from the translation sources rather than hard-coded, so this
+    // measures the built `i18n/fa.json` against the 28 files that are supposed to produce it: a
+    // bundle that is missing, stale or merged wrongly renders something else and fails here.
+    // `global.menu.home` is the probe because the navbar carries it on every route.
+    const menuHome = (lang: string): string =>
+      JSON.parse(readFileSync(join(process.cwd(), `src/main/webapp/i18n/${lang}/global.json`), 'utf8')).global.menu.home;
+    const english = menuHome('en');
+    const persian = menuHome('fa');
+    // Guards the probe itself. A key that happened to be translated identically in both languages
+    // could not tell a working language switch apart from one that silently did nothing.
+    expect(persian).not.toEqual(english);
+
+    await page.goto('/');
+    const homeLink = page.locator('jhi-navbar span[jhiTranslate="global.menu.home"]');
+    await expect(homeLink).toHaveText(english);
+    await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+
+    await page.locator('#languagesnavBarDropdown').click();
+    await page.locator('.dropdown-menu a.dropdown-item', { hasText: 'فارسی' }).click();
+
+    // The rendered text changed, and changed to exactly what `i18n/fa/global.json` ships.
+    await expect(homeLink).toHaveText(persian);
+    // And the direction followed. `MainComponent.updatePageDirection` runs from the
+    // `onLangChange` subscription, which ngx-translate only reaches on a bundle that loaded, so
+    // this is the assertion that a 404 on `i18n/fa.json` would break.
+    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+    expect(await page.evaluate(() => document.documentElement.dir)).toBe('rtl');
   });
 });

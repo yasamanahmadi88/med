@@ -1247,14 +1247,72 @@ Pinned by "the editor keeps its geometry in RTL, and its dividers follow the fli
 The element is in the document and in the right place; there is simply nothing in it. Empty since
 the `7f0f6df` baseline, so nothing here broke it. Unrelated to this change and left alone.
 
-**Persian never loads.** `webpack.custom.js:126` merges only `./src/main/webapp/i18n/en/*.json`
-into a bundle; the `fa` entry was never added at the `jhipster-needle-i18n-language-webpack` line
-directly below it, even though `src/main/webapp/i18n/fa/` holds 28 translation files and `fa` is in
-`LANGUAGES`. So `i18n/fa.json` 404s, the ngx-translate loader rejects, `onLangChange` never fires,
-and picking Persian in the running application changes neither the text nor the direction. The RTL
-test above serves that bundle itself in order to reach the RTL code path at all. This is a
-one-line build change with product consequences well outside this editor — every untranslated
-string in the application would surface at once — so it is reported here rather than made.
+**Three English-side content questions**, surfaced while translating and deliberately not touched —
+`en` is the source language, and changing it is a product decision rather than a translation one:
+
+- `i18n/en/reportLogs.json` → `medPortalApp.reportLogs.properties` reads `"P roperties"`, with a
+  stray space. The Persian is `خواص`.
+- `i18n/en/flow.json` → `medPortalApp.flow.home.createLabelFor` reads `"Create a new Flow For "`
+  with a trailing space. That space is load-bearing: `flow-new.component.html` puts the product
+  name in a second inline `<span>` immediately after it, so it is the only separator between the
+  label and the name. The Persian had lost it and now carries it too.
+- `metrics.jvm.http.title` said `"HTTP requests (time in millisecond)"` in English and
+  `"HTTP requests (events per second)"` in Persian — a genuine disagreement about what the panel
+  measures, not a translation slip. **Settled: the English is right.** The panel is rendered by
+  `admin/metrics/blocks/metrics-request/metrics-request.component.html`, whose columns are Code,
+  Count, Mean and Max, and those numbers come from `JHipsterMetricsEndpoint.httpRequestsMetrics`
+  in `tech.jhipster:jhipster-framework:9.1.0`, which builds them as
+  `Timer.totalTime(TimeUnit.MILLISECONDS)` and `Timer.max(TimeUnit.MILLISECONDS)` (read from the
+  bytecode). So the values really are milliseconds of latency per HTTP status code, and "events
+  per second" was simply wrong. The Persian now reads
+  `درخواست های HTTP (زمان به میلی ثانیه)`; no English-side change is needed.
+
+### Persian, now actually loaded
+
+Previously reported here as unaddressed, and since fixed. `webpack.custom.js` merged only
+`./src/main/webapp/i18n/en/*.json` into a bundle; the `fa` entry had never been added at the
+`jhipster-needle-i18n-language-webpack` line directly below it, even though
+`src/main/webapp/i18n/fa/` holds 28 translation files and `fa` is in `LANGUAGES`. So `i18n/fa.json`
+404'd, the ngx-translate loader rejected, `onLangChange` never fired, and picking Persian changed
+neither the text nor the direction.
+
+`fa` is now registered at that needle (the needle itself stays last in the array, where a JHipster
+regeneration writes). `MergeJsonWebpackPlugin` produces `i18n/fa.json` from all 28 files — 511 leaf
+keys, deep-merged, verified per source file rather than by the file merely existing.
+
+Coverage ended at **511 of 511 keys translated, up from 509 of 511**. 198 values were English text
+byte-identical to their English original, and a further 12 were English text that merely differed
+from it — "Create a new Custom Audit Event" against `en`'s "Create a new Audit Log", `"Usage"`,
+`"Config"`, `"Properties"` — which an equality check cannot see. Both sets are translated.
+`entity.validation.patternLogin` and `health.status.OUT_OF_SERVICE` were missing outright and were
+added. 16 values remain byte-identical to English on purpose: the product name (`global.title`,
+`home.title`), `GitHub`, the eight `p50`/`p75`/`p95`/`p99` percentile column headers, the three
+`jhipster-needle-menu-add-*` markers whose own text reads "(do not translate!)", and the two
+`"null": ""` blanks that are the empty option of an enum dropdown.
+
+One Persian value could not be interpolated at all. `userManagement.delete.question` read
+`{{ login  }}` with two spaces, and ngx-translate's `templateMatcher` is `/{{\s?([^{}\s]*)\s?}}/g`
+— `\s?` is zero or _one_ space, so the occurrence did not match, no substitution ran, and the
+delete-user dialog showed the literal braces instead of the username. Pre-existing at `4e78c5b`,
+but unreachable until this change made Persian load, so it is fixed here.
+
+Structural parity and placeholder integrity are pinned by `shared/language/i18n-parity.spec.ts`:
+per file and per key it fails on a dropped or renamed `{{ placeholder }}`, on mangled inline HTML,
+and — using ngx-translate's own matcher rather than an idealised one — on any `{{…}}` occurrence in
+either language that the runtime would not interpolate. Comparing placeholder _names_ is not
+enough: `{{ login  }}` and `{{ login }}` are both named `login`.
+
+Consequently the RTL test above **no longer serves the bundle itself**. It previously installed a
+`page.route('**/i18n/fa.json*')` handler that read `i18n/fa/` off disk, because the real bundle did
+not exist; that mock also shallow-merged the 28 files with an object spread, so the 12 files
+sharing a `medPortalApp` root overwrote one another — as did the two sharing `MedPortalApp` and the
+two sharing `error` — and it served 327 of 509 keys. The test now
+switches language against the genuinely built bundle, and "switching to Persian through the navbar
+retranslates the page and flips it to RTL" in `medportal.e2e.spec.ts` covers the switch itself:
+it reads the expected strings out of `i18n/en/global.json` and `i18n/fa/global.json` and asserts
+the navbar text becomes the Persian one and `document.documentElement.dir` becomes `rtl`.
+Falsified by removing the `fa` line from `webpack.custom.js`: `i18n/fa.json` 404s and the test
+fails on both the text and the direction.
 
 ## Future Enhancements
 

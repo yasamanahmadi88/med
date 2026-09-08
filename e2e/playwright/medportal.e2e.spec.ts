@@ -341,13 +341,13 @@ test.describe('MedPortal language', () => {
     // non-printing character, which is exactly the kind of byte a re-encoding step drops silently —
     // and dropping it is invisible in a screenshot, because the glyphs either side do not move.
     // So this asserts on the character, in the rendered text, after the whole pipeline.
-    const ZWNJ = '‌';
+    const ZWNJ = '\u200C';
     // Read from the same sources the bundle is built from, as the test above does, so this
     // measures the pipeline rather than restating a hard-coded string.
     const faBundle = (file: string) => JSON.parse(readFileSync(join(process.cwd(), `src/main/webapp/i18n/fa/${file}.json`), 'utf8'));
-    const menuModule: string = faBundle('global').global.menu.entities.module; // "ماژول‌ها"
+    const menuModule: string = faBundle('global').global.menu.entities.module; // "ماژول\u200Cها"
     const showTemplate: string = faBundle('global').entity.action.show; // "نمایش {{otherEntity}}"
-    const configs: string = faBundle('module').medPortalApp.module.configs; // "تنظیم‌ها"
+    const configs: string = faBundle('module').medPortalApp.module.configs; // "تنظیم\u200Cها"
 
     // Guards the probes themselves: a value that lost its ZWNJ in the source would make the DOM
     // assertions below pass against the wrong expectation.
@@ -374,7 +374,7 @@ test.describe('MedPortal language', () => {
     expect(await moduleLink.textContent()).not.toContain('ماژول ها');
 
     // 2. A ZWNJ that arrives through interpolation rather than sitting in the template. The
-    // plural belongs to the label — `تنظیم‌ها` — and `entity.action.show` contributes only the
+    // plural belongs to the label — `تنظیم\u200Cها` — and `entity.action.show` contributes only the
     // verb, so what reaches the DOM is a joined form the bundle never contained as one string.
     const showConfigs = page.locator('table tbody [data-cy="filterOtherEntityButton"] span').first();
     await expect(showConfigs).toHaveText(showTemplate.replace('{{otherEntity}}', configs));

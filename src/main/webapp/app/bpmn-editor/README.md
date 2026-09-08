@@ -1265,7 +1265,7 @@ the `7f0f6df` baseline, so nothing here broke it. Unrelated to this change and l
   `Timer.totalTime(TimeUnit.MILLISECONDS)` and `Timer.max(TimeUnit.MILLISECONDS)` (read from the
   bytecode). So the values really are milliseconds of latency per HTTP status code, and "events
   per second" was simply wrong. The Persian now reads
-  `درخواست‌های HTTP (زمان به میلی‌ثانیه)`; no English-side change is needed.
+  `درخواست\u200Cهای HTTP (زمان به میلی\u200Cثانیه)`; no English-side change is needed.
 
 ### Persian, now actually loaded
 
@@ -1302,14 +1302,20 @@ and — using ngx-translate's own matcher rather than an idealised one — on an
 either language that the runtime would not interpolate. Comparing placeholder _names_ is not
 enough: `{{ login  }}` and `{{ login }}` are both named `login`.
 
-### نیم‌فاصله — the half-space, normalised
+### The Persian half-space (U+200C), normalised
 
-Persian binds some morphemes to their host word with a ZERO WIDTH NON-JOINER (U+200C, نیم‌فاصله)
+Persian binds some morphemes to their host word with a ZERO WIDTH NON-JOINER (U+200C, `نیم\u200Cفاصله`)
 rather than a space. The bundle used both forms, and the split was not the same on both sides of it.
+
+> **Notation.** Persian examples below write the joiner as the escape `\u200C` rather than as the
+> character itself. A zero-width character is invisible in a document about zero-width characters,
+> and `scripts/unicode-security-scan.sh` rejects literal U+200C outside `i18n/fa/` — see
+> "The scan that could not fail" below. Read `تنظیم\u200Cها` as the four letters, the joiner, then
+> `ها`.
 
 **The verb prefix was an inconsistency, not a style.** `می` / `نمی` was already ZWNJ in the clear
 majority — 16 occurrences against 8 — and `global.json` held _both spellings of the same word_:
-`global.messages.validate.newpassword.maxlength` read `می‌تواند` while
+`global.messages.validate.newpassword.maxlength` read `می\u200Cتواند` while
 `global.messages.validate.newpassword.emptyPassword`, twelve lines away, read `می تواند`. Nothing
 chose between them; one of the two was simply wrong.
 
@@ -1318,7 +1324,7 @@ for: `ها` / `های` stood at 23 spaces against 1 ZWNJ. It is now uniform.
 
 The rule applied is narrower than "join Persian words that look joinable": **ZWNJ only where the
 bound element cannot stand alone as a word.** An ordinary boundary between two free words keeps its
-space, which is why `گزارش لاگ‌ها`, `همه درخواست‌ها` and `تخلیه نخ‌ها` are joined on the suffix only.
+space, which is why `گزارش لاگ\u200Cها`, `همه درخواست\u200Cها` and `تخلیه نخ\u200Cها` are joined on the suffix only.
 38 substitutions across 11 files, all of them U+0020 → U+200C and nothing else — every file is the
 same length in characters afterwards. (That claim covers the typography pass alone. The doubled
 plural fixed further down is a content change and does move characters; the two are separable in
@@ -1329,7 +1335,7 @@ the diff, and the totals below are the typography pass on its own.)
 | `ها` / `های` | plural suffix                               | 23 → 1                | 24    |
 | `می` / `نمی` | imperfective / negated verb prefix          | 8 → 16                | 24    |
 | `میلی`       | SI combining form (milli-), not a free word | 3 → 0                 | 3     |
-| `بی`         | privative prefix (بی‌اعتبار)                | 3 → 0                 | 3     |
+| `بی`         | privative prefix (`بی\u200Cاعتبار`)         | 3 → 0                 | 3     |
 | `ای`         | indefinite enclitic after a silent ه        | 1 → 0                 | 1     |
 
 The last three were not in the original brief and were found by widening the search from the two
@@ -1341,18 +1347,18 @@ searched for and do not occur. Across `i18n/fa` the ZWNJ count goes 24 → 62 fo
 **Four candidates were rejected, and the reasons matter more than the count.** `غیر امن` and
 `غیر فعال` (×2) keep their space: the Academy of Persian Language prescribes `غیر` written
 separately. `فیلترهای زیر` is "the filters _below_" — `زیر` is a free word here, not the prefix.
-`ثبت نام` and `ثبت شده` are two free words each, so only the enclitic in `ثبت شده‌ای` was joined.
+`ثبت نام` and `ثبت شده` are two free words each, so only the enclitic in `ثبت شده\u200Cای` was joined.
 And `آدرس ایمیلی که` is the trap a looser rule falls into: `...میلی` there is the tail of `ایمیلی`
 ("an email"), not the milli- prefix, so every prefix rule carries a standalone-token guard.
 
-`مجوز‌ها` is worth one note: `ز` does not join forwards, so the ZWNJ there is visually identical to
+`مجوز\u200Cها` is worth one note: `ز` does not join forwards, so the ZWNJ there is visually identical to
 writing `مجوزها` outright. It is still the correct encoding of a bound suffix, and it keeps the
 corpus uniform and machine-checkable.
 
 No shipped value binds a suffix directly to a `{{…}}` placeholder — `entity.action.show`
 deliberately does not, see below — but Persian gives every reason to write one, so where the
 boundary lies is recorded rather than left to be rediscovered. `templateMatcher` is
-`/{{\s?([^{}\s]*)\s?}}/g`, and U+200C is **not** in JavaScript's `\s` class (`/\s/.test('‌')` is
+`/{{\s?([^{}\s]*)\s?}}/g`, and U+200C is **not** in JavaScript's `\s` class (`/\s/.test('\u200C')` is
 `false`), so a ZWNJ hard against the closing braces cannot be consumed by `\s?` and the captured key
 stays exactly `otherEntity`. The asymmetry is worth knowing: `[^{}\s]` _does_ match U+200C, so the
 same character one position to the left, **inside** the braces, becomes part of the key, the lookup
@@ -1362,14 +1368,14 @@ that no `en` or `fa` value contains a ZWNJ inside a placeholder.
 Guarded per file and per key by "binds Persian suffixes and prefixes with a ZWNJ rather than a
 space" in `i18n-parity.spec.ts`, which reports the file, the key, the offending substring and the
 spelling it expected, plus a companion check that the joiner is a literal U+200C and never a
-`‌` escape — the character comparison alone would pass a file that spelled the escape out and
+`\u200C` escape — the character comparison alone would pass a file that spelled the escape out and
 rendered it as text. Falsified both ways: reverting `config.json` to `تنظیم ها` fails with
-`found: "م ها", expected: "م‌ها"` on `medPortalApp.config.home.title`, and reverting `flow.json` to
-`می باشد` fails with `found: " می ب", expected: " می‌ب"`.
+`found: "م ها", expected: "م\u200Cها"` on `medPortalApp.config.home.title`, and reverting `flow.json` to
+`می باشد` fails with `found: " می ب", expected: " می\u200Cب"`.
 
 Bytes are not pixels, so "Persian half-spaces survive the bundle and reach the DOM as U+200C" in
 `medportal.e2e.spec.ts` renders it: it switches to Persian on `/module` and asserts the navbar's
-`ماژول‌ها` and the row button's `نمایش تنظیم‌ها` contain the character after the whole path —
+`ماژول\u200Cها` and the row button's `نمایش تنظیم\u200Cها` contain the character after the whole path —
 `MergeJsonWebpackPlugin` merge, HTTP fetch, decode, interpolation, DOM write. U+200C is zero-width,
 so a step that dropped it would leave the glyphs where they are and a screenshot would look right.
 
@@ -1391,14 +1397,14 @@ The two faults were load-bearing on each other, which is why they had to move to
 the template's suffix alone would have left `resourceAuthorities` reading `نمایش مجوز منبع`,
 singular against English's plural, because that suffix was the only thing supplying its plurality.
 So `entity.action.show` becomes `نمایش {{otherEntity}}`, and both `resourceAuthorities` labels
-(`resource.json` and `medAuthority.json` — the same string in two files) become `مجوز‌های منبع`.
+(`resource.json` and `medAuthority.json` — the same string in two files) become `مجوز\u200Cهای منبع`.
 `مجوز منبع` is an ezafe construction, "authority _of_ resource", so the plural attaches to the head
-noun `مجوز` and the ezafe that follows it is spelled `ی`: `مجوز‌های منبع`, not `مجوز منبع‌ها`.
+noun `مجوز` and the ezafe that follows it is spelled `ی`: `مجوز\u200Cهای منبع`, not `مجوز منبع\u200Cها`.
 `module.configs` and `product.flows` were already plural and are untouched. All four now render the
-plural exactly once: `نمایش تنظیم‌ها`, `نمایش فلوها`, `نمایش مجوز‌های منبع` ×2.
+plural exactly once: `نمایش تنظیم\u200Cها`, `نمایش فلوها`, `نمایش مجوز\u200Cهای منبع` ×2.
 
 **Why fix a pre-existing bug in a typography commit.** Normally this would stay out of scope. But
-after the ZWNJ change the doubling renders as `نمایش تنظیم‌ها‌ها`, visibly joined, and anyone
+after the ZWNJ change the doubling renders as `نمایش تنظیم\u200Cها\u200Cها`, visibly joined, and anyone
 reading the diff or the running app would reasonably conclude this commit produced it. It did not —
 at `5038d41` it read `نمایش تنظیم ها ها` — but shipping it here would make it look like ours.
 
@@ -1410,8 +1416,304 @@ loudly instead of reducing the suite to nothing. Per call site it asserts the ex
 that no `ها` is doubled, and that the label still carries the plural itself. Falsified both ways:
 restoring the template's `ها` fails 8 assertions across all four sites, and de-pluralising
 `resource.resourceAuthorities` back to `مجوز منبع` fails with `plural: false`. Both are needed —
-restoring the suffix makes `resource` read `نمایش مجوز‌های منبع‌ها`, which is not an adjacent
-`ها‌ها`, so the doubling check alone would miss it and only the exact-render assertion catches it.
+restoring the suffix makes `resource` read `نمایش مجوز\u200Cهای منبع\u200Cها`, which is not an adjacent
+`ها\u200Cها`, so the doubling check alone would miss it and only the exact-render assertion catches it.
+
+### The scan that could not fail
+
+`scripts/unicode-security-scan.sh` (the "Unicode bidi and invisible control scan" job in
+`.github/workflows/upgrade-verify.yml`) rejects Trojan Source bidi controls everywhere and
+zero-width characters outside `i18n/fa/`. Two people ran it locally against this branch, both got
+`Unicode security scan passed (1095 files)`, and CI then failed on the same tree. The scan was
+wrong, and the reason is worth recording because it makes every green it ever printed meaningless.
+
+The patterns were built with `
+
+Consequently the RTL test above **no longer serves the bundle itself**. It previously installed a
+`page.route('**/i18n/fa.json*')` handler that read `i18n/fa/` off disk, because the real bundle did
+not exist; that mock also shallow-merged the 28 files with an object spread, so the 12 files
+sharing a `medPortalApp` root overwrote one another — as did the two sharing `MedPortalApp` and the
+two sharing `error` — and it served 327 of 509 keys. The test now
+switches language against the genuinely built bundle, and "switching to Persian through the navbar
+retranslates the page and flips it to RTL" in `medportal.e2e.spec.ts` covers the switch itself:
+it reads the expected strings out of `i18n/en/global.json` and `i18n/fa/global.json` and asserts
+the navbar text becomes the Persian one and `document.documentElement.dir` becomes `rtl`.
+Falsified by removing the `fa` line from `webpack.custom.js`: `i18n/fa.json` 404s and the test
+fails on both the text and the direction.
+
+## Future Enhancements
+
+- [ ] Token simulation
+- [ ] Color picker
+- [ ] BPMN linting
+- [ ] Element templates
+- [ ] Advanced validation
+
+## Troubleshooting
+
+### Canvas not rendering
+
+Ensure the canvas container div has width and height set. The component expects `height: 100%` and `width: 100%`, and therefore a parent with a resolved height — on `/bpmn-editor` that is the shell's `fullscreen-mode` column. See "The 47px, fixed" for the chain it depends on.
+
+### BPMN.js modules not loading
+
+If you encounter module loading issues, ensure all BPMN.js dependencies are installed:
+
+```bash
+npm install bpmn-js bpmn-js-properties-panel diagram-js
+```
+
+### Styling issues
+
+If styles are not applied correctly, ensure SCSS is properly configured in your Angular build. Check `angular.json` for SCSS support.
+
+## Support
+
+For issues specific to BPMN.js libraries, refer to:
+
+- [BPMN.js Documentation](https://bpmn.io/toolkit/bpmn-js/)
+- [Diagram.js Documentation](https://diagram-js.org/)
+
+## License
+
+This module is part of the MedPortal application. Refer to the root LICENSE file for licensing information.
+\u202A|…'`. **Bash expands `
+
+Consequently the RTL test above **no longer serves the bundle itself**. It previously installed a
+`page.route('**/i18n/fa.json*')` handler that read `i18n/fa/` off disk, because the real bundle did
+not exist; that mock also shallow-merged the 28 files with an object spread, so the 12 files
+sharing a `medPortalApp` root overwrote one another — as did the two sharing `MedPortalApp` and the
+two sharing `error` — and it served 327 of 509 keys. The test now
+switches language against the genuinely built bundle, and "switching to Persian through the navbar
+retranslates the page and flips it to RTL" in `medportal.e2e.spec.ts` covers the switch itself:
+it reads the expected strings out of `i18n/en/global.json` and `i18n/fa/global.json` and asserts
+the navbar text becomes the Persian one and `document.documentElement.dir` becomes `rtl`.
+Falsified by removing the `fa` line from `webpack.custom.js`: `i18n/fa.json` 404s and the test
+fails on both the text and the direction.
+
+## Future Enhancements
+
+- [ ] Token simulation
+- [ ] Color picker
+- [ ] BPMN linting
+- [ ] Element templates
+- [ ] Advanced validation
+
+## Troubleshooting
+
+### Canvas not rendering
+
+Ensure the canvas container div has width and height set. The component expects `height: 100%` and `width: 100%`, and therefore a parent with a resolved height — on `/bpmn-editor` that is the shell's `fullscreen-mode` column. See "The 47px, fixed" for the chain it depends on.
+
+### BPMN.js modules not loading
+
+If you encounter module loading issues, ensure all BPMN.js dependencies are installed:
+
+```bash
+npm install bpmn-js bpmn-js-properties-panel diagram-js
+```
+
+### Styling issues
+
+If styles are not applied correctly, ensure SCSS is properly configured in your Angular build. Check `angular.json` for SCSS support.
+
+## Support
+
+For issues specific to BPMN.js libraries, refer to:
+
+- [BPMN.js Documentation](https://bpmn.io/toolkit/bpmn-js/)
+- [Diagram.js Documentation](https://diagram-js.org/)
+
+## License
+
+This module is part of the MedPortal application. Refer to the root LICENSE file for licensing information.
+\uHHHH'`using the current
+locale's charset**, and in the C/POSIX locale — which is what you get with no`LANG`or`LC_ALL`,
+as in this container — it cannot encode a non-ASCII code point and silently leaves the literal
+six-character text `\u202A`in the variable.`grep -P`then searched every file for the *string*`"\u202A"`, found it nowhere, and reported success. Measured: with no locale the variable holds
+`5c 75 32 30 30 42 …`(the ASCII for`\u200B`); under `LC_ALL=C.UTF-8`it holds`e2 80 8b …`. This was not specific to the zero-width half — **the bidi controls were equally
+inert**, so the Trojan Source protection had been off in any non-UTF-8 environment.
+
+Note the failure mode is in `
+
+Consequently the RTL test above **no longer serves the bundle itself**. It previously installed a
+`page.route('**/i18n/fa.json*')` handler that read `i18n/fa/` off disk, because the real bundle did
+not exist; that mock also shallow-merged the 28 files with an object spread, so the 12 files
+sharing a `medPortalApp` root overwrote one another — as did the two sharing `MedPortalApp` and the
+two sharing `error` — and it served 327 of 509 keys. The test now
+switches language against the genuinely built bundle, and "switching to Persian through the navbar
+retranslates the page and flips it to RTL" in `medportal.e2e.spec.ts` covers the switch itself:
+it reads the expected strings out of `i18n/en/global.json` and `i18n/fa/global.json` and asserts
+the navbar text becomes the Persian one and `document.documentElement.dir` becomes `rtl`.
+Falsified by removing the `fa` line from `webpack.custom.js`: `i18n/fa.json` 404s and the test
+fails on both the text and the direction.
+
+## Future Enhancements
+
+- [ ] Token simulation
+- [ ] Color picker
+- [ ] BPMN linting
+- [ ] Element templates
+- [ ] Advanced validation
+
+## Troubleshooting
+
+### Canvas not rendering
+
+Ensure the canvas container div has width and height set. The component expects `height: 100%` and `width: 100%`, and therefore a parent with a resolved height — on `/bpmn-editor` that is the shell's `fullscreen-mode` column. See "The 47px, fixed" for the chain it depends on.
+
+### BPMN.js modules not loading
+
+If you encounter module loading issues, ensure all BPMN.js dependencies are installed:
+
+```bash
+npm install bpmn-js bpmn-js-properties-panel diagram-js
+```
+
+### Styling issues
+
+If styles are not applied correctly, ensure SCSS is properly configured in your Angular build. Check `angular.json` for SCSS support.
+
+## Support
+
+For issues specific to BPMN.js libraries, refer to:
+
+- [BPMN.js Documentation](https://bpmn.io/toolkit/bpmn-js/)
+- [Diagram.js Documentation](https://diagram-js.org/)
+
+## License
+
+This module is part of the MedPortal application. Refer to the root LICENSE file for licensing information.
+…'`, not in `grep`: `grep -P` matches these byte sequences
+correctly in either locale once the pattern actually contains them.
+
+The patterns are now explicit UTF-8 byte sequences — `
+
+Consequently the RTL test above **no longer serves the bundle itself**. It previously installed a
+`page.route('**/i18n/fa.json*')` handler that read `i18n/fa/` off disk, because the real bundle did
+not exist; that mock also shallow-merged the 28 files with an object spread, so the 12 files
+sharing a `medPortalApp` root overwrote one another — as did the two sharing `MedPortalApp` and the
+two sharing `error` — and it served 327 of 509 keys. The test now
+switches language against the genuinely built bundle, and "switching to Persian through the navbar
+retranslates the page and flips it to RTL" in `medportal.e2e.spec.ts` covers the switch itself:
+it reads the expected strings out of `i18n/en/global.json` and `i18n/fa/global.json` and asserts
+the navbar text becomes the Persian one and `document.documentElement.dir` becomes `rtl`.
+Falsified by removing the `fa` line from `webpack.custom.js`: `i18n/fa.json` 404s and the test
+fails on both the text and the direction.
+
+## Future Enhancements
+
+- [ ] Token simulation
+- [ ] Color picker
+- [ ] BPMN linting
+- [ ] Element templates
+- [ ] Advanced validation
+
+## Troubleshooting
+
+### Canvas not rendering
+
+Ensure the canvas container div has width and height set. The component expects `height: 100%` and `width: 100%`, and therefore a parent with a resolved height — on `/bpmn-editor` that is the shell's `fullscreen-mode` column. See "The 47px, fixed" for the chain it depends on.
+
+### BPMN.js modules not loading
+
+If you encounter module loading issues, ensure all BPMN.js dependencies are installed:
+
+```bash
+npm install bpmn-js bpmn-js-properties-panel diagram-js
+```
+
+### Styling issues
+
+If styles are not applied correctly, ensure SCSS is properly configured in your Angular build. Check `angular.json` for SCSS support.
+
+## Support
+
+For issues specific to BPMN.js libraries, refer to:
+
+- [BPMN.js Documentation](https://bpmn.io/toolkit/bpmn-js/)
+- [Diagram.js Documentation](https://diagram-js.org/)
+
+## License
+
+This module is part of the MedPortal application. Refer to the root LICENSE file for licensing information.
+\xe2\x80\x8c'`— which bash expands
+identically in every locale, so they cannot degrade this way. Because "cannot" is a claim rather
+than a guarantee, the script now **self-tests before it scans**: it plants a U+202E and a U+200C in
+a temporary file and asserts both patterns match, asserts neither matches clean ASCII (so a
+match-everything pattern could not pass), and asserts the pattern variables contain no literal`\u` text. If any of that fails it aborts non-zero rather than scanning, because a scan that
+cannot detect a planted character must not be allowed to print a pass.
+
+Verified across both locale conditions, old script against new:
+
+| case                      | old, no locale | old, `C.UTF-8` | new, no locale | new, `C.UTF-8` |
+| ------------------------- | -------------- | -------------- | -------------- | -------------- |
+| clean tree                | pass           | pass           | pass           | pass           |
+| planted U+202E in a `.ts` | **false pass** | fail           | fail           | fail           |
+| planted U+200C in a `.ts` | **false pass** | fail           | fail           | fail           |
+
+Falsified by sabotaging the new patterns back to `
+
+Consequently the RTL test above **no longer serves the bundle itself**. It previously installed a
+`page.route('**/i18n/fa.json*')` handler that read `i18n/fa/` off disk, because the real bundle did
+not exist; that mock also shallow-merged the 28 files with an object spread, so the 12 files
+sharing a `medPortalApp` root overwrote one another — as did the two sharing `MedPortalApp` and the
+two sharing `error` — and it served 327 of 509 keys. The test now
+switches language against the genuinely built bundle, and "switching to Persian through the navbar
+retranslates the page and flips it to RTL" in `medportal.e2e.spec.ts` covers the switch itself:
+it reads the expected strings out of `i18n/en/global.json` and `i18n/fa/global.json` and asserts
+the navbar text becomes the Persian one and `document.documentElement.dir` becomes `rtl`.
+Falsified by removing the `fa` line from `webpack.custom.js`: `i18n/fa.json` 404s and the test
+fails on both the text and the direction.
+
+## Future Enhancements
+
+- [ ] Token simulation
+- [ ] Color picker
+- [ ] BPMN linting
+- [ ] Element templates
+- [ ] Advanced validation
+
+## Troubleshooting
+
+### Canvas not rendering
+
+Ensure the canvas container div has width and height set. The component expects `height: 100%` and `width: 100%`, and therefore a parent with a resolved height — on `/bpmn-editor` that is the shell's `fullscreen-mode` column. See "The 47px, fixed" for the chain it depends on.
+
+### BPMN.js modules not loading
+
+If you encounter module loading issues, ensure all BPMN.js dependencies are installed:
+
+```bash
+npm install bpmn-js bpmn-js-properties-panel diagram-js
+```
+
+### Styling issues
+
+If styles are not applied correctly, ensure SCSS is properly configured in your Angular build. Check `angular.json` for SCSS support.
+
+## Support
+
+For issues specific to BPMN.js libraries, refer to:
+
+- [BPMN.js Documentation](https://bpmn.io/toolkit/bpmn-js/)
+- [Diagram.js Documentation](https://diagram-js.org/)
+
+## License
+
+This module is part of the MedPortal application. Refer to the root LICENSE file for licensing information.
+\uHHHH'`: with no locale the self-test aborts
+with "patterns contain literal '\u' escape text".
+
+The three files this branch added zero-width characters to — `i18n-parity.spec.ts`,
+`medportal.e2e.spec.ts` and this README — now write the joiner as a `\u200C` escape instead of the
+character. That is not merely compliance. The escape and the character are the same one-code-point
+string at runtime (`'\u200C'.length === 1`), so no assertion compares anything different, and
+an invisible character in a test assertion or in prose _about_ invisible characters was unreadable
+to begin with. Widening the allowlist was rejected: it is matched by path glob, so any entry broad
+enough to cover a spec or a README would exempt whole file types from a Trojan Source guard, and
+documentation is precisely where such a payload is least likely to be noticed and most likely to be
+copied out.
 
 Consequently the RTL test above **no longer serves the bundle itself**. It previously installed a
 `page.route('**/i18n/fa.json*')` handler that read `i18n/fa/` off disk, because the real bundle did

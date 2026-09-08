@@ -53,8 +53,20 @@ describe('i18n bundle parity', () => {
   /** Anything a translator would take for a placeholder, whether or not the runtime agrees. */
   const looksLikePlaceholder = (value: string): string[] => value.match(/\{\{[^{}]*\}\}/g) ?? [];
 
-  /** U+200C ZERO WIDTH NON-JOINER — نیم‌فاصله. Stored literally in these files, never as `‌`. */
-  const ZWNJ = '‌';
+  /**
+   * U+200C ZERO WIDTH NON-JOINER — the Persian half-space, نیم\u200Cفاصله.
+   *
+   * Note the deliberate asymmetry between the data and this spec. The `i18n/fa` JSON stores the
+   * joiner as a literal character, and a test below fails if it is ever written as a `\u200C`
+   * escape there, because ngx-translate would render such an escape as visible text. This file is
+   * the opposite: it writes the escape and never the literal, because an invisible character in an
+   * assertion cannot be read or reviewed, and `scripts/unicode-security-scan.sh` rejects literal
+   * zero-width characters outside `i18n/fa/` as a Trojan Source risk.
+   *
+   * The two forms are the same string at runtime (`'\u200C'.length === 1`), so no assertion below
+   * compares anything different from what it compared when it was written as a literal.
+   */
+  const ZWNJ = '\u200C';
   /** The Arabic/Persian block, used to tell a Persian letter from a space, digit, brace or Latin letter. */
   const PERSIAN = '؀-ۿ';
 
@@ -98,7 +110,7 @@ describe('i18n bundle parity', () => {
     {
       id: 'indefinite enclitic',
       morpheme: 'ای',
-      // The indefinite -i after a silent ه, as in وقایع ثبت شده‌ای.
+      // The indefinite -i after a silent ه, as in وقایع ثبت شده\u200Cای.
       re: new RegExp(`ه (?:ای)(?![${PERSIAN}])`, 'g'),
     },
   ];
@@ -150,7 +162,7 @@ describe('i18n bundle parity', () => {
           for (const found of value.match(new RegExp(re.source, 'g')) ?? []) {
             // The binding space is always the last one in the match: the prefix rules open with a
             // guard character that is itself often a space, and replacing that one instead would
-            // print advice that is subtly wrong (`‌می ب` rather than `می‌ب`).
+            // print advice that is subtly wrong (`\u200Cمی ب` rather than `می\u200Cب`).
             offenders.push({ key, rule: id, morpheme, found, expected: found.replace(/ (?=[^ ]*$)/, ZWNJ) });
           }
         }
@@ -162,7 +174,7 @@ describe('i18n bundle parity', () => {
 
     it('writes ZWNJ as a literal U+200C, never as an escape sequence', () => {
       // The check above compares literal characters, so it would silently pass a file that spelled
-      // the joiner `‌`. ngx-translate would then render the escape as text.
+      // the joiner `\u200C`. ngx-translate would then render the escape as text.
       const raw = readFileSync(join(I18N, 'fa', file), 'utf8');
       expect({ file, escapes: raw.match(/\\u200[cC]/g) ?? [] }).toEqual({ file, escapes: [] });
     });
@@ -180,7 +192,7 @@ describe('i18n bundle parity', () => {
   /**
    * Where a ZWNJ may sit relative to a placeholder. No shipped value binds a suffix to a `{{…}}`
    * today — `entity.action.show` deliberately does not, see below — but Persian gives every reason
-   * to write one (`{{count}}‌تایی`), so the boundary is recorded rather than rediscovered. The
+   * to write one (`{{count}}\u200Cتایی`), so the boundary is recorded rather than rediscovered. The
    * asymmetry is entirely in `templateMatcher`'s character classes: `\s?` cannot consume a ZWNJ
    * *outside* the braces, and `[^{}\s]` happily swallows one *inside* them.
    */
@@ -277,10 +289,10 @@ describe('i18n bundle parity', () => {
     });
 
     it.each([
-      ['medPortalApp.module.configs', 'نمایش تنظیم‌ها'],
+      ['medPortalApp.module.configs', 'نمایش تنظیم\u200Cها'],
       ['medPortalApp.product.flows', 'نمایش فلوها'],
-      ['medPortalApp.resource.resourceAuthorities', 'نمایش مجوز‌های منبع'],
-      ['medPortalApp.medAuthority.resourceAuthorities', 'نمایش مجوز‌های منبع'],
+      ['medPortalApp.resource.resourceAuthorities', 'نمایش مجوز\u200Cهای منبع'],
+      ['medPortalApp.medAuthority.resourceAuthorities', 'نمایش مجوز\u200Cهای منبع'],
     ])('renders %s as the Persian text a user actually reads', (key, expected) => {
       expect(sites.map(site => site.key)).toContain(key);
       expect(render('fa', key)).toBe(expected);

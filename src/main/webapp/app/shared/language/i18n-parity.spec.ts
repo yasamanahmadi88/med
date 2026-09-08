@@ -53,6 +53,56 @@ describe('i18n bundle parity', () => {
   /** Anything a translator would take for a placeholder, whether or not the runtime agrees. */
   const looksLikePlaceholder = (value: string): string[] => value.match(/\{\{[^{}]*\}\}/g) ?? [];
 
+  /** U+200C ZERO WIDTH NON-JOINER — نیم‌فاصله. Stored literally in these files, never as `‌`. */
+  const ZWNJ = '‌';
+  /** The Arabic/Persian block, used to tell a Persian letter from a space, digit, brace or Latin letter. */
+  const PERSIAN = '؀-ۿ';
+
+  /**
+   * Persian binds some morphemes to their host word with a ZWNJ rather than a space. The rule these
+   * cases share is that the bound element is *not a free word*: it cannot appear on its own. An
+   * ordinary boundary between two free words stays a plain space, so this is deliberately a short
+   * list of specific morphemes rather than a blanket "no spaces near Persian letters" check.
+   *
+   * Each pattern captures the host tail, the space, and the bound morpheme, so a failure can quote
+   * the exact offending substring rather than the whole sentence.
+   */
+  const ZWNJ_RULES: { id: string; morpheme: string; re: RegExp }[] = [
+    {
+      id: 'plural suffix',
+      morpheme: 'ها / های',
+      // The host may end in a Persian letter or in the `}}` of an interpolation placeholder
+      // (`entity.action.show` is "نمایش {{otherEntity}}‌ها"). The trailing guard keeps the rule off
+      // words that merely begin with ها.
+      re: new RegExp(`[${PERSIAN}}] (?:های|ها)(?![${PERSIAN}])`, 'g'),
+    },
+    {
+      id: 'verb prefix',
+      morpheme: 'می / نمی',
+      // Leading guard makes می a standalone token, so the rule cannot fire inside a word that merely
+      // ends in ...می, such as عمومی ("general").
+      re: new RegExp(`(?:^|[^${PERSIAN}])ن?می [${PERSIAN}]`, 'g'),
+    },
+    {
+      id: 'SI combining form',
+      morpheme: 'میلی',
+      // Same standalone-token guard, and here it is load-bearing: without it the rule would fire on
+      // ایمیلی که ("an email that"), where ...میلی is simply the tail of ایمیلی.
+      re: new RegExp(`(?:^|[^${PERSIAN}])میلی [${PERSIAN}]`, 'g'),
+    },
+    {
+      id: 'privative prefix',
+      morpheme: 'بی',
+      re: new RegExp(`(?:^|[^${PERSIAN}])بی [${PERSIAN}]`, 'g'),
+    },
+    {
+      id: 'indefinite enclitic',
+      morpheme: 'ای',
+      // The indefinite -i after a silent ه, as in وقایع ثبت شده‌ای.
+      re: new RegExp(`ه (?:ای)(?![${PERSIAN}])`, 'g'),
+    },
+  ];
+
   it('ships the same 28 files in every language', () => {
     expect(
       readdirSync(join(I18N, 'fa'))
@@ -93,6 +143,30 @@ describe('i18n bundle parity', () => {
       }
     });
 
+    it('binds Persian suffixes and prefixes with a ZWNJ rather than a space', () => {
+      const offenders: { key: string; rule: string; morpheme: string; found: string; expected: string }[] = [];
+      for (const [key, value] of Object.entries(read('fa', file))) {
+        for (const { id, morpheme, re } of ZWNJ_RULES) {
+          for (const found of value.match(new RegExp(re.source, 'g')) ?? []) {
+            // The binding space is always the last one in the match: the prefix rules open with a
+            // guard character that is itself often a space, and replacing that one instead would
+            // print advice that is subtly wrong (`‌می ب` rather than `می‌ب`).
+            offenders.push({ key, rule: id, morpheme, found, expected: found.replace(/ (?=[^ ]*$)/, ZWNJ) });
+          }
+        }
+      }
+      // Reported as a list so one run names every offending key rather than only the first, and the
+      // quoted substring is short enough to spot the space in.
+      expect({ file, offenders }).toEqual({ file, offenders: [] });
+    });
+
+    it('writes ZWNJ as a literal U+200C, never as an escape sequence', () => {
+      // The check above compares literal characters, so it would silently pass a file that spelled
+      // the joiner `‌`. ngx-translate would then render the escape as text.
+      const raw = readFileSync(join(I18N, 'fa', file), 'utf8');
+      expect({ file, escapes: raw.match(/\\u200[cC]/g) ?? [] }).toEqual({ file, escapes: [] });
+    });
+
     it('keeps the HTML markup of the English string intact', () => {
       const en = read('en', file);
       const fa = read('fa', file);
@@ -100,6 +174,45 @@ describe('i18n bundle parity', () => {
         // These values reach the DOM through `[innerHTML]`, so a mangled tag is a rendering bug.
         expect({ key, tags: tags(fa[key] ?? '') }).toEqual({ key, tags: tags(source) });
       }
+    });
+  });
+
+  /**
+   * `entity.action.show` is the one value where the plural suffix lands directly against an
+   * interpolation placeholder: "نمایش {{otherEntity}}‌ها". The ZWNJ sits immediately after the
+   * closing braces, which is exactly where `templateMatcher` stops looking, so it is worth proving
+   * rather than assuming that the slot still fills.
+   */
+  describe('entity.action.show — ZWNJ against a placeholder', () => {
+    const value = read('fa', 'global.json')['entity.action.show'];
+
+    it('is stored with the ZWNJ bound to the placeholder', () => {
+      expect(value).toBe(`نمایش {{otherEntity}}${ZWNJ}ها`);
+    });
+
+    it('does not let the ZWNJ enter the captured placeholder name', () => {
+      // U+200C is not in JavaScript's \s class, so `\s?}}` cannot consume it; the ZWNJ stays
+      // outside the match entirely. The key must therefore be exactly "otherEntity".
+      expect(/\s/.test(ZWNJ)).toBe(false);
+      const matches = [...value.matchAll(new RegExp(NGX_TEMPLATE_MATCHER.source, 'g'))];
+      expect(matches.map(match => match[1])).toEqual(['otherEntity']);
+    });
+
+    it('still substitutes, and keeps the ZWNJ in the rendered string', () => {
+      // The same replace() call ngx-translate's TranslateDefaultParser.interpolateString makes.
+      const rendered = value.replace(new RegExp(NGX_TEMPLATE_MATCHER.source, 'g'), (substring, key) =>
+        key === 'otherEntity' ? 'ماژول' : substring,
+      );
+      expect(rendered).toBe(`نمایش ماژول${ZWNJ}ها`);
+      expect(rendered).not.toContain('{{');
+    });
+
+    it('would fail if the ZWNJ were inside the braces, so the check above is not vacuous', () => {
+      const corrupted = `نمایش {{otherEntity${ZWNJ}}}${ZWNJ}ها`;
+      const matches = [...corrupted.matchAll(new RegExp(NGX_TEMPLATE_MATCHER.source, 'g'))];
+      // ZWNJ *is* matched by [^{}\s], so inside the braces it becomes part of the key and the
+      // lookup misses. That is the failure mode this placement avoids.
+      expect(matches.map(match => match[1])).toEqual([`otherEntity${ZWNJ}`]);
     });
   });
 });

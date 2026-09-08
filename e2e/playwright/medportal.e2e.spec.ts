@@ -332,4 +332,58 @@ test.describe('MedPortal language', () => {
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
     expect(await page.evaluate(() => document.documentElement.dir)).toBe('rtl');
   });
+
+  test('Persian half-spaces survive the bundle and reach the DOM as U+200C', async ({ page, mockApi }) => {
+    // Persian binds the plural suffix ها to its host with a ZERO WIDTH NON-JOINER, not a space.
+    // `i18n-parity.spec.ts` pins that in the source files, but a source file is not a screen: the
+    // value is deep-merged by `MergeJsonWebpackPlugin` into `i18n/fa.json`, served over HTTP,
+    // decoded, interpolated by ngx-translate and written into the DOM. U+200C is a zero-width,
+    // non-printing character, which is exactly the kind of byte a re-encoding step drops silently —
+    // and dropping it is invisible in a screenshot, because the glyphs either side do not move.
+    // So this asserts on the character, in the rendered text, after the whole pipeline.
+    const ZWNJ = '‌';
+    // Read from the same sources the bundle is built from, as the test above does, so this
+    // measures the pipeline rather than restating a hard-coded string.
+    const faBundle = (file: string) => JSON.parse(readFileSync(join(process.cwd(), `src/main/webapp/i18n/fa/${file}.json`), 'utf8'));
+    const menuModule: string = faBundle('global').global.menu.entities.module; // "ماژول‌ها"
+    const showTemplate: string = faBundle('global').entity.action.show; // "نمایش {{otherEntity}}‌ها"
+    const configs: string = faBundle('module').medPortalApp.module.configs; // "تنظیم‌ها"
+
+    // Guards the probes themselves: a value that lost its ZWNJ in the source would make the DOM
+    // assertions below pass against the wrong expectation.
+    expect(menuModule).toContain(ZWNJ);
+    expect(showTemplate).toContain(ZWNJ);
+    expect(configs).toContain(ZWNJ);
+
+    await mockApi({
+      account: 'admin',
+      collections: { '/api/modules': [{ id: 1, name: 'Mediation', description: 'First module' }] },
+    });
+
+    await page.goto('/module');
+    await page.locator('#languagesnavBarDropdown').click();
+    await page.locator('.dropdown-menu a.dropdown-item', { hasText: 'فارسی' }).click();
+    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+
+    // 1. A plain plural, straight from the bundle to the navbar.
+    await page.locator('#entity-menu').click();
+    const moduleLink = page.locator('ul[aria-labelledby="entity-menu"] span[jhiTranslate="global.menu.entities.module"]');
+    await expect(moduleLink).toHaveText(menuModule);
+    expect(await moduleLink.textContent()).toContain(ZWNJ);
+    // The form this change replaced. Asserting its absence is what fails if a build step were to
+    // normalise U+200C back to a space rather than drop it outright.
+    expect(await moduleLink.textContent()).not.toContain('ماژول ها');
+
+    // 2. The hard case: the suffix binds to an interpolation placeholder, so this renders only if
+    // ngx-translate still matched `{{otherEntity}}` with a ZWNJ hard against the closing braces.
+    const showConfigs = page.locator('table tbody [data-cy="filterOtherEntityButton"] span').first();
+    const expected = showTemplate.replace('{{otherEntity}}', configs);
+    await expect(showConfigs).toHaveText(expected);
+    const rendered = (await showConfigs.textContent()) ?? '';
+    // Two ZWNJ survive: one inside the interpolated value, one joining the suffix to it.
+    expect([...rendered].filter(character => character === ZWNJ)).toHaveLength(2);
+    // Substitution actually happened — the braces are gone and the entity name is present.
+    expect(rendered).not.toContain('{{');
+    expect(rendered).toContain(configs);
+  });
 });

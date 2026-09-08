@@ -1265,7 +1265,7 @@ the `7f0f6df` baseline, so nothing here broke it. Unrelated to this change and l
   `Timer.totalTime(TimeUnit.MILLISECONDS)` and `Timer.max(TimeUnit.MILLISECONDS)` (read from the
   bytecode). So the values really are milliseconds of latency per HTTP status code, and "events
   per second" was simply wrong. The Persian now reads
-  `درخواست های HTTP (زمان به میلی ثانیه)`; no English-side change is needed.
+  `درخواست‌های HTTP (زمان به میلی‌ثانیه)`; no English-side change is needed.
 
 ### Persian, now actually loaded
 
@@ -1301,6 +1301,80 @@ per file and per key it fails on a dropped or renamed `{{ placeholder }}`, on ma
 and — using ngx-translate's own matcher rather than an idealised one — on any `{{…}}` occurrence in
 either language that the runtime would not interpolate. Comparing placeholder _names_ is not
 enough: `{{ login  }}` and `{{ login }}` are both named `login`.
+
+### نیم‌فاصله — the half-space, normalised
+
+Persian binds some morphemes to their host word with a ZERO WIDTH NON-JOINER (U+200C, نیم‌فاصله)
+rather than a space. The bundle used both forms, and the split was not the same on both sides of it.
+
+**The verb prefix was an inconsistency, not a style.** `می` / `نمی` was already ZWNJ in the clear
+majority — 16 occurrences against 8 — and `global.json` held _both spellings of the same word_:
+`global.messages.validate.newpassword.maxlength` read `می‌تواند` while
+`global.messages.validate.newpassword.emptyPassword`, twelve lines away, read `می تواند`. Nothing
+chose between them; one of the two was simply wrong.
+
+**The plural suffix was a real change of the dominant form**, and is the half that needed asking
+for: `ها` / `های` stood at 23 spaces against 1 ZWNJ. It is now uniform.
+
+The rule applied is narrower than "join Persian words that look joinable": **ZWNJ only where the
+bound element cannot stand alone as a word.** An ordinary boundary between two free words keeps its
+space, which is why `گزارش لاگ‌ها`, `همه درخواست‌ها` and `تخلیه نخ‌ها` are joined on the suffix only.
+38 substitutions across 11 files, all of them U+0020 → U+200C and nothing else — every file is the
+same length in characters afterwards:
+
+| Morpheme     | Why it binds                                | Before (space → ZWNJ) | After |
+| ------------ | ------------------------------------------- | --------------------- | ----- |
+| `ها` / `های` | plural suffix                               | 23 → 1                | 24    |
+| `می` / `نمی` | imperfective / negated verb prefix          | 8 → 16                | 24    |
+| `میلی`       | SI combining form (milli-), not a free word | 3 → 0                 | 3     |
+| `بی`         | privative prefix (بی‌اعتبار)                | 3 → 0                 | 3     |
+| `ای`         | indefinite enclitic after a silent ه        | 1 → 0                 | 1     |
+
+The last three were not in the original brief and were found by widening the search from the two
+known families to bound morphemes generally. `تر` / `ترین`, `هایی` and `ام` / `اید` / `اند` were
+searched for and do not occur.
+
+**Four candidates were rejected, and the reasons matter more than the count.** `غیر امن` and
+`غیر فعال` (×2) keep their space: the Academy of Persian Language prescribes `غیر` written
+separately. `فیلترهای زیر` is "the filters _below_" — `زیر` is a free word here, not the prefix.
+`ثبت نام` and `ثبت شده` are two free words each, so only the enclitic in `ثبت شده‌ای` was joined.
+And `آدرس ایمیلی که` is the trap a looser rule falls into: `...میلی` there is the tail of `ایمیلی`
+("an email"), not the milli- prefix, so every prefix rule carries a standalone-token guard.
+
+`مجوز‌ها` is worth one note: `ز` does not join forwards, so the ZWNJ there is visually identical to
+writing `مجوزها` outright. It is still the correct encoding of a bound suffix, and it keeps the
+corpus uniform and machine-checkable.
+
+`entity.action.show` is the one value where the suffix lands against an interpolation placeholder —
+`نمایش {{otherEntity}}‌ها`. That is safe, and measurably so rather than arguably: `templateMatcher`
+is `/{{\s?([^{}\s]*)\s?}}/g`, and U+200C is **not** in JavaScript's `\s` class (`/\s/.test('‌')`
+is `false`), so a ZWNJ hard against the closing braces cannot be consumed by `\s?` and the captured
+key stays exactly `otherEntity`. The spec asserts that, asserts the substitution still happens, and
+carries the counter-example — a ZWNJ moved _inside_ the braces, which `[^{}\s]` does match, so the
+key becomes `otherEntity‌` and the lookup misses. Without that last case the first three would pass
+on a matcher that had stopped working.
+
+Guarded per file and per key by "binds Persian suffixes and prefixes with a ZWNJ rather than a
+space" in `i18n-parity.spec.ts`, which reports the file, the key, the offending substring and the
+spelling it expected, plus a companion check that the joiner is a literal U+200C and never a
+`‌` escape — the character comparison alone would pass a file that spelled the escape out and
+rendered it as text. Falsified both ways: reverting `config.json` to `تنظیم ها` fails with
+`found: "م ها", expected: "م‌ها"` on `medPortalApp.config.home.title`, and reverting `flow.json` to
+`می باشد` fails with `found: " می ب", expected: " می‌ب"`.
+
+Bytes are not pixels, so "Persian half-spaces survive the bundle and reach the DOM as U+200C" in
+`medportal.e2e.spec.ts` renders it: it switches to Persian on `/module` and asserts the navbar's
+`ماژول‌ها` and the row button's `نمایش تنظیم‌ها‌ها` contain the character after the whole path —
+`MergeJsonWebpackPlugin` merge, HTTP fetch, decode, interpolation, DOM write. U+200C is zero-width,
+so a step that dropped it would leave the glyphs where they are and a screenshot would look right.
+
+**One content oddity, left alone deliberately.** That button really does read `نمایش تنظیم‌ها‌ها`,
+with the plural twice: the Persian `entity.action.show` appends `ها` to a slot that
+`module.component.html` fills with `medPortalApp.module.configs` — itself already plural
+(`تنظیم‌ها`, English `Configs`). English has no such suffix (`Show {{otherEntity}}`). This predates
+the change — at `5038d41` it read `نمایش تنظیم ها ها` — and normalising the typography preserves it
+exactly rather than papering over it. Fixing it means dropping the `ها` from `entity.action.show`,
+which is a content decision about every call site, not a typographic one.
 
 Consequently the RTL test above **no longer serves the bundle itself**. It previously installed a
 `page.route('**/i18n/fa.json*')` handler that read `i18n/fa/` off disk, because the real bundle did

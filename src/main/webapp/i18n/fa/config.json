@@ -2,7 +2,7 @@
   "medPortalApp": {
     "config": {
       "home": {
-        "title": "تنظیم ها",
+        "title": "تنظیم‌ها",
         "refreshListLabel": "به روز رسانی",
         "createLabel": "ایجاد تنظیم جدید",
         "createOrEditLabel": "ایجاد یا ویرایش تنظیم",

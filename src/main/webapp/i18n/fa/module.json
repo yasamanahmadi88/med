@@ -2,7 +2,7 @@
   "medPortalApp": {
     "module": {
       "home": {
-        "title": "ماژول ها",
+        "title": "ماژول‌ها",
         "refreshListLabel": "به روز رسانی",
         "createLabel": "ایجاد ماژول جدید",
         "createOrEditLabel": "ایجاد یا ویرایش ماژول",
@@ -24,7 +24,7 @@
       "status": "وضعیت",
       "loggingMode": "حالت ثبت وقایع",
       "loggingFilter": "فیلتر ثبت وقایع",
-      "configs": "تنظیم ها",
+      "configs": "تنظیم‌ها",
       "active": "فعال",
       "notActive": " غیر فعال",
       "dnsName": "نام DNS"

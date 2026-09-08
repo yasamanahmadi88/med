@@ -22,7 +22,7 @@
       "displayName": "نام نمایشی",
       "apiUri": "آدرس وب سرویس",
       "resourceType": "نوع منبع",
-      "resourceAuthorities": "مجوز منبع"
+      "resourceAuthorities": "مجوز‌های منبع"
     }
   }
 }

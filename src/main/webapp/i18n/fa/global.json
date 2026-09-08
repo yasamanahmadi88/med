@@ -120,7 +120,7 @@
       "save": "ذخیره",
       "create": "ایجاد",
       "view": "مشاهده",
-      "show": "نمایش {{otherEntity}}‌ها"
+      "show": "نمایش {{otherEntity}}"
     },
     "detail": {
       "field": "فیلد",

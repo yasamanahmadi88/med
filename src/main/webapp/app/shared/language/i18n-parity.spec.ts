@@ -71,9 +71,9 @@ describe('i18n bundle parity', () => {
     {
       id: 'plural suffix',
       morpheme: 'ها / های',
-      // The host may end in a Persian letter or in the `}}` of an interpolation placeholder
-      // (`entity.action.show` is "نمایش {{otherEntity}}‌ها"). The trailing guard keeps the rule off
-      // words that merely begin with ها.
+      // The host may end in a Persian letter or in the `}}` of an interpolation placeholder — no
+      // shipped value does the latter today, but the rule would still catch a space there. The
+      // trailing guard keeps it off words that merely begin with ها.
       re: new RegExp(`[${PERSIAN}}] (?:های|ها)(?![${PERSIAN}])`, 'g'),
     },
     {
@@ -178,41 +178,124 @@ describe('i18n bundle parity', () => {
   });
 
   /**
-   * `entity.action.show` is the one value where the plural suffix lands directly against an
-   * interpolation placeholder: "نمایش {{otherEntity}}‌ها". The ZWNJ sits immediately after the
-   * closing braces, which is exactly where `templateMatcher` stops looking, so it is worth proving
-   * rather than assuming that the slot still fills.
+   * Where a ZWNJ may sit relative to a placeholder. No shipped value binds a suffix to a `{{…}}`
+   * today — `entity.action.show` deliberately does not, see below — but Persian gives every reason
+   * to write one (`{{count}}‌تایی`), so the boundary is recorded rather than rediscovered. The
+   * asymmetry is entirely in `templateMatcher`'s character classes: `\s?` cannot consume a ZWNJ
+   * *outside* the braces, and `[^{}\s]` happily swallows one *inside* them.
    */
-  describe('entity.action.show — ZWNJ against a placeholder', () => {
-    const value = read('fa', 'global.json')['entity.action.show'];
-
-    it('is stored with the ZWNJ bound to the placeholder', () => {
-      expect(value).toBe(`نمایش {{otherEntity}}${ZWNJ}ها`);
-    });
-
-    it('does not let the ZWNJ enter the captured placeholder name', () => {
-      // U+200C is not in JavaScript's \s class, so `\s?}}` cannot consume it; the ZWNJ stays
-      // outside the match entirely. The key must therefore be exactly "otherEntity".
+  describe('ZWNJ against an interpolation placeholder', () => {
+    it('is not whitespace, so a ZWNJ after the braces cannot disturb the match', () => {
       expect(/\s/.test(ZWNJ)).toBe(false);
-      const matches = [...value.matchAll(new RegExp(NGX_TEMPLATE_MATCHER.source, 'g'))];
+      const bound = `نمایش {{otherEntity}}${ZWNJ}ها`;
+      const matches = [...bound.matchAll(new RegExp(NGX_TEMPLATE_MATCHER.source, 'g'))];
       expect(matches.map(match => match[1])).toEqual(['otherEntity']);
-    });
-
-    it('still substitutes, and keeps the ZWNJ in the rendered string', () => {
-      // The same replace() call ngx-translate's TranslateDefaultParser.interpolateString makes.
-      const rendered = value.replace(new RegExp(NGX_TEMPLATE_MATCHER.source, 'g'), (substring, key) =>
+      // The same replace() call TranslateDefaultParser.interpolateString makes.
+      const rendered = bound.replace(new RegExp(NGX_TEMPLATE_MATCHER.source, 'g'), (substring, key) =>
         key === 'otherEntity' ? 'ماژول' : substring,
       );
       expect(rendered).toBe(`نمایش ماژول${ZWNJ}ها`);
       expect(rendered).not.toContain('{{');
     });
 
-    it('would fail if the ZWNJ were inside the braces, so the check above is not vacuous', () => {
-      const corrupted = `نمایش {{otherEntity${ZWNJ}}}${ZWNJ}ها`;
+    it('is matched by [^{}\\s], so a ZWNJ inside the braces corrupts the key', () => {
+      // The counter-example, which is what makes the case above a measurement rather than a hope.
+      const corrupted = `نمایش {{otherEntity${ZWNJ}}}ها`;
       const matches = [...corrupted.matchAll(new RegExp(NGX_TEMPLATE_MATCHER.source, 'g'))];
-      // ZWNJ *is* matched by [^{}\s], so inside the braces it becomes part of the key and the
-      // lookup misses. That is the failure mode this placement avoids.
       expect(matches.map(match => match[1])).toEqual([`otherEntity${ZWNJ}`]);
+    });
+
+    it('never appears inside a placeholder in any shipped value', () => {
+      // The live guard: a ZWNJ typed between the braces renders the raw `{{…}}` on screen.
+      const offenders: { lang: string; file: string; key: string; occurrence: string }[] = [];
+      for (const lang of ['en', 'fa']) {
+        for (const file of files) {
+          for (const [key, value] of Object.entries(read(lang, file))) {
+            for (const occurrence of looksLikePlaceholder(value)) {
+              if (occurrence.includes(ZWNJ)) offenders.push({ lang, file, key, occurrence });
+            }
+          }
+        }
+      }
+      expect(offenders).toEqual([]);
+    });
+  });
+
+  /**
+   * `entity.action.show` is a template shared by four entity lists, and plurality has to live in
+   * exactly one of the two halves. English puts it in the label — `Configs`, `Flows`,
+   * `Resource Authorities` — behind a bare `Show {{otherEntity}}`. Persian had put it in *both*:
+   * the template carried a trailing `ها` and three of the four labels were already plural, so
+   * `/module` rendered `نمایش تنظیم ها ها`, with the suffix twice. The remaining label,
+   * `resourceAuthorities`, was singular (`مجوز منبع`) and leaned on the template's suffix for its
+   * plurality, so the two faults were load-bearing on each other and had to be fixed together.
+   *
+   * The call sites are read out of the component templates rather than listed here, so a fifth one
+   * is covered the day it is added.
+   */
+  describe('entity.action.show — plurality lives in the label, once', () => {
+    const APP = join(process.cwd(), 'src/main/webapp/app');
+    const templates = readdirSync(APP, { recursive: true })
+      .map(entry => String(entry))
+      .filter(entry => entry.endsWith('.component.html'))
+      .map(entry => join(APP, entry));
+
+    /** `otherEntity: ('medPortalApp.module.configs' | translate)` next to the jhiTranslate key. */
+    const CALL_SITE = /jhiTranslate="entity\.action\.show"[\s\S]{0,300}?otherEntity:\s*\('([^']+)'\s*\|\s*translate\)/g;
+
+    const sites: { template: string; key: string }[] = [];
+    let usages = 0;
+    for (const template of templates) {
+      const html = readFileSync(template, 'utf8');
+      usages += (html.match(/jhiTranslate="entity\.action\.show"/g) ?? []).length;
+      for (const match of html.matchAll(CALL_SITE)) {
+        sites.push({ template: template.slice(APP.length + 1), key: match[1] });
+      }
+    }
+
+    /** Flat lookup across every bundle in a language, since the labels live in per-entity files. */
+    const bundle = (lang: string): Record<string, string> =>
+      files.reduce<Record<string, string>>((into, file) => Object.assign(into, read(lang, file)), {});
+
+    const render = (lang: string, key: string): string =>
+      bundle(lang)['entity.action.show'].replace(new RegExp(NGX_TEMPLATE_MATCHER.source, 'g'), (substring, name) =>
+        name === 'otherEntity' ? bundle(lang)[key] : substring,
+      );
+
+    it('finds every call site, so the assertions below cannot pass on an empty list', () => {
+      // If the templates are reformatted so the regex stops matching, this fails rather than
+      // quietly reducing the suite to nothing.
+      expect({ extracted: sites.length, usages }).toEqual({ extracted: usages, usages });
+      expect(sites.length).toBeGreaterThanOrEqual(4);
+    });
+
+    it('keeps the Persian template free of a plural suffix of its own', () => {
+      // The regression this guards: re-adding `ها` after the placeholder. English is the shape to
+      // match — the template contributes the verb and nothing else.
+      expect(read('fa', 'global.json')['entity.action.show']).toBe('نمایش {{otherEntity}}');
+      expect(read('en', 'global.json')['entity.action.show']).toBe('Show {{otherEntity}}');
+    });
+
+    it.each([
+      ['medPortalApp.module.configs', 'نمایش تنظیم‌ها'],
+      ['medPortalApp.product.flows', 'نمایش فلوها'],
+      ['medPortalApp.resource.resourceAuthorities', 'نمایش مجوز‌های منبع'],
+      ['medPortalApp.medAuthority.resourceAuthorities', 'نمایش مجوز‌های منبع'],
+    ])('renders %s as the Persian text a user actually reads', (key, expected) => {
+      expect(sites.map(site => site.key)).toContain(key);
+      expect(render('fa', key)).toBe(expected);
+    });
+
+    it.each(sites)('$template renders $key with the plural marked exactly once', ({ key }) => {
+      const rendered = render('fa', key);
+      const label = bundle('fa')[key];
+      // 1. No doubled suffix, joined or spaced. This is the exact string the old template produced.
+      expect({ key, doubled: new RegExp(`ها[${ZWNJ} ]?ها`).test(rendered) }).toEqual({ key, doubled: false });
+      // 2. The label still carries the plural itself, bound to its host. Without this, dropping the
+      //    template's suffix would silently de-pluralise `resourceAuthorities` back to `مجوز منبع`.
+      expect({ key, label, plural: new RegExp(`[؀-ۿ${ZWNJ}]ها`).test(label) }).toEqual({ key, label, plural: true });
+      // 3. The slot filled: no braces survive into the rendered text.
+      expect(rendered).not.toContain('{{');
     });
   });
 });

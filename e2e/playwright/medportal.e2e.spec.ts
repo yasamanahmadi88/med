@@ -346,13 +346,12 @@ test.describe('MedPortal language', () => {
     // measures the pipeline rather than restating a hard-coded string.
     const faBundle = (file: string) => JSON.parse(readFileSync(join(process.cwd(), `src/main/webapp/i18n/fa/${file}.json`), 'utf8'));
     const menuModule: string = faBundle('global').global.menu.entities.module; // "ماژول‌ها"
-    const showTemplate: string = faBundle('global').entity.action.show; // "نمایش {{otherEntity}}‌ها"
+    const showTemplate: string = faBundle('global').entity.action.show; // "نمایش {{otherEntity}}"
     const configs: string = faBundle('module').medPortalApp.module.configs; // "تنظیم‌ها"
 
     // Guards the probes themselves: a value that lost its ZWNJ in the source would make the DOM
     // assertions below pass against the wrong expectation.
     expect(menuModule).toContain(ZWNJ);
-    expect(showTemplate).toContain(ZWNJ);
     expect(configs).toContain(ZWNJ);
 
     await mockApi({
@@ -374,14 +373,16 @@ test.describe('MedPortal language', () => {
     // normalise U+200C back to a space rather than drop it outright.
     expect(await moduleLink.textContent()).not.toContain('ماژول ها');
 
-    // 2. The hard case: the suffix binds to an interpolation placeholder, so this renders only if
-    // ngx-translate still matched `{{otherEntity}}` with a ZWNJ hard against the closing braces.
+    // 2. A ZWNJ that arrives through interpolation rather than sitting in the template. The
+    // plural belongs to the label — `تنظیم‌ها` — and `entity.action.show` contributes only the
+    // verb, so what reaches the DOM is a joined form the bundle never contained as one string.
     const showConfigs = page.locator('table tbody [data-cy="filterOtherEntityButton"] span').first();
-    const expected = showTemplate.replace('{{otherEntity}}', configs);
-    await expect(showConfigs).toHaveText(expected);
+    await expect(showConfigs).toHaveText(showTemplate.replace('{{otherEntity}}', configs));
     const rendered = (await showConfigs.textContent()) ?? '';
-    // Two ZWNJ survive: one inside the interpolated value, one joining the suffix to it.
-    expect([...rendered].filter(character => character === ZWNJ)).toHaveLength(2);
+    // Exactly one ZWNJ: the one inside the interpolated label. A second would mean the template
+    // had re-grown a plural suffix of its own, which is the doubling this change removed.
+    expect([...rendered].filter(character => character === ZWNJ)).toHaveLength(1);
+    expect(rendered).not.toMatch(new RegExp(`ها[${ZWNJ} ]?ها`));
     // Substitution actually happened — the braces are gone and the entity name is present.
     expect(rendered).not.toContain('{{');
     expect(rendered).toContain(configs);

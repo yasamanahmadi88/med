@@ -1320,7 +1320,9 @@ The rule applied is narrower than "join Persian words that look joinable": **ZWN
 bound element cannot stand alone as a word.** An ordinary boundary between two free words keeps its
 space, which is why `گزارش لاگ‌ها`, `همه درخواست‌ها` and `تخلیه نخ‌ها` are joined on the suffix only.
 38 substitutions across 11 files, all of them U+0020 → U+200C and nothing else — every file is the
-same length in characters afterwards:
+same length in characters afterwards. (That claim covers the typography pass alone. The doubled
+plural fixed further down is a content change and does move characters; the two are separable in
+the diff, and the totals below are the typography pass on its own.)
 
 | Morpheme     | Why it binds                                | Before (space → ZWNJ) | After |
 | ------------ | ------------------------------------------- | --------------------- | ----- |
@@ -1332,7 +1334,9 @@ same length in characters afterwards:
 
 The last three were not in the original brief and were found by widening the search from the two
 known families to bound morphemes generally. `تر` / `ترین`, `هایی` and `ام` / `اید` / `اند` were
-searched for and do not occur.
+searched for and do not occur. Across `i18n/fa` the ZWNJ count goes 24 → 62 for this pass, and to
+63 once the plural fix below removes one from `entity.action.show` and adds one to each of the two
+`resourceAuthorities` labels.
 
 **Four candidates were rejected, and the reasons matter more than the count.** `غیر امن` and
 `غیر فعال` (×2) keep their space: the Academy of Persian Language prescribes `غیر` written
@@ -1345,14 +1349,15 @@ And `آدرس ایمیلی که` is the trap a looser rule falls into: `...می�
 writing `مجوزها` outright. It is still the correct encoding of a bound suffix, and it keeps the
 corpus uniform and machine-checkable.
 
-`entity.action.show` is the one value where the suffix lands against an interpolation placeholder —
-`نمایش {{otherEntity}}‌ها`. That is safe, and measurably so rather than arguably: `templateMatcher`
-is `/{{\s?([^{}\s]*)\s?}}/g`, and U+200C is **not** in JavaScript's `\s` class (`/\s/.test('‌')`
-is `false`), so a ZWNJ hard against the closing braces cannot be consumed by `\s?` and the captured
-key stays exactly `otherEntity`. The spec asserts that, asserts the substitution still happens, and
-carries the counter-example — a ZWNJ moved _inside_ the braces, which `[^{}\s]` does match, so the
-key becomes `otherEntity‌` and the lookup misses. Without that last case the first three would pass
-on a matcher that had stopped working.
+No shipped value binds a suffix directly to a `{{…}}` placeholder — `entity.action.show`
+deliberately does not, see below — but Persian gives every reason to write one, so where the
+boundary lies is recorded rather than left to be rediscovered. `templateMatcher` is
+`/{{\s?([^{}\s]*)\s?}}/g`, and U+200C is **not** in JavaScript's `\s` class (`/\s/.test('‌')` is
+`false`), so a ZWNJ hard against the closing braces cannot be consumed by `\s?` and the captured key
+stays exactly `otherEntity`. The asymmetry is worth knowing: `[^{}\s]` _does_ match U+200C, so the
+same character one position to the left, **inside** the braces, becomes part of the key, the lookup
+misses, and the raw `{{…}}` reaches the screen. The spec pins both halves and adds the live check
+that no `en` or `fa` value contains a ZWNJ inside a placeholder.
 
 Guarded per file and per key by "binds Persian suffixes and prefixes with a ZWNJ rather than a
 space" in `i18n-parity.spec.ts`, which reports the file, the key, the offending substring and the
@@ -1364,17 +1369,49 @@ rendered it as text. Falsified both ways: reverting `config.json` to `تنظیم
 
 Bytes are not pixels, so "Persian half-spaces survive the bundle and reach the DOM as U+200C" in
 `medportal.e2e.spec.ts` renders it: it switches to Persian on `/module` and asserts the navbar's
-`ماژول‌ها` and the row button's `نمایش تنظیم‌ها‌ها` contain the character after the whole path —
+`ماژول‌ها` and the row button's `نمایش تنظیم‌ها` contain the character after the whole path —
 `MergeJsonWebpackPlugin` merge, HTTP fetch, decode, interpolation, DOM write. U+200C is zero-width,
 so a step that dropped it would leave the glyphs where they are and a screenshot would look right.
 
-**One content oddity, left alone deliberately.** That button really does read `نمایش تنظیم‌ها‌ها`,
-with the plural twice: the Persian `entity.action.show` appends `ها` to a slot that
-`module.component.html` fills with `medPortalApp.module.configs` — itself already plural
-(`تنظیم‌ها`, English `Configs`). English has no such suffix (`Show {{otherEntity}}`). This predates
-the change — at `5038d41` it read `نمایش تنظیم ها ها` — and normalising the typography preserves it
-exactly rather than papering over it. Fixing it means dropping the `ها` from `entity.action.show`,
-which is a content decision about every call site, not a typographic one.
+### The doubled plural on `entity.action.show`
+
+Pre-existing at `5038d41`, and fixed here rather than left alone. English keeps plurality **in the
+label** — `Configs`, `Flows`, `Resource Authorities` — behind a bare `Show {{otherEntity}}`.
+Persian had duplicated it into the template, which carried a trailing `ها` of its own. All four
+call sites were wrong, in two different ways:
+
+| call site                                         | `otherEntity` (fa) | rendered at `5038d41` |                |
+| ------------------------------------------------- | ------------------ | --------------------- | -------------- |
+| `module/list/module.component.html:109`           | `تنظیم ها`         | `نمایش تنظیم ها ها`   | doubled        |
+| `product/list/product.component.html:95`          | `فلوها`            | `نمایش فلوها ها`      | doubled        |
+| `resource/list/resource.component.html:91`        | `مجوز منبع`        | `نمایش مجوز منبع ها`  | singular label |
+| `med-authority/…/med-authority.component.html:86` | `مجوز منبع`        | `نمایش مجوز منبع ها`  | singular label |
+
+The two faults were load-bearing on each other, which is why they had to move together: dropping
+the template's suffix alone would have left `resourceAuthorities` reading `نمایش مجوز منبع`,
+singular against English's plural, because that suffix was the only thing supplying its plurality.
+So `entity.action.show` becomes `نمایش {{otherEntity}}`, and both `resourceAuthorities` labels
+(`resource.json` and `medAuthority.json` — the same string in two files) become `مجوز‌های منبع`.
+`مجوز منبع` is an ezafe construction, "authority _of_ resource", so the plural attaches to the head
+noun `مجوز` and the ezafe that follows it is spelled `ی`: `مجوز‌های منبع`, not `مجوز منبع‌ها`.
+`module.configs` and `product.flows` were already plural and are untouched. All four now render the
+plural exactly once: `نمایش تنظیم‌ها`, `نمایش فلوها`, `نمایش مجوز‌های منبع` ×2.
+
+**Why fix a pre-existing bug in a typography commit.** Normally this would stay out of scope. But
+after the ZWNJ change the doubling renders as `نمایش تنظیم‌ها‌ها`, visibly joined, and anyone
+reading the diff or the running app would reasonably conclude this commit produced it. It did not —
+at `5038d41` it read `نمایش تنظیم ها ها` — but shipping it here would make it look like ours.
+
+Pinned by "entity.action.show — plurality lives in the label, once" in `i18n-parity.spec.ts`, which
+**reads the call sites out of the component templates** rather than listing them, so a fifth one is
+covered the day it is added; it asserts the extracted count equals the number of
+`jhiTranslate="entity.action.show"` usages, so a template reformat that broke the extraction fails
+loudly instead of reducing the suite to nothing. Per call site it asserts the exact rendered string,
+that no `ها` is doubled, and that the label still carries the plural itself. Falsified both ways:
+restoring the template's `ها` fails 8 assertions across all four sites, and de-pluralising
+`resource.resourceAuthorities` back to `مجوز منبع` fails with `plural: false`. Both are needed —
+restoring the suffix makes `resource` read `نمایش مجوز‌های منبع‌ها`, which is not an adjacent
+`ها‌ها`, so the doubling check alone would miss it and only the exact-render assertion catches it.
 
 Consequently the RTL test above **no longer serves the bundle itself**. It previously installed a
 `page.route('**/i18n/fa.json*')` handler that read `i18n/fa/` off disk, because the real bundle did

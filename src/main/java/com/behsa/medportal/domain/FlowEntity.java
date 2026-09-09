@@ -40,7 +40,7 @@ public class FlowEntity implements Serializable {
     // varchar2 limit makes Hibernate emit a clob, and Oracle cannot use a clob with = or IN;
     // @Lob fails the same way on H2, which cannot LIKE one. Either breaks FlowResourceIT.
     @NotNull
-    @Column(name = "flow", nullable = false)
+    @Column(name = "flow", nullable = false, columnDefinition = "clob")
     private String flow;
 
     @ManyToOne(optional = false)

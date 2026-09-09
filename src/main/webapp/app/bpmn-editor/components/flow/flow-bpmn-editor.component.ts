@@ -64,11 +64,18 @@ export class FlowBpmnEditorComponent implements OnInit, OnDestroy, BpmnEditorHos
 
   save(xml: string): void {
     if (this.flow) {
-      this.flow.flow = xml;
-      this.flowService.update(this.flow).subscribe();
-    } else {
-      this.flowService.xmlTemp = xml;
+      const updatedFlow: IFlow = { ...this.flow, flow: xml };
+
+      this.flowService.update(updatedFlow).subscribe({
+        next: () => window.history.back(),
+        error(error) {
+          console.error('Failed to save BPMN flow:', error);
+        },
+      });
+      return;
     }
+
+    this.flowService.xmlTemp = xml;
     window.history.back();
   }
 

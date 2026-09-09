@@ -5,7 +5,9 @@ import BpmnModeler from 'bpmn-js/lib/Modeler';
 import { BpmnPropertiesPanelModule, BpmnPropertiesProviderModule, CamundaPlatformPropertiesProviderModule } from 'bpmn-js-properties-panel';
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
 import { additionalModulesFor, moddleExtensionsFor } from '../../additional-modules';
+import { DEFAULT_ELEMENT_SIZES } from '../../additional-modules/ElementFactory';
 import ModulePropertiesModule from '../../module-properties';
+import { createNewDiagram } from '../../utils/empty-diagram';
 
 @Component({
   selector: 'jhi-designer',
@@ -81,6 +83,7 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
         // Reaches ModulePropertiesProvider as `config.processEngine`. Module properties are
         // namespaced by the engine, so an HttpReceiver stores `camunda:agreementMode`.
         processEngine: settings?.processEngine ?? 'camunda',
+        elementFactory: DEFAULT_ELEMENT_SIZES,
         // The panel modules read `propertiesPanel.parent`, so it is only set when a parent
         // exists — the editor can be configured without the custom panel.
         ...(panelParent ? { propertiesPanel: { parent: panelParent } } : {}),
@@ -93,7 +96,9 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
       } else {
         // Without a diagram there is no canvas root and no element to select, so the properties
         // panel would render empty and the palette would refuse to place anything.
-        this.bpmnModeler.createDiagram();
+        createNewDiagram(this.bpmnModeler, settings).catch((error: unknown) => {
+          console.error('Could not create BPMN 2.0 diagram', error);
+        });
       }
 
       // Listen for xml changes

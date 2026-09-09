@@ -31,6 +31,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import tech.jhipster.service.filter.StringFilter;
 import tech.jhipster.web.util.HeaderUtil;
 import tech.jhipster.web.util.PaginationUtil;
 import tech.jhipster.web.util.ResponseUtil;
@@ -231,6 +232,7 @@ public class FlowResource {
         FlowCriteria criteria,
         @org.springdoc.core.annotations.ParameterObject Pageable pageable
     ) {
+        rejectUncomparableFlowFilter(criteria);
         Page<FlowDTO> page = flowQueryService.findByCriteria(criteria, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
@@ -246,9 +248,28 @@ public class FlowResource {
     @Secured(ENTITY_NAME)
     public ResponseEntity<Long> countFlows(FlowCriteria criteria) {
         log.debug("REST request to count Flows by criteria: {}", criteria);
+        rejectUncomparableFlowFilter(criteria);
         return ResponseEntity.ok().body(flowQueryService.countByCriteria(criteria));
     }
 
+    /**
+     * Oracle cannot compare a CLOB with = or IN (ORA-22848). H2 accepts those
+     * operations, so reject the unsupported filters consistently before SQL is generated.
+     */
+    private void rejectUncomparableFlowFilter(FlowCriteria criteria) {
+        if (criteria == null || criteria.getFlow() == null) {
+            return;
+        }
+
+        StringFilter flow = criteria.getFlow();
+        if (flow.getEquals() != null || flow.getNotEquals() != null || flow.getIn() != null || flow.getNotIn() != null) {
+            throw new BadRequestAlertException(
+                "flow is stored as a CLOB and cannot be compared with equals, notEquals, in or notIn. Use flow.contains.",
+                ENTITY_NAME,
+                "flownotcomparable"
+            );
+        }
+    }
     /**
      * {@code GET  /flows/:id} : get the "id" flow.
      *

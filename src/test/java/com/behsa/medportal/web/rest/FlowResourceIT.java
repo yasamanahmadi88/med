@@ -384,28 +384,20 @@ class FlowResourceIT {
 
     @Test
     @Transactional
-    void getAllFlowsByFlowIsEqualToSomething() throws Exception {
-        // Initialize the database
+    void getAllFlowsByFlowIsEqualToSomethingIsRejected() throws Exception {
         flowRepository.saveAndFlush(flowEntity);
 
-        // Get all the flowList where flow equals to DEFAULT_FLOW
-        defaultFlowShouldBeFound("flow.equals=" + DEFAULT_FLOW);
-
-        // Get all the flowList where flow equals to UPDATED_FLOW
-        defaultFlowShouldNotBeFound("flow.equals=" + UPDATED_FLOW);
+        flowFilterShouldBeRejected("flow.equals=" + DEFAULT_FLOW);
+        flowFilterShouldBeRejected("flow.notEquals=" + UPDATED_FLOW);
     }
 
     @Test
     @Transactional
-    void getAllFlowsByFlowIsInShouldWork() throws Exception {
-        // Initialize the database
+    void getAllFlowsByFlowIsInIsRejected() throws Exception {
         flowRepository.saveAndFlush(flowEntity);
 
-        // Get all the flowList where flow in DEFAULT_FLOW or UPDATED_FLOW
-        defaultFlowShouldBeFound("flow.in=" + DEFAULT_FLOW + "," + UPDATED_FLOW);
-
-        // Get all the flowList where flow equals to UPDATED_FLOW
-        defaultFlowShouldNotBeFound("flow.in=" + UPDATED_FLOW);
+        flowFilterShouldBeRejected("flow.in=" + DEFAULT_FLOW + "," + UPDATED_FLOW);
+        flowFilterShouldBeRejected("flow.notIn=" + UPDATED_FLOW);
     }
 
     @Test
@@ -470,6 +462,19 @@ class FlowResourceIT {
         defaultFlowShouldNotBeFound("productId.equals=" + (productId + 1));
     }
 
+    private void flowFilterShouldBeRejected(String filter) throws Exception {
+        restFlowMockMvc
+            .perform(get(ENTITY_API_URL + "?sort=id,desc&" + filter))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.errorKey").value("flownotcomparable"))
+            .andExpect(jsonPath("$.entityName").value("flow"));
+
+        restFlowMockMvc
+            .perform(get(ENTITY_API_URL + "/count?sort=id,desc&" + filter))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.errorKey").value("flownotcomparable"))
+            .andExpect(jsonPath("$.entityName").value("flow"));
+    }
     /**
      * Executes the search, and checks that the default entity is returned.
      */

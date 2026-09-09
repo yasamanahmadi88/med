@@ -115,9 +115,9 @@ describe('BpmnEditorComponent', () => {
     expect(created[0].options.moddleExtensions.cdrParser).toBeUndefined();
   });
 
-  it('starts an empty diagram when no xml is supplied', () => {
-    expect(created[0].createDiagram).toHaveBeenCalled();
-    expect(created[0].importXML).not.toHaveBeenCalled();
+  it('starts an empty diagram from generated XML when no xml is supplied', () => {
+    expect(created[0].createDiagram).not.toHaveBeenCalled();
+    expect(created[0].importXML).toHaveBeenCalledTimes(1);
   });
 
   it('clears the modeler from the service on destroy', () => {

@@ -11,6 +11,18 @@ import {
   test,
 } from './support/medportal-fixtures';
 
+// The shapes these specs read out of the i18n sources. Declaring them keeps `JSON.parse`'s `any`
+// from leaking into the assertions, and states which keys the translation files are expected to
+// carry — a rename in `global.json` fails the typecheck here rather than the assertion below.
+interface GlobalBundle {
+  global: { menu: { home: string; entities: { module: string } } };
+  entity: { action: { show: string } };
+}
+
+interface ModuleBundle {
+  medPortalApp: { module: { configs: string } };
+}
+
 test.describe('MedPortal authentication', () => {
   test('login page opens with captcha and themed document root', async ({ page, mockApi }) => {
     await mockApi({ account: 'anonymous' });
@@ -118,7 +130,7 @@ test.describe('MedPortal routes and menus', () => {
     for (const path of lazyRoutePaths) {
       await test.step(`load ${path}`, async () => {
         await page.goto(path);
-        await expect(page).toHaveURL(new RegExp(`${path === '/' ? '\\/$' : `${path.replaceAll('/', '\\/')}$`}`));
+        await expect(page).toHaveURL(new RegExp(path === '/' ? '\\/$' : `${path.replaceAll('/', '\\/')}$`));
         await expect(page.locator('main')).toBeVisible();
       });
     }
@@ -155,7 +167,9 @@ test.describe('MedPortal themes and responsive navigation', () => {
 
   test('stored dark theme applies on login and after entering the application', async ({ page, mockApi }) => {
     await mockApi({ account: 'anonymous', authenticateAs: 'admin' });
-    await page.addInitScript(() => localStorage.setItem('medportal-theme', 'dark'));
+    await page.addInitScript(() => {
+      localStorage.setItem('medportal-theme', 'dark');
+    });
 
     await page.goto('/login');
     await expectTheme(page, 'dark');
@@ -276,7 +290,9 @@ test.describe('MedPortal entity lists', () => {
     // `content/scss` sets `scroll-behavior: smooth` on the document, so a plain `scrollTo` has
     // not landed by the time the next statement reads `scrollY`. Asking for an instant scroll is
     // what makes the reading real rather than always-zero.
-    await page.evaluate(() => window.scrollTo({ top: 100_000, behavior: 'instant' as ScrollBehavior }));
+    await page.evaluate(() => {
+      window.scrollTo({ top: 100_000, behavior: 'instant' as ScrollBehavior });
+    });
 
     const scrolled = await page.evaluate(() => ({
       scrollY: window.scrollY,
@@ -309,7 +325,7 @@ test.describe('MedPortal language', () => {
     // bundle that is missing, stale or merged wrongly renders something else and fails here.
     // `global.menu.home` is the probe because the navbar carries it on every route.
     const menuHome = (lang: string): string =>
-      JSON.parse(readFileSync(join(process.cwd(), `src/main/webapp/i18n/${lang}/global.json`), 'utf8')).global.menu.home;
+      (JSON.parse(readFileSync(join(process.cwd(), `src/main/webapp/i18n/${lang}/global.json`), 'utf8')) as GlobalBundle).global.menu.home;
     const english = menuHome('en');
     const persian = menuHome('fa');
     // Guards the probe itself. A key that happened to be translated identically in both languages
@@ -344,10 +360,12 @@ test.describe('MedPortal language', () => {
     const ZWNJ = '\u200C';
     // Read from the same sources the bundle is built from, as the test above does, so this
     // measures the pipeline rather than restating a hard-coded string.
-    const faBundle = (file: string) => JSON.parse(readFileSync(join(process.cwd(), `src/main/webapp/i18n/fa/${file}.json`), 'utf8'));
-    const menuModule: string = faBundle('global').global.menu.entities.module; // "ماژول\u200Cها"
-    const showTemplate: string = faBundle('global').entity.action.show; // "نمایش {{otherEntity}}"
-    const configs: string = faBundle('module').medPortalApp.module.configs; // "تنظیم\u200Cها"
+    const faBundle = (file: string): unknown =>
+      JSON.parse(readFileSync(join(process.cwd(), `src/main/webapp/i18n/fa/${file}.json`), 'utf8'));
+    const faGlobal = faBundle('global') as GlobalBundle;
+    const menuModule = faGlobal.global.menu.entities.module; // "ماژول\u200Cها"
+    const showTemplate = faGlobal.entity.action.show; // "نمایش {{otherEntity}}"
+    const configs = (faBundle('module') as ModuleBundle).medPortalApp.module.configs; // "تنظیم\u200Cها"
 
     // Guards the probes themselves: a value that lost its ZWNJ in the source would make the DOM
     // assertions below pass against the wrong expectation.
@@ -381,7 +399,7 @@ test.describe('MedPortal language', () => {
     const rendered = (await showConfigs.textContent()) ?? '';
     // Exactly one ZWNJ: the one inside the interpolated label. A second would mean the template
     // had re-grown a plural suffix of its own, which is the doubling this change removed.
-    expect([...rendered].filter(character => character === ZWNJ)).toHaveLength(1);
+    expect(rendered.match(new RegExp(ZWNJ, 'gu')) ?? []).toHaveLength(1);
     expect(rendered).not.toMatch(new RegExp(`ها[${ZWNJ} ]?ها`));
     // Substitution actually happened — the braces are gone and the entity name is present.
     expect(rendered).not.toContain('{{');

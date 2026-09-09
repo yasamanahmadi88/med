@@ -41,6 +41,8 @@ jobs:
 
       - run: npm run lint
 
+      - run: npm run typecheck:e2e
+
       - run: npx ng test --watch=false --coverage=false
 
       - run: npm run webapp:build:prod

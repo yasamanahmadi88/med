@@ -177,7 +177,9 @@ test.describe('BPMN editor custom icons', () => {
     // SVG and has to be refused on its contents.
     await page
       .getByTestId('bpmnIconFile')
-      .setInputFiles(svgFile('<svg xmlns="http://www.w3.org/2000/svg" onload="window.__pwned = true"><script>window.__pwned = true</script></svg>'));
+      .setInputFiles(
+        svgFile('<svg xmlns="http://www.w3.org/2000/svg" onload="window.__pwned = true"><script>window.__pwned = true</script></svg>'),
+      );
 
     await expect(page.getByTestId('bpmnIconError')).toBeVisible();
     await expect(page.getByTestId('bpmnIconPreview')).toHaveCount(0);
@@ -200,7 +202,7 @@ test.describe('BPMN editor custom icons', () => {
       // The document is full of `<text>` elements either way: every bpmn-js label is one, and the
       // shape placed here is labelled "Sentinel". What must not exist is one carrying the string
       // from inside the icon.
-      sentinelInDocument: (document.documentElement.textContent ?? '').includes('ICON-SENTINEL'),
+      sentinelInDocument: document.documentElement.textContent.includes('ICON-SENTINEL'),
       sentinelNodes: Array.from(document.querySelectorAll('*')).filter(node =>
         Array.from(node.childNodes).some(child => child.nodeType === Node.TEXT_NODE && child.textContent?.includes('ICON-SENTINEL')),
       ).length,

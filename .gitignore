@@ -3,6 +3,7 @@
 ######################
 /node/
 node_modules/
+node_modules
 
 ######################
 # Build / target / Angular

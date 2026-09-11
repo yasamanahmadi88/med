@@ -18,7 +18,7 @@
     grid-template-columns: auto 1fr auto;
 
     jhi-palette {
-      border-right: 1px solid #e0e0e0;
+      border-inline-end: 1px solid #e0e0e0;
       overflow-y: auto;
       width: 200px;
       height: 100%;
@@ -30,7 +30,7 @@
     grid-template-columns: minmax(0, 1fr) 350px;
 
     jhi-panel {
-      border-left: 1px solid #e0e0e0;
+      border-inline-start: 1px solid #e0e0e0;
       overflow-y: auto;
       width: 100%;
       min-width: 0;
@@ -66,7 +66,7 @@
 
   .camunda-penal {
     width: 350px;
-    border-left: 1px solid #e0e0e0;
+    border-inline-start: 1px solid #e0e0e0;
     overflow-y: auto;
     background-color: #fff;
   }
@@ -117,7 +117,7 @@ jhi-context-menu {
         width: 100%;
         height: 100%;
         border-top: 1px solid #e0e0e0;
-        border-left: 0;
+        border-inline-start: 0;
       }
     }
 
@@ -143,7 +143,7 @@ jhi-context-menu {
         width: 100%;
         min-height: 0;
         border-top: 1px solid #e0e0e0;
-        border-left: 0;
+        border-inline-start: 0;
       }
     }
   }

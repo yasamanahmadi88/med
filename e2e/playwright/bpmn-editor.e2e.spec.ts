@@ -62,6 +62,9 @@ test.describe('BPMN editor', () => {
     const before = await page.locator('.bpmn-canvas .djs-element').count();
 
     await menu.getByRole('menuitem', { name: 'Start Event', exact: true }).click();
+
+    // ContextMenuComponent schedules create.start(...) after 30 ms.
+    await page.waitForTimeout(100);
     await page.mouse.click(canvasBox!.x + canvasBox!.width * 0.6, canvasBox!.y + canvasBox!.height * 0.6);
 
     await expect(page.locator('.bpmn-canvas .djs-element')).not.toHaveCount(before);
@@ -193,6 +196,114 @@ test.describe('BPMN editor', () => {
 
     for (const title of ['Save', 'Preview as XML', 'Cancel', 'Zoom Out', 'Zoom Reset', 'Zoom In', 'Undo', 'Redo', 'Restart']) {
       await expect(page.locator(`.toolbar button[title="${title}"]`), `toolbar ${title}`).toBeVisible();
+    }
+  });
+  test('keeps the BPMN full-screen layout inside the viewport', async ({ page, mockApi }) => {
+    await page.setViewportSize({ width: 1366, height: 768 });
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    const appRoot = page.locator('.app-root');
+    const main = page.locator('.app-root > main');
+    const editor = page.locator('#designer-container');
+
+    await expect(appRoot).toHaveClass(/full-screen-mode/);
+    await expect(main).toBeVisible();
+    await expect(editor).toBeVisible();
+
+    const viewport = page.viewportSize();
+    const appBox = await appRoot.boundingBox();
+    const mainBox = await main.boundingBox();
+    const editorBox = await editor.boundingBox();
+
+    expect(viewport).not.toBeNull();
+    expect(appBox).not.toBeNull();
+    expect(mainBox).not.toBeNull();
+    expect(editorBox).not.toBeNull();
+
+    expect(appBox!.y + appBox!.height).toBeLessThanOrEqual(viewport!.height + 1);
+    expect(mainBox!.y + mainBox!.height).toBeLessThanOrEqual(viewport!.height + 1);
+    expect(editorBox!.y + editorBox!.height).toBeLessThanOrEqual(viewport!.height + 1);
+  });
+
+  test('maps active BPMN logical dividers correctly in LTR and RTL', async ({ page, mockApi }) => {
+    await page.setViewportSize({ width: 1366, height: 768 });
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    const panelHost = page.locator('#designer-container .main-content > jhi-panel');
+    const panelBody = panelHost.locator('.editor-properties-panel');
+
+    await expect(panelHost).toBeVisible();
+    await expect(panelBody).toBeVisible();
+
+    const readBorders = async (locator: typeof panelHost) =>
+      locator.evaluate(element => {
+        const style = window.getComputedStyle(element);
+
+        return {
+          direction: style.direction,
+          left: Number.parseFloat(style.borderLeftWidth) || 0,
+          right: Number.parseFloat(style.borderRightWidth) || 0,
+        };
+      });
+
+    await page.locator('html').evaluate(element => element.setAttribute('dir', 'ltr'));
+
+    await page.waitForFunction(() => document.documentElement.dir === 'ltr');
+
+    const ltrHost = await readBorders(panelHost);
+    const ltrBody = await readBorders(panelBody);
+
+    expect(ltrHost.direction).toBe('ltr');
+    expect(ltrBody.direction).toBe('ltr');
+
+    expect(ltrHost.left).toBeGreaterThan(0);
+    expect(ltrHost.right).toBe(0);
+
+    expect(ltrBody.left).toBeGreaterThan(0);
+    expect(ltrBody.right).toBe(0);
+
+    await page.locator('html').evaluate(element => element.setAttribute('dir', 'rtl'));
+
+    await page.waitForFunction(() => document.documentElement.dir === 'rtl');
+
+    const rtlHost = await readBorders(panelHost);
+    const rtlBody = await readBorders(panelBody);
+
+    expect(rtlHost.direction).toBe('rtl');
+    expect(rtlBody.direction).toBe('rtl');
+
+    expect(rtlHost.left).toBe(0);
+    expect(rtlHost.right).toBeGreaterThan(0);
+
+    expect(rtlBody.left).toBe(0);
+    expect(rtlBody.right).toBeGreaterThan(0);
+
+    // jhi-palette is conditional (*ngIf="customPalette").
+    // Validate it too when this configuration actually renders it.
+    const customPalette = page.locator('#designer-container .main-content > jhi-palette');
+
+    if ((await customPalette.count()) > 0) {
+      await expect(customPalette).toBeVisible();
+
+      await page.locator('html').evaluate(element => element.setAttribute('dir', 'ltr'));
+      await page.waitForFunction(() => document.documentElement.dir === 'ltr');
+
+      const ltrPalette = await readBorders(customPalette);
+
+      expect(ltrPalette.left).toBe(0);
+      expect(ltrPalette.right).toBeGreaterThan(0);
+
+      await page.locator('html').evaluate(element => element.setAttribute('dir', 'rtl'));
+      await page.waitForFunction(() => document.documentElement.dir === 'rtl');
+
+      const rtlPalette = await readBorders(customPalette);
+
+      expect(rtlPalette.left).toBeGreaterThan(0);
+      expect(rtlPalette.right).toBe(0);
     }
   });
 });

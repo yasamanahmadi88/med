@@ -94,8 +94,13 @@ README with what porting them would cost.
   (`e2e/playwright/bpmn-custom-icons.e2e.spec.ts`, `CustomIconFlowFixture.java`).
 - **Dependencies**: all six already present at the same versions. Nothing to add.
 - **Wiring**: eleven of twelve markers already present. The one gap is
-  `layouts/main/main.component.scss`, which has no `.fullscreen-mode` block — that is the 47px
-  fix, and it is the one thing `apply` cannot do for you.
+  `layouts/main/main.component.scss`, which carries the rule under the old `full-screen-mode`
+  name — that is the 47px fix, and `--fix-wiring` closes it in the same command.
+
+The offline branch also had `height: 100dvh` on that rule, which this repository did not. That is
+a real catch and it is now ported: `.browserslistrc` targets iOS Safari back to 18.0, and there
+`100vh` is the viewport with the browser chrome _ignored_, so the editor is sized taller than the
+space it has. The `100vh` above it stays as the fallback.
 
 A real `apply` then made the offline `bpmn-editor/` byte-identical to this one, and its eight dead
 stylesheets were gone rather than merged in.
@@ -112,12 +117,30 @@ of the backend is in place.
 
 ## The transport
 
-`scripts/sync-bpmn.sh` moves the feature across. It exists because the offline project has no
-route to github.com, so the transport has to be one file that can be carried by hand, and because
-"copy the folder over" is not enough: the module also needs six npm dependencies and eleven wiring
-points in files the offline project owns.
+`scripts/sync-bpmn.sh` moves the feature across. It exists because "copy the folder over" is not
+enough: the module also needs six npm dependencies and twelve wiring points in files the target
+owns.
 
-### 1. Here, on a machine with this repository
+There are two ways in, and they are checked identically — both stage the same payload and both
+verify it against a sha256 manifest before anything is written.
+
+### If the target machine can reach the repository: one command
+
+Run it from the target project's root:
+
+```sh
+git clone --depth 1 -b claude/bpmn-comparison-integration-ipacwc \
+      https://github.com/yasamanahmadi88/med.git /tmp/med-bpmn-src \
+  && /tmp/med-bpmn-src/scripts/sync-bpmn.sh apply \
+      --from /tmp/med-bpmn-src --target "$PWD" --fix-wiring
+```
+
+`--from` reads the clone directly, with no tar round-trip. Add `--dry-run` to see every action
+first. Re-running it is a no-op, so it is safe to repeat.
+
+### If it cannot: build a bundle and carry it
+
+On a machine with the source tree:
 
 ```sh
 ./scripts/sync-bpmn.sh export
@@ -125,19 +148,13 @@ points in files the offline project owns.
 
 Writes `target/med-bpmn-bundle-<sha>-<date>.tar.gz` — payload, upstream copies of every wiring
 file, the dependency versions read out of `package.json`, a sha256 manifest, provenance, and a
-copy of the script itself. Nothing in `apply` needs this repository afterwards.
-
-### 2. There, on the offline machine
-
-One command, from whichever directory the bundle landed in:
+copy of the script itself. Nothing in `apply` then needs the network:
 
 ```sh
 mkdir -p bpmn-bundle && tar -xzf med-bpmn-bundle-<sha>-<date>.tar.gz -C bpmn-bundle \
   && bpmn-bundle/sync-bpmn.sh apply --bundle med-bpmn-bundle-<sha>-<date>.tar.gz \
-       --target /path/to/offline/med
+      --target /path/to/med --fix-wiring
 ```
-
-Add `--dry-run` to see every action first without writing anything.
 
 ## What `apply` does, and what it refuses to do
 
@@ -188,6 +205,14 @@ command per file.
 | `web/rest/FlowResource.java`                         | `bpmnParserActive`               | the external parser path, and the CLOB filter rules                            |
 | `liquibase/changelog/20260711_002_domain_schema.xml` | `flow` as `${clobType}`          | the production column the entity must match                                    |
 | `e2e/playwright/support/medportal-fixtures.ts`       | `mockApi`                        | the fixture the three BPMN suites need                                         |
+
+**`--fix-wiring` closes the one gap it can do deterministically.** The offline checkout marks the
+editor route with `full-screen-mode`; this repository renamed it to `fullscreen-mode` along with
+the measured rule block behind it (see "The 47px, fixed" in the module README). The name lives in
+**two** files — `main.component.html` and `main.component.scss` — so the fix moves both together;
+renaming one alone leaves the shell with no matching rule, which is worse than not touching it.
+The flag backs up both files before rewriting either, and if the block it expects is not there it
+skips and reports rather than guessing. Everything else is still reported, never edited.
 
 `FlowEntity.java` is the one worth not skipping. The custom-icon library puts up to 192 KB of
 base64 inside `FlowEntity.flow`; left at Hibernate's default length that column is generated as

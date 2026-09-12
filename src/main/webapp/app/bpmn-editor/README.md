@@ -1269,6 +1269,20 @@ That is the difference between measuring the scroll and always reading 0.
   last row". Making the shell rule global (`.app-root` instead of `.fullscreen-mode`) fails it:
   `scrollHeight` collapses from 3265 to 720.
 
+### `100dvh`, added later from the parity branch
+
+The rule sets `height: 100vh` and then `height: 100dvh`. The second is what the route actually
+wants: on iOS Safari — which `.browserslistrc` targets back to 18.0 — `100vh` is the viewport
+measured with the browser chrome _ignored_, so the editor is sized taller than the space it has
+and its bottom edge sits under the toolbar. `100dvh` is the space really available. Every target
+this project declares supports it (Chrome 108+, Safari 15.4+, Firefox 101+); anything that does
+not drops the line and keeps the `100vh` above, so the fallback costs nothing.
+
+It changes nothing on a desktop viewport, which is why the two Playwright pins above still read
+the same numbers — they run headless Chromium at a fixed size, where `dvh` and `vh` are equal.
+This came from the `feature/bpmn-vue-angular-parity` branch, which had it on its own version of
+this rule.
+
 ### RTL, measured rather than reasoned about
 
 This application ships Persian (`config/language.constants.ts`) and `MainComponent` writes `dir` on

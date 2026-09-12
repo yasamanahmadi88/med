@@ -12,6 +12,15 @@
 // as before; nothing in this block matches without the `fullscreen-mode` class.
 .fullscreen-mode {
   height: 100vh;
+  // `dvh` second, as a progressive enhancement over the `vh` above: on iOS Safari — which
+  // `.browserslistrc` targets, back to 18.0 — `100vh` is the viewport with the browser chrome
+  // *ignored*, so the editor is sized taller than the space it actually has and its bottom edge
+  // sits under the toolbar. `100dvh` is the space really available. Every target this project
+  // declares supports it (Chrome 108+, Safari 15.4+, Firefox 101+), and anything that does not
+  // drops this line and keeps the `100vh` above, so the fallback costs nothing.
+  //
+  // Found on the parity branch, which had it and the rest of this block's measured chain.
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;

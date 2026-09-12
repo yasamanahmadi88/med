@@ -81,6 +81,9 @@ BPMN_DEPS=(
 )
 
 usage() {
+  # NOTE: this heredoc is unquoted so $SCRIPT_NAME expands. That also makes backticks and $( )
+  # run as commands, so neither belongs in the text below — use plain quotes. The guard just
+  # above the subcommand dispatch at the bottom of this file enforces it on every run.
   cat <<USAGE
 $SCRIPT_NAME — carry the BPMN editor feature to an offline MedPortal checkout.
 
@@ -88,11 +91,19 @@ $SCRIPT_NAME — carry the BPMN editor feature to an offline MedPortal checkout.
       Run inside this repository, on a machine that has the source tree. Writes
       med-bpmn-bundle-<sha>-<date>.tar.gz (default: target/).
 
-  $SCRIPT_NAME apply --bundle FILE.tar.gz --target DIR [--dry-run]
-      Run on the offline machine. DIR is the root of the offline MedPortal checkout
-      (the directory holding package.json and angular.json).
+  $SCRIPT_NAME apply (--bundle FILE.tar.gz | --from CHECKOUT) --target DIR
+                     [--dry-run] [--fix-wiring]
+      Install into DIR, the root of the target MedPortal checkout (the directory holding
+      package.json and angular.json).
 
-      --dry-run  report every action without writing anything.
+      --bundle       a bundle built by 'export', for a machine with no route to the source.
+      --from         a checkout of this repository already on this machine — same checks,
+                     no tar round-trip.
+      --dry-run      report every action without writing anything.
+      --fix-wiring   also close the wiring gaps this script knows how to close safely,
+                     backing up each file it rewrites. Off by default: those files belong
+                     to the target. Anything it cannot fix deterministically it reports
+                     instead, as usual.
 
 Exit status: 0 when the payload is in place and every wiring marker is present; 3 when the
 payload was installed but wiring is missing (the report names each one); 1 on error.
@@ -118,6 +129,68 @@ sha256_of() {
 # export
 # ---------------------------------------------------------------------------
 
+# Stage everything a bundle carries, from a checkout of this repository. `export` tars the
+# result; `apply --from` reads it in place, so both paths see byte-identical input and a single
+# manifest check covers them.
+_stage_from_repo() {
+  local root="$1" stage="$2"
+
+  [[ -d $root/src/main/webapp/app/bpmn-editor ]] ||
+    fail "$root is not a checkout of this repository: src/main/webapp/app/bpmn-editor is missing"
+
+  rm -rf "$stage"
+  mkdir -p "$stage/payload" "$stage/wiring-reference"
+
+  echo "Staging payload..."
+  local path
+  for path in "${PAYLOAD_PATHS[@]}"; do
+    [[ -e $root/$path ]] || fail "payload path is missing from the source: $path"
+    mkdir -p "$stage/payload/$(dirname "$path")"
+    cp -R "$root/$path" "$stage/payload/$(dirname "$path")/"
+  done
+
+  echo "Staging wiring reference..."
+  local entry marker
+  for entry in "${WIRING_PATHS[@]}"; do
+    path="${entry%%|*}"
+    marker="${entry#*|}"
+    [[ -e $root/$path ]] || fail "wiring path is missing from the source: $path"
+    grep -qF -- "$marker" "$root/$path" ||
+      fail "wiring marker '$marker' is no longer in $path — update the inventory in $SCRIPT_NAME"
+    mkdir -p "$stage/wiring-reference/$(dirname "$path")"
+    cp "$root/$path" "$stage/wiring-reference/$path"
+  done
+
+  # Dependency versions, read from package.json so they cannot drift from the tree being shipped.
+  echo "Reading dependency versions..."
+  : > "$stage/BPMN_DEPENDENCIES"
+  local dep version
+  for dep in "${BPMN_DEPS[@]}"; do
+    version="$(sed -n "s/^[[:space:]]*\"$dep\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p" "$root/package.json" | head -1)"
+    [[ -n $version ]] || fail "dependency $dep is not in the source package.json"
+    printf '%s\t%s\n' "$dep" "$version" >> "$stage/BPMN_DEPENDENCIES"
+  done
+
+  {
+    echo "source-repo: $(git -C "$root" config --get remote.origin.url 2>/dev/null || echo unknown)"
+    echo "source-branch: $(git -C "$root" rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)"
+    echo "source-commit: $(git -C "$root" rev-parse HEAD 2>/dev/null || echo unknown)"
+    echo "exported-at: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  } > "$stage/PROVENANCE"
+
+  cp "$0" "$stage/sync-bpmn.sh"
+  chmod +x "$stage/sync-bpmn.sh"
+
+  echo "Writing manifest..."
+  ( cd "$stage" && find payload wiring-reference BPMN_DEPENDENCIES PROVENANCE -type f | LC_ALL=C sort ) > "$stage/.files"
+  : > "$stage/MANIFEST"
+  local file
+  while IFS= read -r file; do
+    printf '%s  %s\n' "$(sha256_of "$stage/$file")" "$file" >> "$stage/MANIFEST"
+  done < "$stage/.files"
+  rm -f "$stage/.files"
+}
+
 cmd_export() {
   local out_dir="target"
   while [[ $# -gt 0 ]]; do
@@ -128,70 +201,15 @@ cmd_export() {
     esac
   done
 
-  local root
+  local root stage sha date bundle
   root="$(cd "$(dirname "$0")/.." && pwd)"
-  cd "$root"
-
-  [[ -d src/main/webapp/app/bpmn-editor ]] ||
-    fail "run export from this repository: src/main/webapp/app/bpmn-editor is missing"
-
-  local sha date stage bundle
-  sha="$(git rev-parse --short HEAD 2>/dev/null || echo nogit)"
+  sha="$(git -C "$root" rev-parse --short HEAD 2>/dev/null || echo nogit)"
   date="$(date +%Y%m%d)"
   stage="$out_dir/bpmn-bundle-stage"
   bundle="$out_dir/med-bpmn-bundle-$sha-$date.tar.gz"
 
-  rm -rf "$stage"
-  mkdir -p "$stage/payload" "$stage/wiring-reference" "$out_dir"
-
-  echo "Staging payload..."
-  local path
-  for path in "${PAYLOAD_PATHS[@]}"; do
-    [[ -e $path ]] || fail "payload path is missing from this repository: $path"
-    mkdir -p "$stage/payload/$(dirname "$path")"
-    cp -R "$path" "$stage/payload/$(dirname "$path")/"
-  done
-
-  echo "Staging wiring reference..."
-  local entry marker
-  for entry in "${WIRING_PATHS[@]}"; do
-    path="${entry%%|*}"
-    marker="${entry#*|}"
-    [[ -e $path ]] || fail "wiring path is missing from this repository: $path"
-    grep -qF -- "$marker" "$path" ||
-      fail "wiring marker '$marker' is no longer in $path — update the inventory in $SCRIPT_NAME"
-    mkdir -p "$stage/wiring-reference/$(dirname "$path")"
-    cp "$path" "$stage/wiring-reference/$path"
-  done
-
-  # Dependency versions, read from package.json so they cannot drift from the tree being shipped.
-  echo "Reading dependency versions..."
-  : > "$stage/BPMN_DEPENDENCIES"
-  local dep version
-  for dep in "${BPMN_DEPS[@]}"; do
-    version="$(sed -n "s/^[[:space:]]*\"$dep\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p" package.json | head -1)"
-    [[ -n $version ]] || fail "dependency $dep is not in package.json"
-    printf '%s\t%s\n' "$dep" "$version" >> "$stage/BPMN_DEPENDENCIES"
-  done
-
-  # Provenance, then the manifest over everything above it.
-  {
-    echo "source-repo: $(git config --get remote.origin.url 2>/dev/null || echo unknown)"
-    echo "source-branch: $(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)"
-    echo "source-commit: $(git rev-parse HEAD 2>/dev/null || echo unknown)"
-    echo "exported-at: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-  } > "$stage/PROVENANCE"
-
-  cp "$0" "$stage/sync-bpmn.sh"
-  chmod +x "$stage/sync-bpmn.sh"
-
-  echo "Writing manifest..."
-  ( cd "$stage" && find payload wiring-reference BPMN_DEPENDENCIES PROVENANCE -type f | LC_ALL=C sort ) > "$stage/.files"
-  : > "$stage/MANIFEST"
-  while IFS= read -r file; do
-    printf '%s  %s\n' "$(sha256_of "$stage/$file")" "$file" >> "$stage/MANIFEST"
-  done < "$stage/.files"
-  rm -f "$stage/.files"
+  mkdir -p "$out_dir"
+  _stage_from_repo "$root" "$stage"
 
   tar -czf "$bundle" -C "$stage" .
   rm -rf "$stage"
@@ -214,24 +232,33 @@ cmd_export() {
 # ---------------------------------------------------------------------------
 
 cmd_apply() {
-  local bundle="" target="" dry_run=0
+  local bundle="" from="" target="" dry_run=0 fix_wiring=0
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --bundle) bundle="${2:-}"; [[ -n $bundle ]] || fail "--bundle needs a file"; shift 2 ;;
+      --from) from="${2:-}"; [[ -n $from ]] || fail "--from needs a directory"; shift 2 ;;
       --target) target="${2:-}"; [[ -n $target ]] || fail "--target needs a directory"; shift 2 ;;
       --dry-run) dry_run=1; shift ;;
+      --fix-wiring) fix_wiring=1; shift ;;
       -h|--help) usage; exit 0 ;;
       *) fail "unknown option for apply: $1" ;;
     esac
   done
 
-  [[ -n $bundle ]] || fail "--bundle is required"
+  [[ -n $bundle || -n $from ]] || fail "one of --bundle or --from is required"
+  [[ -z $bundle || -z $from ]] || fail "--bundle and --from are mutually exclusive"
   [[ -n $target ]] || fail "--target is required"
-  [[ -f $bundle ]] || fail "bundle not found: $bundle"
   [[ -d $target ]] || fail "target is not a directory: $target"
+  [[ -z $bundle || -f $bundle ]] || fail "bundle not found: $bundle"
+  [[ -z $from || -d $from ]] || fail "source checkout not found: $from"
 
   target="$(cd "$target" && pwd)"
-  bundle="$(cd "$(dirname "$bundle")" && pwd)/$(basename "$bundle")"
+  [[ -z $bundle ]] || bundle="$(cd "$(dirname "$bundle")" && pwd)/$(basename "$bundle")"
+  [[ -z $from ]] || from="$(cd "$from" && pwd)"
+
+  # Applying a checkout over itself would delete the module and copy it back from a staging
+  # directory built out of the same files. Refuse rather than rely on that working.
+  [[ $from != "$target" ]] || fail "--from and --target are the same directory"
 
   # Preflight. This is the guard that keeps the bundle from being unpacked over something that
   # is not MedPortal — an Angular module tree dropped into an unrelated project produces a
@@ -245,22 +272,33 @@ cmd_apply() {
     fail "$target/src/main/webapp/app is missing — the JHipster layout this bundle assumes is not there"
   echo "  target looks like a MedPortal checkout: OK"
 
-  local work
+  local work source_label
   work="$(mktemp -d)"
   # shellcheck disable=SC2064
   trap "rm -rf '$work'" EXIT
-  tar -xzf "$bundle" -C "$work"
 
-  [[ -f $work/MANIFEST ]] || fail "bundle has no MANIFEST — it was not produced by $SCRIPT_NAME export"
+  if [[ -n $bundle ]]; then
+    source_label="$(basename "$bundle")"
+    tar -xzf "$bundle" -C "$work"
+    [[ -f $work/MANIFEST ]] ||
+      fail "bundle has no MANIFEST — it was not produced by $SCRIPT_NAME export"
+  else
+    # No tar round-trip when the source is already on this machine. The manifest is still
+    # written and still verified below, so this path is checked exactly like the bundle one.
+    source_label="$from"
+    echo "== Staging from $from =="
+    _stage_from_repo "$from" "$work"
+    echo
+  fi
 
-  echo "== Verifying bundle =="
+  echo "== Verifying payload =="
   local expected file actual bad=0
   while read -r expected file; do
     [[ -f $work/$file ]] || { echo "  MISSING: $file"; bad=1; continue; }
     actual="$(sha256_of "$work/$file")"
     [[ $actual == "$expected" ]] || { echo "  CHECKSUM MISMATCH: $file"; bad=1; }
   done < "$work/MANIFEST"
-  [[ $bad -eq 0 ]] || fail "bundle failed verification; do not apply it"
+  [[ $bad -eq 0 ]] || fail "payload failed verification; do not apply it"
   echo "  $(wc -l < "$work/MANIFEST") files verified against the manifest: OK"
   echo
   sed 's/^/  /' "$work/PROVENANCE"
@@ -359,6 +397,49 @@ cmd_apply() {
     fi
   done
 
+  # --- optional wiring fix ---------------------------------------------------
+  # Off by default: these files belong to the target, and a rewrite it did not ask for is how a
+  # local change gets lost. `--fix-wiring` opts in, and only the one gap below is ever touched.
+  if [[ $fix_wiring -eq 1 && ${#missing[@]} -gt 0 ]]; then
+    echo
+    echo "== Fixing wiring (--fix-wiring) =="
+    local fixed=()
+    local entry path companion
+    for entry in "${missing[@]}"; do
+      path="${entry%%|*}"
+
+      # Back up before rewriting, and back up the template alongside the stylesheet: the two
+      # move together, so restoring one without the other would leave the shell inconsistent.
+      if [[ $dry_run -eq 0 ]]; then
+        for companion in "$path" "$(_fix_wiring_companion "$path")"; do
+          [[ -n $companion && -f $target/$companion ]] || continue
+          mkdir -p "$backup_dir/$(dirname "$companion")"
+          cp "$target/$companion" "$backup_dir/$companion"
+        done
+      fi
+
+      if _fix_wiring_path "$target" "$work/wiring-reference" "$path" "$dry_run"; then
+        fixed+=("$path")
+      fi
+    done
+
+    # Re-check, so what is reported is the state on disk rather than what the fixer intended.
+    if [[ ${#fixed[@]} -gt 0 && $dry_run -eq 0 ]]; then
+      local still=()
+      for entry in "${missing[@]}"; do
+        path="${entry%%|*}"
+        marker="${entry#*|}"; marker="${marker%|*}"
+        if [[ -f $target/$path ]] && grep -qF -- "$marker" "$target/$path"; then
+          echo "  now ok   $path"
+        else
+          echo "  STILL    $path"
+          still+=("$entry")
+        fi
+      done
+      missing=("${still[@]+"${still[@]}"}")
+    fi
+  fi
+
   # --- report ----------------------------------------------------------------
   if [[ $dry_run -eq 0 ]]; then
     _write_report "$report" "$stamp" "$bundle" "$work" "${missing[@]+"${missing[@]}"}"
@@ -387,6 +468,175 @@ cmd_apply() {
   if [[ $dry_run -eq 0 ]]; then
     echo "Next: npm install && npm run lint && npm run test -- --run app/bpmn-editor"
   fi
+}
+
+# The second file a wiring fix has to touch, if any. Empty when the fix is self-contained.
+_fix_wiring_companion() {
+  case "$1" in
+    src/main/webapp/app/layouts/main/main.component.scss)
+      echo "src/main/webapp/app/layouts/main/main.component.html" ;;
+    *) echo "" ;;
+  esac
+}
+
+# Apply the one wiring gap this script knows how to close, and refuse anything else.
+#
+# The gap: the shell marks the editor route with a class, and the branch this feature comes from
+# renamed it from `full-screen-mode` to `fullscreen-mode` along with the measured rule block
+# behind it (see "The 47px, fixed" in the module README). A checkout that predates that carries
+# the old name in BOTH `main.component.html` and `main.component.scss`, so the two have to move
+# together — renaming one alone leaves the shell with no matching rule at all, which is worse
+# than not touching it.
+#
+# Returns 0 when it changed something, 1 when it did not. Idempotent: a target already carrying
+# the new name reports nothing to do.
+_fix_wiring_path() {
+  local target="$1" ref="$2" path="$3" dry="$4"
+
+  case "$path" in
+    src/main/webapp/app/layouts/main/main.component.scss)
+      local html="src/main/webapp/app/layouts/main/main.component.html"
+
+      [[ -f $target/$path && -f $target/$html ]] || {
+        echo "  skip     $path — the layout files are not both there; fix by hand"
+        return 1
+      }
+      grep -qF 'full-screen-mode' "$target/$path" || {
+        echo "  skip     $path — no 'full-screen-mode' block to rename; fix by hand from the reference copy"
+        return 1
+      }
+
+      if [[ $dry -eq 1 ]]; then
+        echo "  would fix $path and $html (rename the class, take the upstream block)"
+        return 0
+      fi
+
+      _rewrite_fullscreen_block "$target/$path" "$ref/$path" "$target/$html" || {
+        echo "  skip     $path — could not rewrite it safely; fix by hand from the reference copy"
+        return 1
+      }
+      echo "  fixed    $path and $html"
+      return 0
+      ;;
+    *)
+      echo "  skip     $path — no automatic fix for this one; see the report"
+      return 1
+      ;;
+  esac
+}
+
+# Swap the target's `.app-root.full-screen-mode { ... }` block for the reference's
+# `.fullscreen-mode { ... }` block, brace-matched rather than line-guessed, and rename the class
+# binding in the template. Both files are written only if both edits resolve.
+_rewrite_fullscreen_block() {
+  local scss="$1" ref_scss="$2" html="$3"
+  local runner=""
+
+  if command -v python3 >/dev/null 2>&1; then
+    runner=python3
+  elif command -v node >/dev/null 2>&1; then
+    runner=node
+  else
+    return 1
+  fi
+
+  if [[ $runner == python3 ]]; then
+    python3 - "$scss" "$ref_scss" "$html" <<'PY_FIX'
+import sys
+
+scss_path, ref_path, html_path = sys.argv[1:4]
+
+
+def block(text, opener):
+    """The text of `opener { ... }`, brace-matched, plus the comment lines above it."""
+    start = text.find(opener)
+    if start == -1:
+        return None, None, None
+    # Walk back over the comment block that documents the rule.
+    head = start
+    lines = text[:start].split("\n")
+    # text[:start] ends on the newline before the rule, so the split leaves a trailing "" that
+    # would stop the walk-back at once and silently drop the comments documenting the rule.
+    if lines and lines[-1] == "":
+        lines.pop()
+    keep = []
+    while lines and lines[-1].lstrip().startswith("//"):
+        keep.insert(0, lines.pop())
+    if keep:
+        head = len("\n".join(lines))
+        head += 1 if lines else 0
+    depth = 0
+    i = text.index("{", start)
+    for j in range(i, len(text)):
+        if text[j] == "{":
+            depth += 1
+        elif text[j] == "}":
+            depth -= 1
+            if depth == 0:
+                return head, j + 1, text[head:j + 1]
+    return None, None, None
+
+with open(ref_path, encoding="utf-8") as fh:
+    ref = fh.read()
+_, _, replacement = block(ref, ".fullscreen-mode {")
+if replacement is None:
+    sys.exit(1)
+
+with open(scss_path, encoding="utf-8") as fh:
+    scss = fh.read()
+start, end, _ = block(scss, ".app-root.full-screen-mode {")
+if start is None:
+    sys.exit(1)
+
+with open(html_path, encoding="utf-8") as fh:
+    html = fh.read()
+binding = '[class.full-screen-mode]="fullScreen"'
+if binding not in html:
+    sys.exit(1)
+
+with open(scss_path, "w", encoding="utf-8") as fh:
+    fh.write(scss[:start] + replacement + scss[end:])
+with open(html_path, "w", encoding="utf-8") as fh:
+    fh.write(html.replace(binding, '[class.fullscreen-mode]="fullScreen"', 1))
+PY_FIX
+    return $?
+  fi
+
+  node - "$scss" "$ref_scss" "$html" <<'NODE_FIX'
+const fs = require('fs');
+const [scssPath, refPath, htmlPath] = process.argv.slice(2);
+
+function block(text, opener) {
+  const start = text.indexOf(opener);
+  if (start === -1) return null;
+  const lines = text.slice(0, start).split('\n');
+  // Drop the trailing '' the split leaves before the rule, or the walk-back stops at once and
+  // the comments documenting the rule are silently lost.
+  if (lines.length && lines[lines.length - 1] === '') lines.pop();
+  const keep = [];
+  while (lines.length && lines[lines.length - 1].trimStart().startsWith('//')) keep.unshift(lines.pop());
+  const head = keep.length ? lines.join('\n').length + (lines.length ? 1 : 0) : start;
+  let depth = 0;
+  for (let j = text.indexOf('{', start); j < text.length; j++) {
+    if (text[j] === '{') depth++;
+    else if (text[j] === '}' && --depth === 0) return { head, end: j + 1, text: text.slice(head, j + 1) };
+  }
+  return null;
+}
+
+const replacement = block(fs.readFileSync(refPath, 'utf8'), '.fullscreen-mode {');
+if (!replacement) process.exit(1);
+const scss = fs.readFileSync(scssPath, 'utf8');
+const found = block(scss, '.app-root.full-screen-mode {');
+if (!found) process.exit(1);
+const html = fs.readFileSync(htmlPath, 'utf8');
+const binding = '[class.full-screen-mode]="fullScreen"';
+if (!html.includes(binding)) process.exit(1);
+
+fs.writeFileSync(scssPath, scss.slice(0, found.head) + replacement.text + scss.slice(found.end));
+fs.writeFileSync(htmlPath, html.replace(binding, '[class.fullscreen-mode]="fullScreen"'));
+NODE_FIX
+  return $?
 }
 
 # Add the missing BPMN dependencies to package.json, in place, through a real JSON parser.
@@ -494,6 +744,13 @@ _write_report() {
 }
 
 # ---------------------------------------------------------------------------
+
+# The usage heredoc is unquoted (it interpolates $SCRIPT_NAME), so a backtick or $( ) in that
+# text would execute. That is how `--help` once printed the whole environment. Checked here
+# against this file's own source, so it cannot regress silently.
+if grep -n '`\|\$(' <<<"$(sed -n '/^usage() {/,/^}/p' "$0" | grep -v '^\s*#')" >/dev/null; then
+  fail "usage() contains command substitution; use plain quotes in the help text"
+fi
 
 case "${1:-}" in
   export) shift; cmd_export "$@" ;;

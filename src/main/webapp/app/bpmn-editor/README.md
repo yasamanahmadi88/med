@@ -22,6 +22,10 @@ The required BPMN.js libraries and dependencies are already listed in the projec
 npm install
 ```
 
+Moving this feature into a checkout that has no route to github.com is a separate job — the module
+needs six npm dependencies and eleven wiring points besides its own files. `scripts/sync-bpmn.sh`
+does it in one command; see [`docs/bpmn/offline-sync.md`](../../../../../docs/bpmn/offline-sync.md).
+
 ### 2. Import the Module
 
 In your Angular module, import the `BpmnEditorModule`:

@@ -6,6 +6,7 @@ import { BpmnPropertiesPanelModule, BpmnPropertiesProviderModule, CamundaPlatfor
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
 import { additionalModulesFor, moddleExtensionsFor } from '../../additional-modules';
 import { DEFAULT_ELEMENT_SIZES } from '../../additional-modules/ElementFactory';
+import { translationModuleFor } from '../../i18n/translate';
 import ModulePropertiesModule from '../../module-properties';
 import { createNewDiagram } from '../../utils/empty-diagram';
 
@@ -54,6 +55,7 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
     // The palette and renderer modules the settings select, plus the properties panel's own
     // modules when a parent element exists for it to render into.
     const modules: unknown[] = additionalModulesFor(settings);
+    modules.push(translationModuleFor(settings?.language));
     if (panelParent) {
       modules.push(BpmnPropertiesPanelModule, BpmnPropertiesProviderModule);
       // The Camunda groups read camunda-prefixed properties, so they only belong when that is

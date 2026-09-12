@@ -110,6 +110,19 @@ describe('BpmnEditorComponent', () => {
     expect(created[0].options.additionalModules).toEqual(expect.arrayContaining(additionalModulesFor(service.getEditorSettings())));
   });
 
+  it('registers the BPMN runtime translation provider', () => {
+    const translationModule = created[0].options.additionalModules.find(
+      (module: { translate?: unknown[] }) => module.translate?.[0] === 'value',
+    );
+
+    expect(translationModule).toBeTruthy();
+
+    const translate = translationModule.translate[1] as (template: string, replacements?: Record<string, unknown>) => string;
+
+    expect(translate('Task')).toBe('Task');
+    expect(translate('Create {type}', { type: 'StartEvent' })).toBe('Create StartEvent');
+  });
+
   it('registers the camunda moddle extension the Camunda provider needs', () => {
     expect(created[0].options.moddleExtensions.camunda).toBeTruthy();
     expect(created[0].options.moddleExtensions.cdrParser).toBeUndefined();

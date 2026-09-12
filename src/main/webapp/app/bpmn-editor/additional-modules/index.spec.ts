@@ -4,6 +4,7 @@ import EnhancementRenderer from './Renderer/EnhancementRenderer';
 import RewriteRenderer from './Renderer/RewriteRenderer';
 import CustomElementFactory from './ElementFactory';
 import CustomRules from './Rules';
+import BpmnColorPicker from './ColorPicker';
 import CustomIcons from '../custom-icons';
 import MinimapModule from 'diagram-js-minimap';
 import BpmnModdle, { ModdleElement, Package } from 'bpmn-moddle';
@@ -218,10 +219,26 @@ describe('bpmn-editor additional modules', () => {
     });
 
     it('protects the start and end events unless otherModule is off', () => {
-      // The one extra the Vue editor kept under `otherModule` that carries behaviour; without it
-      // a stray Delete leaves a process no engine will run.
+      // The first extra the Vue editor kept under `otherModule` that carries behaviour; without
+      // it a stray Delete leaves a process no engine will run.
       expect(additionalModulesFor(settingsWith({ otherModule: true }))).toContain(CustomRules);
       expect(additionalModulesFor(settingsWith({ otherModule: false }))).not.toContain(CustomRules);
+    });
+
+    it('registers the colour picker under the same flag', () => {
+      // The second, and the reason `otherModule` is not just the delete rule. Both providers
+      // register themselves on construction, so being in this list is what makes the context-pad
+      // button exist at all.
+      expect(additionalModulesFor(settingsWith({ otherModule: true }))).toContain(BpmnColorPicker);
+      expect(additionalModulesFor(settingsWith({ otherModule: false }))).not.toContain(BpmnColorPicker);
+    });
+
+    it('does not drag the element factory in for the colour picker alone', () => {
+      // CustomElementFactory exists to size custom element types. The colour picker places no
+      // element, so a default palette and renderer must stay free of it.
+      expect(additionalModulesFor(settingsWith({ paletteMode: 'default', rendererMode: 'default', otherModule: true }))).not.toContain(
+        CustomElementFactory,
+      );
     });
 
     it('treats the separate Angular palette panel as not needing a bpmn-js palette module', () => {
@@ -252,10 +269,10 @@ describe('bpmn-editor additional modules', () => {
       }
     });
 
-    it('tolerates missing settings, keeping the delete rule, the minimap and the custom icons', () => {
+    it('tolerates missing settings, keeping the delete rule, the colour picker, the minimap and the custom icons', () => {
       // Nothing to select a palette or renderer from, but the diagram still deserves its
       // start and end events, and both flags default to on.
-      expect(additionalModulesFor(undefined)).toEqual([CustomRules, MinimapModule, CustomIcons]);
+      expect(additionalModulesFor(undefined)).toEqual([CustomRules, BpmnColorPicker, MinimapModule, CustomIcons]);
     });
   });
 });

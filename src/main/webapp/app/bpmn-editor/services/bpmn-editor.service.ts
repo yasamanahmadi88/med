@@ -61,7 +61,7 @@ export class BpmnEditorService {
     const currentSettings = this.editorSettingsSubject.value;
     this.editorSettingsSubject.next({
       ...currentSettings,
-      language: lang || 'en_US',
+      language: lang || 'zh_CN',
     });
   }
 

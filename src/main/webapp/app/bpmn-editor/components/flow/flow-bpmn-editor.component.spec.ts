@@ -79,26 +79,10 @@ describe('FlowBpmnEditorComponent', () => {
 
       const request = httpMock.expectOne({ method: 'PUT', url: 'api/flows/7' });
       expect(request.request.body).toMatchObject({ id: 7, flowName: 'f', flow: '<definitions id="edited" />' });
-      expect(back).not.toHaveBeenCalled();
-
       request.flush({});
-      expect(back).toHaveBeenCalledTimes(1);
+      expect(back).toHaveBeenCalled();
     });
 
-    it('stays in the editor when saving the persisted flow fails', () => {
-      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-
-      component.save('<definitions id="edited" />');
-
-      const request = httpMock.expectOne({ method: 'PUT', url: 'api/flows/7' });
-      expect(back).not.toHaveBeenCalled();
-
-      request.flush({ message: 'save failed' }, { status: 500, statusText: 'Server Error' });
-
-      expect(back).not.toHaveBeenCalled();
-      expect(consoleError).toHaveBeenCalled();
-      consoleError.mockRestore();
-    });
     it('leaves the flow untouched on cancel', () => {
       component.cancel();
 

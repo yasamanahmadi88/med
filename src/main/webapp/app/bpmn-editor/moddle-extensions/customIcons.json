@@ -1,0 +1,54 @@
+{
+  "name": "CustomIcons",
+  "prefix": "customIcon",
+  "uri": "http://medportal.behsa.com/schema/bpmn/custom-icons",
+  "xml": {
+    "tagAlias": "lowerCase"
+  },
+  "associations": [],
+  "types": [
+    {
+      "name": "IconLibrary",
+      "superClass": ["Element"],
+      "properties": [
+        {
+          "name": "icons",
+          "type": "Icon",
+          "isMany": true
+        }
+      ]
+    },
+    {
+      "name": "Icon",
+      "superClass": ["Element"],
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "String",
+          "isAttr": true
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "isAttr": true
+        },
+        {
+          "name": "contents",
+          "type": "String",
+          "isAttr": true
+        }
+      ]
+    },
+    {
+      "name": "CustomTask",
+      "superClass": ["bpmn:Task"],
+      "properties": [
+        {
+          "name": "iconId",
+          "type": "String",
+          "isAttr": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import { ModuleSchema } from '../schema';
+import { AGREEMENT_MODE, ModuleSchema } from '../schema';
 
 /**
  * `Fragmenter` — splits a batch message into its records. Nothing about the split is configurable;
@@ -11,5 +11,5 @@ import { ModuleSchema } from '../schema';
 export const fragmenterSchema: ModuleSchema = {
   type: 'Fragmenter:Fragmenter',
   label: 'Fragmenter',
-  fields: [{ name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: ['RUNNING', 'FETCH_ONLY', 'DRAFT'] }],
+  fields: [{ name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: AGREEMENT_MODE }],
 };

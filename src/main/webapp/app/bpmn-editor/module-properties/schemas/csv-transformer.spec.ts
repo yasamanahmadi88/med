@@ -1,3 +1,4 @@
+import { optionLabel, optionValue } from '../schema';
 import { csvTransformerSchema } from './csv-transformer';
 
 /**
@@ -55,7 +56,9 @@ describe('csvTransformerSchema', () => {
     const agreementMode = csvTransformerSchema.fields.find(f => f.name === 'agreementMode');
 
     expect(agreementMode?.kind).toBe('select');
-    expect(agreementMode?.options).toEqual(['RUNNING', 'FETCH_ONLY', 'DRAFT']);
+    expect(agreementMode?.options?.map(optionValue)).toEqual(['RUNNING', 'FETCH_ONLY', 'DRAFT']);
+    // The Vue <option> text spaced FETCH_ONLY; SelectEntry shows the label and stores the value.
+    expect(agreementMode?.options?.map(optionLabel)).toEqual(['RUNNING', 'FETCH ONLY', 'DRAFT']);
   });
 
   it('stores the header flag as the strings the Vue select stored', () => {
@@ -65,7 +68,9 @@ describe('csvTransformerSchema', () => {
     const haveHeader = csvTransformerSchema.fields.find(f => f.name === 'haveHeader');
 
     expect(haveHeader?.kind).toBe('select');
-    expect(haveHeader?.options).toEqual(['0', '1']);
+    expect(haveHeader?.options?.map(optionValue)).toEqual(['0', '1']);
+    // The Vue select showed these as NO and YES; a bare 0/1 dropdown is not the same form.
+    expect(haveHeader?.options?.map(optionLabel)).toEqual(['NO', 'YES']);
   });
 
   it('gives options to selects and to nothing else', () => {

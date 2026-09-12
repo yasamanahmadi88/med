@@ -14,6 +14,8 @@
  * editor persisted them and how they persist here.
  */
 
+import { ValidatorName } from './validators';
+
 /** How a field is rendered. Mirrors the control the Vue component used. */
 export type FieldKind = 'text' | 'textarea' | 'select' | 'number';
 
@@ -31,6 +33,11 @@ export interface ModuleField {
   readonly kind: FieldKind;
   /** Allowed values, for `select` only. Taken from the Vue component's <option> list. */
   readonly options?: readonly FieldOption[];
+  /**
+   * Client-side validation, by name. Only the four fields the Vue editor validated carry one;
+   * see `validators.ts`. An empty value is always accepted — none of these is required.
+   */
+  readonly validate?: ValidatorName;
 }
 
 export interface ModuleSchema {
@@ -39,6 +46,19 @@ export interface ModuleSchema {
   /** Group heading in the properties panel. */
   readonly label: string;
   readonly fields: readonly ModuleField[];
+}
+
+/** The value a choice stores — what the backend reads, and all a diagram ever carries. */
+export function optionValue(option: FieldOption): string {
+  return typeof option === 'string' ? option : option.value;
+}
+
+/**
+ * The text a choice shows. Equal to the value unless the Vue `<option>` displayed something else,
+ * which it did for most of the underscored enums and for every `0`/`1` flag.
+ */
+export function optionLabel(option: FieldOption): string {
+  return typeof option === 'string' ? option : option.label;
 }
 
 /** Every module offers the same agreement modes; the Vue template showed FETCH_ONLY spaced. */

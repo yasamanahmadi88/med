@@ -32,7 +32,17 @@ export const anyProcessSchema: ModuleSchema = {
   type: 'bpmn:SequenceFlow',
   label: 'anyProcess',
   fields: [
-    { name: 'ackMode', label: 'Ack Mode', kind: 'select', options: ['NO_ACK', 'REC_ACK', 'VAL_ACK', 'PRC_ACK'] },
+    {
+      name: 'ackMode',
+      label: 'Ack Mode',
+      kind: 'select',
+      options: [
+        { value: 'NO_ACK', label: 'NO ACK' },
+        { value: 'REC_ACK', label: 'REC ACK' },
+        { value: 'VAL_ACK', label: 'VAL ACK' },
+        { value: 'PRC_ACK', label: 'PRC ACK' },
+      ],
+    },
     { name: 'status', label: 'Status', kind: 'select', options: ['OPEN', 'CLOSE'] },
     // Labelled "Properties" — the only field in the port whose label has no trailing colon in the
     // Vue markup. Stored as `properties`, plural.

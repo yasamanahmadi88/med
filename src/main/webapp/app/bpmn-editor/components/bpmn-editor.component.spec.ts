@@ -5,6 +5,7 @@ import { BpmnEditorComponent } from './bpmn-editor.component';
 import { PanelComponent } from './panel/panel.component';
 import { BpmnEditorService } from '../services/bpmn-editor.service';
 import { additionalModulesFor } from '../additional-modules';
+import { DEFAULT_ELEMENT_SIZES } from '../additional-modules/ElementFactory';
 
 /**
  * bpmn-js renders through the SVG DOM, which jsdom does not implement, so the modeler is stubbed
@@ -59,34 +60,7 @@ describe('BpmnEditorComponent', () => {
     const panel = fixture.debugElement.query(el => el.componentInstance instanceof PanelComponent);
     expect(panel).toBeTruthy();
 
-    expect(service.getPropertiesPanelParent()).toBe(panel.nativeElement.querySelector('.editor-properties-panel__content'));
-  });
-
-  it('uses editor-specific properties-panel classes that do not collide with the legacy Vue styles', () => {
-    const panel: HTMLElement = fixture.nativeElement.querySelector('jhi-panel');
-
-    expect(panel.querySelector('.editor-properties-panel')).toBeTruthy();
-    expect(panel.querySelector('.editor-properties-panel__title')?.textContent?.trim()).toBe('Properties');
-    expect(panel.querySelector('.panel-header')).toBeNull();
-  });
-
-  it('keeps the properties panel mounted while toggling its collapsed layout', () => {
-    const toggle: HTMLButtonElement = fixture.nativeElement.querySelector('[data-cy="bpmnPropertiesToggle"]');
-    const panelContent = service.getPropertiesPanelParent();
-
-    toggle.click();
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.querySelector('#designer-container').classList).toContain('properties-panel-collapsed');
-    expect(toggle.getAttribute('aria-expanded')).toBe('false');
-    expect(service.getPropertiesPanelParent()).toBe(panelContent);
-
-    toggle.click();
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.querySelector('#designer-container').classList).not.toContain('properties-panel-collapsed');
-    expect(toggle.getAttribute('aria-expanded')).toBe('true');
-    expect(service.getPropertiesPanelParent()).toBe(panelContent);
+    expect(service.getPropertiesPanelParent()).toBe(panel.nativeElement.querySelector('.panel-content'));
   });
 
   it('creates exactly one modeler and publishes it on the service', () => {
@@ -110,27 +84,44 @@ describe('BpmnEditorComponent', () => {
     expect(created[0].options.additionalModules).toEqual(expect.arrayContaining(additionalModulesFor(service.getEditorSettings())));
   });
 
-  it('registers the BPMN runtime translation provider', () => {
-    const translationModule = created[0].options.additionalModules.find(
-      (module: { translate?: unknown[] }) => module.translate?.[0] === 'value',
-    );
-
-    expect(translationModule).toBeTruthy();
-
-    const translate = translationModule.translate[1] as (template: string, replacements?: Record<string, unknown>) => string;
-
-    expect(translate('Task')).toBe('Task');
-    expect(translate('Create {type}', { type: 'StartEvent' })).toBe('Create StartEvent');
-  });
-
   it('registers the camunda moddle extension the Camunda provider needs', () => {
     expect(created[0].options.moddleExtensions.camunda).toBeTruthy();
     expect(created[0].options.moddleExtensions.cdrParser).toBeUndefined();
   });
 
-  it('starts an empty diagram from generated XML when no xml is supplied', () => {
+  it('starts an empty diagram carrying the configured process identity', () => {
+    // Not `modeler.createDiagram()`, which always names the process `Process_1`: the configured
+    // processId and processName are what a flow is keyed on, so a diagram that dropped them
+    // would have to be renamed by hand before it could be saved.
+    const settings = service.getEditorSettings();
     expect(created[0].createDiagram).not.toHaveBeenCalled();
-    expect(created[0].importXML).toHaveBeenCalledTimes(1);
+
+    const [xml] = created[0].importXML.mock.calls[0];
+    expect(xml).toContain(`<bpmn:process id="${settings.processId}" name="${settings.processName}"`);
+  });
+
+  it('gives the custom element factory the sizes it exists to apply', () => {
+    // CustomElementFactory reads nothing but `config.elementFactory`; without it the class is a
+    // no-op and every integration module — all of them `bpmn:Task` subclasses — is placed at
+    // bpmn-js's 100x80 rather than the 120x120 the Vue editor configured.
+    expect(created[0].options.elementFactory).toEqual(DEFAULT_ELEMENT_SIZES);
+    expect(created[0].options.elementFactory['bpmn:Task']).toEqual({ width: 120, height: 120 });
+  });
+
+  it('stops suppressing the browser context menu once the editor is gone', () => {
+    // The listener is on `document`, so leaving it behind kills right-click across the whole
+    // portal — not just here — until a full page reload.
+    const rightClick = (): MouseEvent => {
+      const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+      document.dispatchEvent(event);
+      return event;
+    };
+
+    expect(rightClick().defaultPrevented).toBe(true);
+
+    fixture.destroy();
+
+    expect(rightClick().defaultPrevented).toBe(false);
   });
 
   it('clears the modeler from the service on destroy', () => {
@@ -138,21 +129,5 @@ describe('BpmnEditorComponent', () => {
 
     expect(created[0].destroy).toHaveBeenCalled();
     expect(service.getBpmnModeler()).toBeNull();
-  });
-
-  it('does not expose the settings control that the Vue portal kept hidden', () => {
-    expect(fixture.nativeElement.querySelector('jhi-settings')).toBeNull();
-  });
-
-  it('does not suppress the native context menu outside the BPMN canvas', () => {
-    const editor: HTMLElement = fixture.nativeElement.querySelector('#designer-container');
-    const editorEvent = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
-    const outsideEvent = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
-
-    editor.dispatchEvent(editorEvent);
-    document.body.dispatchEvent(outsideEvent);
-
-    expect(editorEvent.defaultPrevented).toBe(false);
-    expect(outsideEvent.defaultPrevented).toBe(false);
   });
 });

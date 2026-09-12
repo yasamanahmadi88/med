@@ -1,3 +1,4 @@
+import { optionLabel, optionValue } from '../schema';
 import { cdrParserSchema } from './cdr-parser';
 
 /**
@@ -39,14 +40,16 @@ describe('cdrParserSchema', () => {
     const agreementMode = cdrParserSchema.fields.find(f => f.name === 'agreementMode');
 
     expect(agreementMode?.kind).toBe('select');
-    expect(agreementMode?.options).toEqual(['RUNNING', 'FETCH_ONLY', 'DRAFT']);
+    expect(agreementMode?.options?.map(optionValue)).toEqual(['RUNNING', 'FETCH_ONLY', 'DRAFT']);
+    // The Vue <option> text spaced FETCH_ONLY; SelectEntry shows the label and stores the value.
+    expect(agreementMode?.options?.map(optionLabel)).toEqual(['RUNNING', 'FETCH ONLY', 'DRAFT']);
   });
 
   it('offers the three batch modes', () => {
     const batchMode = cdrParserSchema.fields.find(f => f.name === 'batchMode');
 
     expect(batchMode?.kind).toBe('select');
-    expect(batchMode?.options).toEqual(['SINGLE', 'BATCH', 'BOTH']);
+    expect(batchMode?.options?.map(optionValue)).toEqual(['SINGLE', 'BATCH', 'BOTH']);
   });
 
   it('offers every CDR dialect the Vue select offered, underscores intact', () => {
@@ -56,7 +59,7 @@ describe('cdrParserSchema', () => {
     const batchCdrType = cdrParserSchema.fields.find(f => f.name === 'batchCdrType');
 
     expect(batchCdrType?.kind).toBe('select');
-    expect(batchCdrType?.options).toEqual([
+    expect(batchCdrType?.options?.map(optionValue)).toEqual([
       'HUAWEI_UNKNOWN_CDR',
       'HUAWEI_PGW_DATA_CDR',
       'HUAWEI_SGW_DATA_CDR',
@@ -65,6 +68,18 @@ describe('cdrParserSchema', () => {
       'HUAWEI_MMSC_CDR',
       'HUAWEI_SDP_CDR',
       'TAP_312',
+      'ATS9900',
+    ]);
+    // And displayed with the spaces the Vue <option> text had.
+    expect(batchCdrType?.options?.map(optionLabel)).toEqual([
+      'HUAWEI UNKNOWN CDR',
+      'HUAWEI PGW DATA CDR',
+      'HUAWEI SGW DATA CDR',
+      'HUAWEI VOICE SMS CDR',
+      'HUAWEI SMSC CDR',
+      'HUAWEI MMSC CDR',
+      'HUAWEI SDP CDR',
+      'TAP 312',
       'ATS9900',
     ]);
   });

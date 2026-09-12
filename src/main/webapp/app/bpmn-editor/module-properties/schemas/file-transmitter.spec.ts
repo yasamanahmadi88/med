@@ -1,4 +1,4 @@
-import { FieldOption } from '../schema';
+import { optionLabel, optionValue } from '../schema';
 import { fileTransmitterSchema } from './file-transmitter';
 
 /**
@@ -69,15 +69,24 @@ describe('fileTransmitterSchema', () => {
     // a diagram the engine rejects. Note the Vue <option> *text* was prettified for one of them
     // ("FETCH ONLY"); the values below are what was stored. `writeProtocol` also carries a fourth
     // choice, `FILE`, that the mirror-image `FileReceiver.readProtocol` does not.
-    const options: Record<string, readonly FieldOption[]> = {};
+    const options: Record<string, string[]> = {};
+    const labels: Record<string, string[]> = {};
     for (const field of fileTransmitterSchema.fields) {
       if (field.options) {
-        options[field.name] = field.options;
+        options[field.name] = field.options.map(optionValue);
+        labels[field.name] = field.options.map(optionLabel);
       }
     }
 
     expect(options).toEqual({
       agreementMode: ['RUNNING', 'FETCH_ONLY', 'DRAFT'],
+      writeProtocol: ['FTP', 'SFTP', 'FTPS', 'FILE'],
+      contentFormat: ['UTF8', 'BASE64'],
+    });
+
+    // And shown with the Vue <option> text, which spaced most of the underscored values.
+    expect(labels).toEqual({
+      agreementMode: ['RUNNING', 'FETCH ONLY', 'DRAFT'],
       writeProtocol: ['FTP', 'SFTP', 'FTPS', 'FILE'],
       contentFormat: ['UTF8', 'BASE64'],
     });

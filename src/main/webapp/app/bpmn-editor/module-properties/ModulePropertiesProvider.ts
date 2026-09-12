@@ -2,8 +2,9 @@ import { CheckboxEntry, NumberFieldEntry, SelectEntry, TextAreaEntry, TextFieldE
 import { getBusinessObject } from 'bpmn-js/lib/util/ModelUtil';
 import { Base } from 'diagram-js/lib/model';
 
-import { ModuleField, ModuleSchema } from './schema';
+import { ModuleField, ModuleSchema, optionLabel, optionValue } from './schema';
 import { schemaForType } from './schemas';
+import { validateField } from './validators';
 
 /**
  * Adds one properties-panel group per custom integration module, built from `schema.ts`.
@@ -92,16 +93,24 @@ export default class ModulePropertiesProvider {
       debounce: (fn: unknown) => fn,
     };
 
+    if (field.validate) {
+      // The entry components render whatever this returns under the input and mark the row with
+      // `has-error`. They still commit the value — an invalid one reaches the diagram exactly as
+      // it did in the Vue panel — so the toolbar's Save gate is what actually stops it leaving.
+      const validator = field.validate;
+      entry['validate'] = (value: unknown): string | undefined => validateField(validator, value);
+    }
+
     if (field.kind === 'select') {
       // The panel renders an empty first option so a property can be cleared, matching the Vue
       // form, where the select started blank until the user picked a value.
       entry['getOptions'] = () => [
         { value: '', label: '' },
-        ...(field.options ?? []).map(option =>
-          // A bare string is a choice whose stored value reads well enough to show as-is; the
-          // pair form carries the Vue template's display text, which often differed.
-          typeof option === 'string' ? { value: option, label: option } : { value: option.value, label: option.label },
-        ),
+        // A bare string is a choice whose stored value reads well enough to show as-is; the pair
+        // form carries the Vue template's display text, which differed for most of them.
+        // `SelectEntry` stores `value` and renders `label`
+        // (@bpmn-io/properties-panel/dist/index.esm.js:3931-3935).
+        ...(field.options ?? []).map(option => ({ value: optionValue(option), label: optionLabel(option) })),
       ];
     }
 

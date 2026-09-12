@@ -1,19 +1,23 @@
-@import 'bpmn-js/dist/assets/diagram-js.css'; // 基础样式
-@import 'bpmn-js/dist/assets/bpmn-font/css/bpmn.css'; // 节点基础图标
-@import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-codes.css'; // 节点完整图标
+@import 'bpmn-js/dist/assets/diagram-js.css'; // base styles
+@import 'bpmn-js/dist/assets/bpmn-font/css/bpmn.css'; // element icons
+@import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-codes.css'; // the icon code points
 
-// 小地图
+// minimap
 @import "diagram-js-minimap/assets/diagram-js-minimap.css";
 
-.designer {
-  flex: 1;
-}
+// `.designer { flex: 1 }` is not here: Vue's canvas was `<div class="designer">`, this one is
+// `<jhi-designer>`, and `bpmn-editor.component.scss` already gives that element `flex: 1`. The
+// selector matched zero elements in the browser.
 
+// The minimap's own open/close widget. `ToolbarComponent` toggles the minimap, so this button is
+// the only other way in and it is hidden. Measured: display none with this rule, a 138px wide
+// block without it.
 .djs-minimap div.toggle {
   display: none;
 }
 
-// 修复选中时填充色
+// Keeps the selection outline unfilled — the layer's computed fill is black without this rule,
+// and an SVG child that does not set its own fill inherits it.
 .layer-selectionOutline {
   fill: none;
 }

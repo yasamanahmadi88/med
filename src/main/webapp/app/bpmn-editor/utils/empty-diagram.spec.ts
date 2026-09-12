@@ -106,7 +106,7 @@ describe('empty diagram', () => {
     });
 
     it('logs import warnings rather than failing', async () => {
-      // bpmn-js warns about extension attributes it does not know ,which every module property
+      // bpmn-js warns about extension attributes it does not know, which every module property
       // in this editor is; treating those as failures would refuse to open real diagrams.
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
       const modeler = { importXML: vi.fn().mockResolvedValue({ warnings: ['unknown attribute'] }) };

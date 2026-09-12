@@ -1,12 +1,18 @@
-import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
-import { Base } from 'diagram-js/lib/model';
+import { Subject, takeUntil } from 'rxjs';
 
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
-import { contextMenuOptions, ContextMenuEntry, isAppendAction } from './context-menu-options';
+import { AppendOption, appendOptions } from '../../context-menu/append-options';
 
+/**
+ * The "create element" menu, shown when the canvas, a pool or a subprocess is right-clicked.
+ *
+ * `ContextMenuProvider` decides when this opens and fires `contextMenu.append.open` on the
+ * modeler's event bus; replacing an existing element goes to the stock `bpmn-replace` popup
+ * instead and never reaches here. Picking an entry hands the new shape to `create`, so it
+ * follows the cursor until the user clicks — the same gesture as dragging from the palette.
+ */
 @Component({
   selector: 'jhi-context-menu',
   templateUrl: './context-menu.component.html',
@@ -15,15 +21,13 @@ import { contextMenuOptions, ContextMenuEntry, isAppendAction } from './context-
   imports: [CommonModule],
 })
 export class ContextMenuComponent implements OnInit, OnDestroy {
-  visible = false;
-  title = '';
-  entries: ContextMenuEntry[] = [];
+  open = false;
   x = 0;
   y = 0;
+  readonly options: readonly AppendOption[] = appendOptions();
 
   private modeler: any = null;
-  private currentElement: Base | null = null;
-  private appendMode = false;
+  private openedAt = 0;
   private readonly destroy$ = new Subject<void>();
 
   constructor(
@@ -32,99 +36,80 @@ export class ContextMenuComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.bpmnEditorService.bpmnModeler$.pipe(takeUntil(this.destroy$)).subscribe(modeler => this.bindModeler(modeler));
+    this.bpmnEditorService.bpmnModeler$.pipe(takeUntil(this.destroy$)).subscribe(modeler => {
+      this.modeler = modeler;
+      if (!modeler) {
+        this.open = false;
+        return;
+      }
+      modeler.get('eventBus').on('contextMenu.append.open', (event: { x: number; y: number }) => {
+        this.show(event.x, event.y);
+      });
+    });
   }
 
   ngOnDestroy(): void {
-    this.unbindModeler();
     this.destroy$.next();
     this.destroy$.complete();
   }
 
-  triggerAction(entry: ContextMenuEntry, event: MouseEvent): void {
-    const modeler = this.modeler ?? this.bpmnEditorService.getBpmnModeler();
-    if (!modeler) return;
-
-    try {
-      if (this.appendMode) {
-        const elementFactory = modeler.get('elementFactory');
-        const create = modeler.get('create');
-        const shape = elementFactory.createShape(entry.target);
-
-        if (entry.target['isExpanded'] !== undefined && shape.businessObject?.di) {
-          shape.businessObject.di.isExpanded = entry.target['isExpanded'];
-        }
-
-        this.close();
-        setTimeout(() => create.start(event, shape), 30);
-      } else if (this.currentElement) {
-        modeler.get('bpmnReplace').replaceElement(this.currentElement, entry.target);
-        this.close();
-      }
-    } catch (error) {
-      console.error('Unable to run BPMN context-menu action:', error);
-      this.close();
-    }
-  }
-
-  close(): void {
-    if (!this.visible) return;
-    this.visible = false;
-    this.changeDetector.detectChanges();
-  }
-
+  /**
+   * Any click outside an entry dismisses the menu.
+   *
+   * The right-click that opened it can still be delivered here as the trailing `click` on some
+   * platforms, so a menu opened in this same tick is left alone; otherwise it would never
+   * appear at all.
+   */
   @HostListener('document:click')
   onDocumentClick(): void {
-    this.close();
+    if (this.open && Date.now() - this.openedAt > 0) {
+      this.open = false;
+    }
   }
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
-    this.close();
+    this.open = false;
   }
 
-  private readonly onElementContextMenu = (event: { element?: Base; originalEvent?: MouseEvent }): void => {
-    const settings = this.bpmnEditorService.getEditorSettings();
-    const originalEvent = event.originalEvent;
+  /** Creates the chosen element and attaches it to the cursor for the user to place. */
+  select(option: AppendOption, event: MouseEvent): void {
+    event.stopPropagation();
+    this.open = false;
 
-    if (!settings.contextmenu || !settings.customContextmenu || !originalEvent) {
-      this.close();
+    if (!this.modeler) {
       return;
     }
 
-    originalEvent.preventDefault();
-    this.currentElement = event.element ?? null;
-    this.appendMode = isAppendAction(event.element);
-    this.entries = contextMenuOptions(event.element);
+    try {
+      const elementFactory = this.modeler.get('elementFactory');
+      const create = this.modeler.get('create');
+      const shape = elementFactory.createShape(option.target);
 
-    if (this.entries.length === 0) {
-      this.close();
-      return;
+      if (option.target.isExpanded != null) {
+        // A collapsed subprocess is the same moddle type as an expanded one; only the DI says
+        // which, and `createShape` does not carry it over from the replace option.
+        shape.businessObject.di.isExpanded = option.target.isExpanded;
+      }
+
+      create.start(event, shape);
+    } catch (error) {
+      console.error('Could not create the selected element', error);
     }
+  }
 
-    this.title = this.appendMode ? 'Create Element' : 'Change Element';
-    this.setPosition(originalEvent);
-    this.visible = true;
+  /** The entry's label, translated when the modeler offers a translation for it. */
+  label(option: AppendOption): string {
+    const translate = this.modeler?.get('translate', false);
+    return translate ? translate(option.label) : option.label;
+  }
+
+  private show(x: number, y: number): void {
+    this.x = x;
+    this.y = y;
+    this.open = true;
+    this.openedAt = Date.now();
+    // The event arrives from bpmn-js, outside Angular's awareness of what changed.
     this.changeDetector.detectChanges();
-  };
-
-  private bindModeler(modeler: any): void {
-    this.unbindModeler();
-    this.modeler = modeler;
-    this.modeler?.on?.('element.contextmenu', 2000, this.onElementContextMenu);
-  }
-
-  private unbindModeler(): void {
-    this.modeler?.off?.('element.contextmenu', this.onElementContextMenu);
-    this.modeler = null;
-  }
-
-  private setPosition(event: MouseEvent): void {
-    const margin = 12;
-    const menuWidth = Math.min(400, window.innerWidth - margin * 2);
-    const menuHeight = Math.min(360, window.innerHeight - margin * 2);
-
-    this.x = Math.max(margin, Math.min(event.clientX, window.innerWidth - menuWidth - margin));
-    this.y = Math.max(margin, Math.min(event.clientY, window.innerHeight - menuHeight - margin));
   }
 }

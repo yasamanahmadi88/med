@@ -1,0 +1,92 @@
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.toolbar-section {
+  display: flex;
+  gap: 0.5rem;
+
+  &:not(:first-child) {
+    border-inline-start: 1px solid #ccc;
+    padding-inline-start: 1rem;
+  }
+}
+
+.toolbar-btn {
+  padding: 0.5rem 1rem;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: #e8e8e8;
+    border-color: #999;
+  }
+
+  &:active {
+    background-color: #d0d0d0;
+  }
+
+  // A disabled Save must not look or behave clickable; without this the hover rule above still
+  // lights it up and the pointer still says it can be pressed.
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+
+    &:hover {
+      background-color: #fff;
+      border-color: #ccc;
+    }
+  }
+
+  fa-icon {
+    font-size: 1rem;
+  }
+}
+
+.toolbar-btn-icon {
+  // Icon-only buttons still need the text buttons' height, so the row does not jog.
+  padding: 0.5rem 0.75rem;
+}
+
+.toolbar-zoom-level {
+  // Fixed so the row does not shift as the number goes from 90% to 100%.
+  min-width: 4.5rem;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.toolbar-problems {
+  // Sits under the toolbar rather than inside it: the list grows with the diagram, and pushing
+  // the buttons around as elements are edited would be worse than taking a second row.
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #fff4f4;
+  border-bottom: 1px solid #f5c2c7;
+  color: #842029;
+  font-size: 0.8125rem;
+
+  .toolbar-problems-title {
+    font-weight: 600;
+  }
+
+  ul {
+    flex-basis: 100%;
+    margin: 0.25rem 0 0;
+    padding-left: 1.25rem;
+  }
+}

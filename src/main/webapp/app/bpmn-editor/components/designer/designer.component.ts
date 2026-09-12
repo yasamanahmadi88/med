@@ -5,10 +5,11 @@ import BpmnModeler from 'bpmn-js/lib/Modeler';
 import { BpmnPropertiesPanelModule, BpmnPropertiesProviderModule, CamundaPlatformPropertiesProviderModule } from 'bpmn-js-properties-panel';
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
 import { additionalModulesFor, moddleExtensionsFor } from '../../additional-modules';
-import { DEFAULT_ELEMENT_SIZES } from '../../additional-modules/ElementFactory';
 import { translationModuleFor } from '../../i18n/translate';
+import { DEFAULT_ELEMENT_SIZES } from '../../additional-modules/ElementFactory';
 import ModulePropertiesModule from '../../module-properties';
 import { createNewDiagram } from '../../utils/empty-diagram';
+import ContextMenuModule from '../../context-menu';
 
 @Component({
   selector: 'jhi-designer',
@@ -55,6 +56,10 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
     // The palette and renderer modules the settings select, plus the properties panel's own
     // modules when a parent element exists for it to render into.
     const modules: unknown[] = additionalModulesFor(settings);
+    // Overrides diagram-js's own `translate`, so every library label the editor draws goes
+    // through the selected language's bundle. Registered here rather than in
+    // `additionalModulesFor` because it is not one of the modules the settings switch on and off
+    // — it is always present, and the language is what changes.
     modules.push(translationModuleFor(settings?.language));
     if (panelParent) {
       modules.push(BpmnPropertiesPanelModule, BpmnPropertiesProviderModule);
@@ -67,6 +72,11 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
       // group a KafkaReceiver or HttpReceiver can be drawn but never configured.
       modules.push(ModulePropertiesModule);
     }
+
+    // Right-click: the stock replace menu for an element, our create menu for the canvas.
+    // Registered unconditionally — the module reads `config.contextMenu` and steps aside when
+    // the setting is off, so the browser's own menu is what appears.
+    modules.push(ContextMenuModule);
 
     try {
       this.bpmnModeler = new BpmnModeler({
@@ -85,7 +95,17 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
         // Reaches ModulePropertiesProvider as `config.processEngine`. Module properties are
         // namespaced by the engine, so an HttpReceiver stores `camunda:agreementMode`.
         processEngine: settings?.processEngine ?? 'camunda',
+        // Reaches CustomElementFactory as `config.elementFactory`, which is the only thing that
+        // class reads. The Vue editor supplied it and this did not, so the ported factory
+        // returned bpmn-js's own sizes for everything; see the constant for what that cost.
+        // Unread when no custom palette or renderer is configured, because the factory is only
+        // registered alongside them and the stock one ignores the option.
         elementFactory: DEFAULT_ELEMENT_SIZES,
+        // Reaches ContextMenuProvider as `config.contextMenu`.
+        contextMenu: {
+          enabled: settings?.contextmenu ?? true,
+          custom: settings?.customContextmenu ?? true,
+        },
         // The panel modules read `propertiesPanel.parent`, so it is only set when a parent
         // exists — the editor can be configured without the custom panel.
         ...(panelParent ? { propertiesPanel: { parent: panelParent } } : {}),
@@ -98,6 +118,9 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
       } else {
         // Without a diagram there is no canvas root and no element to select, so the properties
         // panel would render empty and the palette would refuse to place anything.
+        //
+        // Not `modeler.createDiagram()`: that always names the process `Process_1`, discarding
+        // the configured processId and processName the flow is keyed on.
         createNewDiagram(this.bpmnModeler, settings).catch((error: unknown) => {
           console.error('Could not create BPMN 2.0 diagram', error);
         });

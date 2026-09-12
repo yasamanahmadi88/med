@@ -1,3 +1,4 @@
+import { optionLabel, optionValue } from '../schema';
 import { dbReceiverSchema } from './db-receiver';
 import { eventaDbReceiverSchema } from './eventa-db-receiver';
 
@@ -36,7 +37,9 @@ describe('eventaDbReceiverSchema', () => {
     const agreementMode = eventaDbReceiverSchema.fields.find(f => f.name === 'agreementMode');
 
     expect(agreementMode?.kind).toBe('select');
-    expect(agreementMode?.options).toEqual(['RUNNING', 'FETCH_ONLY', 'DRAFT']);
+    expect(agreementMode?.options?.map(optionValue)).toEqual(['RUNNING', 'FETCH_ONLY', 'DRAFT']);
+    // The Vue <option> text spaced FETCH_ONLY; SelectEntry shows the label and stores the value.
+    expect(agreementMode?.options?.map(optionLabel)).toEqual(['RUNNING', 'FETCH ONLY', 'DRAFT']);
   });
 
   it('gives options to selects and to nothing else', () => {

@@ -1,4 +1,4 @@
-<div [ngClass]="containerClasses" id="designer-container">
+<div #designerContainer [ngClass]="containerClasses" id="designer-container">
   <jhi-toolbar *ngIf="showToolbar"></jhi-toolbar>
 
   <div class="main-content">
@@ -6,13 +6,11 @@
 
     <jhi-designer [xml]="processXml" (xmlUpdate)="onXmlUpdate($event)"> </jhi-designer>
 
-    <jhi-panel
-      *ngIf="customPanel"
-      [collapsed]="propertiesPanelCollapsed"
-      (collapsedChange)="onPropertiesPanelCollapsedChange($event)"
-    ></jhi-panel>
+    <jhi-panel *ngIf="customPanel"></jhi-panel>
     <div *ngIf="!customPanel" class="camunda-penal" id="camunda-penal"></div>
   </div>
+
+  <jhi-settings [settings]="editorSettings" (settingsUpdate)="onSettingsUpdate($event)"> </jhi-settings>
 
   <jhi-context-menu></jhi-context-menu>
 </div>

@@ -1,0 +1,17 @@
+<div class="modal-header">
+  <h4 class="modal-title">Preview as XML</h4>
+  <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+</div>
+
+<div class="modal-body xml-preview">
+  <pre data-cy="bpmnXmlPreview"><code>{{ xml }}</code></pre>
+</div>
+
+<div class="modal-footer">
+  <span class="copy-state" role="status">
+    <ng-container *ngIf="copyState === 'copied'">Copied to the clipboard.</ng-container>
+    <ng-container *ngIf="copyState === 'failed'">Could not reach the clipboard — select the text and copy it.</ng-container>
+  </span>
+  <button type="button" class="btn btn-primary" data-cy="bpmnXmlPreviewCopy" (click)="copy()">Copy XML</button>
+  <button type="button" class="btn btn-secondary" (click)="close()">Close</button>
+</div>

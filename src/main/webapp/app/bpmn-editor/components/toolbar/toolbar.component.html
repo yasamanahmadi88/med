@@ -1,59 +1,71 @@
-<div class="toolbar" role="toolbar" aria-label="BPMN editor toolbar">
-  <div class="primary-actions" role="group" aria-label="Diagram actions">
-    <button type="button" class="action-button save-button" title="Save" data-cy="bpmnSave" (click)="onSave()">Save</button>
-
-    <button type="button" class="action-button preview-button" title="Preview as XML" data-cy="bpmnPreviewXml" (click)="onPreviewXml()">
-      Preview as XML
+<div class="toolbar">
+  <div class="toolbar-section">
+    <button class="toolbar-btn" [title]="canSave ? 'Save' : problemSummary" data-cy="bpmnSave" [disabled]="!canSave" (click)="onSave()">
+      <fa-icon [icon]="icons.save"></fa-icon> Save
     </button>
-
-    <button type="button" class="action-button cancel-button" title="Cancel" data-cy="bpmnCancel" (click)="onCancel()">Cancel</button>
-  </div>
-
-  <div class="button-group" role="group" aria-label="Zoom controls">
-    <button type="button" class="icon-button" title="Zoom Out" aria-label="Zoom Out" data-cy="bpmnZoomOut" (click)="zoomOut()">
-      <fa-icon [icon]="zoomOutIcon"></fa-icon>
-    </button>
-
-    <button type="button" class="zoom-button" title="Zoom Reset" data-cy="bpmnZoomReset" (click)="fitViewport()">
-      {{ zoomPercentage }}
-    </button>
-
-    <button type="button" class="icon-button" title="Zoom In" aria-label="Zoom In" data-cy="bpmnZoomIn" (click)="zoomIn()">
-      <fa-icon [icon]="zoomInIcon"></fa-icon>
+    <button class="toolbar-btn" title="Export" (click)="onExport()"><fa-icon [icon]="icons.export"></fa-icon> Export</button>
+    <button class="toolbar-btn" title="Import" (click)="onImport()"><fa-icon [icon]="icons.import"></fa-icon> Import</button>
+    <button class="toolbar-btn" title="Cancel" data-cy="bpmnCancel" (click)="onCancel()">
+      <fa-icon [icon]="icons.cancel"></fa-icon> Cancel
     </button>
   </div>
 
-  <div class="button-group" role="group" aria-label="History controls">
-    <button type="button" class="icon-button" title="Undo" aria-label="Undo" data-cy="bpmnUndo" (click)="onUndo()">
-      <fa-icon [icon]="undoIcon"></fa-icon>
+  <div class="toolbar-section">
+    <button class="toolbar-btn" title="Undo" (click)="onUndo()"><fa-icon [icon]="icons.undo"></fa-icon> Undo</button>
+    <button class="toolbar-btn" title="Redo" (click)="onRedo()"><fa-icon [icon]="icons.redo"></fa-icon> Redo</button>
+    <button class="toolbar-btn" title="Restart" data-cy="bpmnRestart" (click)="onRestart()">
+      <fa-icon [icon]="icons.restart"></fa-icon> Restart
     </button>
+  </div>
 
-    <button type="button" class="icon-button" title="Redo" aria-label="Redo" data-cy="bpmnRedo" (click)="onRedo()">
-      <fa-icon [icon]="redoIcon"></fa-icon>
+  <div class="toolbar-section">
+    <button class="toolbar-btn toolbar-btn-icon" title="Zoom out" data-cy="bpmnZoomOut" (click)="zoomOut()">
+      <fa-icon [icon]="icons.zoomOut"></fa-icon>
     </button>
+    <button class="toolbar-btn toolbar-zoom-level" title="Fit the diagram to the viewport" data-cy="bpmnZoomFit" (click)="zoomToFit()">
+      {{ zoomPercent }}%
+    </button>
+    <button class="toolbar-btn toolbar-btn-icon" title="Zoom in" data-cy="bpmnZoomIn" (click)="zoomIn()">
+      <fa-icon [icon]="icons.zoomIn"></fa-icon>
+    </button>
+  </div>
 
-    <button type="button" class="icon-button" title="Restart" aria-label="Restart" data-cy="bpmnRestart" (click)="onRestart()">
-      <fa-icon [icon]="restartIcon"></fa-icon>
+  <div class="toolbar-section">
+    <button class="toolbar-btn" title="Preview as XML" data-cy="bpmnPreviewXml" (click)="onPreviewXml()">
+      <fa-icon [icon]="icons.previewXml"></fa-icon> Preview as XML
+    </button>
+    <button
+      *ngIf="showMinimap"
+      class="toolbar-btn toolbar-btn-icon"
+      title="Toggle the minimap"
+      data-cy="bpmnToggleMinimap"
+      (click)="onToggleMinimap()"
+    >
+      <fa-icon [icon]="icons.minimap"></fa-icon>
+    </button>
+    <button
+      *ngIf="showShortcuts"
+      class="toolbar-btn toolbar-btn-icon"
+      title="Keyboard shortcuts"
+      data-cy="bpmnShortcuts"
+      (click)="onShowShortcuts()"
+    >
+      <fa-icon [icon]="icons.shortcuts"></fa-icon>
+    </button>
+    <button class="toolbar-btn toolbar-btn-icon" title="Custom icons" data-cy="bpmnCustomIcons" (click)="onCustomIcons()">
+      <fa-icon [icon]="icons.customIcons"></fa-icon>
     </button>
   </div>
 </div>
 
-<div class="preview-backdrop" *ngIf="xmlPreview !== null" data-cy="bpmnXmlPreviewDialog" (click)="closePreview()">
-  <section class="preview-dialog" role="dialog" aria-modal="true" aria-labelledby="xml-preview-title" (click)="$event.stopPropagation()">
-    <header class="preview-header">
-      <h2 id="xml-preview-title">Preview as XML</h2>
-      <button
-        type="button"
-        class="close-button"
-        title="Close"
-        aria-label="Close XML preview"
-        data-cy="bpmnPreviewClose"
-        (click)="closePreview()"
-      >
-        &times;
-      </button>
-    </header>
-
-    <pre class="preview-content" tabindex="0"><code>{{ xmlPreview }}</code></pre>
-  </section>
+<div *ngIf="!canSave" class="toolbar-problems" role="alert" data-cy="bpmnProblems">
+  <fa-icon [icon]="icons.problem"></fa-icon>
+  <span class="toolbar-problems-title">
+    Saving is blocked by {{ problems.length }} invalid {{ problems.length === 1 ? 'property' : 'properties' }}:
+  </span>
+  <ul>
+    <li *ngFor="let problem of problems">
+      <strong>{{ problem.elementName }}</strong> &middot; {{ problem.fieldLabel }} — {{ problem.message }}
+    </li>
+  </ul>
 </div>

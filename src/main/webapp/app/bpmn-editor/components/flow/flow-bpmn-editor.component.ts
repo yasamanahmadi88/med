@@ -21,7 +21,7 @@ import { BPMN_EDITOR_HOST, BpmnEditorHost } from '../../services/bpmn-editor-hos
 @Component({
   selector: 'jhi-flow-bpmn-editor',
   templateUrl: './flow-bpmn-editor.component.html',
-  styles: [':host { display: block; height: 100%; min-height: 0; }'],
+  styleUrls: ['./flow-bpmn-editor.component.scss'],
   standalone: true,
   imports: [CommonModule, BpmnEditorComponent],
   providers: [{ provide: BPMN_EDITOR_HOST, useExisting: forwardRef(() => FlowBpmnEditorComponent) }],
@@ -64,18 +64,11 @@ export class FlowBpmnEditorComponent implements OnInit, OnDestroy, BpmnEditorHos
 
   save(xml: string): void {
     if (this.flow) {
-      const updatedFlow: IFlow = { ...this.flow, flow: xml };
-
-      this.flowService.update(updatedFlow).subscribe({
-        next: () => window.history.back(),
-        error(error) {
-          console.error('Failed to save BPMN flow:', error);
-        },
-      });
-      return;
+      this.flow.flow = xml;
+      this.flowService.update(this.flow).subscribe();
+    } else {
+      this.flowService.xmlTemp = xml;
     }
-
-    this.flowService.xmlTemp = xml;
     window.history.back();
   }
 

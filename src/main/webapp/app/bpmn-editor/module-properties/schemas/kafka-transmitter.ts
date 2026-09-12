@@ -1,4 +1,4 @@
-import { ModuleSchema } from '../schema';
+import { AGREEMENT_MODE, ModuleSchema } from '../schema';
 
 /**
  * `KafkaTransmitter` — publishes the message to a Kafka topic.
@@ -23,7 +23,7 @@ export const kafkaTransmitterSchema: ModuleSchema = {
   type: 'KafkaTransmitter:KafkaTransmitter',
   label: 'KafkaTransmitter',
   fields: [
-    { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: ['RUNNING', 'FETCH_ONLY', 'DRAFT'] },
+    { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: AGREEMENT_MODE },
     { name: 'commentDesc', label: 'Comment Desc', kind: 'text' },
     { name: 'topic', label: 'Topic', kind: 'text' },
     { name: 'bootstrapServer', label: 'Bootstrap Server', kind: 'text' },

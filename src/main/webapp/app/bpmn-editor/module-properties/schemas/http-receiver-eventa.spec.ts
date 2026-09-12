@@ -1,3 +1,4 @@
+import { optionLabel, optionValue } from '../schema';
 import { httpReceiverEventaSchema } from './http-receiver-eventa';
 
 /**
@@ -46,7 +47,9 @@ describe('httpReceiverEventaSchema', () => {
     const agreementMode = httpReceiverEventaSchema.fields.find(f => f.name === 'agreementMode');
 
     expect(agreementMode?.kind).toBe('select');
-    expect(agreementMode?.options).toEqual(['RUNNING', 'FETCH_ONLY', 'DRAFT']);
+    expect(agreementMode?.options?.map(optionValue)).toEqual(['RUNNING', 'FETCH_ONLY', 'DRAFT']);
+    // The Vue <option> text spaced FETCH_ONLY; SelectEntry shows the label and stores the value.
+    expect(agreementMode?.options?.map(optionLabel)).toEqual(['RUNNING', 'FETCH ONLY', 'DRAFT']);
   });
 
   it('offers the two transformer languages', () => {

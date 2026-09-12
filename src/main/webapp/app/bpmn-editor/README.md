@@ -223,12 +223,13 @@ behaviour _away_ if they were ported.
 | Vue module               | Registered when                               | What it actually does                                                                                                                                                                                                |
 | ------------------------ | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Rules`                  | `otherModule`                                 | One rule: start and end events cannot be deleted. **Ported.**                                                                                                                                                        |
+| `ColorPicker`            | `otherModule`                                 | Fill and stroke for the selected elements, from a context-pad button. **Ported** — see "The colour picker" below.                                                                                                    |
 | `ContextPad/Enhancement` | `contextPadMode: 'enhancement'` (the default) | Extends `ContextPadProvider`, overrides `getContextPadEntries` to return `{}`, registers under a _new_ name — so the stock provider still runs and this adds nothing. Every example entry is commented out. A no-op. |
 | `ContextPad/Rewrite`     | `contextPadMode: 'rewrite'`                   | The same empty provider, but registered as `contextPadProvider` — it _replaces_ the stock one. Selecting this mode empties the context pad: no delete, no connect, no append.                                        |
 | `PopupMenu/Enhancement`  | never                                         | `class EnhancementPopupMenuProvider {}`. Not referenced by the designer at all.                                                                                                                                      |
 | `PopupMenu/Rewrite`      | never                                         | `class RewritePopupMenuProvider {}` registered as `replaceMenuProvider`, which would replace bpmn-js's real replace menu with a no-op. Also never referenced.                                                        |
 | `AutoPlace`              | `otherModule`                                 | bpmn-js's own `getFlowNodePosition`, copied, with two constants changed. See below.                                                                                                                                  |
-| `Translate`              | always                                        | Broken — see below.                                                                                                                                                                                                  |
+| `Translate`              | always                                        | Broken as written. **Ported** with the lookup fixed and `en_US` deliberately left out — see below.                                                                                                                   |
 | `Lint`                   | `useLint` (off by default)                    | bpmnlint rule bundle. Needs two dependencies this project does not have.                                                                                                                                             |
 
 `ContextPad` and `PopupMenu` are scaffolding the Vue author left behind: "here is where you would
@@ -252,7 +253,7 @@ That is a real difference, and reproducing it means forking ~40 lines of library
 two numbers — the same trade this port has refused elsewhere. Left out for now; say the word and
 it is a small, self-contained follow-up.
 
-#### `Translate` — broken in the original, and the bundle is not English
+#### `Translate` — broken in the original, and why `en_US` is still not wired
 
 ```ts
 const lang = sessionStorage.getItem('en_Us'); // a language name used as a storage key
@@ -267,6 +268,61 @@ Fixing the lookup alone would make things worse here. `i18n/en_US` is largely **
 Chinese** carried over from `zh_CN`: all 25 entries in `elements/tasks.ts`, 30 in
 `elements/events.ts`, 176 of ~182 in `elements/other.ts`. Wiring translation up with
 `defaultLang = 'en_US'` would turn the palette, context pad and popup menu Chinese.
+
+**Now ported, with that constraint written into the code rather than left as a reason not to.**
+`i18n/translate.ts` builds the `translate` service and `designer.component.ts` registers it, so
+the Language setting finally reaches the labels bpmn-js draws — but only for a language whose
+bundle is genuinely translated. `TRANSLATED_LANGS` is that list, and it holds `zh_CN` alone.
+`en_US`, and anything else, gets the identity translation: template in, template out, placeholders
+still substituted, which is exactly what bpmn-js does with no module registered. So selecting 中文
+now translates the palette, context pad, popup menu and lint messages; selecting English changes
+nothing, which is the same English users have always seen.
+
+Three details the original did not have:
+
+- The bundle is split five ways (`elements`, `lint`, `configForm`, `panel`, `toolbar`) and
+  diagram-js's `translate` is one flat lookup, so the areas are merged. `translate.spec.ts`
+  asserts a key from `panel` and one from `toolbar` resolve, not only one from `elements` — a
+  merge that missed an area would leave that part of the UI untranslated with no error anywhere.
+- A `{placeholder}` with no replacement supplied is left as written rather than becoming
+  `undefined`. diagram-js passes replacements for some labels and not others, and `Create
+undefined` reads as a rendering bug rather than a missing argument.
+- Only the template is looked up, never the replacement values, so a value that happens to be a
+  bundle key comes through as the caller passed it.
+
+`translate.spec.ts` also asserts `en_US.elements.Task === zh_CN.elements.Task`. That is the
+evidence for leaving `en_US` out, held as a test: the day someone translates that bundle, the test
+fails and says so, and `en_US` may join the list.
+
+#### The colour picker
+
+`additional-modules/ColorPicker/` puts a **Set Color** button on the element context pad, opening
+a six-swatch popup menu that sets fill and stroke through `modeling.setColor`. It registers under
+`otherModule`, alongside the delete rule.
+
+This one arrived from the `feature/bpmn-vue-angular-parity` branch rather than from the audit
+above — the table in this section never listed a `ColorPicker`, and the Vue tree is not in hand
+here to say whether it was missed or written fresh there. So no claim about the Vue original is
+made. What was checked is the part that matters: it works against the versions this project pins,
+and it does not repeat the mistake the two `ContextPad` modules made.
+
+- **It is additive, which the Vue `ContextPad` modules were not.** diagram-js merges every
+  registered context-pad provider, so returning one entry leaves delete, connect and append in
+  place. That is the difference between this and the `rewrite` variant, which registered an empty
+  provider under the stock name and emptied the pad.
+- **Multi-selection works.** diagram-js 11.13.1 calls `getMultiElementContextPadEntries` when the
+  pad's target is an array (`ContextPad.js:183-184`), and `getPad` takes the array too
+  (`ContextPad.js:371-382`) — both verified against the installed copy, not assumed. `setColor`
+  takes a list, so a selection paints in one command and undoes in one.
+- **"Default" is not white.** It sends `undefined` for both, which is what makes `setColor` delete
+  `bioc:fill` / `bioc:stroke` from the element's DI and return the shape to the stock look.
+- **The swatch SVG is built by interpolation, so it is percent-encoded.** The colours are
+  compile-time constants today; the encoding is there for the `config.colorPicker` hook, and
+  `index.spec.ts` holds a colour carrying a quote and an `onload=` to prove a configured value
+  cannot add markup of its own.
+
+The entry carries its own `imageUrl` because bpmn-js's icon font has no paint glyph — `className`
+alone renders an empty button.
 
 So this needs a decision about the product's language before it needs code, and it is not in this
 change.

@@ -368,14 +368,25 @@ cmd_apply() {
   fi
 
   echo
+  # Dry run has written nothing, so it must not point at a backup or a report that does not exist.
+  local verb="Payload installed"
+  [[ $dry_run -eq 1 ]] && verb="Payload would be installed"
+
   if [[ ${#missing[@]} -gt 0 ]]; then
-    echo "Payload installed. ${#missing[@]} wiring item(s) still need a hand — see the report."
-    echo "Upstream copies to diff against are in $report_dir/wiring-reference/."
+    if [[ $dry_run -eq 1 ]]; then
+      echo "$verb. ${#missing[@]} wiring item(s) would still need a hand; re-run without --dry-run"
+      echo "to write the backup, the report and the upstream copies to diff against."
+    else
+      echo "$verb. ${#missing[@]} wiring item(s) still need a hand — see the report."
+      echo "Upstream copies to diff against are in $report_dir/wiring-reference/."
+    fi
     exit 3
   fi
 
-  echo "Payload installed and every wiring marker is present."
-  echo "Next: npm install && npm run lint && npm run test -- --run app/bpmn-editor"
+  echo "$verb, and every wiring marker is present."
+  if [[ $dry_run -eq 0 ]]; then
+    echo "Next: npm install && npm run lint && npm run test -- --run app/bpmn-editor"
+  fi
 }
 
 # Add the missing BPMN dependencies to package.json, in place, through a real JSON parser.

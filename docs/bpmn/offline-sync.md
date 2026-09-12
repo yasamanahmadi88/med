@@ -1,47 +1,114 @@
 # Carrying the BPMN editor to the offline project
 
-## Which implementation is ahead, and how that was settled
+## Which implementation is ahead, and how that was measured
 
-The BPMN feature in this repository is not an alternative to the Vue editor the offline project
-came with — it is a file-by-file port of it, and the port has already been audited to completion
-against the original. The record is in
-[`src/main/webapp/app/bpmn-editor/README.md`](../../src/main/webapp/app/bpmn-editor/README.md),
-under "Port status", written as the porting work happened (PRs #16-#29). Every Vue file was
-resolved through its call sites, not its name, and each one is accounted for as ported, replaced
-by a library the Angular build already carries, or deliberately dropped with the reason stated.
+The offline checkout is **not** the Vue editor. It is this same Angular application on a branch
+named `feature/bpmn-vue-angular-parity`, with no `.vue` file anywhere in it — a second attempt at
+the same Vue-to-Angular port, made in parallel with the one on `main`.
 
-So the question "which is better" is not open. The Angular module here is the one to keep, for
-reasons that are recorded rather than asserted:
+That makes the comparison a measurement rather than a judgement. Every file in the offline
+`bpmn-editor/` was hashed and looked up in this repository's full object history:
 
-- **It is the whole of the original, minus what the original could not run.** The audit closed out
-  `utils/` (18 files), the four context-menu files, the six leftover `additional-modules`, the four
-  moddle extensions, `components/common/`, the 12 stylesheets, `bpmnEnums.ts`, `selectOptions.ts`
-  and `bpmn-icons/`. Files that were not ported are named individually with the measurement behind
-  the decision — most had no importer in the Vue project either.
-- **It fixes bugs the original shipped.** Among them: the delete rule returned a boolean, so one
-  protected start event in a drag-selection blocked the whole delete; every module shape was
-  100x80 with its icon drawn squashed; the properties panel's selects showed the stored value
-  instead of the label; right-click stayed dead across the portal after one visit; the settings
-  panel wrote DOM events into the settings; `EmptyXML.ts` interpolated the process name into XML
-  unescaped. Each is described in the README with what was measured.
-- **It refuses two things the original offered.** `ContextPad/Rewrite` and `PopupMenu/Rewrite`
-  register empty providers under the stock names, so selecting those modes from the settings panel
-  empties the context pad and the replace menu. They are scaffolding with the examples commented
-  out, and they are not here.
-- **It is covered.** The module carries its own unit tests, three Playwright suites
-  (`bpmn-editor`, `bpmn-custom-icons`, `flow-bpmn-editor`), and a backend integration test for the
-  parser path. The Vue editor had none of that.
-- **Custom icons are a build, not a port.** The Vue files for that feature had no reachable
-  importer and would have thrown if wired. Here the icon library lives in the diagram's own
-  `bpmn:Definitions/bpmn:extensionElements`, so it travels with the flow — no new table, no
-  endpoint, no `localStorage` — and every upload is validated as hostile input (see "Custom icons"
-  in the module README for what is rejected and the 32 KB / 192 KB caps).
+|                                               | offline                                                              | here |
+| --------------------------------------------- | -------------------------------------------------------------------- | ---- |
+| files under `bpmn-editor/`                    | 158                                                                  | 181  |
+| of the 63 files present in both but differing | 34 are **byte-identical to an older version in this repo's history** | —    |
+| the other 29                                  | independent edits made on the parity branch                          | —    |
 
-Known gaps, stated so the choice is informed rather than sold: `AutoPlace` is not ported, so an
-appended element with nothing to measure against sits 50px to the right instead of 100px;
-`Translate` and the bpmnlint bundle are out (the first was broken in the original and its bundle is
-not English, the second needs two dependencies this project does not have). All three are listed
-in the README with what porting them would cost.
+The 34 exact matches place the branch point precisely: the offline tree is closest to
+**PR #16** (`552ad81`, "Port the BPMN module property forms from the Vue editor"), with 33
+differences, and grows steadily more distant from every commit after it. So the offline branch
+left `main` at #16 and has since missed PRs #17-#30.
+
+### What the offline checkout is missing
+
+Whole directories and features, not refinements:
+
+- `context-menu/` — the right-click architecture (#18). Element right-click defers to bpmn-js's
+  own `bpmn-replace` popup (search, grouping, keyboard navigation); the append menu fires on the
+  modeler's event bus. The offline branch wrote its own flat menu instead.
+- `custom-icons/` — the whole custom-icon feature (#25): upload an SVG, name it, place it from the
+  palette, stored in the diagram's own `bpmn:Definitions/bpmn:extensionElements` so it travels
+  with the flow. With `moddle-extensions/customIcons.json`. The offline branch has a leftover
+  `styles/custom-icons.scss` and none of the feature.
+- `additional-modules/Rules` — start and end events cannot be deleted (#19).
+- `module-properties/validation.ts` and `validators.ts` — the four field validators, with Save
+  gated on the whole diagram rather than the selected element (#21).
+- The toolbar's dialogs and keyboard layer (#20): `xml-preview-dialog`, `custom-icons-dialog`,
+  `shortcut-keys-dialog`, `shortcuts.ts`, `toolbar.component.scss`.
+- `types/declares/diagram-js-minimap.d.ts`, `components/flow/flow-bpmn-editor.component.scss`.
+
+And the fixes from #22-#30, none of which are in it: the five bugs #24 found (replace menu, grid
+background, element sizes, select labels, settings panel), the panel header laid out around an
+icon it never draws (#23), the 47px of editor that was unreachable (#27), RTL, the Persian bundle
+(#28, #29), and the `FlowEntity` CLOB (#26).
+
+Two of those are worth naming, because the offline `styles/index.scss` still contains them:
+
+- `body, html, #app { height: 100vh; overflow: hidden }` as a global rule under
+  `ViewEncapsulation.None`. That is exactly what put the bottom 47px of the editor both off-screen
+  and unscrollable — #27 measured it and moved the sizing to the shell.
+- `@import "element-templates.css"` (all 23 selectors match nothing, no element-templates provider
+  is registered) and `background-image: url("/04.jpg")`, a file this project does not ship.
+
+Its eight extra stylesheets — `bpmn-override.scss`, `camunda-penal.scss`, `setting.scss`,
+`toolbar.scss`, `panel.scss`, `style.css`, `font-awesome.min.css` (102 kB), `custom-icons.scss` —
+are the same files this repository measured in Chromium and removed as dead, selector by selector.
+See "The stylesheets" in the module README for each measurement. `types/editor/utils.d.ts` is the
+orphan `Logger` declaration, also removed deliberately.
+
+### What the offline checkout had that this one did not — now ported
+
+The parity branch did two things of real value that were genuinely absent here. Both are now in
+this repository, so the sync runs in one direction with nothing lost:
+
+- **`additional-modules/ColorPicker/`** — a **Set Color** button on the element context pad
+  opening a six-swatch popup that sets fill and stroke via `modeling.setColor`, registered under
+  `otherModule`. Verified against the pinned libraries rather than assumed: diagram-js 11.13.1
+  does call `getMultiElementContextPadEntries` for an array target, and `modeling.setColor` does
+  take a list, so a multi-selection paints and undoes in one command. 14 tests.
+- **`i18n/translate.ts`** — the `translate` service the Vue `Translate` module was supposed to be.
+  The Language setting has offered 中文 since the port began and reached nothing; it now reaches
+  every label bpmn-js draws. `en_US` stays on the identity path on purpose, because that bundle is
+  largely untranslated Chinese — a fact now held as a test rather than as a note. 11 tests.
+
+Both are recorded in the module README's port-status ledger, with what was checked and what is
+being claimed. The third offline-only file, `components/context-menu/context-menu-options.ts`, is
+superseded by the `bpmn-replace` architecture from #18 and is not ported.
+
+### Verdict
+
+Replace the offline `bpmn-editor/` with this one. It is a strict superset now: everything the
+parity branch built, plus fourteen PRs of porting, auditing and bug-fixing that branch never saw.
+
+Known gaps, so the choice is informed: `AutoPlace` is still not ported, so an appended element
+with nothing to measure against sits 50px to the right instead of 100px; the bpmnlint bundle is
+still out, needing two dependencies this project does not have. Both are described in the module
+README with what porting them would cost.
+
+### Measured against the actual offline checkout
+
+`apply --dry-run` was run against the offline tree itself, not a simulation. The result:
+
+- **Payload**: the whole module replaced, plus two files it does not have at all
+  (`e2e/playwright/bpmn-custom-icons.e2e.spec.ts`, `CustomIconFlowFixture.java`).
+- **Dependencies**: all six already present at the same versions. Nothing to add.
+- **Wiring**: eleven of twelve markers already present. The one gap is
+  `layouts/main/main.component.scss`, which has no `.fullscreen-mode` block — that is the 47px
+  fix, and it is the one thing `apply` cannot do for you.
+
+A real `apply` then made the offline `bpmn-editor/` byte-identical to this one, and its eight dead
+stylesheets were gone rather than merged in.
+
+### Scope: this bundle is the BPMN feature, not the whole branch
+
+The offline checkout also lags outside `bpmn-editor/` — 34 files under `src/main/`, most of them
+the Persian bundle from PRs #28 and #29, plus `login`, `home`, `translate.directive.ts` and one
+`@NotNull` on `FlowEntity`. None of that is BPMN, so none of it is in the bundle. If you want that
+too, it is a separate sync and worth deciding separately.
+
+Its `liquibase` changelog and `FlowEntity` already carry the `flow` CLOB, so the BPMN-critical half
+of the backend is in place.
 
 ## The transport
 
@@ -82,13 +149,13 @@ this application.
 **Payload — replaced, after a backup.** These belong to the feature and to nothing else, so the
 offline copy holds no information the bundle lacks:
 
-| Path                                                                      | Note                                                  |
-| ------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `src/main/webapp/app/bpmn-editor/`                                        | the module; removed before the copy, not merged into  |
-| `src/main/webapp/content/bpmn-icons/`                                     | 107 element icons                                     |
-| `src/main/webapp/content/images/bpmn-icon.{png,svg}`                      | the Flow screens' editor button                       |
-| `e2e/playwright/{bpmn-editor,bpmn-custom-icons,flow-bpmn-editor}.e2e.spec.ts` | the three browser suites                          |
-| `src/test/java/.../FlowResourceBpmnParserIT.java`, `CustomIconFlowFixture.java` | the parser path and its fixture                |
+| Path                                                                            | Note                                                 |
+| ------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| `src/main/webapp/app/bpmn-editor/`                                              | the module; removed before the copy, not merged into |
+| `src/main/webapp/content/bpmn-icons/`                                           | 107 element icons                                    |
+| `src/main/webapp/content/images/bpmn-icon.{png,svg}`                            | the Flow screens' editor button                      |
+| `e2e/playwright/{bpmn-editor,bpmn-custom-icons,flow-bpmn-editor}.e2e.spec.ts`   | the three browser suites                             |
+| `src/test/java/.../FlowResourceBpmnParserIT.java`, `CustomIconFlowFixture.java` | the parser path and its fixture                      |
 
 The module directory is removed before the copy so that a file deleted upstream cannot survive as
 a stale import — a merge would leave it behind and the build would fail somewhere unrelated.
@@ -109,18 +176,18 @@ there and reports what is missing. The upstream copy of every one of them is sta
 `bpmn-sync-<timestamp>/wiring-reference/` at the same path, and the report gives the exact `diff`
 command per file.
 
-| File                                                          | Marker                            | What it is                                          |
-| ------------------------------------------------------------- | --------------------------------- | --------------------------------------------------- |
-| `app/app-routing.module.ts`                                   | `bpmn-editor/bpmn-editor.module`  | the lazy `/bpmn-editor` route behind the auth guard |
-| `app/layouts/main/main.component.ts`                          | `/bpmn-editor`                    | `fullScreen` — bpmn-js needs a resolved canvas height |
-| `app/layouts/main/main.component.scss`                        | `.fullscreen-mode`                | the height-constrained column that route gets       |
-| `app/entities/flow/service/flow.service.ts`                   | `xmlTemp`                         | where a not-yet-created flow parks its draft diagram |
-| `app/entities/flow/list/flow.component.{ts,html}`             | `/bpmn-editor`, `bpmn-icon.png`   | opening the editor on a persisted flow (`?flowId=`) |
-| `app/entities/flow/new/flow-new.component.{ts,html}`          | `bpmnXml`                         | the new-flow form's side of the draft               |
-| `domain/FlowEntity.java`                                      | `columnDefinition = "clob"`       | without it Hibernate generates `varchar(255)` and a real flow cannot be stored |
-| `web/rest/FlowResource.java`                                  | `bpmnParserActive`                | the external parser path, and the CLOB filter rules |
-| `liquibase/changelog/20260711_002_domain_schema.xml`          | `flow` as `${clobType}`           | the production column the entity must match         |
-| `e2e/playwright/support/medportal-fixtures.ts`                | `mockApi`                         | the fixture the three BPMN suites need              |
+| File                                                 | Marker                           | What it is                                                                     |
+| ---------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------ |
+| `app/app-routing.module.ts`                          | `bpmn-editor/bpmn-editor.module` | the lazy `/bpmn-editor` route behind the auth guard                            |
+| `app/layouts/main/main.component.ts`                 | `/bpmn-editor`                   | `fullScreen` — bpmn-js needs a resolved canvas height                          |
+| `app/layouts/main/main.component.scss`               | `.fullscreen-mode`               | the height-constrained column that route gets                                  |
+| `app/entities/flow/service/flow.service.ts`          | `xmlTemp`                        | where a not-yet-created flow parks its draft diagram                           |
+| `app/entities/flow/list/flow.component.{ts,html}`    | `/bpmn-editor`, `bpmn-icon.png`  | opening the editor on a persisted flow (`?flowId=`)                            |
+| `app/entities/flow/new/flow-new.component.{ts,html}` | `bpmnXml`                        | the new-flow form's side of the draft                                          |
+| `domain/FlowEntity.java`                             | `columnDefinition = "clob"`      | without it Hibernate generates `varchar(255)` and a real flow cannot be stored |
+| `web/rest/FlowResource.java`                         | `bpmnParserActive`               | the external parser path, and the CLOB filter rules                            |
+| `liquibase/changelog/20260711_002_domain_schema.xml` | `flow` as `${clobType}`          | the production column the entity must match                                    |
+| `e2e/playwright/support/medportal-fixtures.ts`       | `mockApi`                        | the fixture the three BPMN suites need                                         |
 
 `FlowEntity.java` is the one worth not skipping. The custom-icon library puts up to 192 KB of
 base64 inside `FlowEntity.flow`; left at Hibernate's default length that column is generated as

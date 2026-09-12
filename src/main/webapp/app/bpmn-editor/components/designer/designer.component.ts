@@ -5,6 +5,7 @@ import BpmnModeler from 'bpmn-js/lib/Modeler';
 import { BpmnPropertiesPanelModule, BpmnPropertiesProviderModule, CamundaPlatformPropertiesProviderModule } from 'bpmn-js-properties-panel';
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
 import { additionalModulesFor, moddleExtensionsFor } from '../../additional-modules';
+import { translationModuleFor } from '../../i18n/translate';
 import { DEFAULT_ELEMENT_SIZES } from '../../additional-modules/ElementFactory';
 import ModulePropertiesModule from '../../module-properties';
 import { createNewDiagram } from '../../utils/empty-diagram';
@@ -55,6 +56,11 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
     // The palette and renderer modules the settings select, plus the properties panel's own
     // modules when a parent element exists for it to render into.
     const modules: unknown[] = additionalModulesFor(settings);
+    // Overrides diagram-js's own `translate`, so every library label the editor draws goes
+    // through the selected language's bundle. Registered here rather than in
+    // `additionalModulesFor` because it is not one of the modules the settings switch on and off
+    // — it is always present, and the language is what changes.
+    modules.push(translationModuleFor(settings?.language));
     if (panelParent) {
       modules.push(BpmnPropertiesPanelModule, BpmnPropertiesProviderModule);
       // The Camunda groups read camunda-prefixed properties, so they only belong when that is

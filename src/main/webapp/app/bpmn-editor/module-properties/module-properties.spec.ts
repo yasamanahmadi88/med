@@ -1,4 +1,5 @@
 import { NumberFieldEntry, SelectEntry, TextAreaEntry, TextFieldEntry } from '@bpmn-io/properties-panel';
+import { of } from 'rxjs';
 
 import ModulePropertiesProvider from './ModulePropertiesProvider';
 import { httpReceiverSchema, httpTransmitterSchema, schemaForType } from './schemas';
@@ -22,11 +23,31 @@ describe('module properties', () => {
     return element;
   };
 
-  const build = (engine?: string): { provider: ModulePropertiesProvider; modeling: { updateModdleProperties: any } } => {
+  const build = (
+    engine?: string,
+  ): { provider: ModulePropertiesProvider; modeling: { updateModdleProperties: any } } => {
     const modeling = { updateModdleProperties: vi.fn() };
     const propertiesPanel = { registerProvider: vi.fn() };
     const injector = { get: vi.fn().mockReturnValue(engine) };
-    const provider = new ModulePropertiesProvider(propertiesPanel, modeling, (s: string) => s, injector);
+    // Mock all module types to be available for tests
+    const roleModulesService = {
+      getAvailableModuleTypes: () => {
+        const allModuleTypes = new Set([
+          'HttpReceiver:HttpReceiver',
+          'HttpTransmitter:HttpTransmitter',
+          'FileTransmitter:FileTransmitter',
+          'Merger:Merger',
+        ]);
+        return of(allModuleTypes);
+      },
+    };
+    const provider = new ModulePropertiesProvider(
+      propertiesPanel,
+      modeling,
+      (s: string) => s,
+      injector,
+      roleModulesService as any,
+    );
     return { provider, modeling };
   };
 

@@ -46,7 +46,7 @@ export default class ModulePropertiesProvider {
   private readonly translate: Translate;
   /** The editor's configured process engine namespaces every property this panel writes. */
   private readonly prefix: string;
-  private readonly availableModuleTypes$: Observable<Set<string>>;
+  private availableModuleTypes: Set<string> | null = null;
 
   constructor(
     propertiesPanel: PropertiesPanel,
@@ -60,20 +60,24 @@ export default class ModulePropertiesProvider {
     // `config.processEngine` is supplied when the modeler is built; camunda is the default
     // engine and the one the stock properties panel is registered for.
     this.prefix = injector.get('config.processEngine', false) ?? 'camunda';
-    this.availableModuleTypes$ = roleModulesService.getAvailableModuleTypes();
+
+    // Cache available module types once fetched from backend
+    roleModulesService.getAvailableModuleTypes().subscribe(types => {
+      this.availableModuleTypes = types;
+    });
 
     propertiesPanel.registerProvider(PRIORITY, this);
   }
 
-  getGroups(element: Base): (groups: unknown[]) => unknown[] | Promise<unknown[]> {
-    return async groups => {
+  getGroups(element: Base): (groups: unknown[]) => unknown[] {
+    return groups => {
       const schema = schemaForType(getBusinessObject(element)?.$type);
       if (!schema) {
         return groups;
       }
 
-      const availableModuleTypes = await this.availableModuleTypes$.toPromise();
-      if (availableModuleTypes && !availableModuleTypes.has(schema.type)) {
+      // Filter module based on role-based visibility from backend
+      if (this.availableModuleTypes && !this.availableModuleTypes.has(schema.type)) {
         return groups;
       }
 

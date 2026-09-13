@@ -4,6 +4,7 @@ import { Subject } from 'rxjs';
 import BpmnModeler from 'bpmn-js/lib/Modeler';
 import { BpmnPropertiesPanelModule, BpmnPropertiesProviderModule, CamundaPlatformPropertiesProviderModule } from 'bpmn-js-properties-panel';
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
+import { RoleModulesService } from '../../services/role-modules.service';
 import { additionalModulesFor, moddleExtensionsFor } from '../../additional-modules';
 import { translationModuleFor } from '../../i18n/translate';
 import { DEFAULT_ELEMENT_SIZES } from '../../additional-modules/ElementFactory';
@@ -26,7 +27,10 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
   private bpmnModeler: BpmnModeler | null = null;
   private destroy$ = new Subject<void>();
 
-  constructor(private bpmnEditorService: BpmnEditorService) {}
+  constructor(
+    private bpmnEditorService: BpmnEditorService,
+    private roleModulesService: RoleModulesService,
+  ) {}
 
   ngAfterViewInit(): void {
     // PanelComponent is a sibling, so its ngAfterViewInit runs after this one in the same
@@ -106,6 +110,9 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
           enabled: settings?.contextmenu ?? true,
           custom: settings?.customContextmenu ?? true,
         },
+        // Reaches ModulePropertiesProvider via didi factory in module-properties/index.ts
+        // to filter modules based on role-based visibility from the backend.
+        roleModulesService: this.roleModulesService,
         // The panel modules read `propertiesPanel.parent`, so it is only set when a parent
         // exists — the editor can be configured without the custom panel.
         ...(panelParent ? { propertiesPanel: { parent: panelParent } } : {}),

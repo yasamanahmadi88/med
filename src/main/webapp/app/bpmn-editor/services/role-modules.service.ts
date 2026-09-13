@@ -28,7 +28,7 @@ export class RoleModulesService {
           // Fallback: no modules visible if API fails
           return of([]);
         }),
-        shareReplay(1) // Cache the result
+        shareReplay(1), // Cache the result
       );
     }
     return this.modules$;
@@ -38,17 +38,13 @@ export class RoleModulesService {
    * Get available module types as a Set for quick lookups
    */
   getAvailableModuleTypes(): Observable<Set<string>> {
-    return this.getAvailableModules().pipe(
-      map(modules => new Set(modules.map(m => m.type)))
-    );
+    return this.getAvailableModules().pipe(map(modules => new Set(modules.map(m => m.type))));
   }
 
   /**
    * Check if a specific module type is available
    */
   isModuleAvailable(moduleType: string): Observable<boolean> {
-    return this.getAvailableModuleTypes().pipe(
-      map(types => types.has(moduleType))
-    );
+    return this.getAvailableModuleTypes().pipe(map(types => types.has(moduleType)));
   }
 }

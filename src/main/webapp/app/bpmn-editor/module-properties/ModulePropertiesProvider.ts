@@ -48,7 +48,13 @@ export default class ModulePropertiesProvider {
   private readonly prefix: string;
   private readonly availableModuleTypes$: Observable<Set<string>>;
 
-  constructor(propertiesPanel: PropertiesPanel, modeling: Modeling, translate: Translate, injector: any, roleModulesService: RoleModulesService) {
+  constructor(
+    propertiesPanel: PropertiesPanel,
+    modeling: Modeling,
+    translate: Translate,
+    injector: any,
+    roleModulesService: RoleModulesService,
+  ) {
     this.modeling = modeling;
     this.translate = translate;
     // `config.processEngine` is supplied when the modeler is built; camunda is the default

@@ -1,10 +1,12 @@
 import { CheckboxEntry, NumberFieldEntry, SelectEntry, TextAreaEntry, TextFieldEntry } from '@bpmn-io/properties-panel';
 import { getBusinessObject } from 'bpmn-js/lib/util/ModelUtil';
 import { Base } from 'diagram-js/lib/model';
+import { Observable } from 'rxjs';
 
 import { ModuleField, ModuleSchema, optionLabel, optionValue } from './schema';
 import { schemaForType } from './schemas';
 import { validateField } from './validators';
+import { RoleModulesService } from '../services/role-modules.service';
 
 /**
  * Adds one properties-panel group per custom integration module, built from `schema.ts`.
@@ -38,29 +40,37 @@ interface PropertiesPanel {
 type Translate = (template: string) => string;
 
 export default class ModulePropertiesProvider {
-  static $inject = ['propertiesPanel', 'modeling', 'translate', 'injector'];
+  static $inject = ['propertiesPanel', 'modeling', 'translate', 'injector', 'roleModulesService'];
 
   private readonly modeling: Modeling;
   private readonly translate: Translate;
   /** The editor's configured process engine namespaces every property this panel writes. */
   private readonly prefix: string;
+  private readonly availableModuleTypes$: Observable<Set<string>>;
 
-  constructor(propertiesPanel: PropertiesPanel, modeling: Modeling, translate: Translate, injector: any) {
+  constructor(propertiesPanel: PropertiesPanel, modeling: Modeling, translate: Translate, injector: any, roleModulesService: RoleModulesService) {
     this.modeling = modeling;
     this.translate = translate;
     // `config.processEngine` is supplied when the modeler is built; camunda is the default
     // engine and the one the stock properties panel is registered for.
     this.prefix = injector.get('config.processEngine', false) ?? 'camunda';
+    this.availableModuleTypes$ = roleModulesService.getAvailableModuleTypes();
 
     propertiesPanel.registerProvider(PRIORITY, this);
   }
 
-  getGroups(element: Base): (groups: unknown[]) => unknown[] {
-    return groups => {
+  getGroups(element: Base): (groups: unknown[]) => unknown[] | Promise<unknown[]> {
+    return async groups => {
       const schema = schemaForType(getBusinessObject(element)?.$type);
       if (!schema) {
         return groups;
       }
+
+      const availableModuleTypes = await this.availableModuleTypes$.toPromise();
+      if (availableModuleTypes && !availableModuleTypes.has(schema.type)) {
+        return groups;
+      }
+
       return [this.moduleGroup(element, schema), ...groups];
     };
   }

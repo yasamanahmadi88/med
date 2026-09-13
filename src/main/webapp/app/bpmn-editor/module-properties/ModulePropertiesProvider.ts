@@ -1,10 +1,12 @@
 import { CheckboxEntry, NumberFieldEntry, SelectEntry, TextAreaEntry, TextFieldEntry } from '@bpmn-io/properties-panel';
 import { getBusinessObject } from 'bpmn-js/lib/util/ModelUtil';
 import { Base } from 'diagram-js/lib/model';
+import { Observable } from 'rxjs';
 
 import { ModuleField, ModuleSchema, optionLabel, optionValue } from './schema';
 import { schemaForType } from './schemas';
 import { validateField } from './validators';
+import { RoleModulesService } from '../services/role-modules.service';
 
 /**
  * Adds one properties-panel group per custom integration module, built from `schema.ts`.
@@ -38,19 +40,31 @@ interface PropertiesPanel {
 type Translate = (template: string) => string;
 
 export default class ModulePropertiesProvider {
-  static $inject = ['propertiesPanel', 'modeling', 'translate', 'injector'];
+  static $inject = ['propertiesPanel', 'modeling', 'translate', 'injector', 'roleModulesService'];
 
   private readonly modeling: Modeling;
   private readonly translate: Translate;
   /** The editor's configured process engine namespaces every property this panel writes. */
   private readonly prefix: string;
+  private availableModuleTypes: Set<string> | null = null;
 
-  constructor(propertiesPanel: PropertiesPanel, modeling: Modeling, translate: Translate, injector: any) {
+  constructor(
+    propertiesPanel: PropertiesPanel,
+    modeling: Modeling,
+    translate: Translate,
+    injector: any,
+    roleModulesService: RoleModulesService,
+  ) {
     this.modeling = modeling;
     this.translate = translate;
     // `config.processEngine` is supplied when the modeler is built; camunda is the default
     // engine and the one the stock properties panel is registered for.
     this.prefix = injector.get('config.processEngine', false) ?? 'camunda';
+
+    // Cache available module types once fetched from backend
+    roleModulesService.getAvailableModuleTypes().subscribe(types => {
+      this.availableModuleTypes = types;
+    });
 
     propertiesPanel.registerProvider(PRIORITY, this);
   }
@@ -61,6 +75,12 @@ export default class ModulePropertiesProvider {
       if (!schema) {
         return groups;
       }
+
+      // Filter module based on role-based visibility from backend
+      if (this.availableModuleTypes && !this.availableModuleTypes.has(schema.type)) {
+        return groups;
+      }
+
       return [this.moduleGroup(element, schema), ...groups];
     };
   }

@@ -46,16 +46,24 @@ export default class ModulePropertiesProvider {
   private readonly prefix: string;
   private availableModuleTypes: Set<string> | null = null;
 
-  constructor(propertiesPanel: PropertiesPanel, modeling: Modeling, translate: Translate, injector: any,roleModulesService: RoleModulesService,) {
+  constructor(
+    propertiesPanel: PropertiesPanel,
+    modeling: Modeling,
+    translate: Translate,
+    injector: any,
+    roleModulesService: RoleModulesService,
+  ) {
     this.modeling = modeling;
     this.translate = translate;
     // `config.processEngine` is supplied when the modeler is built; camunda is the default
     // engine and the one the stock properties panel is registered for.
     this.prefix = injector.get('config.processEngine', false) ?? 'camunda';
+
     // Cache available module types once fetched from backend
     roleModulesService.getAvailableModuleTypes().subscribe(types => {
       this.availableModuleTypes = types;
     });
+
     propertiesPanel.registerProvider(PRIORITY, this);
   }
 

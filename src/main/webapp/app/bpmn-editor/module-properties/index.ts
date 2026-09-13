@@ -1,5 +1,6 @@
 import ModulePropertiesProvider from './ModulePropertiesProvider';
 import { RoleModulesService } from '../services/role-modules.service';
+
 /**
  * didi module registering the integration-module properties group. Added to the modeler alongside
  * the stock properties panel modules; see `designer.component.ts`.

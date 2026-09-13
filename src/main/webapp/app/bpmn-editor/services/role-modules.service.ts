@@ -40,11 +40,4 @@ export class RoleModulesService {
   getAvailableModuleTypes(): Observable<Set<string>> {
     return this.getAvailableModules().pipe(map(modules => new Set(modules.map(m => m.type))));
   }
-
-  /**
-   * Check if a specific module type is available
-   */
-  isModuleAvailable(moduleType: string): Observable<boolean> {
-    return this.getAvailableModuleTypes().pipe(map(types => types.has(moduleType)));
-  }
 }

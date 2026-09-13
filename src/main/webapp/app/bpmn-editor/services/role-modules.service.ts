@@ -22,7 +22,7 @@ export class RoleModulesService {
   getAvailableModules(): Observable<ModuleInfo[]> {
     if (!this.modules$) {
       this.modules$ = this.http.get<RoleModulesResponse>(this.apiUrl).pipe(
-        map(response => response.modules.filter(m => m.enabled)),
+        map(response => (response?.modules ?? []).filter(m => m.enabled)),
         catchError(error => {
           console.error('Failed to fetch role modules:', error);
           // Fallback: no modules visible if API fails

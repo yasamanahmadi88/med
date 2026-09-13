@@ -23,15 +23,13 @@ describe('module properties', () => {
     return element;
   };
 
-  const build = (
-    engine?: string,
-  ): { provider: ModulePropertiesProvider; modeling: { updateModdleProperties: any } } => {
+  const build = (engine?: string): { provider: ModulePropertiesProvider; modeling: { updateModdleProperties: any } } => {
     const modeling = { updateModdleProperties: vi.fn() };
     const propertiesPanel = { registerProvider: vi.fn() };
     const injector = { get: vi.fn().mockReturnValue(engine) };
     // Mock all module types to be available for tests
     const roleModulesService = {
-      getAvailableModuleTypes: () => {
+      getAvailableModuleTypes() {
         const allModuleTypes = new Set([
           'HttpReceiver:HttpReceiver',
           'HttpTransmitter:HttpTransmitter',
@@ -41,13 +39,7 @@ describe('module properties', () => {
         return of(allModuleTypes);
       },
     };
-    const provider = new ModulePropertiesProvider(
-      propertiesPanel,
-      modeling,
-      (s: string) => s,
-      injector,
-      roleModulesService as any,
-    );
+    const provider = new ModulePropertiesProvider(propertiesPanel, modeling, (s: string) => s, injector, roleModulesService as any);
     return { provider, modeling };
   };
 

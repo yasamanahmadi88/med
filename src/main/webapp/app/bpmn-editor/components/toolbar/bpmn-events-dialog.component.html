@@ -1,0 +1,21 @@
+<div class="modal-header">
+  <h4 class="modal-title">bpmnShortcutKeys</h4>
+
+  <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+</div>
+
+<div class="modal-body">
+  <div class="event-listeners-box">
+    <div class="listener-search">
+      <div class="event-filter">
+        <input type="text" class="form-control" [(ngModel)]="filter" data-cy="bpmnEventsFilter" />
+
+        <button *ngIf="filter" type="button" class="clear-filter" title="Clear" aria-label="Clear" (click)="clearFilter()">&times;</button>
+      </div>
+    </div>
+
+    <div class="event-list">
+      <p *ngFor="let name of visibleEvents; let i = index" class="listener-item">{{ i + 1 }}：{{ name }}</p>
+    </div>
+  </div>
+</div>

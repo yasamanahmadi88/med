@@ -1,4 +1,4 @@
-import { createNewDiagram, emptyDiagramXml, newDiagramIdentity } from './empty-diagram';
+import { blankDiagramXml, createNewDiagram, emptyDiagramXml, newDiagramIdentity } from './empty-diagram';
 
 /**
  * A new diagram's process id and name are what the backend keys a flow on, so getting them
@@ -31,6 +31,19 @@ describe('empty diagram', () => {
       expect(xml).toContain('<bpmn:startEvent id="StartEvent_1" />');
       expect(xml).toContain('bpmnElement="StartEvent_1"');
       expect(xml).toContain('<dc:Bounds x="173" y="102" width="36" height="36" />');
+    });
+
+    it('creates an element-free document for Erase Redo', () => {
+      const xml = blankDiagramXml('Process_42', 'Order intake');
+
+      expect(xml).toContain('<bpmn:process id="Process_42" name="Order intake" isExecutable="true">');
+      expect(xml).toContain('bpmnElement="Process_42"');
+
+      expect(xml).not.toContain('<bpmn:startEvent');
+      expect(xml).not.toContain('StartEvent_1');
+      expect(xml).not.toContain('<bpmndi:BPMNShape');
+      expect(xml).not.toContain('<bpmn:task');
+      expect(xml).not.toContain('<bpmn:sequenceFlow');
     });
 
     it('escapes a name holding XML syntax', () => {

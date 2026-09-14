@@ -24,7 +24,7 @@ import { Subject, takeUntil } from 'rxjs';
 
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
 import { BPMN_EDITOR_HOST, BpmnEditorHost } from '../../services/bpmn-editor-host';
-import { createNewDiagram } from '../../utils/empty-diagram';
+import { blankDiagramXml, newDiagramIdentity } from '../../utils/empty-diagram';
 import { ModulePropertyProblem, describeProblem, moduleValidationProblems } from '../../module-properties';
 import { CustomIconsDialogComponent } from './custom-icons-dialog.component';
 import { XmlPreviewDialogComponent } from './xml-preview-dialog.component';
@@ -241,10 +241,23 @@ export class ToolbarComponent implements OnInit, OnDestroy {
     if (!modeler) {
       return Promise.resolve();
     }
-    this.commandStack()?.clear();
-    return createNewDiagram(modeler, this.bpmnEditorService.getEditorSettings()).catch((error: unknown) => {
-      console.error('Could not create BPMN 2.0 diagram', error);
-    });
+
+    const { processId, processName } = newDiagramIdentity(this.bpmnEditorService.getEditorSettings());
+    const xml = blankDiagramXml(processId, processName);
+
+    return modeler
+      .importXML(xml)
+      .then(() => {
+        // Clear history only after the blank document imported successfully.
+        // A failed import must not destroy the user's existing undo/redo stack.
+        this.commandStack()?.clear();
+
+        // Keep the service state consistent with what is now on the canvas.
+        this.bpmnEditorService.setProcessXml(xml);
+      })
+      .catch((error: unknown) => {
+        console.error('Could not erase BPMN 2.0 diagram', error);
+      });
   }
 
   /** Show the XML the editor would save, without downloading it. */

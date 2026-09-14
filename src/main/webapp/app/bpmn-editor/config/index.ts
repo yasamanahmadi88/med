@@ -6,7 +6,7 @@ export const defaultSettings: EditorSettings = {
   processId: `Process_${new Date().getTime()}`,
   processName: `processName`,
   processEngine: 'camunda',
-  paletteMode: 'enhancement',
+  paletteMode: 'rewrite',
   penalMode: 'custom',
   contextPadMode: 'enhancement',
   rendererMode: 'rewrite',

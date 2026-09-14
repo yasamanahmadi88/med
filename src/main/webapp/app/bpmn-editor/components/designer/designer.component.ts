@@ -95,6 +95,13 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
         // integration-module types.
         moddleExtensions: moddleExtensionsFor(settings),
         additionalModules: modules,
+
+        // Vue parity:
+        // when the minimap feature is enabled, open it immediately on editor load.
+        // diagram-js-minimap itself handles click/drag navigation inside the overview.
+        minimap: {
+          open: settings?.miniMap ?? true,
+        },
         // Reaches ModulePropertiesProvider as `config.processEngine`. Module properties are
         // namespaced by the engine, so an HttpReceiver stores `camunda:agreementMode`.
         processEngine: settings?.processEngine ?? 'camunda',

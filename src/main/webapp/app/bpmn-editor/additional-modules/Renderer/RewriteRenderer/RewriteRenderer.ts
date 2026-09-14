@@ -967,7 +967,37 @@ class RewriteRenderer extends BaseRenderer {
           attrs.fillOpacity = DEFAULT_FILL_OPACITY;
         }
 
-        return drawRect(parentGfx, element.width, element.height, TASK_BORDER_RADIUS, attrs);
+        const di = getDi(element);
+        const explicitFillColor = di?.get('bioc:fill');
+        const explicitStrokeColor = di?.get('bioc:stroke');
+
+        const hasExplicitFillColor = typeof explicitFillColor === 'string' && explicitFillColor.length > 0;
+        const hasExplicitStrokeColor = typeof explicitStrokeColor === 'string' && explicitStrokeColor.length > 0;
+
+        const rect = drawRect(parentGfx, element.width, element.height, TASK_BORDER_RADIUS, attrs);
+
+        /*
+         * Keep the original Vue/default appearance for uncoloured elements.
+         *
+         * palette.scss intentionally makes rect-based elements transparent and
+         * forces a black border. Only a colour explicitly persisted in BPMN DI
+         * may override those defaults.
+         *
+         * The override is derived from DI instead of component/local state, so
+         * Save/Import/Undo/Redo/Default all reconstruct the same visual state.
+         */
+        if (hasExplicitFillColor) {
+          const visibleFillOpacity = attrs.fillOpacity === 0 ? DEFAULT_FILL_OPACITY : attrs.fillOpacity;
+
+          rect.style.setProperty('fill', getFillColor(element, defaultFillColor), 'important');
+          rect.style.setProperty('fill-opacity', String(visibleFillOpacity), 'important');
+        }
+
+        if (hasExplicitStrokeColor) {
+          rect.style.setProperty('stroke', getStrokeColor(element, defaultTaskColor), 'important');
+        }
+
+        return rect;
       },
       'bpmn:Task'(parentGfx, element) {
         const attrs = {

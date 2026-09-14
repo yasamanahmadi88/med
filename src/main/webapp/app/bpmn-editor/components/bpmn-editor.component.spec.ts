@@ -66,8 +66,10 @@ describe('BpmnEditorComponent', () => {
     fixture.destroy();
   });
 
-  it('prevents the native context menu only inside the BPMN designer', () => {
+  it('does not suppress the native browser context menu at the editor shell', () => {
     const designer: HTMLElement = fixture.nativeElement.querySelector('jhi-designer');
+
+    expect(designer).toBeTruthy();
 
     const designerEvent = new MouseEvent('contextmenu', {
       bubbles: true,
@@ -76,7 +78,10 @@ describe('BpmnEditorComponent', () => {
 
     designer.dispatchEvent(designerEvent);
 
-    expect(designerEvent.defaultPrevented).toBe(true);
+    // The editor shell must not globally suppress the browser menu.
+    // BPMN-specific context menu prevention is owned by the
+    // bpmn-js element.contextmenu handler.
+    expect(designerEvent.defaultPrevented).toBe(false);
 
     const outsideEvent = new MouseEvent('contextmenu', {
       bubbles: true,
@@ -97,26 +102,12 @@ describe('BpmnEditorComponent', () => {
     expect(service.getPropertiesPanelParent()).toBeNull();
   });
 
-  it('prevents the native context menu only inside the BPMN designer', () => {
-    const designer: HTMLElement = fixture.nativeElement.querySelector('jhi-designer');
+  it('opens the minimap by default like the Vue reference', () => {
+    expect(created).toHaveLength(1);
 
-    const designerEvent = new MouseEvent('contextmenu', {
-      bubbles: true,
-      cancelable: true,
+    expect(created[0].options.minimap).toEqual({
+      open: true,
     });
-
-    designer.dispatchEvent(designerEvent);
-
-    expect(designerEvent.defaultPrevented).toBe(true);
-
-    const outsideEvent = new MouseEvent('contextmenu', {
-      bubbles: true,
-      cancelable: true,
-    });
-
-    document.body.dispatchEvent(outsideEvent);
-
-    expect(outsideEvent.defaultPrevented).toBe(false);
   });
 
   it('creates exactly one modeler and publishes it on the service', () => {
@@ -124,55 +115,11 @@ describe('BpmnEditorComponent', () => {
     expect(service.getBpmnModeler()).toBe(created[0]);
   });
 
-  it('prevents the native context menu only inside the BPMN designer', () => {
-    const designer: HTMLElement = fixture.nativeElement.querySelector('jhi-designer');
-
-    const designerEvent = new MouseEvent('contextmenu', {
-      bubbles: true,
-      cancelable: true,
-    });
-
-    designer.dispatchEvent(designerEvent);
-
-    expect(designerEvent.defaultPrevented).toBe(true);
-
-    const outsideEvent = new MouseEvent('contextmenu', {
-      bubbles: true,
-      cancelable: true,
-    });
-
-    document.body.dispatchEvent(outsideEvent);
-
-    expect(outsideEvent.defaultPrevented).toBe(false);
-  });
-
   it('does not mount the generic bpmn-js properties panel in custom mode', () => {
     expect(created[0].options.propertiesPanel).toBeUndefined();
     expect(created[0].options.additionalModules).not.toContain(BpmnPropertiesPanelModule);
     expect(created[0].options.additionalModules).not.toContain(BpmnPropertiesProviderModule);
     expect(created[0].options.additionalModules).not.toContain(CamundaPlatformPropertiesProviderModule);
-  });
-
-  it('prevents the native context menu only inside the BPMN designer', () => {
-    const designer: HTMLElement = fixture.nativeElement.querySelector('jhi-designer');
-
-    const designerEvent = new MouseEvent('contextmenu', {
-      bubbles: true,
-      cancelable: true,
-    });
-
-    designer.dispatchEvent(designerEvent);
-
-    expect(designerEvent.defaultPrevented).toBe(true);
-
-    const outsideEvent = new MouseEvent('contextmenu', {
-      bubbles: true,
-      cancelable: true,
-    });
-
-    document.body.dispatchEvent(outsideEvent);
-
-    expect(outsideEvent.defaultPrevented).toBe(false);
   });
 
   it('keeps the generic properties panel available for non-custom panel modes', async () => {
@@ -193,79 +140,13 @@ describe('BpmnEditorComponent', () => {
     expect(created[0].options.additionalModules).toContain(CamundaPlatformPropertiesProviderModule);
   });
 
-  it('prevents the native context menu only inside the BPMN designer', () => {
-    const designer: HTMLElement = fixture.nativeElement.querySelector('jhi-designer');
-
-    const designerEvent = new MouseEvent('contextmenu', {
-      bubbles: true,
-      cancelable: true,
-    });
-
-    designer.dispatchEvent(designerEvent);
-
-    expect(designerEvent.defaultPrevented).toBe(true);
-
-    const outsideEvent = new MouseEvent('contextmenu', {
-      bubbles: true,
-      cancelable: true,
-    });
-
-    document.body.dispatchEvent(outsideEvent);
-
-    expect(outsideEvent.defaultPrevented).toBe(false);
-  });
-
   it('registers the palette and renderer modules the settings select', () => {
     expect(created[0].options.additionalModules).toEqual(expect.arrayContaining(additionalModulesFor(service.getEditorSettings())));
-  });
-
-  it('prevents the native context menu only inside the BPMN designer', () => {
-    const designer: HTMLElement = fixture.nativeElement.querySelector('jhi-designer');
-
-    const designerEvent = new MouseEvent('contextmenu', {
-      bubbles: true,
-      cancelable: true,
-    });
-
-    designer.dispatchEvent(designerEvent);
-
-    expect(designerEvent.defaultPrevented).toBe(true);
-
-    const outsideEvent = new MouseEvent('contextmenu', {
-      bubbles: true,
-      cancelable: true,
-    });
-
-    document.body.dispatchEvent(outsideEvent);
-
-    expect(outsideEvent.defaultPrevented).toBe(false);
   });
 
   it('registers the camunda moddle extension the Camunda provider needs', () => {
     expect(created[0].options.moddleExtensions.camunda).toBeTruthy();
     expect(created[0].options.moddleExtensions.cdrParser).toBeUndefined();
-  });
-
-  it('prevents the native context menu only inside the BPMN designer', () => {
-    const designer: HTMLElement = fixture.nativeElement.querySelector('jhi-designer');
-
-    const designerEvent = new MouseEvent('contextmenu', {
-      bubbles: true,
-      cancelable: true,
-    });
-
-    designer.dispatchEvent(designerEvent);
-
-    expect(designerEvent.defaultPrevented).toBe(true);
-
-    const outsideEvent = new MouseEvent('contextmenu', {
-      bubbles: true,
-      cancelable: true,
-    });
-
-    document.body.dispatchEvent(outsideEvent);
-
-    expect(outsideEvent.defaultPrevented).toBe(false);
   });
 
   it('starts an empty diagram carrying the configured process identity', () => {
@@ -279,94 +160,12 @@ describe('BpmnEditorComponent', () => {
     expect(xml).toContain(`<bpmn:process id="${settings.processId}" name="${settings.processName}"`);
   });
 
-  it('prevents the native context menu only inside the BPMN designer', () => {
-    const designer: HTMLElement = fixture.nativeElement.querySelector('jhi-designer');
-
-    const designerEvent = new MouseEvent('contextmenu', {
-      bubbles: true,
-      cancelable: true,
-    });
-
-    designer.dispatchEvent(designerEvent);
-
-    expect(designerEvent.defaultPrevented).toBe(true);
-
-    const outsideEvent = new MouseEvent('contextmenu', {
-      bubbles: true,
-      cancelable: true,
-    });
-
-    document.body.dispatchEvent(outsideEvent);
-
-    expect(outsideEvent.defaultPrevented).toBe(false);
-  });
-
   it('gives the custom element factory the sizes it exists to apply', () => {
     // CustomElementFactory reads nothing but `config.elementFactory`; without it the class is a
     // no-op and every integration module — all of them `bpmn:Task` subclasses — is placed at
     // bpmn-js's 100x80 rather than the 120x120 the Vue editor configured.
     expect(created[0].options.elementFactory).toEqual(DEFAULT_ELEMENT_SIZES);
     expect(created[0].options.elementFactory['bpmn:Task']).toEqual({ width: 120, height: 120 });
-  });
-
-  it('prevents the native context menu only inside the BPMN designer', () => {
-    const designer: HTMLElement = fixture.nativeElement.querySelector('jhi-designer');
-
-    const designerEvent = new MouseEvent('contextmenu', {
-      bubbles: true,
-      cancelable: true,
-    });
-
-    designer.dispatchEvent(designerEvent);
-
-    expect(designerEvent.defaultPrevented).toBe(true);
-
-    const outsideEvent = new MouseEvent('contextmenu', {
-      bubbles: true,
-      cancelable: true,
-    });
-
-    document.body.dispatchEvent(outsideEvent);
-
-    expect(outsideEvent.defaultPrevented).toBe(false);
-  });
-
-  it('stops suppressing the browser context menu once the editor is gone', () => {
-    // The listener is on `document`, so leaving it behind kills right-click across the whole
-    // portal — not just here — until a full page reload.
-    const rightClick = (): MouseEvent => {
-      const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
-      document.dispatchEvent(event);
-      return event;
-    };
-
-    expect(rightClick().defaultPrevented).toBe(true);
-
-    fixture.destroy();
-
-    expect(rightClick().defaultPrevented).toBe(false);
-  });
-
-  it('prevents the native context menu only inside the BPMN designer', () => {
-    const designer: HTMLElement = fixture.nativeElement.querySelector('jhi-designer');
-
-    const designerEvent = new MouseEvent('contextmenu', {
-      bubbles: true,
-      cancelable: true,
-    });
-
-    designer.dispatchEvent(designerEvent);
-
-    expect(designerEvent.defaultPrevented).toBe(true);
-
-    const outsideEvent = new MouseEvent('contextmenu', {
-      bubbles: true,
-      cancelable: true,
-    });
-
-    document.body.dispatchEvent(outsideEvent);
-
-    expect(outsideEvent.defaultPrevented).toBe(false);
   });
 
   it('clears the modeler from the service on destroy', () => {

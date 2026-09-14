@@ -8,7 +8,6 @@ import EnhancementRenderer from './Renderer/EnhancementRenderer';
 import RewriteRenderer from './Renderer/RewriteRenderer';
 import CustomElementFactory from './ElementFactory';
 import BpmnColorPicker from './ColorPicker';
-import CustomRules from './Rules';
 import CustomIcons from '../custom-icons';
 
 import activiti from '../moddle-extensions/activiti.json';
@@ -100,9 +99,8 @@ export function moddleExtensionsFor(settings: EditorSettings | undefined): Recor
  * - `rendererMode` picks how those custom element types are drawn. A custom palette without a
  *   renderer would place shapes bpmn-js cannot draw, so CustomElementFactory and a renderer are
  *   registered whenever a custom palette is active.
- * - `otherModule` carries the extras that are neither palette nor renderer: the delete rule and
- *   the colour picker. See the README for what the Vue editor kept under this flag and why the
- *   rest did not.
+ * - `otherModule` carries the extras that are neither palette nor renderer: token simulation and
+ *   the colour picker. Element deletion deliberately stays with the stock bpmn-js rules.
  * - `miniMap` registers diagram-js-minimap. The setting has existed since the port began but
  *   reached nothing, so turning it off changed nothing and turning it on gave no minimap.
  */
@@ -128,12 +126,11 @@ export function additionalModulesFor(settings: EditorSettings | undefined): unkn
   }
 
   // `otherModule` is the Vue editor's switch for the extras that are not palette or renderer;
-  // the rule protecting start and end events and the colour picker both travelled under it.
+  // token simulation and the colour picker travel under it; deletion uses stock bpmn-js rules.
   //
   // Placed after the `modules.length > 0` check above deliberately: neither of these places a
   // custom element type, so neither should be what drags CustomElementFactory in.
   if (settings?.otherModule ?? true) {
-    modules.push(CustomRules);
     modules.push(TokenSimulationModule);
     modules.push(BpmnColorPicker);
   }

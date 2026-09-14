@@ -32,8 +32,8 @@ describe('bpmn-editor additional modules', () => {
   describe('moddleExtensionsFor', () => {
     const moddleExtensions = moddleExtensionsFor(defaultSettings);
 
-    it('registers every namespace the enhancement palette creates shapes with', () => {
-      // EnhancementPaletteProvider builds these types; without the matching moddle extension
+    it('registers every namespace the custom palettes create shapes with', () => {
+      // The custom palette providers build these types; without the matching moddle extension
       // elementFactory.createShape throws on an unknown namespace.
       for (const prefix of [
         'KafkaReceiver',
@@ -186,11 +186,12 @@ describe('bpmn-editor additional modules', () => {
   });
 
   describe('additionalModulesFor', () => {
-    it('registers the enhancement palette by default', () => {
+    it('registers the Vue-compatible rewrite palette by default', () => {
       const modules = additionalModulesFor(defaultSettings);
 
-      expect(defaultSettings.paletteMode).toBe('enhancement');
-      expect(modules).toContain(EnhancementPalette);
+      expect(defaultSettings.paletteMode).toBe('rewrite');
+      expect(modules).toContain(RewritePalette);
+      expect(modules).not.toContain(EnhancementPalette);
     });
 
     it('replaces the palette provider in rewrite mode', () => {
@@ -219,11 +220,12 @@ describe('bpmn-editor additional modules', () => {
       }
     });
 
-    it('protects the start and end events unless otherModule is off', () => {
-      // The first extra the Vue editor kept under `otherModule` that carries behaviour; without
-      // it a stray Delete leaves a process no engine will run.
-      expect(additionalModulesFor(settingsWith({ otherModule: true }))).toContain(CustomRules);
+    it('leaves element deletion to stock bpmn-js rules', () => {
+      // CustomRules remains independently testable, but is intentionally not
+      // registered at runtime because Start and End Events are removable here.
+      expect(additionalModulesFor(settingsWith({ otherModule: true }))).not.toContain(CustomRules);
       expect(additionalModulesFor(settingsWith({ otherModule: false }))).not.toContain(CustomRules);
+      expect(additionalModulesFor(undefined)).not.toContain(CustomRules);
     });
 
     it('registers token simulation under otherModule, matching the reference editor', () => {
@@ -233,9 +235,8 @@ describe('bpmn-editor additional modules', () => {
     });
 
     it('registers the colour picker under the same flag', () => {
-      // The second, and the reason `otherModule` is not just the delete rule. Both providers
-      // register themselves on construction, so being in this list is what makes the context-pad
-      // button exist at all.
+      // The colour picker registers itself on construction, so being in this module list is what
+      // makes the context-pad button exist at all.
       expect(additionalModulesFor(settingsWith({ otherModule: true }))).toContain(BpmnColorPicker);
       expect(additionalModulesFor(settingsWith({ otherModule: false }))).not.toContain(BpmnColorPicker);
     });
@@ -276,10 +277,10 @@ describe('bpmn-editor additional modules', () => {
       }
     });
 
-    it('tolerates missing settings, keeping the delete rule, the colour picker, the minimap and the custom icons', () => {
-      // Nothing to select a palette or renderer from, but the diagram still deserves its
-      // start and end events, and both flags default to on.
-      expect(additionalModulesFor(undefined)).toEqual([CustomRules, TokenSimulationModule, BpmnColorPicker, MinimapModule, CustomIcons]);
+    it('tolerates missing settings, keeping token simulation, the colour picker, the minimap and the custom icons', () => {
+      // Nothing selects a palette or renderer here; the remaining optional modules
+      // still follow their normal default-on settings.
+      expect(additionalModulesFor(undefined)).toEqual([TokenSimulationModule, BpmnColorPicker, MinimapModule, CustomIcons]);
     });
   });
 });

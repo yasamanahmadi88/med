@@ -207,27 +207,55 @@ describe('ToolbarComponent', () => {
     });
   });
 
-  describe('restart', () => {
+  describe('Erase Redo', () => {
     beforeEach(attachModeler);
 
-    it('clears the history before importing the new diagram', () => {
-      // Undoing past the import would otherwise try to restore a diagram the new document has no
-      // elements for, and bpmn-js throws.
-      void component.onRestart();
+    it('imports an element-free process and clears history only after the import succeeds', async () => {
+      await component.onRestart();
 
-      expect(commandStack.clear).toHaveBeenCalled();
-      expect(modeler.importXML).toHaveBeenCalledWith(expect.stringContaining('<bpmn:startEvent'));
+      expect(modeler.importXML).toHaveBeenCalledOnce();
+      expect(commandStack.clear).toHaveBeenCalledOnce();
+
+      const xml = modeler.importXML.mock.calls[0][0] as string;
+
+      expect(xml).toContain('<bpmn:process');
+      expect(xml).not.toContain('<bpmn:startEvent');
+      expect(xml).not.toContain('StartEvent_1');
+      expect(xml).not.toContain('<bpmndi:BPMNShape');
+
+      expect(service.getProcessXml()).toBe(xml);
     });
 
-    it('builds the new diagram from the configured process identity', () => {
-      service.updateConfiguration({ processId: 'Order_9', processName: 'Orders' });
+    it('preserves the configured process id and process name', async () => {
+      service.updateConfiguration({
+        processId: 'Order_9',
+        processName: 'Orders',
+      });
 
-      void component.onRestart();
+      await component.onRestart();
 
-      expect(modeler.importXML).toHaveBeenCalledWith(expect.stringContaining('<bpmn:process id="Order_9" name="Orders"'));
+      const xml = modeler.importXML.mock.calls[0][0] as string;
+
+      expect(xml).toContain('<bpmn:process id="Order_9" name="Orders" isExecutable="true">');
+      expect(xml).toContain('bpmnElement="Order_9"');
+      expect(xml).not.toContain('<bpmn:startEvent');
+    });
+
+    it('does not destroy command history or replace service XML when blank import fails', async () => {
+      service.setProcessXml('<old-diagram />');
+      modeler.importXML.mockRejectedValueOnce(new Error('import failed'));
+
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+      await component.onRestart();
+
+      expect(commandStack.clear).not.toHaveBeenCalled();
+      expect(service.getProcessXml()).toBe('<old-diagram />');
+      expect(consoleError).toHaveBeenCalledWith('Could not erase BPMN 2.0 diagram', expect.any(Error));
+
+      consoleError.mockRestore();
     });
   });
-
   describe('dialogs', () => {
     beforeEach(attachModeler);
 

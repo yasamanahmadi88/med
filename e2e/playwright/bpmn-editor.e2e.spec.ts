@@ -51,7 +51,7 @@ test.describe('BPMN editor', () => {
     // to the text until Escape closes it. Worth pinning, because the sequence looks like the key
     // being unbound — it is not — and the shortcut dialog tells users about the Escape.
     const canvas = page.locator('.bpmn-canvas .djs-container');
-    await page.locator('.djs-palette .bpmn-icon-task').click();
+    await page.locator('.djs-palette .KafkaReceiver-module').click();
     const box = await canvas.boundingBox();
     await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
 
@@ -65,42 +65,113 @@ test.describe('BPMN editor', () => {
     await expect(page.locator('.bpmn-canvas .djs-element')).toHaveCount(withTask - 1);
   });
 
-  test('the Delete key cannot remove the start event either', async ({ page, mockApi }) => {
+  test('offers Remove for the Start Event and keeps deletion undoable', async ({ page, mockApi }) => {
     await mockApi({ account: 'admin' });
 
     await page.goto('/bpmn-editor');
 
-    // The context pad hides its trash button, but the keyboard goes straight to the editor
-    // action — so this is the path that would bypass CustomRules if the rule were only cosmetic.
-    const before = await page.locator('.bpmn-canvas .djs-element').count();
-    await page.locator('.bpmn-canvas .djs-element[data-element-id^="StartEvent"]').first().click();
+    const startEvent = page.locator('.bpmn-canvas .djs-element[data-element-id^="StartEvent"]').first();
+
+    await expect(startEvent).toBeVisible();
+
+    await startEvent.click();
+
+    const remove = page.locator('.djs-context-pad .bpmn-icon-trash').last();
+
+    await expect(remove).toBeVisible();
+    await remove.click();
+
+    await expect(startEvent).toHaveCount(0);
+
+    await page.getByTestId('bpmnUndo').click();
+    await expect(startEvent).toBeVisible();
+
+    await page.getByTestId('bpmnRedo').click();
+    await expect(startEvent).toHaveCount(0);
+  });
+
+  test('offers Remove for a newly created End Event and keyboard Delete follows the same rule', async ({ page, mockApi }) => {
+    await mockApi({ account: 'admin' });
+
+    await page.goto('/bpmn-editor');
+
+    const canvas = page.locator('.bpmn-canvas .djs-container');
+
+    await expect(canvas).toBeVisible();
+
+    const shapes = page.locator('.bpmn-canvas .djs-element.djs-shape[data-element-id]');
+
+    const beforeIds = await shapes.evaluateAll(elements =>
+      elements.map(element => element.getAttribute('data-element-id')).filter((id): id is string => Boolean(id)),
+    );
+
+    await page.locator('.djs-palette [data-action="create.end-event"]').click();
+
+    const box = await canvas.boundingBox();
+
+    expect(box).not.toBeNull();
+
+    await page.mouse.click(box!.x + box!.width * 0.65, box!.y + box!.height * 0.35);
+
+    // Close the direct-edit label editor while preserving the selection.
+    await page.keyboard.press('Escape');
+
+    let createdId = '';
+
+    await expect
+      .poll(async () => {
+        const afterIds = await shapes.evaluateAll(elements =>
+          elements.map(element => element.getAttribute('data-element-id')).filter((id): id is string => Boolean(id)),
+        );
+
+        const created = afterIds.filter(id => !beforeIds.includes(id));
+
+        createdId = created[0] ?? '';
+
+        return created.length;
+      })
+      .toBe(1);
+
+    expect(createdId).not.toBe('');
+
+    const endEvent = page.locator(`.bpmn-canvas .djs-element[data-element-id="${createdId}"]`);
+
+    await expect(endEvent).toBeVisible();
+
+    // Prove the newly created shape is actually an event.
+    await expect(endEvent.locator('.djs-visual > circle').first()).toBeVisible();
+
+    // bpmn-js already selects a freshly created shape. Do NOT click it again:
+    // the HTML canvas container may legitimately intercept that synthetic click.
+    await expect(endEvent).toHaveClass(/selected/);
+
+    // Requirement #1: the Remove option must exist for End Event.
+    const remove = page.locator('.djs-context-pad .bpmn-icon-trash').last();
+
+    await expect(remove).toBeVisible();
+
+    // Requirement #2: keyboard deletion must follow the same rule.
     await page.keyboard.press('Delete');
 
-    await expect(page.locator('.bpmn-canvas .djs-element')).toHaveCount(before);
+    await expect(endEvent).toHaveCount(0);
+
+    // Requirement #3: command stack remains intact.
+    await page.getByTestId('bpmnUndo').click();
+
+    await expect(page.locator(`.bpmn-canvas .djs-element[data-element-id="${createdId}"]`)).toBeVisible();
+
+    await page.getByTestId('bpmnRedo').click();
+
+    await expect(page.locator(`.bpmn-canvas .djs-element[data-element-id="${createdId}"]`)).toHaveCount(0);
   });
-
-  test('offers no delete on the start event', async ({ page, mockApi }) => {
-    await mockApi({ account: 'admin' });
-
-    await page.goto('/bpmn-editor');
-
-    // bpmn-js builds the context pad by asking the rules what is allowed, so the missing trash
-    // button *is* CustomRules refusing. A process without a start event is one no engine will
-    // run, and nothing in the editor says it has gone.
-    await page.locator('.bpmn-canvas .djs-element[data-element-id^="StartEvent"]').first().click();
-
-    await expect(page.locator('.djs-context-pad .entry')).not.toHaveCount(0);
-    await expect(page.locator('.djs-context-pad .bpmn-icon-trash')).toHaveCount(0);
-  });
-
   test('still deletes an ordinary element', async ({ page, mockApi }) => {
     await mockApi({ account: 'admin' });
 
     await page.goto('/bpmn-editor');
 
-    // The rule must protect two element types, not make the canvas read-only.
+    // Stock bpmn-js deletion must keep ordinary and custom shapes removable too.
     const canvas = page.locator('.bpmn-canvas .djs-container');
-    await page.locator('.djs-palette .bpmn-icon-task').click();
+    await page.locator('.djs-palette .KafkaReceiver-module').click();
     const box = await canvas.boundingBox();
     await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
 
@@ -207,7 +278,7 @@ test.describe('BPMN editor', () => {
     expect(lineBoxes).toBe(1);
   });
 
-  test('shows the custom integration modules in the palette', async ({ page, mockApi }) => {
+  test('shows exactly the Vue palette tools in the Vue order', async ({ page, mockApi }) => {
     await mockApi({ account: 'admin' });
 
     await page.goto('/bpmn-editor');
@@ -215,27 +286,52 @@ test.describe('BPMN editor', () => {
     const palette = page.locator('.bpmn-canvas .djs-palette');
     await expect(palette).toBeVisible();
 
-    // Entries EnhancementPaletteProvider adds on top of the stock bpmn-js palette.
+    const expectedActions = [
+      'hand-tool',
+      'lasso-tool',
+      'space-tool',
+      'global-connect-tool',
+      'create.start-event',
+      'create.end-event',
+      'create.merger-module',
+      'create.fragmenter-module',
+      'create.KafkaReceiver-module',
+      'create.KafkaTransmitter-module',
+      'create.HttpReceiver-module',
+      'create.HttpTransmitter-module',
+      'create.fileReceiver-module',
+      'create.FileTransmitter-module',
+      'create.dbReceiver-module',
+      'create.dbTransmitter-module',
+      'create.cdrParser-module',
+      'create.csvTransformerCorner-module',
+    ];
+
+    const actualActions = await palette
+      .locator('[data-action]')
+      .evaluateAll(entries => entries.map(entry => entry.getAttribute('data-action')));
+
+    expect(actualActions).toEqual(expectedActions);
+
+    // These stock bpmn-js creation tools are intentionally not exposed in the
+    // Vue-compatible top-level palette. The BPMN engine still supports them.
     for (const className of [
-      'merger-module',
-      'fragmenter-module',
-      'KafkaReceiver-module',
-      'KafkaTransmitter-module',
-      'HttpReceiver-module',
-      'HttpTransmitter-module',
-      'fileReceiver-module',
-      'fileTransmitter-module',
-      'dbReceiver-module',
-      'dbTransmitter-module',
-      'csvTransformer-module',
+      'bpmn-icon-task',
+      'bpmn-icon-gateway-none',
+      'bpmn-icon-intermediate-event-none',
+      'bpmn-icon-subprocess-expanded',
+      'bpmn-icon-participant',
+      'bpmn-icon-data-object',
+      'bpmn-icon-data-store',
+      'bpmn-icon-group',
     ]) {
-      await expect(palette.locator(`.${className}`), `palette entry .${className}`).toBeVisible();
+      await expect(palette.locator(`.${className}`), `unexpected palette entry .${className}`).toHaveCount(0);
     }
 
-    // The stock entries must survive: enhancement mode adds to the palette rather than replacing it.
-    await expect(palette.locator('.bpmn-icon-start-event-none')).toBeVisible();
+    // Custom icon infrastructure stays installed for existing diagrams but
+    // contributes no palette entry until an icon actually exists in the library.
+    await expect(palette.locator('.custom-icon-entry')).toHaveCount(0);
   });
-
   test('places a custom module on the canvas', async ({ page, mockApi }) => {
     await mockApi({ account: 'admin' });
 
@@ -357,10 +453,18 @@ test.describe('BPMN editor', () => {
     await page.locator('.bpmn-canvas .djs-element[data-element-id^="StartEvent"]').first().click();
     await expect(header).toContainText(/start event/i);
 
-    const canvas = page.locator('.bpmn-canvas .djs-container');
-    await page.locator('.djs-palette .bpmn-icon-gateway-none').click();
-    const box = await canvas.boundingBox();
-    await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+    await page
+      .locator('.bpmn-canvas .djs-container svg')
+      .first()
+      .click({ button: 'right', position: { x: 420, y: 320 } });
+
+    const menu = page.locator('.bpmn-context-menu');
+    await expect(menu).toBeVisible();
+    await menu.getByRole('menuitem', { name: 'Exclusive Gateway', exact: true }).click();
+
+    // ContextMenuComponent starts create.start(...) asynchronously.
+    await page.waitForTimeout(100);
+    await page.locator('.bpmn-canvas .djs-container').click({ position: { x: 500, y: 380 } });
     await page.keyboard.press('Escape');
 
     // Not "Gateway": the concrete type, which is what tells an exclusive gateway from a parallel
@@ -383,7 +487,7 @@ test.describe('BPMN editor', () => {
     const startEventIcon = await icon.innerHTML();
 
     const canvas = page.locator('.bpmn-canvas .djs-container');
-    await page.locator('.djs-palette .bpmn-icon-task').click();
+    await page.locator('.djs-palette .KafkaReceiver-module').click();
     const box = await canvas.boundingBox();
     await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
     await page.keyboard.press('Escape');
@@ -406,10 +510,18 @@ test.describe('BPMN editor', () => {
     await page.locator('.bpmn-canvas .djs-element[data-element-id^="StartEvent"]').first().click();
     await expect(groups.filter({ hasText: 'Execution listeners' })).toHaveCount(1);
 
-    const canvas = page.locator('.bpmn-canvas .djs-container');
-    await page.locator('.djs-palette .bpmn-icon-gateway-none').click();
-    const box = await canvas.boundingBox();
-    await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+    await page
+      .locator('.bpmn-canvas .djs-container svg')
+      .first()
+      .click({ button: 'right', position: { x: 420, y: 320 } });
+
+    const menu = page.locator('.bpmn-context-menu');
+    await expect(menu).toBeVisible();
+    await menu.getByRole('menuitem', { name: 'Exclusive Gateway', exact: true }).click();
+
+    // ContextMenuComponent starts create.start(...) asynchronously.
+    await page.waitForTimeout(100);
+    await page.locator('.bpmn-canvas .djs-container').click({ position: { x: 500, y: 380 } });
     await page.keyboard.press('Escape');
     await expect(groups.filter({ hasText: 'Execution listeners' })).toHaveCount(1);
 
@@ -548,7 +660,7 @@ test.describe('BPMN editor', () => {
     await page.goto('/bpmn-editor');
 
     const canvas = page.locator('.bpmn-canvas .djs-container');
-    await page.locator('.djs-palette .bpmn-icon-task').click();
+    await page.locator('.djs-palette .KafkaReceiver-module').click();
     const box = await canvas.boundingBox();
     await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
     await page.keyboard.press('Escape');
@@ -599,7 +711,7 @@ test.describe('BPMN editor', () => {
     await page.goto('/bpmn-editor');
 
     const canvas = page.locator('.bpmn-canvas .djs-container');
-    await page.locator('.djs-palette .bpmn-icon-task').click();
+    await page.locator('.djs-palette .KafkaReceiver-module').click();
     const box = await canvas.boundingBox();
     await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 3);
     await page.keyboard.press('Escape');

@@ -78,16 +78,6 @@ export class BpmnEditorComponent implements OnInit, OnDestroy {
     if (this.editorSettings?.bg === 'image') classes.push('designer-with-image');
     return classes;
   }
-
-  /**
-   * Suppress the native browser context menu only inside the BPMN designer.
-   * Toolbar, properties panels, navbar and the rest of the portal keep the
-   * browser's normal right-click menu.
-   */
-  onDesignerContextMenu(event: MouseEvent): void {
-    event.preventDefault();
-  }
-
   onXmlUpdate(xml: string): void {
     this.bpmnEditorService.setProcessXml(xml);
   }

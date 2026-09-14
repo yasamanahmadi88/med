@@ -19,7 +19,7 @@ export const cdrParserSchema: ModuleSchema = {
   label: 'CdrParser',
   fields: [
     { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: AGREEMENT_MODE },
-    { name: 'batchMode', label: 'Batch Mode', kind: 'select', options: ['SINGLE', 'BATCH', 'BOTH'] },
+    { name: 'batchMode', label: 'Batch Mode', kind: 'select', options: ['SINGLE', 'BATCH', 'BOTH'], customPanelVisible: false },
     // The Vue options label these with spaces where the value has underscores (HUAWEI_PGW_DATA_CDR
     // shows as "HUAWEI PGW DATA CDR", TAP_312 as "TAP 312"), so they carry the pair form: the
     // panel's SelectEntry renders `option.label` and stores `option.value`

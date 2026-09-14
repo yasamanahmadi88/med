@@ -1,5 +1,6 @@
 import camundaModdleDescriptor from 'camunda-bpmn-moddle/resources/camunda.json';
 import MinimapModule from 'diagram-js-minimap';
+import TokenSimulationModule from 'bpmn-js-token-simulation';
 
 import EnhancementPalette from './Palette/EnhancementPalette';
 import RewritePalette from './Palette/RewritePalette';
@@ -133,6 +134,7 @@ export function additionalModulesFor(settings: EditorSettings | undefined): unkn
   // custom element type, so neither should be what drags CustomElementFactory in.
   if (settings?.otherModule ?? true) {
     modules.push(CustomRules);
+    modules.push(TokenSimulationModule);
     modules.push(BpmnColorPicker);
   }
 

@@ -1,82 +1,161 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.5rem 1rem;
-  background-color: #f5f5f5;
-  border-bottom: 1px solid #e0e0e0;
+  gap: 16px;
+
+  width: 100%;
+  min-height: 51px;
+  box-sizing: border-box;
+  padding: 8px 16px;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  background: #f5f5f5;
+  white-space: nowrap;
+  scrollbar-width: thin;
 }
 
-.toolbar-section {
-  display: flex;
-  gap: 0.5rem;
-
-  &:not(:first-child) {
-    border-inline-start: 1px solid #ccc;
-    padding-inline-start: 1rem;
-  }
-}
-
-.toolbar-btn {
-  padding: 0.5rem 1rem;
-  background-color: #fff;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.875rem;
-  display: flex;
+.primary-actions,
+.button-group {
+  display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
-  gap: 0.5rem;
-  transition: all 0.2s;
-
-  &:hover {
-    background-color: #e8e8e8;
-    border-color: #999;
-  }
-
-  &:active {
-    background-color: #d0d0d0;
-  }
-
-  // A disabled Save must not look or behave clickable; without this the hover rule above still
-  // lights it up and the pointer still says it can be pressed.
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.55;
-
-    &:hover {
-      background-color: #fff;
-      border-color: #ccc;
-    }
-  }
-
-  fa-icon {
-    font-size: 1rem;
-  }
 }
 
-.toolbar-btn-icon {
-  // Icon-only buttons still need the text buttons' height, so the row does not jog.
-  padding: 0.5rem 0.75rem;
+.primary-actions {
+  gap: 4px;
 }
 
-.toolbar-zoom-level {
-  // Fixed so the row does not shift as the number goes from 90% to 100%.
-  min-width: 4.5rem;
+button {
+  height: 35px;
+  box-sizing: border-box;
+
+  border: 1px solid #d0d0d0;
+  border-radius: 3px;
+
+  cursor: pointer;
+  font: inherit;
+
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    opacity 120ms ease;
+}
+
+button:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.action-button {
+  padding: 0 15px;
+
+  border: 0;
+
+  color: #fff;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.save-button {
+  background: #008000;
+}
+
+.save-button:hover:not(:disabled) {
+  background: #006b00;
+}
+
+.preview-button {
+  background: #326fa8;
+}
+
+.preview-button:hover {
+  background: #285d8e;
+}
+
+.cancel-button {
+  background: #dc0000;
+}
+
+.cancel-button:hover {
+  background: #b90000;
+}
+
+.action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.button-group button {
+  margin: 0;
+
+  color: #202020;
+  background: #fff;
+  border-radius: 0;
+}
+
+.button-group button + button {
+  margin-inline-start: -1px;
+}
+
+.button-group button:first-child {
+  border-radius: 3px 0 0 3px;
+}
+
+.button-group button:last-child {
+  border-radius: 0 3px 3px 0;
+}
+
+.button-group button:only-child {
+  border-radius: 3px;
+}
+
+.button-group button:hover {
+  position: relative;
+  z-index: 1;
+
+  background: #f2f2f2;
+  border-color: #8d8d8d;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
+
+  width: 40px;
+  padding: 0;
+
+  font-size: 15px;
+}
+
+.zoom-button {
+  min-width: 66px;
+  padding: 0 10px;
+
+  font-size: 14px;
   font-variant-numeric: tabular-nums;
+  text-align: center;
 }
 
 .toolbar-problems {
-  // Sits under the toolbar rather than inside it: the list grows with the diagram, and pushing
-  // the buttons around as elements are edited would be worse than taking a second row.
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 0.25rem 0.5rem;
+
   padding: 0.5rem 1rem;
+
   background: #fff4f4;
   border-bottom: 1px solid #f5c2c7;
+
   color: #842029;
   font-size: 0.8125rem;
 
@@ -87,6 +166,21 @@
   ul {
     flex-basis: 100%;
     margin: 0.25rem 0 0;
-    padding-left: 1.25rem;
+    padding-inline-start: 1.25rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .toolbar {
+    flex-wrap: wrap;
+    gap: 8px 10px;
+
+    padding-inline: 8px;
+    overflow-x: hidden;
+  }
+
+  .primary-actions {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
   }
 }

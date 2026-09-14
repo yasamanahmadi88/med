@@ -7,6 +7,7 @@ import CustomRules from './Rules';
 import BpmnColorPicker from './ColorPicker';
 import CustomIcons from '../custom-icons';
 import MinimapModule from 'diagram-js-minimap';
+import TokenSimulationModule from 'bpmn-js-token-simulation';
 import BpmnModdle, { ModdleElement, Package } from 'bpmn-moddle';
 import camundaModdleDescriptor from 'camunda-bpmn-moddle/resources/camunda.json';
 import { additionalModulesFor, moddleExtensionsFor } from './index';
@@ -225,6 +226,12 @@ describe('bpmn-editor additional modules', () => {
       expect(additionalModulesFor(settingsWith({ otherModule: false }))).not.toContain(CustomRules);
     });
 
+    it('registers token simulation under otherModule, matching the reference editor', () => {
+      expect(additionalModulesFor(settingsWith({ otherModule: true }))).toContain(TokenSimulationModule);
+
+      expect(additionalModulesFor(settingsWith({ otherModule: false }))).not.toContain(TokenSimulationModule);
+    });
+
     it('registers the colour picker under the same flag', () => {
       // The second, and the reason `otherModule` is not just the delete rule. Both providers
       // register themselves on construction, so being in this list is what makes the context-pad
@@ -272,7 +279,7 @@ describe('bpmn-editor additional modules', () => {
     it('tolerates missing settings, keeping the delete rule, the colour picker, the minimap and the custom icons', () => {
       // Nothing to select a palette or renderer from, but the diagram still deserves its
       // start and end events, and both flags default to on.
-      expect(additionalModulesFor(undefined)).toEqual([CustomRules, BpmnColorPicker, MinimapModule, CustomIcons]);
+      expect(additionalModulesFor(undefined)).toEqual([CustomRules, TokenSimulationModule, BpmnColorPicker, MinimapModule, CustomIcons]);
     });
   });
 });

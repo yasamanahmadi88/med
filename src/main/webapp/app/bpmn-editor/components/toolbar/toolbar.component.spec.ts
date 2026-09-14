@@ -5,6 +5,7 @@ import { ToolbarComponent } from './toolbar.component';
 import { XmlPreviewDialogComponent } from './xml-preview-dialog.component';
 import { ShortcutKeysDialogComponent } from './shortcut-keys-dialog.component';
 import { CustomIconsDialogComponent } from './custom-icons-dialog.component';
+import { BpmnEventsDialogComponent } from './bpmn-events-dialog.component';
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
 import { BPMN_EDITOR_HOST, BpmnEditorHost } from '../../services/bpmn-editor-host';
 
@@ -30,6 +31,8 @@ describe('ToolbarComponent', () => {
     canRedo: ReturnType<typeof vi.fn>;
   };
   let minimap: { toggle: ReturnType<typeof vi.fn> };
+  let toggleMode: { toggleMode: ReturnType<typeof vi.fn> };
+  let eventBus: { _listeners: Record<string, unknown> };
   let customIcons: { getIcons: ReturnType<typeof vi.fn> };
   let modeler: any;
   let elements: any[];
@@ -46,6 +49,14 @@ describe('ToolbarComponent', () => {
       canRedo: vi.fn().mockReturnValue(true),
     };
     minimap = { toggle: vi.fn() };
+    toggleMode = { toggleMode: vi.fn() };
+    eventBus = {
+      _listeners: {
+        'shape.added': {},
+        'commandStack.changed': {},
+        'canvas.viewbox.changed': {},
+      },
+    };
     customIcons = { getIcons: vi.fn(() => []) };
     viewboxListener = undefined;
     commandStackListener = undefined;
@@ -57,6 +68,8 @@ describe('ToolbarComponent', () => {
         if (name === 'canvas') return canvas;
         if (name === 'commandStack') return commandStack;
         if (name === 'minimap') return minimap;
+        if (name === 'toggleMode') return toggleMode;
+        if (name === 'eventBus') return eventBus;
         if (name === 'customIcons') return customIcons;
         if (name === 'elementRegistry') return { getAll: () => elements };
         return undefined;
@@ -108,6 +121,8 @@ describe('ToolbarComponent', () => {
         component.onUndo();
         component.onRedo();
         component.onRestart();
+        component.toggleProcessMock();
+        component.openBpmnEvents();
         component.onToggleMinimap();
       }).not.toThrow();
     });
@@ -122,11 +137,11 @@ describe('ToolbarComponent', () => {
   describe('zoom', () => {
     beforeEach(attachModeler);
 
-    it('reports the canvas scale as a whole percentage', () => {
+    it('reports the canvas scale in the same 10 percent steps as the reference toolbar', () => {
       viewboxListener!({ viewbox: { scale: 0.834 } });
 
       // The Vue label truncated to 10% steps, so a fit-to-viewport at 83% read "80%".
-      expect(component.zoomPercent).toBe(83);
+      expect(component.zoomPercent).toBe(80);
     });
 
     it('steps by 10% about the canvas origin', () => {
@@ -239,6 +254,22 @@ describe('ToolbarComponent', () => {
       error.mockRestore();
     });
 
+    it('toggles process simulation through the token simulation service', () => {
+      component.toggleProcessMock();
+
+      expect(toggleMode.toggleMode).toHaveBeenCalledOnce();
+    });
+
+    it('opens the BPMN event list with sorted EventBus names', () => {
+      const componentInstance: Record<string, unknown> = {};
+      const open = vi.spyOn(modal, 'open').mockReturnValue({ componentInstance } as any);
+
+      component.openBpmnEvents();
+
+      expect(open).toHaveBeenCalledWith(BpmnEventsDialogComponent, expect.anything());
+      expect(componentInstance['events']).toEqual(['canvas.viewbox.changed', 'commandStack.changed', 'shape.added']);
+    });
+
     it('opens the shortcut reference', () => {
       const open = vi.spyOn(modal, 'open').mockReturnValue({ componentInstance: {} } as any);
 
@@ -268,6 +299,17 @@ describe('ToolbarComponent', () => {
 
       expect(open).not.toHaveBeenCalled();
     });
+  });
+
+  it('uses the exact reference external-tool tooltip names', () => {
+    const button = (name: string): HTMLButtonElement => fixture.nativeElement.querySelector(`[data-cy="${name}"]`);
+
+    expect(button('bpmnZoomFit').title).toBe('Zoom Reset');
+    expect(button('bpmnRestart').title).toBe('Erase Redo');
+    expect(button('bpmnToggleProcessMock').title).toBe('toggleProcessMock');
+    expect(button('bpmnEvents').title).toBe('bpmnEvents');
+    expect(button('bpmnToggleMinimap').title).toBe('toggleMiniMap');
+    expect(button('bpmnShortcuts').title).toBe('bpmnShortcutKeys');
   });
 
   describe('settings', () => {

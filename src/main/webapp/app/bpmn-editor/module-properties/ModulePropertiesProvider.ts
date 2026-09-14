@@ -24,6 +24,7 @@ const ENTRY_COMPONENTS = {
   textarea: TextAreaEntry,
   select: SelectEntry,
   number: NumberFieldEntry,
+  password: TextFieldEntry,
   checkbox: CheckboxEntry,
 } as const;
 

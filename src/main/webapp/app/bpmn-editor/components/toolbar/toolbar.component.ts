@@ -8,6 +8,8 @@ import {
   faEraser,
   faKeyboard,
   faMap,
+  faPodcast,
+  faRobot,
   faTriangleExclamation,
   faRedo,
   faSave,
@@ -27,6 +29,7 @@ import { ModulePropertyProblem, describeProblem, moduleValidationProblems } from
 import { CustomIconsDialogComponent } from './custom-icons-dialog.component';
 import { XmlPreviewDialogComponent } from './xml-preview-dialog.component';
 import { ShortcutKeysDialogComponent } from './shortcut-keys-dialog.component';
+import { BpmnEventsDialogComponent } from './bpmn-events-dialog.component';
 
 /** The zoom bounds diagram-js's own scroll zoom caps to; the buttons must not exceed them. */
 const ZOOM_MIN = 0.2;
@@ -60,6 +63,8 @@ export class ToolbarComponent implements OnInit, OnDestroy {
     zoomOut: faSearchMinus,
     zoomIn: faSearchPlus,
     previewXml: faCode,
+    processMock: faRobot,
+    bpmnEvents: faPodcast,
     minimap: faMap,
     shortcuts: faKeyboard,
     customIcons: faShapes,
@@ -131,7 +136,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
   }
 
   get zoomPercent(): number {
-    return Math.round(this.zoom * 100);
+    return Math.floor(this.zoom * 10) * 10;
   }
 
   zoomIn(): void {
@@ -251,6 +256,40 @@ export class ToolbarComponent implements OnInit, OnDestroy {
       const modalRef = this.modalService.open(XmlPreviewDialogComponent, { size: 'lg', scrollable: true });
       modalRef.componentInstance.xml = xml;
     });
+  }
+
+  /**
+   * Toggle BPMN token simulation.
+   *
+   * Angular-native equivalent of the reference toolbar's toggleProcessMock action.
+   */
+  toggleProcessMock(): void {
+    const toggleMode = this.bpmnEditorService.getBpmnModeler()?.get('toggleMode', false) as { toggleMode?: () => void } | undefined;
+
+    toggleMode?.toggleMode?.();
+  }
+
+  /**
+   * Open the registered BPMN EventBus listener list.
+   *
+   * The reference implementation reads EventBus._listeners, sorts the event names and applies
+   * a case-sensitive includes filter. Keep those semantics for UI parity.
+   */
+  openBpmnEvents(): void {
+    const eventBus = this.bpmnEditorService.getBpmnModeler()?.get('eventBus', false) as
+      | { _listeners?: Record<string, unknown> }
+      | undefined;
+
+    if (!eventBus) {
+      return;
+    }
+
+    const modalRef = this.modalService.open(BpmnEventsDialogComponent, {
+      size: 'lg',
+      scrollable: true,
+    });
+
+    modalRef.componentInstance.events = Object.keys(eventBus._listeners ?? {}).sort();
   }
 
   /**

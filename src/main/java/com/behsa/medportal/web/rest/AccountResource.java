@@ -236,9 +236,9 @@ public class AccountResource {
     public void requestPasswordReset(HttpServletRequest request) throws java.io.IOException {
         // Limit input size to prevent DoS (email max ~254 chars, adding buffer for JSON)
         int maxSize = 512;
-        byte[] buffer = new byte[maxSize];
+        byte[] buffer = new byte[maxSize + 1]; // Buffer + 1 to detect if more data exists
         int bytesRead = request.getInputStream().read(buffer);
-        if (bytesRead >= maxSize) {
+        if (bytesRead > maxSize) {
             throw new BadRequestAlertException("Request too large", "account", "input-too-large");
         }
         String mail = new String(buffer, 0, bytesRead, java.nio.charset.StandardCharsets.UTF_8).trim();

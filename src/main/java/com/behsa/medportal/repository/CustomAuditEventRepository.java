@@ -17,8 +17,8 @@ import java.util.List;
  */
 public interface CustomAuditEventRepository extends JpaRepository<CustomAuditEventEntity, Long>, JpaSpecificationExecutor<CustomAuditEventEntity> {
     @Query( nativeQuery=true,
-        value="select E.* from JHI_PERSISTENT_AUDIT_EVENT E left outer join JHI_PERSISTENT_AUDIT_EVT_DATA D ON E.EVENT_ID = D.EVENT_ID WHERE E.principal LIKE :PrincParam OR E.EVENT_TYPE LIKE :TypeParam OR D.VALUE LIKE :DValueParam",
-        countQuery= "select count(E.EVENT_ID) from JHI_PERSISTENT_AUDIT_EVENT E left outer join JHI_PERSISTENT_AUDIT_EVT_DATA D ON E.EVENT_ID = D.EVENT_ID WHERE E.principal LIKE :PrincParam OR E.EVENT_TYPE LIKE :TypeParam OR D.VALUE LIKE :DValueParam"
+        value="select E.* from JHI_PERSISTENT_AUDIT_EVENT E left outer join JHI_PERSISTENT_AUDIT_EVT_DATA D ON E.EVENT_ID = D.EVENT_ID WHERE E.principal LIKE :PrincParam ESCAPE '\\' OR E.EVENT_TYPE LIKE :TypeParam ESCAPE '\\' OR D.VALUE LIKE :DValueParam ESCAPE '\\'",
+        countQuery= "select count(E.EVENT_ID) from JHI_PERSISTENT_AUDIT_EVENT E left outer join JHI_PERSISTENT_AUDIT_EVT_DATA D ON E.EVENT_ID = D.EVENT_ID WHERE E.principal LIKE :PrincParam ESCAPE '\\' OR E.EVENT_TYPE LIKE :TypeParam ESCAPE '\\' OR D.VALUE LIKE :DValueParam ESCAPE '\\'"
     )
     Page<CustomAuditEventEntity> searchByText(@Param("PrincParam") String principal, @Param("TypeParam")String type,@Param("DValueParam")String dValue, Pageable pageable);
 

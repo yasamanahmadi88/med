@@ -1,9 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { ActivatedRoute } from '@angular/router';
+import { NEVER } from 'rxjs';
 
 import { FlowService } from 'app/entities/flow/service/flow.service';
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
+import { RoleModulesService } from '../../services/role-modules.service';
 import { BPMN_EDITOR_HOST, BpmnEditorHost } from '../../services/bpmn-editor-host';
 import { FlowBpmnEditorComponent } from './flow-bpmn-editor.component';
 
@@ -21,7 +23,8 @@ vi.mock('bpmn-js/lib/Modeler', () => ({
     importXML = vi.fn().mockResolvedValue({});
     saveXML = vi.fn().mockResolvedValue({ xml: '<definitions />' });
     on = vi.fn();
-    get = vi.fn();
+    private readonly eventBus = { on: vi.fn() };
+    get = vi.fn((service: string) => (service === 'eventBus' ? this.eventBus : undefined));
     destroy = vi.fn();
   },
 }));
@@ -49,7 +52,10 @@ describe('FlowBpmnEditorComponent', () => {
 
     TestBed.configureTestingModule({
       imports: [FlowBpmnEditorComponent, HttpClientTestingModule],
-      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { queryParams } } }],
+      providers: [
+        { provide: ActivatedRoute, useValue: { snapshot: { queryParams } } },
+        { provide: RoleModulesService, useValue: { getAvailableModuleTypes: () => NEVER } },
+      ],
     });
 
     httpMock = TestBed.inject(HttpTestingController);

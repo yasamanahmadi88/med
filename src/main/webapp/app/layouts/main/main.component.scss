@@ -2,53 +2,23 @@
   min-height: 100vh;
 }
 
-// `/bpmn-editor` is the one route whose content sizes itself against the space it is given rather
-// than growing to fit — bpmn-js needs a canvas with a resolved height. `fullScreen` in
-// `main.component.ts` already marks that route, so the shell becomes a height-constrained column
-// here and nowhere else: the editor gets exactly what is left below the navbar, instead of a
-// second full `100vh` that the navbar then pushes off the bottom of the screen.
-//
-// Every other route keeps `.app-root { min-height: 100vh }` from above and scrolls the document
-// as before; nothing in this block matches without the `fullscreen-mode` class.
-.fullscreen-mode {
-  height: 100vh;
-  // `dvh` second, as a progressive enhancement over the `vh` above: on iOS Safari — which
-  // `.browserslistrc` targets, back to 18.0 — `100vh` is the viewport with the browser chrome
-  // *ignored*, so the editor is sized taller than the space it actually has and its bottom edge
-  // sits under the toolbar. `100dvh` is the space really available. Every target this project
-  // declares supports it (Chrome 108+, Safari 15.4+, Firefox 101+), and anything that does not
-  // drops this line and keeps the `100vh` above, so the fallback costs nothing.
-  //
-  // Found on the parity branch, which had it and the rest of this block's measured chain.
-  height: 100dvh;
+.app-root.fullscreen-mode {
   display: flex;
   flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
   overflow: hidden;
 
-  // `min-height: 0` on both: a flex item's default `min-height: auto` refuses to shrink below its
-  // content, which would let the editor push the column past the viewport again.
   > main {
     flex: 1 1 auto;
     min-height: 0;
-    display: flex;
-    flex-direction: column;
+    overflow: hidden;
   }
 
-  // The `card` class is what `main.component.html` puts on this branch. Its 1px border is what
-  // held the editor 1px below the navbar; on this route the editor is the whole page, so there is
-  // no card to frame.
-  //
-  // `display` and `flex-direction` are restated rather than inherited from Bootstrap. `.card` is
-  // a column flex container in `bootstrap.css`, and the height chain below this point only
-  // resolves because of it — an invisible dependency on another file, which is exactly what this
-  // rule is here to remove. Stated here, the chain no longer breaks if that ever changes.
   > main > .card {
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
+    height: 100%;
     min-height: 0;
-    border: 0;
-    border-radius: 0;
   }
 }
 
@@ -64,3 +34,4 @@
   padding: 0;
   margin: 0;
 }
+

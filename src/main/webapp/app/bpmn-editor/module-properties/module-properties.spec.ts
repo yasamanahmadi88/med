@@ -1,7 +1,8 @@
 import { NumberFieldEntry, SelectEntry, TextAreaEntry, TextFieldEntry } from '@bpmn-io/properties-panel';
+import { NEVER } from 'rxjs';
 
 import ModulePropertiesProvider from './ModulePropertiesProvider';
-import { httpReceiverSchema, httpTransmitterSchema, schemaForType } from './schemas';
+import { httpReceiverSchema, httpTransmitterSchema, moduleSchemas, schemaForType } from './schemas';
 
 /**
  * The provider is what makes a placed integration module configurable at all: without it a
@@ -26,9 +27,34 @@ describe('module properties', () => {
     const modeling = { updateModdleProperties: vi.fn() };
     const propertiesPanel = { registerProvider: vi.fn() };
     const injector = { get: vi.fn().mockReturnValue(engine) };
-    const provider = new ModulePropertiesProvider(propertiesPanel, modeling, (s: string) => s, injector);
+    const roleModulesService = { getAvailableModuleTypes: () => NEVER };
+    const provider = new ModulePropertiesProvider(propertiesPanel, modeling, (s: string) => s, injector, roleModulesService as any);
     return { provider, modeling };
   };
+
+  it('keeps source-Vue orphan fields addressable but hides them from the custom panel', () => {
+    const hidden = moduleSchemas.flatMap(schema =>
+      schema.fields.filter(field => field.customPanelVisible === false).map(field => `${schema.type}.${field.name}`),
+    );
+
+    expect(hidden).toEqual([
+      'HttpReceiver:HttpReceiver.transformer',
+      'HttpReceiver:HttpReceiver.transferType',
+      'HttpTransmitter:HttpTransmitter.retryCountNumber',
+      'HttpTransmitter:HttpTransmitter.authUserName',
+      'HttpTransmitter:HttpTransmitter.authPassword',
+      'HttpTransmitter:HttpTransmitter.authType',
+      'HttpReceiverEventa:HttpReceiverEventa.agreementKey',
+      'KafkaTransmitter:KafkaTransmitter.agreementKey',
+      'KafkaTransmitter:KafkaTransmitter.headers',
+      'FileReceiver:FileReceiver.partyTimeOut',
+      'FileReceiver:FileReceiver.successResponsePattern',
+      'DbTransmitter:DbTransmitter.outputMsgType',
+      'CdrParser:CdrParser.batchMode',
+      'Transformer:Transformer.firstAction',
+      'bpmn:SequenceFlow.msgType',
+    ]);
+  });
 
   describe('schemaForType', () => {
     it('finds the schema for the type the palette creates', () => {
@@ -77,6 +103,7 @@ describe('module properties', () => {
       expect(entry('agreementMode').component).toBe(SelectEntry);
       expect(entry('validator').component).toBe(TextAreaEntry);
       expect(entry('authUserName').component).toBe(TextFieldEntry);
+      expect(entry('authPassword').component).toBe(TextFieldEntry);
     });
 
     it('offers a blank choice so a select can be cleared', () => {

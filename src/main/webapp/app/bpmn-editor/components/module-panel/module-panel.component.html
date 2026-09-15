@@ -1,0 +1,73 @@
+<div *ngIf="panelVisible" class="panel" data-cy="bpmnModulePanel">
+  <div class="panel-header">
+    <p>{{ panelTitle }}</p>
+  </div>
+
+  <div class="panel-fields">
+    <div *ngFor="let field of visibleFields; trackBy: trackField" class="selection-area" [attr.data-field]="field.name">
+      <div class="field-label">
+        <label [for]="'module-field-' + field.name">{{ field.label }}:</label>
+      </div>
+
+      <div class="field-control" [ngSwitch]="field.kind">
+        <select
+          *ngSwitchCase="'select'"
+          [id]="'module-field-' + field.name"
+          [ngModel]="fieldValue(field)"
+          (ngModelChange)="updateField(field, $event)"
+        >
+          <option *ngFor="let option of field.options ?? []" [ngValue]="optionValue(option)">
+            {{ optionLabel(option) }}
+          </option>
+        </select>
+
+        <textarea
+          *ngSwitchCase="'textarea'"
+          [id]="'module-field-' + field.name"
+          rows="4"
+          cols="30"
+          [ngModel]="fieldValue(field)"
+          (ngModelChange)="updateField(field, $event)"
+        ></textarea>
+
+        <input
+          *ngSwitchCase="'number'"
+          [id]="'module-field-' + field.name"
+          type="number"
+          [ngModel]="fieldValue(field)"
+          (ngModelChange)="updateField(field, $event)"
+        />
+
+        <div *ngSwitchCase="'password'" class="password-control">
+          <input
+            [id]="'module-field-' + field.name"
+            [type]="isPasswordRevealed(field) ? 'text' : 'password'"
+            autocomplete="off"
+            [ngModel]="fieldValue(field)"
+            (ngModelChange)="updateField(field, $event)"
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            [attr.aria-label]="isPasswordRevealed(field) ? 'Hide password' : 'Show password'"
+            [title]="isPasswordRevealed(field) ? 'Hide password' : 'Show password'"
+            (click)="togglePassword(field)"
+          >
+            <fa-icon [icon]="isPasswordRevealed(field) ? icons.eyeSlash : icons.eye"></fa-icon>
+          </button>
+        </div>
+
+        <input
+          *ngSwitchDefault
+          [id]="'module-field-' + field.name"
+          type="text"
+          [attr.maxlength]="field.name === 'commentDesc' ? 200 : null"
+          [ngModel]="fieldValue(field)"
+          (ngModelChange)="updateField(field, $event)"
+        />
+
+        <div *ngIf="fieldError(field) as error" class="field-error" role="alert">{{ error }}</div>
+      </div>
+    </div>
+  </div>
+</div>

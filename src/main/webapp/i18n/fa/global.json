@@ -6,17 +6,17 @@
       "home": "خانه",
       "jhipster-needle-menu-add-element": "JHipster will add additional menu entries here (do not translate!)",
       "entities": {
-        "main": "ماهیت‌ها",
-        "medAuthority": "مجوز‌ها",
+        "main": "ماهیت ها",
+        "medAuthority": "مجوز ها",
         "resource": "منابع",
         "resourceAuthority": "مجوز منابع",
-        "module": "ماژول‌ها",
-        "config": "تنظیم‌ها",
-        "instance": "نمونه‌ها",
-        "version": "نسخه‌ها",
-        "product": "محصولات",
-        "flow": "فلوها",
-        "logReports": "گزارش لاگ‌ها",
+        "module": "Module",
+        "config": "Config",
+        "instance": "Instance",
+        "version": "Version",
+        "product": "Product",
+        "flow": "Flow",
+        "logReports": "گزارش لاگ ها",
         "customAuditEvent": "لاگ ممیزی",
         "jhipster-needle-menu-add-entry": "JHipster will add additional entities here (do not translate!)"
       },
@@ -24,7 +24,7 @@
         "main": "حساب",
         "settings": "تنظیمات",
         "password": "رمزعبور",
-        "sessions": "نشست‌ها",
+        "sessions": "نشست ها",
         "login": "ورود",
         "logout": "خروج",
         "register": "ثبت نام"
@@ -46,8 +46,8 @@
     "form": {
       "username.label": "نام کاربری",
       "username.placeholder": "نام کاربری شما",
-      "currentpassword.label": "رمزعبور فعلی",
-      "currentpassword.placeholder": "رمزعبور فعلی",
+      "currentpassword.label": "Current password",
+      "currentpassword.placeholder": "Current password",
       "newpassword.label": "رمزعبور جدید",
       "newpassword.placeholder": "رمزعبور جدید",
       "confirmpassword.label": "تصدیق رمزعبور جدید",
@@ -60,8 +60,7 @@
         "authenticated": {
           "prefix": "اگر شما می‌خواهید",
           "link": "ورود",
-          "suffix": "، لطفاً از نام کاربری و رمز عبور اختصاص داده‌شده استفاده کنید."
-        },
+          "suffix": "، لطفاً از نام کاربری و رمز عبور اختصاص داده‌شده استفاده کنید."        },
         "register": {
           "noaccount": "آیا هنوز حساب کاربری ندارید؟",
           "link": "ثبت نام حساب کاربری جدید"
@@ -77,14 +76,14 @@
           "minlength": "رمزعبور شما باید حداقل 8 کرکتر باشد",
           "maxlength": "رمز عبور شما نمی‌تواند بیش از 64 کرکتر باشد.",
           "strength": "قدرتمندی رمزعبور:",
-          "emptyPassword": "رمز عبور نمی‌تواند خالی باشد",
-          "passwordSmallerThanMinLength": "رمز عبور می‌بایست حداقل 8 کاراکتر باشد",
-          "passwordGreaterThanMaxLength": "رمز عبور حداکثر می‌تواند 64 کاراکتر باشد",
-          "passwordMustContainAtLeastOneUppercaseLetter": "رمز عبور می‌بایست حداقل یک حرف بزرگ داشته باشد",
-          "passwordMustContainAtLeastOneLowercaseLetter": "رمز عبور می‌بایست حداقل یک حرف کوچک داشته باشد",
-          "passwordMustContainAtLeastOneDigit": "رمز عبور می‌بایست حداقل یک عدد داشته باشد",
-          "passwordMustContainAtLeastOneSpecialCharacter": "رمز عبور می‌بایست حداقل یک کاراکتر ویژه داشته باشد مانند (!@#$%^&*)",
-          "passwordIsTooCommonAndInsecure": "رمز عبور خیلی عمومی و غیر امن است"
+          "emptyPassword": "رمز عبور نمی تواند خالی باشد",
+          "passwordSmallerThanMinLength": "رمز عبور می بایست حداقل 8 کاراکتر باشد",
+          "passwordGreaterThanMaxLength": "رمز عبور حداکثر می تواند 64 کاراکتر باشد",
+          "passwordMustContainAtLeastOneUppercaseLetter" : "رمز عبور می بایست حداقل یک حرف بزرگ داشته باشد",
+          "passwordMustContainAtLeastOneLowercaseLetter" : "رمز عبور می بایست حداقل یک حرف کوچک داشته باشد",
+          "passwordMustContainAtLeastOneDigit" : "رمز عبور می بایست حداقل یک عدد داشته باشد",
+          "passwordMustContainAtLeastOneSpecialCharacter" : "رمز عبور می بایست حداقل یک کاراکتر ویژه داشته باشد مانند (!@#$%^&*)",
+          "passwordIsTooCommonAndInsecure" : "رمز عبور خیلی عمومی و غیر امن است"
         },
         "confirmpassword": {
           "required": "تصدیق رمزعبور شما ضروری است",
@@ -120,7 +119,7 @@
       "save": "ذخیره",
       "create": "ایجاد",
       "view": "مشاهده",
-      "show": "نمایش {{otherEntity}}"
+      "show": "نمایش {{otherEntity}} ها"
     },
     "detail": {
       "field": "فیلد",
@@ -140,16 +139,15 @@
       "pattern": "این فیلد باید بر طبق این الگو {{ pattern }} باشد.",
       "number": "این فیلد باید عدد باشد.",
       "datetimelocal": "این فیلد باید زمان باشد.",
-      "patternLogin": "این فیلد تنها می‌تواند شامل حروف، ارقام و آدرس ایمیل باشد.",
       "smallLettersAndDashOnly": "این فیلد باید فقط شامل حروف کوچک انگلیسی و کاراکتر ( - ) باشد.",
       "capitalLettersOnly": "این فیلد باید فقط شامل حروف بزرگ انگلیسی باشد.",
       "numbersOnly": "این فیلد باید فقط شامل اعداد باشد.",
       "minmaxlength": "این فیلد باید {{ length }} کرکتر باشد"
     },
     "filters": {
-      "set": "فیلترهای زیر اعمال شده‌اند",
-      "clear": "حذف فیلتر",
-      "clearAll": "حذف همه فیلترها"
+      "set": "Following filters are set",
+      "clear": "Clear filter",
+      "clearAll": "Clear all filters"
     }
   },
   "error": {
@@ -161,12 +159,12 @@
     "userexists": "این نام کاربر در سیستم وجود دارد!",
     "emailexists": "این آدرس ایمیل در سیستم وجود دارد!",
     "idexists": "موجودیت جدید {{ entityName }} نمی‌تواند شناسه داشته‌باشد.",
-    "idnull": "شناسه نامعتبر",
-    "idinvalid": "شناسه نامعتبر",
-    "idnotfound": "شناسه یافت نشد",
+    "idnull": "Invalid ID",
+    "idinvalid": "Invalid Id",
+    "idnotfound": "ID cannot be found",
     "file": {
-      "could.not.extract": "فایل قابل استخراج نبود",
-      "not.image": "انتظار می‌رفت فایل یک تصویر باشد اما \"{{ fileType }}\" بود"
+      "could.not.extract": "Could not extract file",
+      "not.image": "File was expected to be an image but was found to be \"{{ fileType }}\""
     }
   },
   "footer": "این پاورقی است"

@@ -19,7 +19,7 @@ export const httpReceiverEventaSchema: ModuleSchema = {
   label: 'HttpReceiverEventa',
   fields: [
     { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: AGREEMENT_MODE },
-    { name: 'agreementKey', label: 'Agreement Key', kind: 'number' },
+    { name: 'agreementKey', label: 'Agreement Key', kind: 'number', customPanelVisible: false },
     { name: 'transformer', label: 'Transformer', kind: 'textarea' },
     { name: 'validator', label: 'Validator', kind: 'textarea' },
     { name: 'commentDesc', label: 'Comment Desc', kind: 'text' },

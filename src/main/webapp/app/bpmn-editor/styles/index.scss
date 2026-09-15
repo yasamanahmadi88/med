@@ -2,11 +2,12 @@
 // group, and no element-templates provider is registered (`designer.component.ts:56-72` adds
 // `BpmnPropertiesProviderModule` and `CamundaPlatformPropertiesProviderModule` only). Every one
 // of its 23 selectors matched zero elements in the browser.
-@import "bpmn-js-properties-panel/dist/assets/properties-panel.css";
+@import 'bpmn-js-properties-panel/dist/assets/properties-panel.css';
+@import 'bpmn-js-token-simulation/assets/css/bpmn-js-token-simulation.css';
 
-@import "designer";
-@import "palette";
-@import "contextmenu";
+@import 'designer';
+@import 'palette';
+@import 'contextmenu';
 
 // `bpmn-override`, `toolbar`, `panel`, `camunda-penal` and `setting` are gone: measured in
 // Chromium, every selector in them matched nothing, or was out-specified by the component
@@ -47,4 +48,13 @@
     overflow: hidden;
     display: flex;
   }
+}
+
+/*
+ * Portal toolbar owns Token Simulation activation.
+ * Hide the duplicated toggle rendered by bpmn-js-token-simulation.
+ * Simulation engine and its execution controls remain available.
+ */
+.bts-toggle-mode {
+  display: none !important;
 }

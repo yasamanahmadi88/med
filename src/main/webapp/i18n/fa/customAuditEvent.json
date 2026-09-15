@@ -4,15 +4,15 @@
       "home": {
         "title": "لاگ ممیزی",
         "refreshListLabel": "به روز رسانی",
-        "createLabel": "ایجاد لاگ ممیزی جدید",
-        "createOrEditLabel": "ایجاد یا ویرایش لاگ ممیزی",
+        "createLabel": "Create a new Custom Audit Event",
+        "createOrEditLabel": "Create or edit a Custom Audit Event",
         "notFound": "موردی یافت نشد"
       },
-      "created": "یک لاگ ممیزی جدید با شناسه {{ param }} ایجاد شد",
-      "updated": "یک لاگ ممیزی با شناسه {{ param }} بروز رسانی شد",
-      "deleted": "یک لاگ ممیزی با شناسه {{ param }} حذف شد",
+      "created": "A new Custom Audit Event is created with identifier {{ param }}",
+      "updated": "A Custom Audit Event is updated with identifier {{ param }}",
+      "deleted": "A Custom Audit Event is deleted with identifier {{ param }}",
       "delete": {
-        "question": "آیا از حذف لاگ ممیزی {{ id }} مطمئن هستید؟"
+        "question": "Are you sure you want to delete Custom Audit Event {{ id }}?"
       },
       "detail": {
         "title": "لاگ ممیزی"

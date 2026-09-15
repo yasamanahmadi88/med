@@ -1,11 +1,14 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { NEVER } from 'rxjs';
 import { BpmnPropertiesPanelModule, BpmnPropertiesProviderModule, CamundaPlatformPropertiesProviderModule } from 'bpmn-js-properties-panel';
 
 import { BpmnEditorComponent } from './bpmn-editor.component';
 import { PanelComponent } from './panel/panel.component';
+import { ModulePanelComponent } from './module-panel/module-panel.component';
 import { BpmnEditorService } from '../services/bpmn-editor.service';
 import { additionalModulesFor } from '../additional-modules';
 import { DEFAULT_ELEMENT_SIZES } from '../additional-modules/ElementFactory';
+import { RoleModulesService } from '../services/role-modules.service';
 
 /**
  * bpmn-js renders through the SVG DOM, which jsdom does not implement, so the modeler is stubbed
@@ -22,7 +25,8 @@ vi.mock('bpmn-js/lib/Modeler', () => ({
     importXML = vi.fn().mockResolvedValue({});
     saveXML = vi.fn().mockResolvedValue({ xml: '<definitions />' });
     on = vi.fn();
-    get = vi.fn();
+    private readonly eventBus = { on: vi.fn() };
+    get = vi.fn((service: string) => (service === 'eventBus' ? this.eventBus : undefined));
     destroy = vi.fn();
 
     constructor(options: any) {
@@ -44,6 +48,12 @@ describe('BpmnEditorComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [BpmnEditorComponent],
+      providers: [
+        {
+          provide: RoleModulesService,
+          useValue: { getAvailableModuleTypes: () => NEVER },
+        },
+      ],
     }).compileComponents();
 
     service = TestBed.inject(BpmnEditorService);
@@ -56,11 +66,48 @@ describe('BpmnEditorComponent', () => {
     fixture.destroy();
   });
 
-  it('hands the properties panel element from PanelComponent to the service', () => {
-    const panel = fixture.debugElement.query(el => el.componentInstance instanceof PanelComponent);
-    expect(panel).toBeTruthy();
+  it('does not suppress the native browser context menu at the editor shell', () => {
+    const designer: HTMLElement = fixture.nativeElement.querySelector('jhi-designer');
 
-    expect(service.getPropertiesPanelParent()).toBe(panel.nativeElement.querySelector('.panel-content'));
+    expect(designer).toBeTruthy();
+
+    const designerEvent = new MouseEvent('contextmenu', {
+      bubbles: true,
+      cancelable: true,
+    });
+
+    designer.dispatchEvent(designerEvent);
+
+    // The editor shell must not globally suppress the browser menu.
+    // BPMN-specific context menu prevention is owned by the
+    // bpmn-js element.contextmenu handler.
+    expect(designerEvent.defaultPrevented).toBe(false);
+
+    const outsideEvent = new MouseEvent('contextmenu', {
+      bubbles: true,
+      cancelable: true,
+    });
+
+    document.body.dispatchEvent(outsideEvent);
+
+    expect(outsideEvent.defaultPrevented).toBe(false);
+  });
+
+  it('uses the Vue-compatible module panel in the default custom-panel mode', () => {
+    const modulePanel = fixture.debugElement.query(el => el.componentInstance instanceof ModulePanelComponent);
+    const genericPanel = fixture.debugElement.query(el => el.componentInstance instanceof PanelComponent);
+
+    expect(modulePanel).toBeTruthy();
+    expect(genericPanel).toBeNull();
+    expect(service.getPropertiesPanelParent()).toBeNull();
+  });
+
+  it('opens the minimap by default like the Vue reference', () => {
+    expect(created).toHaveLength(1);
+
+    expect(created[0].options.minimap).toEqual({
+      open: true,
+    });
   });
 
   it('creates exactly one modeler and publishes it on the service', () => {
@@ -68,13 +115,26 @@ describe('BpmnEditorComponent', () => {
     expect(service.getBpmnModeler()).toBe(created[0]);
   });
 
-  it('points the properties panel at the element PanelComponent registered', () => {
-    expect(created[0].options.propertiesPanel).toEqual({ parent: service.getPropertiesPanelParent() });
+  it('does not mount the generic bpmn-js properties panel in custom mode', () => {
+    expect(created[0].options.propertiesPanel).toBeUndefined();
+    expect(created[0].options.additionalModules).not.toContain(BpmnPropertiesPanelModule);
+    expect(created[0].options.additionalModules).not.toContain(BpmnPropertiesProviderModule);
+    expect(created[0].options.additionalModules).not.toContain(CamundaPlatformPropertiesProviderModule);
   });
 
-  it('registers the properties panel and provider modules', () => {
-    // Alongside whatever palette and renderer modules the settings select, which
-    // additional-modules/index.spec.ts covers.
+  it('keeps the generic properties panel available for non-custom panel modes', async () => {
+    fixture.destroy();
+    created.length = 0;
+    service.updateConfiguration({ penalMode: 'default' });
+
+    fixture = TestBed.createComponent(BpmnEditorComponent);
+    fixture.detectChanges();
+    await flushMacrotasks();
+
+    const panel = fixture.debugElement.query(el => el.componentInstance instanceof PanelComponent);
+    expect(panel).toBeTruthy();
+    expect(service.getPropertiesPanelParent()).toBe(panel.nativeElement.querySelector('.panel-content'));
+    expect(created[0].options.propertiesPanel).toEqual({ parent: service.getPropertiesPanelParent() });
     expect(created[0].options.additionalModules).toContain(BpmnPropertiesPanelModule);
     expect(created[0].options.additionalModules).toContain(BpmnPropertiesProviderModule);
     expect(created[0].options.additionalModules).toContain(CamundaPlatformPropertiesProviderModule);
@@ -106,22 +166,6 @@ describe('BpmnEditorComponent', () => {
     // bpmn-js's 100x80 rather than the 120x120 the Vue editor configured.
     expect(created[0].options.elementFactory).toEqual(DEFAULT_ELEMENT_SIZES);
     expect(created[0].options.elementFactory['bpmn:Task']).toEqual({ width: 120, height: 120 });
-  });
-
-  it('stops suppressing the browser context menu once the editor is gone', () => {
-    // The listener is on `document`, so leaving it behind kills right-click across the whole
-    // portal — not just here — until a full page reload.
-    const rightClick = (): MouseEvent => {
-      const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
-      document.dispatchEvent(event);
-      return event;
-    };
-
-    expect(rightClick().defaultPrevented).toBe(true);
-
-    fixture.destroy();
-
-    expect(rightClick().defaultPrevented).toBe(false);
   });
 
   it('clears the modeler from the service on destroy', () => {

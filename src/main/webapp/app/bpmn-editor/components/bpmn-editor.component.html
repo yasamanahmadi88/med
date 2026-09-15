@@ -6,8 +6,8 @@
 
     <jhi-designer [xml]="processXml" (xmlUpdate)="onXmlUpdate($event)"> </jhi-designer>
 
-    <jhi-panel *ngIf="customPanel"></jhi-panel>
-    <div *ngIf="!customPanel" class="camunda-penal" id="camunda-penal"></div>
+    <jhi-module-panel *ngIf="customPanel"></jhi-module-panel>
+    <jhi-panel *ngIf="!customPanel"></jhi-panel>
   </div>
 
   <jhi-settings [settings]="editorSettings" (settingsUpdate)="onSettingsUpdate($event)"> </jhi-settings>

@@ -31,9 +31,9 @@ export const kafkaTransmitterSchema: ModuleSchema = {
     { name: 'kafkaBody', label: 'Kafka Body', kind: 'textarea' },
     { name: 'kafkaKey', label: 'Kafka Key', kind: 'textarea' },
     // Never rendered by the Vue panel. `<input type="number" min="0" max="999999999">`.
-    { name: 'agreementKey', label: 'Agreement Key', kind: 'number' },
+    { name: 'agreementKey', label: 'Agreement Key', kind: 'number', customPanelVisible: false },
     // Never rendered by the Vue panel. A one-line `<input type="text" maxlength="500">`, distinct
     // from the `kafkaHeader` textarea above.
-    { name: 'headers', label: 'Headers', kind: 'text' },
+    { name: 'headers', label: 'Headers', kind: 'text', customPanelVisible: false },
   ],
 };

@@ -14,8 +14,8 @@ import { AGREEMENT_MODE, ModuleSchema } from '../schema';
  *
  * One caveat carried over from the Vue source, flagged in the port report:
  *
- *  - `Auth Password` was a password input with a show/hide eye toggle. `FieldKind` has no masked
- *    kind, so it is `text` here, exactly as the ported `HttpReceiver.authPassword` is.
+ *  - `Auth Password` was a password input with a show/hide eye toggle. The custom panel renders
+ *    it as a masked password with the same show/hide behavior.
  *
  * `IP Address` and `Port` carry the client-side validation the Vue components had; both stay
  * `text` because `Port` was a text input in the Vue form too, and typing it as `number` would
@@ -35,7 +35,7 @@ export const fileTransmitterSchema: ModuleSchema = {
     { name: 'ip', label: 'IP Address', kind: 'text', validate: 'ipv4' },
     { name: 'port', label: 'Port', kind: 'text', validate: 'port' },
     { name: 'username', label: 'Username', kind: 'text' },
-    { name: 'password', label: 'Auth Password', kind: 'text' },
+    { name: 'password', label: 'Auth Password', kind: 'password' },
     // Capitalised `FileNameJslt` in the moddle, not `fileNameJslt`: `fileTransmitterFileNameJsltUtil`
     // reads `${prefix}:FileNameJslt`. The lower-cased spelling would write an attribute nothing reads.
     { name: 'FileNameJslt', label: 'File Name JSLT', kind: 'textarea' },

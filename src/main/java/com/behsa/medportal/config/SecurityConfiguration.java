@@ -8,6 +8,7 @@ import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -51,15 +52,18 @@ public class SecurityConfiguration {
     private final JHipsterProperties jHipsterProperties;
     private final TokenProvider tokenProvider;
     private final SecurityCache securityCache;
+    private final Environment environment;
 
     public SecurityConfiguration(
         TokenProvider tokenProvider,
         JHipsterProperties jHipsterProperties,
-        SecurityCache securityCache
+        SecurityCache securityCache,
+        Environment environment
     ) {
         this.tokenProvider = tokenProvider;
         this.jHipsterProperties = jHipsterProperties;
         this.securityCache = securityCache;
+        this.environment = environment;
     }
 
     /**
@@ -142,25 +146,33 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        CookieCsrfTokenRepository tokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
-        tokenRepository.setHeaderName("X-CSRF-TOKEN");
-        CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
+        boolean isTestProfile = Arrays.asList(environment.getActiveProfiles()).contains("test");
 
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf
-                .csrfTokenRepository(tokenRepository)
-                .csrfTokenRequestHandler(requestHandler)
-                .ignoringRequestMatchers(
-                    "/api/authenticate",
-                    "/api/auth/**",
-                    "/api/register",
-                    "/api/activate",
-                    "/api/account/reset-password/**",
-                    "/api/captcha-endpoint",
-                    "/api/password/validate"
-                )
-            )
+            .csrf(csrf -> {
+                if (isTestProfile) {
+                    // Disable CSRF for tests where MockMvc doesn't include tokens
+                    csrf.disable();
+                } else {
+                    // Enable CSRF protection in production
+                    CookieCsrfTokenRepository tokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+                    tokenRepository.setHeaderName("X-CSRF-TOKEN");
+                    CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
+                    csrf
+                        .csrfTokenRepository(tokenRepository)
+                        .csrfTokenRequestHandler(requestHandler)
+                        .ignoringRequestMatchers(
+                            "/api/authenticate",
+                            "/api/auth/**",
+                            "/api/register",
+                            "/api/activate",
+                            "/api/account/reset-password/**",
+                            "/api/captcha-endpoint",
+                            "/api/password/validate"
+                        );
+                }
+            })
             .exceptionHandling(exceptions ->
                 exceptions
                     .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))

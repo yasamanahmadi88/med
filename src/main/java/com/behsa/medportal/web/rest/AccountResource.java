@@ -311,6 +311,13 @@ public class AccountResource {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * Validate password against policy rules and throw exception if invalid.
+     * Enforces password strength requirements (length, complexity, character classes).
+     *
+     * @param password the password to validate
+     * @throws InvalidPasswordException if password does not meet policy requirements
+     */
     private void validatePasswordOrThrow(String password) {
         PasswordValidationDto validation = passwordValidator.isValid(password);
 
@@ -319,6 +326,13 @@ public class AccountResource {
         }
     }
 
+    /**
+     * Load resource authorities for the given user authority set.
+     * Maps user's string authority names to corresponding resource authority DTOs.
+     *
+     * @param authorities set of user authority strings (e.g., ROLE_ADMIN, ROLE_USER)
+     * @return list of matching resource authority DTOs, or empty list if none found
+     */
     private List<ResourceAuthorityDTO> loadResourceAuthorities(Set<String> authorities) {
         if (authorities == null || authorities.isEmpty()) {
             return List.of();

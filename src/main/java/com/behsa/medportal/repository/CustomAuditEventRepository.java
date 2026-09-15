@@ -34,11 +34,39 @@ public interface CustomAuditEventRepository extends JpaRepository<CustomAuditEve
     )
     Page<CustomAuditEventEntity> searchByText(@Param("PrincParam") String principal, @Param("TypeParam")String type,@Param("DValueParam")String dValue, Pageable pageable);
 
+    /**
+     * Find all audit events for a specific principal.
+     *
+     * @param principal the user or system principal name
+     * @return list of audit events for that principal
+     */
     List<CustomAuditEventEntity> findByPrincipal(String principal);
 
+    /**
+     * Find audit events for a principal after a specific timestamp with a specific event type.
+     *
+     * @param principal the user or system principal name
+     * @param after the minimum event timestamp (inclusive)
+     * @param type the event type filter
+     * @return list of matching audit events
+     */
     List<CustomAuditEventEntity> findByPrincipalAndEventDateAfterAndEventType(String principal, Instant after, String type);
 
+    /**
+     * Find audit events occurring between two date ranges (paginated).
+     *
+     * @param fromDate the start date (inclusive)
+     * @param toDate the end date (inclusive)
+     * @param pageable pagination parameters
+     * @return paginated list of audit events within the date range
+     */
     Page<CustomAuditEventEntity> findAllByEventDateBetween(LocalDateTime fromDate, LocalDateTime toDate, Pageable pageable);
 
+    /**
+     * Find all audit events that occurred before a specific timestamp.
+     *
+     * @param before the cutoff timestamp (exclusive)
+     * @return list of audit events before the specified time
+     */
     List<CustomAuditEventEntity> findByEventDateBefore(Instant before);
 }

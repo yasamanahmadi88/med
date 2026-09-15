@@ -176,19 +176,38 @@ public class AuthResource {
             .anyMatch(authority -> AuthoritiesConstants.ADMIN.equals(authority.getAuthority()));
     }
 
+    /**
+     * JWT token response DTO for authentication endpoint.
+     * Contains the signed JWT token to be used in subsequent API requests.
+     */
     public static class JWTToken {
 
         private String idToken;
 
+        /**
+         * Construct a JWT token response with the provided token string.
+         *
+         * @param idToken the signed JWT token
+         */
         public JWTToken(String idToken) {
             this.idToken = idToken;
         }
 
+        /**
+         * Get the JWT token string for use in Authorization headers.
+         *
+         * @return the signed JWT token
+         */
         @JsonProperty("id_token")
         public String getIdToken() {
             return idToken;
         }
 
+        /**
+         * Set the JWT token string (used during deserialization).
+         *
+         * @param idToken the signed JWT token
+         */
         public void setIdToken(String idToken) {
             this.idToken = idToken;
         }

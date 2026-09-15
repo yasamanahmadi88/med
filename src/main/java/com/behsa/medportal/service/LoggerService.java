@@ -46,6 +46,13 @@ public class LoggerService implements AuditEventRepository {
         this.auditEventConverter = auditEventConverter;
     }
 
+    /**
+     * Create and persist an audit event for the current user with the given event name and data.
+     * Automatically captures current user principal and JWT token (if available).
+     *
+     * @param eventName the type of event being logged
+     * @param data event metadata and context information
+     */
     public void log(final String eventName, Map<String, Object> data) {
         // JWT may be absent under @WithMockUser / non-JWT auth; audit must not fail the business call.
         data.put("jwt", SecurityUtils.getCurrentUserJWT().orElse(""));
@@ -58,6 +65,14 @@ public class LoggerService implements AuditEventRepository {
         add(event);
     }
 
+    /**
+     * Find audit events for a specific principal after a given timestamp and of a specific type.
+     *
+     * @param principal the user or system principal name
+     * @param after the minimum event timestamp (inclusive)
+     * @param type the event type to filter by
+     * @return list of audit events matching the criteria
+     */
     @Override
     public List<AuditEvent> find(String principal, Instant after, String type) {
         Iterable<CustomAuditEventEntity> persistentAuditEvents =
@@ -68,10 +83,19 @@ public class LoggerService implements AuditEventRepository {
      * Search
      */
 
+    /**
+     * Find audit events occurring between two date ranges.
+     *
+     * @param fromDate the start of the date range (inclusive)
+     * @param toDate the end of the date range (inclusive)
+     * @param pageable pagination parameters
+     * @return paginated list of audit events within the date range
+     */
     public Page<AuditEvent> findByDates(LocalDateTime fromDate, LocalDateTime toDate, Pageable pageable) {
         return customAuditEventRepository.findAllByEventDateBetween(fromDate, toDate, pageable)
             .map(auditEventConverter::convertToAuditEvent);
     }
+
     /**
      * Search audit events by text across principal, event type, and data fields.
      * Escapes LIKE wildcards (%, _) to prevent SQL injection via uncontrolled pattern matching.
@@ -90,6 +114,13 @@ public class LoggerService implements AuditEventRepository {
          .map(auditEventConverter::convertToAuditEvent);
     }
 
+    /**
+     * Persist an audit event to the database.
+     * Skips authorization failures and anonymous user events.
+     * Runs in a separate transaction to ensure audit logging is not rolled back with business logic.
+     *
+     * @param event the audit event to persist
+     */
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void add(AuditEvent event) {
@@ -107,7 +138,11 @@ public class LoggerService implements AuditEventRepository {
     }
 
     /**
-     * Truncate event data that might exceed column length.
+     * Truncate event data values that exceed the maximum column length.
+     * Prevents database constraint violations while preserving event context.
+     *
+     * @param data event data map with string values
+     * @return map with truncated string values
      */
     private Map<String, String> truncate(Map<String, String> data) {
         Map<String, String> results = new HashMap<>();

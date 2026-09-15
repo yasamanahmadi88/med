@@ -18,11 +18,11 @@ public class XssSanitizingFilter implements Filter {
         throws IOException, ServletException {
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
+        String method = httpRequest.getMethod().toUpperCase();
 
-        if ("POST".equalsIgnoreCase(httpRequest.getMethod()) ||
-            "PUT".equalsIgnoreCase(httpRequest.getMethod()) ||
-            "PATCH".equalsIgnoreCase(httpRequest.getMethod())) {
-
+        // Apply XSS sanitization to all HTTP methods that accept user input
+        if ("POST".equals(method) || "PUT".equals(method) || "PATCH".equals(method) ||
+            "GET".equals(method) || "DELETE".equals(method) || "HEAD".equals(method)) {
             chain.doFilter(new XssRequestWrapper(httpRequest, policy), response);
         } else {
             chain.doFilter(request, response);

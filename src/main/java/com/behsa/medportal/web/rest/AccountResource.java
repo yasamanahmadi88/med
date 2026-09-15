@@ -15,6 +15,7 @@ import com.behsa.medportal.service.dto.ResourceAuthorityDTO;
 import com.behsa.medportal.service.dto.UserDTO;
 import com.behsa.medportal.vaidators.PasswordValidator;
 import com.behsa.medportal.vaidators.dto.PasswordValidationDto;
+import com.behsa.medportal.web.rest.errors.BadRequestAlertException;
 import com.behsa.medportal.web.rest.errors.InvalidPasswordException;
 import com.behsa.medportal.web.rest.vm.AdminPasswordResetVM;
 import com.behsa.medportal.web.rest.vm.KeyAndPasswordVM;

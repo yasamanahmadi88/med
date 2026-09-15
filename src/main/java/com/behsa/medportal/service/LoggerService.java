@@ -79,9 +79,6 @@ public class LoggerService implements AuditEventRepository {
             customAuditEventRepository.findByPrincipalAndEventDateAfterAndEventType(principal, after, type);
         return auditEventConverter.convertToAuditEvent(persistentAuditEvents);
     }
-    /**
-     * Search
-     */
 
     /**
      * Find audit events occurring between two date ranges.

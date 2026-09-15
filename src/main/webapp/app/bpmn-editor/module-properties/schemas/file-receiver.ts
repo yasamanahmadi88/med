@@ -12,8 +12,8 @@ import { AGREEMENT_MODE, ModuleSchema } from '../schema';
  *
  * Two caveats carried over from the Vue source, both flagged in the port report:
  *
- *  - `Auth Password` was a password input with a show/hide eye toggle. `FieldKind` has no masked
- *    kind, so it is `text` here, exactly as the ported `HttpReceiver.authPassword` is.
+ *  - `Auth Password` was a password input with a show/hide eye toggle. The custom panel renders
+ *    it as a masked password with the same show/hide behavior.
  *  - `Unzip` was `<input type="number" min="0" max="1">` — a boolean wearing a number's clothes.
  *    It stays `number` because that is what the Vue form wrote to the diagram; changing it to a
  *    checkbox would change the stored value.
@@ -40,7 +40,7 @@ export const fileReceiverSchema: ModuleSchema = {
     // `port` was a plain text input with maxlength=10 in the Vue form, not a number input.
     { name: 'port', label: 'Port', kind: 'text' },
     { name: 'username', label: 'Username', kind: 'text' },
-    { name: 'password', label: 'Auth Password', kind: 'text' },
+    { name: 'password', label: 'Auth Password', kind: 'password' },
     { name: 'pathSeparator', label: 'Path Separator', kind: 'text' },
     {
       name: 'postProcessingAction',
@@ -55,7 +55,7 @@ export const fileReceiverSchema: ModuleSchema = {
     { name: 'operationPostProcessingOnly', label: 'Operation Post Processing Only', kind: 'number' },
     { name: 'unzip', label: 'Unzip', kind: 'number' },
     { name: 'commentDesc', label: 'Comment Desc', kind: 'text' },
-    { name: 'partyTimeOut', label: 'Party Time Out', kind: 'number' },
-    { name: 'successResponsePattern', label: 'Success Response Pattern', kind: 'text' },
+    { name: 'partyTimeOut', label: 'Party Time Out', kind: 'number', customPanelVisible: false },
+    { name: 'successResponsePattern', label: 'Success Response Pattern', kind: 'text', customPanelVisible: false },
   ],
 };

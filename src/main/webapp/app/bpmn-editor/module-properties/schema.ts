@@ -17,7 +17,7 @@
 import { ValidatorName } from './validators';
 
 /** How a field is rendered. Mirrors the control the Vue component used. */
-export type FieldKind = 'text' | 'textarea' | 'select' | 'number';
+export type FieldKind = 'text' | 'textarea' | 'select' | 'number' | 'password';
 
 /**
  * A `select` choice. The Vue templates often showed text differing from the stored value —
@@ -38,6 +38,14 @@ export interface ModuleField {
    * see `validators.ts`. An empty value is always accepted — none of these is required.
    */
   readonly validate?: ValidatorName;
+  /**
+   * Whether the Vue-compatible custom panel renders this field. Defaults to true.
+   *
+   * Some source-Vue components and getters/setters existed but were never added to
+   * `Panel/index.tsx`. Keeping those fields in the schema preserves XML/data compatibility for
+   * the generic properties mode while this flag prevents them from appearing in custom mode.
+   */
+  readonly customPanelVisible?: boolean;
 }
 
 export interface ModuleSchema {

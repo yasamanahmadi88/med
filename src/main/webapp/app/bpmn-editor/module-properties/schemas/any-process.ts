@@ -55,6 +55,6 @@ export const anyProcessSchema: ModuleSchema = {
     { name: 'routeKey', label: 'Route Key', kind: 'text' },
     { name: 'commentDesc', label: 'Comment Desc', kind: 'text' },
     // Never rendered by the Vue panel; see the note about the lost rename side effect above.
-    { name: 'msgType', label: 'Message Type', kind: 'text' },
+    { name: 'msgType', label: 'Message Type', kind: 'text', customPanelVisible: false },
   ],
 };

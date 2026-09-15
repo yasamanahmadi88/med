@@ -42,6 +42,7 @@ export const transformerSchema: ModuleSchema = {
       name: 'firstAction',
       label: 'First Action',
       kind: 'select',
+      customPanelVisible: false,
       options: [
         'DTS',
         { value: 'MCCI_CHANGECARD', label: 'MCCI CHANGECARD' },

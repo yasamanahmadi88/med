@@ -1,80 +1,78 @@
 <section class="login-page py-5">
-  <!-- Event nodes only بالای فرم -->
+  <!-- Event nodes پرتعداد و در سرتاسر پسزمینه صفحه لاگین -->
   <div class="event-stream" aria-hidden="true">
-    <svg class="event-node l2r" style="--top: 0%; --size: 50px; --dur: 40s; --delay: -3s" viewBox="0 0 120 104">
+    <svg class="event-node l2r" style="--top: 5%; --size: 35px; --dur: 35s; --delay: -2s" viewBox="0 0 120 104">
       <polygon points="30,2 90,2 118,52 90,102 30,102 2,52" />
     </svg>
-    <svg class="event-node r2l" style="--top: 10%; --size: 60px; --dur: 42s; --delay: -7s" viewBox="0 0 120 104">
+    <svg class="event-node r2l" style="--top: 15%; --size: 65px; --dur: 45s; --delay: -8s" viewBox="0 0 120 104">
       <polygon points="30,2 90,2 118,52 90,102 30,102 2,52" />
     </svg>
-    <svg class="event-node l2r" style="--top: 20%; --size: 55px; --dur: 44s; --delay: -5s" viewBox="0 0 120 104">
+    <svg class="event-node l2r" style="--top: 25%; --size: 45px; --dur: 38s; --delay: -4s" viewBox="0 0 120 104">
       <polygon points="30,2 90,2 118,52 90,102 30,102 2,52" />
     </svg>
-    <svg class="event-node r2l" style="--top: 30%; --size: 65px; --dur: 38s; --delay: -12s" viewBox="0 0 120 104">
+    <svg class="event-node r2l" style="--top: 40%; --size: 80px; --dur: 55s; --delay: -12s" viewBox="0 0 120 104">
       <polygon points="30,2 90,2 118,52 90,102 30,102 2,52" />
     </svg>
-    <svg class="event-node l2r" style="--top: 40%; --size: 70px; --dur: 45s; --delay: -9s" viewBox="0 0 120 104">
+    <svg class="event-node l2r" style="--top: 55%; --size: 30px; --dur: 30s; --delay: -6s" viewBox="0 0 120 104">
+      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52" />
+    </svg>
+    <svg class="event-node r2l" style="--top: 70%; --size: 55px; --dur: 42s; --delay: -10s" viewBox="0 0 120 104">
+      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52" />
+    </svg>
+    <svg class="event-node l2r" style="--top: 85%; --size: 50px; --dur: 48s; --delay: -15s" viewBox="0 0 120 104">
       <polygon points="30,2 90,2 118,52 90,102 30,102 2,52" />
     </svg>
   </div>
 
   <!-- Form wrapper -->
   <div class="login-form-wrapper">
-    <div class="card login-card my-5">
-      <h2 class="sr-only" jhiTranslate="login.title">Sign in</h2>
+    <div class="card login-card my-auto">
+      <h2 class="text-center mb-4 text-white" jhiTranslate="login.title">Sign in</h2>
 
-      <div
-        class="alert alert-danger login-alert"
-        *ngIf="authenticationError"
-        jhiTranslate="login.messages.error.authentication"
-        data-cy="loginError"
-      >
+      <div class="alert alert-danger login-alert" *ngIf="authenticationError" jhiTranslate="login.messages.error.authentication">
         <strong>Failed to sign in!</strong> Please check your credentials and try again.
       </div>
 
       <form class="login-form" role="form" (ngSubmit)="login()" [formGroup]="loginForm">
         <!-- Username -->
-        <div class="form-field my-3">
-          <label for="username" jhiTranslate="global.form.username.label">Username</label>
+        <div class="form-field mb-4">
+          <label for="username" class="form-label" jhiTranslate="global.form.username.label">Username</label>
           <input
             type="text"
             class="form-control login-input"
             name="username"
             id="username"
+            data-testid="username"
             placeholder="{{ 'global.form.username.placeholder' | translate }}"
             formControlName="username"
             #username
-            data-cy="username"
           />
         </div>
 
         <!-- Password -->
-        <div class="form-field my-3">
-          <label for="password" jhiTranslate="login.form.password">Password</label>
+        <div class="form-field mb-4">
+          <label for="password" class="form-label" jhiTranslate="login.form.password">Password</label>
           <input
             type="password"
             class="form-control login-input"
             name="password"
             id="password"
+            data-testid="password"
             placeholder="{{ 'login.form.password.placeholder' | translate }}"
             formControlName="password"
-            data-cy="password"
           />
         </div>
 
         <!-- Captcha -->
-        <div class="form-field my-3">
-          <label for="userCaptchaInput">Captcha Verification</label>
+        <div class="form-field mb-4">
+          <label for="userCaptchaInput" class="form-label">Captcha Verification</label>
           <div class="captcha-box">
             <input
               placeholder="Enter code"
               autocomplete="off"
-              #userCaptchaInput
               type="text"
               id="userCaptchaInput"
-              name="userCaptchaInput"
               formControlName="userCaptchaInput"
-              [maxLength]="6"
               maxlength="6"
               class="form-control login-input captcha-input"
               (keydown)="loginWithEnterKey($event)"
@@ -82,7 +80,7 @@
             />
 
             <div class="captcha-preview">
-              <img *ngIf="captchaImageUrl && !isLoading" [src]="captchaImageUrl" alt="Captcha" />
+              <img *ngIf="captchaImageUrl && !isLoading" [src]="captchaImageUrl" alt="Captcha" class="captcha-image" />
             </div>
 
             <button type="button" class="captcha-refresh" (click)="reloadCaptcha()" title="Refresh Captcha" [disabled]="isLoading">
@@ -91,13 +89,12 @@
           </div>
 
           <div class="validation-message" *ngIf="loginForm.get('userCaptchaInput')?.invalid && loginForm.get('userCaptchaInput')?.touched">
-            Please enter the captcha code.
+            Please enter the 6-character code.
           </div>
-          <div class="helper-message">Enter the 6-character code shown in the image.</div>
         </div>
 
         <!-- Remember me -->
-        <div class="login-options">
+        <div class="login-options mb-4">
           <label class="remember-me" for="rememberMe">
             <input type="checkbox" name="rememberMe" id="rememberMe" formControlName="rememberMe" />
             <span jhiTranslate="login.form.rememberme">Remember me</span>
@@ -105,15 +102,13 @@
         </div>
 
         <!-- Submit -->
-        <div class="d-flex justify-content-end my-3">
-          <button type="submit" class="login-submit" data-cy="submit" [disabled]="loginForm.invalid || isLoading">
-            <span *ngIf="!isLoading" jhiTranslate="login.form.button" class="w-40">Sign in</span>
-            <span *ngIf="isLoading" class="submit-loading">
-              <span class="loading-icon">⟳</span>
-              Signing in...
-            </span>
-          </button>
-        </div>
+        <button type="submit" class="login-submit w-100" data-testid="submit" [disabled]="loginForm.invalid || isLoading">
+          <span *ngIf="!isLoading" jhiTranslate="login.form.button">Sign in</span>
+          <span *ngIf="isLoading" class="submit-loading">
+            <span class="loading-icon">⟳</span>
+            Signing in...
+          </span>
+        </button>
       </form>
     </div>
   </div>

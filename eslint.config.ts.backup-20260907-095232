@@ -21,20 +21,16 @@ export default defineConfig(
 
   {
     ignores: [
-      'node_modules/**',
-      'src/main/docker/**',
+      'src/main/docker/',
       'src/main/webapp/404.html',
       'src/main/webapp/index.html',
       'src/main/webapp/swagger-ui/**',
       'src/main/webapp/content/**',
-      'jest.conf.js',
-      'webpack/**',
-      'target/**',
-      'build/**',
-      'node/**',
-      'dist/**',
-      'postcss.config.js',
     ],
+  },
+
+  {
+    ignores: ['target/classes/static/', 'target/', 'dist/'],
   },
 
   eslint.configs.recommended,
@@ -49,7 +45,11 @@ export default defineConfig(
   {
     files: ['src/main/webapp/**/*.ts'],
 
-    extends: [...tseslint.configs.strictTypeChecked, ...tseslint.configs.stylistic, ...angular.configs.tsRecommended],
+    extends: [
+      ...tseslint.configs.strictTypeChecked,
+      ...tseslint.configs.stylistic,
+      ...angular.configs.tsRecommended,
+    ],
 
     languageOptions: {
       globals: {
@@ -197,7 +197,10 @@ export default defineConfig(
   {
     files: ['src/main/webapp/**/*.html'],
 
-    extends: [...angular.configs.templateRecommended, ...angular.configs.templateAccessibility],
+    extends: [
+      ...angular.configs.templateRecommended,
+      ...angular.configs.templateAccessibility,
+    ],
 
     rules: {
       '@angular-eslint/template/click-events-have-key-events': 'off',

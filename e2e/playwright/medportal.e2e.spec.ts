@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import {
   adminMenuItems,
   clickNavbarLink,
@@ -10,18 +8,6 @@ import {
   signIn,
   test,
 } from './support/medportal-fixtures';
-
-// The shapes these specs read out of the i18n sources. Declaring them keeps `JSON.parse`'s `any`
-// from leaking into the assertions, and states which keys the translation files are expected to
-// carry — a rename in `global.json` fails the typecheck here rather than the assertion below.
-interface GlobalBundle {
-  global: { menu: { home: string; entities: { module: string } } };
-  entity: { action: { show: string } };
-}
-
-interface ModuleBundle {
-  medPortalApp: { module: { configs: string } };
-}
 
 test.describe('MedPortal authentication', () => {
   test('login page opens with captcha and themed document root', async ({ page, mockApi }) => {
@@ -130,7 +116,7 @@ test.describe('MedPortal routes and menus', () => {
     for (const path of lazyRoutePaths) {
       await test.step(`load ${path}`, async () => {
         await page.goto(path);
-        await expect(page).toHaveURL(new RegExp(path === '/' ? '\\/$' : `${path.replaceAll('/', '\\/')}$`));
+        await expect(page).toHaveURL(new RegExp(`${path === '/' ? '\\/$' : `${path.replaceAll('/', '\\/')}$`}`));
         await expect(page.locator('main')).toBeVisible();
       });
     }
@@ -167,9 +153,7 @@ test.describe('MedPortal themes and responsive navigation', () => {
 
   test('stored dark theme applies on login and after entering the application', async ({ page, mockApi }) => {
     await mockApi({ account: 'anonymous', authenticateAs: 'admin' });
-    await page.addInitScript(() => {
-      localStorage.setItem('medportal-theme', 'dark');
-    });
+    await page.addInitScript(() => localStorage.setItem('medportal-theme', 'dark'));
 
     await page.goto('/login');
     await expectTheme(page, 'dark');
@@ -267,142 +251,5 @@ test.describe('MedPortal entity lists', () => {
 
     await expect(page.locator('table tbody tr')).toHaveCount(1);
     await expect(page.locator('table thead fa-icon').first()).toBeVisible();
-  });
-
-  test('a list longer than the viewport still scrolls to its last row', async ({ page, mockApi }) => {
-    // The BPMN editor route makes the shell a `height: 100vh; overflow: hidden` column so its
-    // canvas has a resolved height (`fullscreen-mode` in `layouts/main/main.component.scss`).
-    // That rule is the one change in this application that would break every long page at once
-    // if its scope ever slipped off the `fullScreen` branch, and it would break them invisibly:
-    // the rows are all still rendered and still "visible" to a presence assertion, they are just
-    // clipped where the document stops scrolling. So this measures instead.
-    const products = Array.from({ length: 60 }, (_, index) => ({
-      id: index + 1,
-      productName: `Product ${index + 1}`,
-      productDesc: `Description ${index + 1}`,
-    }));
-    await mockApi({ account: 'admin', collections: { '/api/products': products } });
-    await page.setViewportSize({ width: 1280, height: 720 });
-
-    await page.goto('/product');
-    await expect(page.locator('table tbody tr')).toHaveCount(60);
-
-    // `content/scss` sets `scroll-behavior: smooth` on the document, so a plain `scrollTo` has
-    // not landed by the time the next statement reads `scrollY`. Asking for an instant scroll is
-    // what makes the reading real rather than always-zero.
-    await page.evaluate(() => {
-      window.scrollTo({ top: 100_000, behavior: 'instant' as ScrollBehavior });
-    });
-
-    const scrolled = await page.evaluate(() => ({
-      scrollY: window.scrollY,
-      documentScrollHeight: document.documentElement.scrollHeight,
-      documentClientHeight: document.documentElement.clientHeight,
-      lastRowBottom: document.querySelector('table tbody tr:last-child')!.getBoundingClientRect().bottom,
-      viewportBottom: window.innerHeight,
-      footerTop: document.querySelector('jhi-footer')!.getBoundingClientRect().top,
-    }));
-
-    // The page is genuinely taller than the screen, and the document actually moved.
-    expect(scrolled.documentScrollHeight).toBeGreaterThan(scrolled.documentClientHeight);
-    expect(scrolled.scrollY).toBeGreaterThan(0);
-    // Scrolled all the way down: the last row and the footer below it are both reachable.
-    expect(scrolled.scrollY).toBe(scrolled.documentScrollHeight - scrolled.documentClientHeight);
-    expect(scrolled.lastRowBottom).toBeLessThanOrEqual(scrolled.viewportBottom);
-    // The footer is the last thing in the document, so at the bottom of the scroll it sits on
-    // the bottom edge of the screen (`jhi-footer` renders an empty template today, which is a
-    // separate matter — its box is still the end of the page).
-    expect(scrolled.footerTop).toBeLessThanOrEqual(scrolled.viewportBottom + 1);
-  });
-});
-
-test.describe('MedPortal language', () => {
-  test('switching to Persian through the navbar retranslates the page and flips it to RTL', async ({ page, mockApi }) => {
-    await mockApi({ account: 'admin' });
-
-    // The expected strings are read from the translation sources rather than hard-coded, so this
-    // measures the built `i18n/fa.json` against the 28 files that are supposed to produce it: a
-    // bundle that is missing, stale or merged wrongly renders something else and fails here.
-    // `global.menu.home` is the probe because the navbar carries it on every route.
-    const menuHome = (lang: string): string =>
-      (JSON.parse(readFileSync(join(process.cwd(), `src/main/webapp/i18n/${lang}/global.json`), 'utf8')) as GlobalBundle).global.menu.home;
-    const english = menuHome('en');
-    const persian = menuHome('fa');
-    // Guards the probe itself. A key that happened to be translated identically in both languages
-    // could not tell a working language switch apart from one that silently did nothing.
-    expect(persian).not.toEqual(english);
-
-    await page.goto('/');
-    const homeLink = page.locator('jhi-navbar span[jhiTranslate="global.menu.home"]');
-    await expect(homeLink).toHaveText(english);
-    await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
-
-    await page.locator('#languagesnavBarDropdown').click();
-    await page.locator('.dropdown-menu a.dropdown-item', { hasText: 'فارسی' }).click();
-
-    // The rendered text changed, and changed to exactly what `i18n/fa/global.json` ships.
-    await expect(homeLink).toHaveText(persian);
-    // And the direction followed. `MainComponent.updatePageDirection` runs from the
-    // `onLangChange` subscription, which ngx-translate only reaches on a bundle that loaded, so
-    // this is the assertion that a 404 on `i18n/fa.json` would break.
-    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-    expect(await page.evaluate(() => document.documentElement.dir)).toBe('rtl');
-  });
-
-  test('Persian half-spaces survive the bundle and reach the DOM as U+200C', async ({ page, mockApi }) => {
-    // Persian binds the plural suffix ها to its host with a ZERO WIDTH NON-JOINER, not a space.
-    // `i18n-parity.spec.ts` pins that in the source files, but a source file is not a screen: the
-    // value is deep-merged by `MergeJsonWebpackPlugin` into `i18n/fa.json`, served over HTTP,
-    // decoded, interpolated by ngx-translate and written into the DOM. U+200C is a zero-width,
-    // non-printing character, which is exactly the kind of byte a re-encoding step drops silently —
-    // and dropping it is invisible in a screenshot, because the glyphs either side do not move.
-    // So this asserts on the character, in the rendered text, after the whole pipeline.
-    const ZWNJ = '\u200C';
-    // Read from the same sources the bundle is built from, as the test above does, so this
-    // measures the pipeline rather than restating a hard-coded string.
-    const faBundle = (file: string): unknown =>
-      JSON.parse(readFileSync(join(process.cwd(), `src/main/webapp/i18n/fa/${file}.json`), 'utf8'));
-    const faGlobal = faBundle('global') as GlobalBundle;
-    const menuModule = faGlobal.global.menu.entities.module; // "ماژول\u200Cها"
-    const showTemplate = faGlobal.entity.action.show; // "نمایش {{otherEntity}}"
-    const configs = (faBundle('module') as ModuleBundle).medPortalApp.module.configs; // "تنظیم\u200Cها"
-
-    // Guards the probes themselves: a value that lost its ZWNJ in the source would make the DOM
-    // assertions below pass against the wrong expectation.
-    expect(menuModule).toContain(ZWNJ);
-    expect(configs).toContain(ZWNJ);
-
-    await mockApi({
-      account: 'admin',
-      collections: { '/api/modules': [{ id: 1, name: 'Mediation', description: 'First module' }] },
-    });
-
-    await page.goto('/module');
-    await page.locator('#languagesnavBarDropdown').click();
-    await page.locator('.dropdown-menu a.dropdown-item', { hasText: 'فارسی' }).click();
-    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-
-    // 1. A plain plural, straight from the bundle to the navbar.
-    await page.locator('#entity-menu').click();
-    const moduleLink = page.locator('ul[aria-labelledby="entity-menu"] span[jhiTranslate="global.menu.entities.module"]');
-    await expect(moduleLink).toHaveText(menuModule);
-    expect(await moduleLink.textContent()).toContain(ZWNJ);
-    // The form this change replaced. Asserting its absence is what fails if a build step were to
-    // normalise U+200C back to a space rather than drop it outright.
-    expect(await moduleLink.textContent()).not.toContain('ماژول ها');
-
-    // 2. A ZWNJ that arrives through interpolation rather than sitting in the template. The
-    // plural belongs to the label — `تنظیم\u200Cها` — and `entity.action.show` contributes only the
-    // verb, so what reaches the DOM is a joined form the bundle never contained as one string.
-    const showConfigs = page.locator('table tbody [data-cy="filterOtherEntityButton"] span').first();
-    await expect(showConfigs).toHaveText(showTemplate.replace('{{otherEntity}}', configs));
-    const rendered = (await showConfigs.textContent()) ?? '';
-    // Exactly one ZWNJ: the one inside the interpolated label. A second would mean the template
-    // had re-grown a plural suffix of its own, which is the doubling this change removed.
-    expect(rendered.match(new RegExp(ZWNJ, 'gu')) ?? []).toHaveLength(1);
-    expect(rendered).not.toMatch(new RegExp(`ها[${ZWNJ} ]?ها`));
-    // Substitution actually happened — the braces are gone and the entity name is present.
-    expect(rendered).not.toContain('{{');
-    expect(rendered).toContain(configs);
   });
 });

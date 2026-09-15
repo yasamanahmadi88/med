@@ -32,11 +32,11 @@ export const httpTransmitterSchema: ModuleSchema = {
     { name: 'successResponsePattern', label: 'Success Response Pattern', kind: 'text' },
     { name: 'retryResponseCodes', label: 'Retry Response Codes', kind: 'text' },
     { name: 'retryResponsePattern', label: 'Retry Response Pattern', kind: 'text' },
-    { name: 'retryCountNumber', label: 'Retry Count Number', kind: 'number' },
+    { name: 'retryCountNumber', label: 'Retry Count Number', kind: 'number', customPanelVisible: false },
     { name: 'responseMergePolicy', label: 'Response Merge Policy', kind: 'select', options: ['REQ', 'RES', 'BOTH'] },
-    { name: 'authUserName', label: 'Auth Username', kind: 'text' },
-    { name: 'authPassword', label: 'Auth Password', kind: 'text' },
-    { name: 'authType', label: 'Auth Type', kind: 'text' },
+    { name: 'authUserName', label: 'Auth Username', kind: 'text', customPanelVisible: false },
+    { name: 'authPassword', label: 'Auth Password', kind: 'password', customPanelVisible: false },
+    { name: 'authType', label: 'Auth Type', kind: 'text', customPanelVisible: false },
     // Stored as the strings '0' and '1'; the Vue select showed them as No and Yes.
     {
       name: 'isCacheAble',

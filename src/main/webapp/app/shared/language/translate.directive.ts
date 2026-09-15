@@ -1,4 +1,5 @@
-import { Input, Directive, ElementRef, OnChanges, OnInit, OnDestroy } from '@angular/core';
+import { Directive, ElementRef, Input, OnChanges, OnDestroy, OnInit, Renderer2, SecurityContext } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
 import { TranslateService } from '@ngx-translate/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -19,7 +20,9 @@ export class TranslateDirective implements OnChanges, OnInit, OnDestroy {
   private readonly directiveDestroyed = new Subject();
 
   constructor(
-    private el: ElementRef,
+    private el: ElementRef<HTMLElement>,
+    private renderer: Renderer2,
+    private sanitizer: DomSanitizer,
     private translateService: TranslateService,
   ) {}
 
@@ -46,10 +49,19 @@ export class TranslateDirective implements OnChanges, OnInit, OnDestroy {
       .get(this.jhiTranslate, this.translateValues)
       .pipe(takeUntil(this.directiveDestroyed))
       .subscribe({
-        next: value => {
-          this.el.nativeElement.innerHTML = value;
+        next: (value: unknown) => {
+          this.renderTranslation(value);
         },
-        error: () => `${translationNotFoundMessage}[${this.jhiTranslate}]`,
+        error: () => {
+          this.renderTranslation(`${translationNotFoundMessage}[${this.jhiTranslate}]`);
+        },
       });
+  }
+
+  private renderTranslation(value: unknown): void {
+    const html = typeof value === 'string' ? value : '';
+    const sanitizedHtml = this.sanitizer.sanitize(SecurityContext.HTML, html) ?? '';
+
+    this.renderer.setProperty(this.el.nativeElement, 'innerHTML', sanitizedHtml);
   }
 }

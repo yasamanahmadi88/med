@@ -32,9 +32,9 @@ spring:
       indent-output: true
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: ${SPRING_DATASOURCE_URL:jdbc:oracle:thin:@//localhost:1521/FREEPDB1}
-    username: ${SPRING_DATASOURCE_USERNAME:MEDIATION}
-    password: ${SPRING_DATASOURCE_PASSWORD:MEDIATION}
+    url: ${SPRING_DATASOURCE_URL:jdbc:oracle:thin:@//172.18.50.50:1521/IXPDB}
+    username: ${SPRING_DATASOURCE_USERNAME:medportal}
+    password: ${SPRING_DATASOURCE_PASSWORD:pass#1401}
     hikari:
       poolName: Hikari
       auto-commit: false
@@ -45,7 +45,7 @@ spring:
     properties:
       # Domain tables live in MEDIATION; JDBC user may be medportal with SELECT grants.
       # Override with MEDPORTAL_DB_SCHEMA= (empty) when the JDBC user owns TBL_* directly.
-      hibernate.default_schema: ${MEDPORTAL_DB_SCHEMA:MEDIATION}
+      hibernate.default_schema: ${MEDPORTAL_DB_SCHEMA:MEDPORTAL}
   liquibase:
     # Remove 'faker' if you do not want the sample data to be loaded automatically
     contexts: dev
@@ -141,7 +141,5 @@ user-session:
     # Server-side inactivity window (minutes) for a normal session.
     per-minute: 30
     # Server-side inactivity window (minutes) for a remember-me session.
-    # Keep this aligned with jhipster.security.authentication.jwt.token-validity-in-seconds-for-remember-me
-    # (2592000 s = 30 days = 43200 minutes). A shorter value here logs the user out while their
-    # remember-me JWT is still valid; a longer value keeps a dead session in memory.
+    # Keep this aligned with the remember-me JWT validity (30 days).
     remember-me-per-minute: 43200

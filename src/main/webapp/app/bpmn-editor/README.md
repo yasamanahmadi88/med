@@ -222,7 +222,7 @@ behaviour _away_ if they were ported.
 
 | Vue module               | Registered when                               | What it actually does                                                                                                                                                                                                |
 | ------------------------ | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Rules`                  | `otherModule`                                 | One rule: start and end events cannot be deleted. **Ported.**                                                                                                                                                        |
+| `Rules`                  | Not registered at runtime                     | Legacy Vue delete rule retained in source for reference/tests; Start and End Events use stock bpmn-js deletion. **Intentional portal behaviour.**                                                                                                                                                        |
 | `ColorPicker`            | `otherModule`                                 | Fill and stroke for the selected elements, from a context-pad button. **Ported** — see "The colour picker" below.                                                                                                    |
 | `ContextPad/Enhancement` | `contextPadMode: 'enhancement'` (the default) | Extends `ContextPadProvider`, overrides `getContextPadEntries` to return `{}`, registers under a _new_ name — so the stock provider still runs and this adds nothing. Every example entry is commented out. A no-op. |
 | `ContextPad/Rewrite`     | `contextPadMode: 'rewrite'`                   | The same empty provider, but registered as `contextPadProvider` — it _replaces_ the stock one. Selecting this mode empties the context pad: no delete, no connect, no append.                                        |
@@ -237,10 +237,11 @@ customise this", with the examples commented out. Porting the enhancement varian
 files that do nothing; porting the rewrite variants would ship a way to break the editor from the
 settings panel. Neither is here.
 
-**The delete rule is ported with one deliberate change.** The Vue rule returned a boolean, so a
-single start event caught in a drag-selection blocked the whole delete. This one returns the
-elements that _may_ go, which is the convention diagram-js expects, so the rest of the selection
-still deletes.
+**Deletion intentionally differs from the Vue reference.** The Vue editor registered a
+custom rule that prevented Start and End Events from being deleted. The Angular portal keeps
+that rule implementation only for reference and isolated unit coverage, but does not register
+it at runtime. Stock bpmn-js deletion therefore provides the standard context-pad Remove
+action and keyboard deletion for Start and End Events, with normal undo/redo support.
 
 #### `AutoPlace` — not ported, and the difference is visible
 
@@ -298,7 +299,7 @@ fails and says so, and `en_US` may join the list.
 
 `additional-modules/ColorPicker/` puts a **Set Color** button on the element context pad, opening
 a six-swatch popup menu that sets fill and stroke through `modeling.setColor`. It registers under
-`otherModule`, alongside the delete rule.
+`otherModule`, alongside token simulation.
 
 This one arrived from the `feature/bpmn-vue-angular-parity` branch rather than from the audit
 above — the table in this section never listed a `ColorPicker`, and the Vue tree is not in hand
@@ -379,9 +380,11 @@ in the Playwright suite. A shortcut list that lies is worse than no list.
 in this configuration at all". It is bound — `KeyboardBindings` registers `removeSelection` for
 `Delete` and `Backspace`. What actually happens is that placing an element opens its label editor
 and puts the caret inside it, so the keystroke belongs to the text until `Escape` closes it. Two
-Playwright tests pin this: Delete after `Escape` removes a task, and the same sequence on the
-start event removes nothing — which is a stronger proof of the delete rule than the context-pad
-test, because the keyboard goes straight to the editor action.
+Playwright tests pin this: after `Escape` closes direct editing, Delete removes the selected
+ordinary or custom shape. Dedicated browser tests also verify that Start and End Events expose
+the standard context-pad Remove action, support keyboard deletion, and remain undoable/redoable
+through the normal command stack. The keyboard path is tested separately because it invokes the
+editor action directly rather than the context-pad Remove entry.
 
 #### Not ported
 

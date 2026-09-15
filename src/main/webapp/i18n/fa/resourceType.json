@@ -2,9 +2,9 @@
   "MedPortalApp": {
     "ResourceType": {
       "null": "",
-      "DOMAIN": "دامنه",
-      "COMPONENT": "کامپوننت",
-      "PAGE_URL": "آدرس صفحه"
+      "DOMAIN": "DOMAIN",
+      "COMPONENT": "COMPONENT",
+      "PAGE_URL": "PAGE_URL"
     }
   }
 }

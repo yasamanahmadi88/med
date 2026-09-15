@@ -3,7 +3,7 @@
     "title": "نشست‌های فعال برای [<strong>{{username}}</strong>]",
     "table": {
       "ipaddress": "IP آدرس",
-      "useragent": "عامل کاربر",
+      "useragent": "User Agent",
       "date": "زمان",
       "button": "بی‌اعتبار کردن"
     },

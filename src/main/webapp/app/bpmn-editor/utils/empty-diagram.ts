@@ -69,6 +69,33 @@ export function emptyDiagramXml(processId: string, processName: string): string 
  * where they are not. A configured id that is not a valid NCName is dropped rather than
  * written, because moddle rejects the document outright and the editor would open empty.
  */
+/**
+ * Returns an element-free BPMN document for the Vue "Erase Redo" action.
+ *
+ * This is intentionally separate from emptyDiagramXml(): the latter defines
+ * the initial-editor behaviour and currently creates StartEvent_1. Erase Redo
+ * must preserve the process identity while importing no flow elements.
+ */
+export function blankDiagramXml(processId: string, processName: string): string {
+  const id = escapeXml(processId);
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+  targetNamespace="http://bpmn.io/schema/bpmn"
+  id="Definitions_${id}">
+  <bpmn:process id="${id}" name="${escapeXml(processName)}" isExecutable="true">
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="${id}">
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>`;
+}
 export function newDiagramIdentity(settings?: Pick<EditorSettings, 'processId' | 'processName'>): {
   processId: string;
   processName: string;

@@ -2,32 +2,32 @@
   "medPortalApp": {
     "module": {
       "home": {
-        "title": "ماژول‌ها",
-        "refreshListLabel": "به روز رسانی",
-        "createLabel": "ایجاد ماژول جدید",
-        "createOrEditLabel": "ایجاد یا ویرایش ماژول",
-        "notFound": "موردی یافت نشد"
+        "title": "Modules",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Module",
+        "createOrEditLabel": "Create or edit a Module",
+        "notFound": "No Modules found"
       },
-      "created": "یک ماژول جدید با شناسه {{ param }} ایجاد شد",
-      "updated": "یک ماژول با شناسه {{ param }} بروز رسانی شد",
-      "deleted": "یک ماژول با شناسه {{ param }} حذف شد",
+      "created": "A new Module is created with identifier {{ param }}",
+      "updated": "A Module is updated with identifier {{ param }}",
+      "deleted": "A Module is deleted with identifier {{ param }}",
       "delete": {
-        "question": "آیا از حذف ماژول \" {{ name }} \" مطمئن هستید؟"
+        "question": "Are you sure you want to delete Module \" {{ name }} \" ?"
       },
       "detail": {
-        "title": "ماژول"
+        "title": "Module"
       },
-      "id": "شناسه",
-      "moduleName": "نام ماژول",
-      "defaultPort": "پورت پیش فرض",
-      "redisKeyPrefix": "پیشوند کلید Redis",
-      "status": "وضعیت",
-      "loggingMode": "حالت ثبت وقایع",
-      "loggingFilter": "فیلتر ثبت وقایع",
+      "id": "ID",
+      "moduleName": "Module Name",
+      "defaultPort": "Default Port",
+      "redisKeyPrefix": "Redis Key Prefix",
+      "status": "Status",
+      "loggingMode": "Logging Mode",
+      "loggingFilter": "Logging Filter",
       "configs": "تنظیم‌ها",
       "active": "فعال",
       "notActive": " غیر فعال",
-      "dnsName": "نام DNS"
+      "dnsName": "DNS Name"
     }
   }
 }

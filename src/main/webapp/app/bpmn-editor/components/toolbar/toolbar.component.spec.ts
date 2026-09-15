@@ -5,6 +5,7 @@ import { ToolbarComponent } from './toolbar.component';
 import { XmlPreviewDialogComponent } from './xml-preview-dialog.component';
 import { ShortcutKeysDialogComponent } from './shortcut-keys-dialog.component';
 import { CustomIconsDialogComponent } from './custom-icons-dialog.component';
+import { BpmnEventsDialogComponent } from './bpmn-events-dialog.component';
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
 import { BPMN_EDITOR_HOST, BpmnEditorHost } from '../../services/bpmn-editor-host';
 
@@ -30,6 +31,8 @@ describe('ToolbarComponent', () => {
     canRedo: ReturnType<typeof vi.fn>;
   };
   let minimap: { toggle: ReturnType<typeof vi.fn> };
+  let toggleMode: { toggleMode: ReturnType<typeof vi.fn> };
+  let eventBus: { _listeners: Record<string, unknown> };
   let customIcons: { getIcons: ReturnType<typeof vi.fn> };
   let modeler: any;
   let elements: any[];
@@ -46,6 +49,14 @@ describe('ToolbarComponent', () => {
       canRedo: vi.fn().mockReturnValue(true),
     };
     minimap = { toggle: vi.fn() };
+    toggleMode = { toggleMode: vi.fn() };
+    eventBus = {
+      _listeners: {
+        'shape.added': {},
+        'commandStack.changed': {},
+        'canvas.viewbox.changed': {},
+      },
+    };
     customIcons = { getIcons: vi.fn(() => []) };
     viewboxListener = undefined;
     commandStackListener = undefined;
@@ -57,6 +68,8 @@ describe('ToolbarComponent', () => {
         if (name === 'canvas') return canvas;
         if (name === 'commandStack') return commandStack;
         if (name === 'minimap') return minimap;
+        if (name === 'toggleMode') return toggleMode;
+        if (name === 'eventBus') return eventBus;
         if (name === 'customIcons') return customIcons;
         if (name === 'elementRegistry') return { getAll: () => elements };
         return undefined;
@@ -108,6 +121,8 @@ describe('ToolbarComponent', () => {
         component.onUndo();
         component.onRedo();
         component.onRestart();
+        component.toggleProcessMock();
+        component.openBpmnEvents();
         component.onToggleMinimap();
       }).not.toThrow();
     });
@@ -122,11 +137,11 @@ describe('ToolbarComponent', () => {
   describe('zoom', () => {
     beforeEach(attachModeler);
 
-    it('reports the canvas scale as a whole percentage', () => {
+    it('reports the canvas scale in the same 10 percent steps as the reference toolbar', () => {
       viewboxListener!({ viewbox: { scale: 0.834 } });
 
       // The Vue label truncated to 10% steps, so a fit-to-viewport at 83% read "80%".
-      expect(component.zoomPercent).toBe(83);
+      expect(component.zoomPercent).toBe(80);
     });
 
     it('steps by 10% about the canvas origin', () => {
@@ -192,27 +207,55 @@ describe('ToolbarComponent', () => {
     });
   });
 
-  describe('restart', () => {
+  describe('Erase Redo', () => {
     beforeEach(attachModeler);
 
-    it('clears the history before importing the new diagram', () => {
-      // Undoing past the import would otherwise try to restore a diagram the new document has no
-      // elements for, and bpmn-js throws.
-      void component.onRestart();
+    it('imports an element-free process and clears history only after the import succeeds', async () => {
+      await component.onRestart();
 
-      expect(commandStack.clear).toHaveBeenCalled();
-      expect(modeler.importXML).toHaveBeenCalledWith(expect.stringContaining('<bpmn:startEvent'));
+      expect(modeler.importXML).toHaveBeenCalledOnce();
+      expect(commandStack.clear).toHaveBeenCalledOnce();
+
+      const xml = modeler.importXML.mock.calls[0][0] as string;
+
+      expect(xml).toContain('<bpmn:process');
+      expect(xml).not.toContain('<bpmn:startEvent');
+      expect(xml).not.toContain('StartEvent_1');
+      expect(xml).not.toContain('<bpmndi:BPMNShape');
+
+      expect(service.getProcessXml()).toBe(xml);
     });
 
-    it('builds the new diagram from the configured process identity', () => {
-      service.updateConfiguration({ processId: 'Order_9', processName: 'Orders' });
+    it('preserves the configured process id and process name', async () => {
+      service.updateConfiguration({
+        processId: 'Order_9',
+        processName: 'Orders',
+      });
 
-      void component.onRestart();
+      await component.onRestart();
 
-      expect(modeler.importXML).toHaveBeenCalledWith(expect.stringContaining('<bpmn:process id="Order_9" name="Orders"'));
+      const xml = modeler.importXML.mock.calls[0][0] as string;
+
+      expect(xml).toContain('<bpmn:process id="Order_9" name="Orders" isExecutable="true">');
+      expect(xml).toContain('bpmnElement="Order_9"');
+      expect(xml).not.toContain('<bpmn:startEvent');
+    });
+
+    it('does not destroy command history or replace service XML when blank import fails', async () => {
+      service.setProcessXml('<old-diagram />');
+      modeler.importXML.mockRejectedValueOnce(new Error('import failed'));
+
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+      await component.onRestart();
+
+      expect(commandStack.clear).not.toHaveBeenCalled();
+      expect(service.getProcessXml()).toBe('<old-diagram />');
+      expect(consoleError).toHaveBeenCalledWith('Could not erase BPMN 2.0 diagram', expect.any(Error));
+
+      consoleError.mockRestore();
     });
   });
-
   describe('dialogs', () => {
     beforeEach(attachModeler);
 
@@ -237,6 +280,22 @@ describe('ToolbarComponent', () => {
 
       expect(open).not.toHaveBeenCalled();
       error.mockRestore();
+    });
+
+    it('toggles process simulation through the token simulation service', () => {
+      component.toggleProcessMock();
+
+      expect(toggleMode.toggleMode).toHaveBeenCalledOnce();
+    });
+
+    it('opens the BPMN event list with sorted EventBus names', () => {
+      const componentInstance: Record<string, unknown> = {};
+      const open = vi.spyOn(modal, 'open').mockReturnValue({ componentInstance } as any);
+
+      component.openBpmnEvents();
+
+      expect(open).toHaveBeenCalledWith(BpmnEventsDialogComponent, expect.anything());
+      expect(componentInstance['events']).toEqual(['canvas.viewbox.changed', 'commandStack.changed', 'shape.added']);
     });
 
     it('opens the shortcut reference', () => {
@@ -268,6 +327,17 @@ describe('ToolbarComponent', () => {
 
       expect(open).not.toHaveBeenCalled();
     });
+  });
+
+  it('uses the exact reference external-tool tooltip names', () => {
+    const button = (name: string): HTMLButtonElement => fixture.nativeElement.querySelector(`[data-cy="${name}"]`);
+
+    expect(button('bpmnZoomFit').title).toBe('Zoom Reset');
+    expect(button('bpmnRestart').title).toBe('Erase Redo');
+    expect(button('bpmnToggleProcessMock').title).toBe('toggleProcessMock');
+    expect(button('bpmnEvents').title).toBe('bpmnEvents');
+    expect(button('bpmnToggleMinimap').title).toBe('toggleMiniMap');
+    expect(button('bpmnShortcuts').title).toBe('bpmnShortcutKeys');
   });
 
   describe('settings', () => {

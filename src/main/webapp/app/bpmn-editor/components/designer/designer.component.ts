@@ -10,6 +10,7 @@ import { DEFAULT_ELEMENT_SIZES } from '../../additional-modules/ElementFactory';
 import ModulePropertiesModule from '../../module-properties';
 import { createNewDiagram } from '../../utils/empty-diagram';
 import ContextMenuModule from '../../context-menu';
+import { RoleModulesService } from '../../services/role-modules.service';
 
 @Component({
   selector: 'jhi-designer',
@@ -26,8 +27,10 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
   private bpmnModeler: BpmnModeler | null = null;
   private destroy$ = new Subject<void>();
 
-  constructor(private bpmnEditorService: BpmnEditorService) {}
-
+  constructor(
+    private bpmnEditorService: BpmnEditorService,
+    private roleModulesService: RoleModulesService,
+  ) {}
   ngAfterViewInit(): void {
     // PanelComponent is a sibling, so its ngAfterViewInit runs after this one in the same
     // change-detection pass. Deferring by a macrotask lets it register its element first, so
@@ -92,6 +95,13 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
         // integration-module types.
         moddleExtensions: moddleExtensionsFor(settings),
         additionalModules: modules,
+
+        // Vue parity:
+        // when the minimap feature is enabled, open it immediately on editor load.
+        // diagram-js-minimap itself handles click/drag navigation inside the overview.
+        minimap: {
+          open: settings?.miniMap ?? true,
+        },
         // Reaches ModulePropertiesProvider as `config.processEngine`. Module properties are
         // namespaced by the engine, so an HttpReceiver stores `camunda:agreementMode`.
         processEngine: settings?.processEngine ?? 'camunda',
@@ -108,6 +118,7 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
         },
         // The panel modules read `propertiesPanel.parent`, so it is only set when a parent
         // exists — the editor can be configured without the custom panel.
+        roleModulesService: this.roleModulesService,
         ...(panelParent ? { propertiesPanel: { parent: panelParent } } : {}),
       });
 

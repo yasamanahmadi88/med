@@ -19,9 +19,9 @@ export const dbTransmitterSchema: ModuleSchema = {
     { name: 'agreementMode', label: 'Agreement Mode', kind: 'select', options: AGREEMENT_MODE },
     { name: 'url', label: 'Url', kind: 'text' },
     { name: 'username', label: 'Username', kind: 'text' },
-    // The Vue control was `<input type="password">` with a show/hide eye toggle. The panel has no
-    // masked entry, so this renders as plain text — same property, same value, visible.
-    { name: 'password', label: 'Password', kind: 'text' },
+    // The Vue control was `<input type="password">` with a show/hide eye toggle. Custom mode keeps
+    // that behavior; generic properties mode intentionally falls back to TextFieldEntry.
+    { name: 'password', label: 'Password', kind: 'password' },
     { name: 'driverClassName', label: 'Driver Class Name', kind: 'text' },
     { name: 'minimumIdle', label: 'Minimum Idle', kind: 'number' },
     { name: 'maximumPoolSize', label: 'Maximum Pool Size', kind: 'number' },
@@ -29,7 +29,7 @@ export const dbTransmitterSchema: ModuleSchema = {
     { name: 'maxLifeTime', label: 'Max Life Time', kind: 'number' },
     { name: 'connectionTimeout', label: 'Connection Timeout', kind: 'number' },
     { name: 'poolName', label: 'Pool Name', kind: 'text' },
-    { name: 'outputMsgType', label: 'Output Msg Type', kind: 'text' },
+    { name: 'outputMsgType', label: 'Output Msg Type', kind: 'text', customPanelVisible: false },
     { name: 'commentDesc', label: 'Comment Desc', kind: 'text' },
   ],
 };

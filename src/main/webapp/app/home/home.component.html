@@ -1,11 +1,50 @@
-<div class="row text-center">
-  <div class="col">
-    <h1 class="display-4" [jhiTranslate]="'home.title'">Mediation Portal</h1>
+<section class="home-page">
+  <div class="event-stream" aria-hidden="true">
+    <svg class="event-node l2r" style="--top: 5%; --size: 30px; --dur: 32s; --delay: -1s" viewBox="0 0 120 104">
+      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52" />
+    </svg>
+    <svg class="event-node r2l" style="--top: 15%; --size: 70px; --dur: 48s; --delay: -5s" viewBox="0 0 120 104">
+      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52" />
+    </svg>
+    <svg class="event-node l2r" style="--top: 25%; --size: 45px; --dur: 38s; --delay: -10s" viewBox="0 0 120 104">
+      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52" />
+    </svg>
+    <svg class="event-node r2l" style="--top: 35%; --size: 25px; --dur: 25s; --delay: -3s" viewBox="0 0 120 104">
+      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52" />
+    </svg>
+    <svg class="event-node l2r" style="--top: 45%; --size: 85px; --dur: 55s; --delay: -15s" viewBox="0 0 120 104">
+      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52" />
+    </svg>
+    <svg class="event-node r2l" style="--top: 55%; --size: 35px; --dur: 40s; --delay: -8s" viewBox="0 0 120 104">
+      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52" />
+    </svg>
+    <svg class="event-node l2r" style="--top: 65%; --size: 60px; --dur: 45s; --delay: -12s" viewBox="0 0 120 104">
+      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52" />
+    </svg>
+    <svg class="event-node r2l" style="--top: 75%; --size: 50px; --dur: 36s; --delay: -6s" viewBox="0 0 120 104">
+      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52" />
+    </svg>
+    <svg class="event-node l2r" style="--top: 85%; --size: 20px; --dur: 22s; --delay: -2s" viewBox="0 0 120 104">
+      <polygon points="30,2 90,2 118,52 90,102 30,102 2,52" />
+    </svg>
+  </div>
 
-    <div class="alert alert-success text-center">
-      <span id="home-logged-message" *ngIf="account" jhiTranslate="home.logged.message" [translateValues]="{ username: account.login }">
-        You are logged in as user "{{ account.login }}".</span
-      >
+  <div class="home-wrapper">
+    <div class="home-card text-center">
+      <div class="mb-4"></div>
+
+      <h1 class="display-5 fw-bold mb-3" [jhiTranslate]="'home.title'" style="color: #091c39">Mediation Portal</h1>
+
+      <p class="mb-4" style="color: #091c39">Welcome to the central mediation and management system.</p>
+
+      <div class="alert alert-success d-inline-block px-4 py-3 shadow-sm rounded-4">
+        <div class="d-flex align-items-center justify-content-center gap-2">
+          <span class="fs-5">👋</span>
+          <span id="home-logged-message" *ngIf="account" jhiTranslate="home.logged.message" [translateValues]="{ username: account.login }">
+            You are logged in as user <strong>"{{ account.login }}"</strong>.
+          </span>
+        </div>
+      </div>
     </div>
   </div>
-</div>
+</section>

@@ -8,6 +8,8 @@ import {
   faEraser,
   faKeyboard,
   faMap,
+  faPodcast,
+  faRobot,
   faTriangleExclamation,
   faRedo,
   faSave,
@@ -22,11 +24,12 @@ import { Subject, takeUntil } from 'rxjs';
 
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
 import { BPMN_EDITOR_HOST, BpmnEditorHost } from '../../services/bpmn-editor-host';
-import { createNewDiagram } from '../../utils/empty-diagram';
+import { blankDiagramXml, newDiagramIdentity } from '../../utils/empty-diagram';
 import { ModulePropertyProblem, describeProblem, moduleValidationProblems } from '../../module-properties';
 import { CustomIconsDialogComponent } from './custom-icons-dialog.component';
 import { XmlPreviewDialogComponent } from './xml-preview-dialog.component';
 import { ShortcutKeysDialogComponent } from './shortcut-keys-dialog.component';
+import { BpmnEventsDialogComponent } from './bpmn-events-dialog.component';
 
 /** The zoom bounds diagram-js's own scroll zoom caps to; the buttons must not exceed them. */
 const ZOOM_MIN = 0.2;
@@ -60,6 +63,8 @@ export class ToolbarComponent implements OnInit, OnDestroy {
     zoomOut: faSearchMinus,
     zoomIn: faSearchPlus,
     previewXml: faCode,
+    processMock: faRobot,
+    bpmnEvents: faPodcast,
     minimap: faMap,
     shortcuts: faKeyboard,
     customIcons: faShapes,
@@ -131,7 +136,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
   }
 
   get zoomPercent(): number {
-    return Math.round(this.zoom * 100);
+    return Math.floor(this.zoom * 10) * 10;
   }
 
   zoomIn(): void {
@@ -236,10 +241,23 @@ export class ToolbarComponent implements OnInit, OnDestroy {
     if (!modeler) {
       return Promise.resolve();
     }
-    this.commandStack()?.clear();
-    return createNewDiagram(modeler, this.bpmnEditorService.getEditorSettings()).catch((error: unknown) => {
-      console.error('Could not create BPMN 2.0 diagram', error);
-    });
+
+    const { processId, processName } = newDiagramIdentity(this.bpmnEditorService.getEditorSettings());
+    const xml = blankDiagramXml(processId, processName);
+
+    return modeler
+      .importXML(xml)
+      .then(() => {
+        // Clear history only after the blank document imported successfully.
+        // A failed import must not destroy the user's existing undo/redo stack.
+        this.commandStack()?.clear();
+
+        // Keep the service state consistent with what is now on the canvas.
+        this.bpmnEditorService.setProcessXml(xml);
+      })
+      .catch((error: unknown) => {
+        console.error('Could not erase BPMN 2.0 diagram', error);
+      });
   }
 
   /** Show the XML the editor would save, without downloading it. */
@@ -251,6 +269,40 @@ export class ToolbarComponent implements OnInit, OnDestroy {
       const modalRef = this.modalService.open(XmlPreviewDialogComponent, { size: 'lg', scrollable: true });
       modalRef.componentInstance.xml = xml;
     });
+  }
+
+  /**
+   * Toggle BPMN token simulation.
+   *
+   * Angular-native equivalent of the reference toolbar's toggleProcessMock action.
+   */
+  toggleProcessMock(): void {
+    const toggleMode = this.bpmnEditorService.getBpmnModeler()?.get('toggleMode', false) as { toggleMode?: () => void } | undefined;
+
+    toggleMode?.toggleMode?.();
+  }
+
+  /**
+   * Open the registered BPMN EventBus listener list.
+   *
+   * The reference implementation reads EventBus._listeners, sorts the event names and applies
+   * a case-sensitive includes filter. Keep those semantics for UI parity.
+   */
+  openBpmnEvents(): void {
+    const eventBus = this.bpmnEditorService.getBpmnModeler()?.get('eventBus', false) as
+      | { _listeners?: Record<string, unknown> }
+      | undefined;
+
+    if (!eventBus) {
+      return;
+    }
+
+    const modalRef = this.modalService.open(BpmnEventsDialogComponent, {
+      size: 'lg',
+      scrollable: true,
+    });
+
+    modalRef.componentInstance.events = Object.keys(eventBus._listeners ?? {}).sort();
   }
 
   /**

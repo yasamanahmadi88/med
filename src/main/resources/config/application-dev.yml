@@ -34,7 +34,7 @@ spring:
     type: com.zaxxer.hikari.HikariDataSource
     url: ${SPRING_DATASOURCE_URL:jdbc:oracle:thin:@//172.18.50.50:1521/IXPDB}
     username: ${SPRING_DATASOURCE_USERNAME:medportal}
-    password: ${SPRING_DATASOURCE_PASSWORD:}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     hikari:
       poolName: Hikari
       auto-commit: false
@@ -90,7 +90,7 @@ jhipster:
         # SECURITY_AUTHENTICATION_JWT_BASE64_SECRET must be set via environment variable.
         # Generate with: openssl rand -base64 64
         # Never hardcode secrets in configuration files.
-        base64-secret: ${SECURITY_AUTHENTICATION_JWT_BASE64_SECRET:}
+        base64-secret: ${SECURITY_AUTHENTICATION_JWT_BASE64_SECRET}
         # Token is valid 24 hours
         token-validity-in-seconds: 86400
         token-validity-in-seconds-for-remember-me: 2592000

@@ -75,7 +75,9 @@ public class LoggerService implements AuditEventRepository {
     @Transactional(readOnly = true)
     public Page<AuditEvent> searchByText(String text, Pageable page) {
         log.debug("find by text : {}, page: {}", text, (Object) page);
-        return customAuditEventRepository.searchByText("%".concat(text).concat("%"),"%".concat(text).concat("%"),"%".concat(text).concat("%"),page)
+        // Escape LIKE wildcards to prevent injection
+        String escapedText = text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+        return customAuditEventRepository.searchByText("%".concat(escapedText).concat("%"),"%".concat(escapedText).concat("%"),"%".concat(escapedText).concat("%"),page)
          .map(auditEventConverter::convertToAuditEvent);
     }
 

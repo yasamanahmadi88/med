@@ -234,7 +234,14 @@ public class AccountResource {
      */
     @PostMapping(path = "/account/reset-password/init")
     public void requestPasswordReset(HttpServletRequest request) throws java.io.IOException {
-        String mail = new String(request.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8).trim();
+        // Limit input size to prevent DoS (email max ~254 chars, adding buffer for JSON)
+        int maxSize = 512;
+        byte[] buffer = new byte[maxSize];
+        int bytesRead = request.getInputStream().read(buffer);
+        if (bytesRead >= maxSize) {
+            throw new BadRequestAlertException("Request too large", "account", "input-too-large");
+        }
+        String mail = new String(buffer, 0, bytesRead, java.nio.charset.StandardCharsets.UTF_8).trim();
         // Strip optional JSON quotes when clients send a JSON string body.
         if (mail.length() >= 2 && mail.startsWith("\"") && mail.endsWith("\"")) {
             mail = mail.substring(1, mail.length() - 1);

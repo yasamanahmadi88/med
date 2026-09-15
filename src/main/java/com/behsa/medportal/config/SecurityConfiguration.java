@@ -108,29 +108,49 @@ public class SecurityConfiguration {
 
         String allowedOrigins = environment.getProperty("jhipster.cors.allowed-origins");
         if (allowedOrigins != null && !allowedOrigins.isEmpty()) {
-            configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
+            configuration.setAllowedOrigins(
+                Arrays.stream(allowedOrigins.split(","))
+                    .map(String::trim)
+                    .toList()
+            );
         }
 
         String allowedOriginPatterns = environment.getProperty("jhipster.cors.allowed-origin-patterns");
         if (allowedOriginPatterns != null && !allowedOriginPatterns.isEmpty()) {
-            configuration.setAllowedOriginPatterns(Arrays.asList(allowedOriginPatterns.split(",")));
+            configuration.setAllowedOriginPatterns(
+                Arrays.stream(allowedOriginPatterns.split(","))
+                    .map(String::trim)
+                    .toList()
+            );
         }
 
         String allowedMethods = environment.getProperty("jhipster.cors.allowed-methods");
         if (allowedMethods != null && !allowedMethods.isEmpty()) {
-            configuration.setAllowedMethods(Arrays.asList(allowedMethods.split(",")));
+            configuration.setAllowedMethods(
+                Arrays.stream(allowedMethods.split(","))
+                    .map(String::trim)
+                    .toList()
+            );
         } else {
             configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         }
 
         String allowedHeaders = environment.getProperty("jhipster.cors.allowed-headers");
         if (allowedHeaders != null && !allowedHeaders.isEmpty()) {
-            configuration.setAllowedHeaders(Arrays.asList(allowedHeaders.split(",")));
+            configuration.setAllowedHeaders(
+                Arrays.stream(allowedHeaders.split(","))
+                    .map(String::trim)
+                    .toList()
+            );
         }
 
         String exposedHeaders = environment.getProperty("jhipster.cors.exposed-headers");
         if (exposedHeaders != null && !exposedHeaders.isEmpty()) {
-            configuration.setExposedHeaders(Arrays.asList(exposedHeaders.split(",")));
+            configuration.setExposedHeaders(
+                Arrays.stream(exposedHeaders.split(","))
+                    .map(String::trim)
+                    .toList()
+            );
         }
 
         String allowCredentials = environment.getProperty("jhipster.cors.allow-credentials");

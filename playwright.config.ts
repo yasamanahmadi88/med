@@ -12,7 +12,7 @@ export default defineConfig({
   outputDir: 'target/playwright-results',
   use: {
     baseURL,
-    testIdAttribute: 'data-cy',
+    testIdAttribute: 'data-testid',
     trace: 'on-first-retry',
   },
   webServer: {

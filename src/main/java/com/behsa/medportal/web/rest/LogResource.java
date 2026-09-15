@@ -163,6 +163,14 @@ public class LogResource {
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
+    /**
+     * Search logs by correlation ID.
+     * Search text must be non-blank to prevent inefficient wildcard queries and information disclosure.
+     *
+     * @param searchText non-blank search query (correlation ID)
+     * @param pageable pagination parameters
+     * @return paginated list of matching logs
+     */
     @GetMapping("/logs/search")
     @Secured(ENTITY_NAME)
     public ResponseEntity<List<LogDTO>> searchLogsByCorrelationId(

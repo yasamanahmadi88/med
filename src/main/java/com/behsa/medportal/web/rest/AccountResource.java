@@ -230,8 +230,10 @@ public class AccountResource {
      *
      * This endpoint intentionally returns the same public response whether the
      * email exists or not, to prevent user enumeration.
+     * Request body is limited to 512 bytes to prevent DoS via unbounded memory allocation (CWE-400).
      *
-     * @param mail the mail of the user.
+     * @param request HTTP request containing email address in body (max 512 bytes)
+     * @throws BadRequestAlertException if request body exceeds 512 bytes
      */
     @PostMapping(path = "/account/reset-password/init")
     public void requestPasswordReset(HttpServletRequest request) throws java.io.IOException {

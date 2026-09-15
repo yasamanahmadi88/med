@@ -13,6 +13,18 @@ public class XssSanitizingFilter implements Filter {
 
     private final PolicyFactory policy = Sanitizers.FORMATTING.and(Sanitizers.LINKS);
 
+    /**
+     * Filter HTTP requests to sanitize XSS payloads in request parameters and body.
+     * Applies HTML sanitization using OWASP HTML Sanitizer for formatting and links.
+     * Covers all HTTP methods that may accept user input (POST, PUT, PATCH, GET, DELETE, HEAD).
+     * CWE-79: Improper Neutralization of Input During Web Page Generation.
+     *
+     * @param request HTTP request to filter
+     * @param response HTTP response
+     * @param chain filter chain to continue processing
+     * @throws IOException if an I/O error occurs during filtering
+     * @throws ServletException if a servlet error occurs during filtering
+     */
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
         throws IOException, ServletException {

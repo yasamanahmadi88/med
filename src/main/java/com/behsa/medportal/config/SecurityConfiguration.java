@@ -145,6 +145,15 @@ public class SecurityConfiguration {
         return source;
     }
 
+    /**
+     * Configure the security filter chain with CSRF, authentication, and authorization rules.
+     * CSRF protection is profile-aware: disabled for test profile (MockMvc) but enabled for production with cookie-based tokens.
+     * CWE-352: Cross-Site Request Forgery (CSRF).
+     *
+     * @param http HttpSecurity to configure
+     * @return configured SecurityFilterChain
+     * @throws Exception if configuration fails
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         boolean isTestProfile = Arrays.asList(environment.getActiveProfiles()).contains("test");

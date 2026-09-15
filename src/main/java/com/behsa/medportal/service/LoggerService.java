@@ -72,6 +72,15 @@ public class LoggerService implements AuditEventRepository {
         return customAuditEventRepository.findAllByEventDateBetween(fromDate, toDate, pageable)
             .map(auditEventConverter::convertToAuditEvent);
     }
+    /**
+     * Search audit events by text across principal, event type, and data fields.
+     * Escapes LIKE wildcards (%, _) to prevent SQL injection via uncontrolled pattern matching.
+     * CWE-89: Improper Neutralization of Special Elements used in an SQL Command.
+     *
+     * @param text search text to match (automatically escaped for LIKE wildcards)
+     * @param page pagination parameters
+     * @return paginated list of matching audit events
+     */
     @Transactional(readOnly = true)
     public Page<AuditEvent> searchByText(String text, Pageable page) {
         log.debug("find by text : {}, page: {}", text, (Object) page);

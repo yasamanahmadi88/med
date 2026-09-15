@@ -42,6 +42,7 @@
             class="form-control login-input"
             name="username"
             id="username"
+            data-testid="username"
             placeholder="{{ 'global.form.username.placeholder' | translate }}"
             formControlName="username"
             #username
@@ -56,6 +57,7 @@
             class="form-control login-input"
             name="password"
             id="password"
+            data-testid="password"
             placeholder="{{ 'login.form.password.placeholder' | translate }}"
             formControlName="password"
           />
@@ -100,7 +102,7 @@
         </div>
 
         <!-- Submit -->
-        <button type="submit" class="login-submit w-100" [disabled]="loginForm.invalid || isLoading">
+        <button type="submit" class="login-submit w-100" data-testid="submit" [disabled]="loginForm.invalid || isLoading">
           <span *ngIf="!isLoading" jhiTranslate="login.form.button">Sign in</span>
           <span *ngIf="isLoading" class="submit-loading">
             <span class="loading-icon">⟳</span>

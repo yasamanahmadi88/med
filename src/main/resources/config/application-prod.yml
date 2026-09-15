@@ -100,6 +100,14 @@ jhipster:
     ehcache: # Ehcache configuration
       time-to-live-seconds: 3600 # By default, objects stay 1 hour in the cache
       max-entries: 1000 # Number of objects in each cache entry
+  cors:
+    # CORS is disabled by default in production - configure via environment variables
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:https://med-portal.behsa.com}
+    allowed-methods: 'GET,POST,PUT,PATCH,DELETE,OPTIONS'
+    allowed-headers: 'Authorization,Cache-Control,Content-Type,X-Requested-With'
+    exposed-headers: 'Authorization,Link,X-Total-Count'
+    allow-credentials: true
+    max-age: 86400
   security:
     authentication:
       jwt:

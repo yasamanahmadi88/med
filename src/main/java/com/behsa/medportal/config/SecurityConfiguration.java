@@ -105,38 +105,32 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+        tech.jhipster.config.JHipsterProperties.Cors corsProperties = jHipsterProperties.getCors();
 
-        configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:9000",
-            "http://localhost:4200",
-            "http://localhost:8100",
-            "http://localhost:9060"
-        ));
+        if (corsProperties.getAllowedOrigins() != null && !corsProperties.getAllowedOrigins().isEmpty()) {
+            configuration.setAllowedOrigins(Arrays.asList(corsProperties.getAllowedOrigins().split(",")));
+        }
 
-        configuration.setAllowedMethods(Arrays.asList(
-            "GET",
-            "POST",
-            "PUT",
-            "PATCH",
-            "DELETE",
-            "OPTIONS"
-        ));
+        if (corsProperties.getAllowedOriginPatterns() != null && !corsProperties.getAllowedOriginPatterns().isEmpty()) {
+            configuration.setAllowedOriginPatterns(Arrays.asList(corsProperties.getAllowedOriginPatterns().split(",")));
+        }
 
-        configuration.setAllowedHeaders(Arrays.asList(
-            "Authorization",
-            "Cache-Control",
-            "Content-Type",
-            "X-Requested-With"
-        ));
+        if (corsProperties.getAllowedMethods() != null) {
+            configuration.setAllowedMethods(Arrays.asList(corsProperties.getAllowedMethods().split(",")));
+        } else {
+            configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        }
 
-        configuration.setExposedHeaders(Arrays.asList(
-            "Authorization",
-            "Link",
-            "X-Total-Count"
-        ));
+        if (corsProperties.getAllowedHeaders() != null) {
+            configuration.setAllowedHeaders(Arrays.asList(corsProperties.getAllowedHeaders().split(",")));
+        }
 
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
+        if (corsProperties.getExposedHeaders() != null) {
+            configuration.setExposedHeaders(Arrays.asList(corsProperties.getExposedHeaders().split(",")));
+        }
+
+        configuration.setAllowCredentials(corsProperties.isAllowCredentials());
+        configuration.setMaxAge(corsProperties.getMaxAge());
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

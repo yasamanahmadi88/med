@@ -78,7 +78,12 @@ public class WebConfigurer implements ServletContextInitializer, WebServerFactor
         if (extractionEndIndex <= 0) {
             return "";
         }
-        return extractedPath.substring(0, extractionEndIndex);
+        String result = extractedPath.substring(0, extractionEndIndex);
+        if (result.contains("..")) {
+            log.warn("Suspicious path traversal attempt detected in resource resolution, returning empty path");
+            return "";
+        }
+        return result;
     }
 
     @Bean

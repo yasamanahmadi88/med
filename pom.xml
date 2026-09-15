@@ -598,6 +598,7 @@
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <configuration>
                         <source>${maven.compiler.source}</source>
+                        <release>21</release>
                     </configuration>
                 </plugin>
                 <plugin>

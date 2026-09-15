@@ -104,39 +104,7 @@ public class SecurityConfiguration {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-
-        configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:9000",
-            "http://localhost:4200",
-            "http://localhost:8100",
-            "http://localhost:9060"
-        ));
-
-        configuration.setAllowedMethods(Arrays.asList(
-            "GET",
-            "POST",
-            "PUT",
-            "PATCH",
-            "DELETE",
-            "OPTIONS"
-        ));
-
-        configuration.setAllowedHeaders(Arrays.asList(
-            "Authorization",
-            "Cache-Control",
-            "Content-Type",
-            "X-Requested-With"
-        ));
-
-        configuration.setExposedHeaders(Arrays.asList(
-            "Authorization",
-            "Link",
-            "X-Total-Count"
-        ));
-
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
+        CorsConfiguration configuration = jHipsterProperties.getCors();
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -157,7 +125,7 @@ public class SecurityConfiguration {
                 } else {
                     // Enable CSRF protection in production
                     CookieCsrfTokenRepository tokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
-                    tokenRepository.setHeaderName("X-CSRF-TOKEN");
+                    tokenRepository.setHeaderName("X-XSRF-TOKEN");
                     CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
                     csrf
                         .csrfTokenRepository(tokenRepository)

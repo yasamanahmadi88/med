@@ -129,11 +129,15 @@ public class AuthResource {
     }
 
     private String getClientIp(HttpServletRequest request) {
+        String remoteAddr = request.getRemoteAddr();
         String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+        // Only trust X-Forwarded-For if it comes from localhost (127.0.0.1, ::1).
+        // Without explicit trusted-proxy configuration, direct client requests must not be spoofed.
+        if (xForwardedFor != null && !xForwardedFor.isEmpty() &&
+            ("127.0.0.1".equals(remoteAddr) || "::1".equals(remoteAddr))) {
             return xForwardedFor.split(",")[0].trim();
         }
-        return request.getRemoteAddr();
+        return remoteAddr;
     }
 
     private boolean isAdmin(Authentication authentication) {

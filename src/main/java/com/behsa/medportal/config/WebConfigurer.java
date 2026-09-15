@@ -68,7 +68,11 @@ public class WebConfigurer implements ServletContextInitializer, WebServerFactor
     }
 
     /**
-     * Resolve path prefix to static resources.
+     * Resolve path prefix to static resources with path traversal protection.
+     * Detects and rejects paths containing ".." sequences to prevent directory traversal attacks.
+     * CWE-22: Improper Limitation of a Pathname to a Restricted Directory.
+     *
+     * @return path prefix to target directory, or empty string if path is invalid or contains ".."
      */
     private String resolvePathPrefix() {
         String fullExecutablePath = decode(this.getClass().getResource("").getPath(), StandardCharsets.UTF_8);
@@ -78,7 +82,12 @@ public class WebConfigurer implements ServletContextInitializer, WebServerFactor
         if (extractionEndIndex <= 0) {
             return "";
         }
-        return extractedPath.substring(0, extractionEndIndex);
+        String result = extractedPath.substring(0, extractionEndIndex);
+        if (result.contains("..")) {
+            log.warn("Suspicious path traversal attempt detected in resource resolution, returning empty path");
+            return "";
+        }
+        return result;
     }
 
     @Bean

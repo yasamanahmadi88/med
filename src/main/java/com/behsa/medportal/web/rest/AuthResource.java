@@ -51,6 +51,14 @@ public class AuthResource {
         this.securityCache = securityCache;
     }
 
+    /**
+     * Authenticate user and issue JWT token.
+     * Enforces rate limiting per IP+username, validates captcha, and applies account lockout for admin users.
+     *
+     * @param loginVM login credentials and captcha data
+     * @param request HTTP request containing client IP and user-agent
+     * @return JWT token on successful authentication, 401 Unauthorized on failure, 429 Too Many Requests on rate limit
+     */
     @PostMapping("/authenticate")
     public ResponseEntity<JWTToken> authorize(@Valid @RequestBody LoginVM loginVM, HttpServletRequest request) {
         String username = normalizeUsername(loginVM.getUsername());
@@ -120,6 +128,12 @@ public class AuthResource {
         }
     }
 
+    /**
+     * Normalize username to lowercase for consistent comparison and storage.
+     *
+     * @param username raw username input
+     * @return normalized username (lowercase, trimmed) or empty string if null/blank
+     */
     private String normalizeUsername(String username) {
         if (!StringUtils.hasText(username)) {
             return "";
@@ -128,10 +142,33 @@ public class AuthResource {
         return username.trim().toLowerCase(Locale.ROOT);
     }
 
+    /**
+     * Extract client IP address, preventing X-Forwarded-For spoofing attacks.
+     * Only trusts X-Forwarded-For header when the direct client connection is from localhost (127.0.0.1 or ::1).
+     * This prevents attackers from bypassing rate limiting by forging the X-Forwarded-For header.
+     * CWE-307: Improper Restriction of Excessive Authentication Attempts.
+     *
+     * @param request HTTP request with potential X-Forwarded-For header
+     * @return client IP address: X-Forwarded-For if trusted proxy, otherwise remoteAddr
+     */
     private String getClientIp(HttpServletRequest request) {
-        return request.getRemoteAddr();
+        String remoteAddr = request.getRemoteAddr();
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        // Only trust X-Forwarded-For if it comes from localhost (127.0.0.1, ::1).
+        // Without explicit trusted-proxy configuration, direct client requests must not be spoofed.
+        if (xForwardedFor != null && !xForwardedFor.isEmpty() &&
+            ("127.0.0.1".equals(remoteAddr) || "::1".equals(remoteAddr))) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        return remoteAddr;
     }
 
+    /**
+     * Check if the authenticated user has admin authority.
+     *
+     * @param authentication user's authentication object with granted authorities
+     * @return true if user has ROLE_ADMIN, false otherwise
+     */
     private boolean isAdmin(Authentication authentication) {
         return authentication
             .getAuthorities()
@@ -139,19 +176,38 @@ public class AuthResource {
             .anyMatch(authority -> AuthoritiesConstants.ADMIN.equals(authority.getAuthority()));
     }
 
+    /**
+     * JWT token response DTO for authentication endpoint.
+     * Contains the signed JWT token to be used in subsequent API requests.
+     */
     public static class JWTToken {
 
         private String idToken;
 
+        /**
+         * Construct a JWT token response with the provided token string.
+         *
+         * @param idToken the signed JWT token
+         */
         public JWTToken(String idToken) {
             this.idToken = idToken;
         }
 
+        /**
+         * Get the JWT token string for use in Authorization headers.
+         *
+         * @return the signed JWT token
+         */
         @JsonProperty("id_token")
         public String getIdToken() {
             return idToken;
         }
 
+        /**
+         * Set the JWT token string (used during deserialization).
+         *
+         * @param idToken the signed JWT token
+         */
         public void setIdToken(String idToken) {
             this.idToken = idToken;
         }

@@ -106,64 +106,37 @@ public class SecurityConfiguration {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        String allowedOrigins = environment.getProperty("jhipster.cors.allowed-origins");
-        if (allowedOrigins != null && !allowedOrigins.isEmpty()) {
-            configuration.setAllowedOrigins(
-                Arrays.stream(allowedOrigins.split(","))
-                    .map(String::trim)
-                    .toList()
-            );
-        }
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://localhost:9000",
+            "http://localhost:4200",
+            "http://localhost:8100",
+            "http://localhost:9060"
+        ));
 
-        String allowedOriginPatterns = environment.getProperty("jhipster.cors.allowed-origin-patterns");
-        if (allowedOriginPatterns != null && !allowedOriginPatterns.isEmpty()) {
-            configuration.setAllowedOriginPatterns(
-                Arrays.stream(allowedOriginPatterns.split(","))
-                    .map(String::trim)
-                    .toList()
-            );
-        }
+        configuration.setAllowedMethods(Arrays.asList(
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE",
+            "OPTIONS"
+        ));
 
-        String allowedMethods = environment.getProperty("jhipster.cors.allowed-methods");
-        if (allowedMethods != null && !allowedMethods.isEmpty()) {
-            configuration.setAllowedMethods(
-                Arrays.stream(allowedMethods.split(","))
-                    .map(String::trim)
-                    .toList()
-            );
-        } else {
-            configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        }
+        configuration.setAllowedHeaders(Arrays.asList(
+            "Authorization",
+            "Cache-Control",
+            "Content-Type",
+            "X-Requested-With"
+        ));
 
-        String allowedHeaders = environment.getProperty("jhipster.cors.allowed-headers");
-        if (allowedHeaders != null && !allowedHeaders.isEmpty()) {
-            configuration.setAllowedHeaders(
-                Arrays.stream(allowedHeaders.split(","))
-                    .map(String::trim)
-                    .toList()
-            );
-        }
+        configuration.setExposedHeaders(Arrays.asList(
+            "Authorization",
+            "Link",
+            "X-Total-Count"
+        ));
 
-        String exposedHeaders = environment.getProperty("jhipster.cors.exposed-headers");
-        if (exposedHeaders != null && !exposedHeaders.isEmpty()) {
-            configuration.setExposedHeaders(
-                Arrays.stream(exposedHeaders.split(","))
-                    .map(String::trim)
-                    .toList()
-            );
-        }
-
-        String allowCredentials = environment.getProperty("jhipster.cors.allow-credentials");
-        configuration.setAllowCredentials("true".equalsIgnoreCase(allowCredentials));
-
-        String maxAge = environment.getProperty("jhipster.cors.max-age");
-        if (maxAge != null) {
-            try {
-                configuration.setMaxAge(Long.parseLong(maxAge));
-            } catch (NumberFormatException e) {
-                configuration.setMaxAge(1800L);
-            }
-        }
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

@@ -1,3 +1,9 @@
-<!-- DesignerComponent reads [xml] once, while it builds the modeler, so the editor is only
-     created after the diagram to seed it with is known. -->
-<jhi-bpmn-editor *ngIf="seeded"></jhi-bpmn-editor>
+<div *ngIf="accessError" class="alert alert-danger m-3" role="alert" data-cy="bpmnAccessError">
+  {{ accessError }}
+</div>
+<div *ngIf="saveError" class="alert alert-danger m-3" role="alert" data-cy="bpmnSaveError">
+  {{ saveError }}
+</div>
+
+<!-- The modeler is not created until Product -> Group -> Element access has loaded successfully. -->
+<jhi-bpmn-editor *ngIf="seeded && !accessError"></jhi-bpmn-editor>

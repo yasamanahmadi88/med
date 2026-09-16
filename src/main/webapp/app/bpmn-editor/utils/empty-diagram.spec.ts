@@ -21,16 +21,15 @@ describe('empty diagram', () => {
       expect(emptyDiagramXml('P', 'n')).toContain('isExecutable="true"');
     });
 
-    it('opens with a start event that has a shape to render', () => {
-      // Without this the canvas comes up blank: a process with no start event is not
-      // executable and gives the user nothing to drag from. The Vue original was blank;
-      // `modeler.createDiagram()`, which this replaces, was not. An element without matching
-      // DI is dropped on import, so the shape has to be here too.
+    it('starts element-free like Vue so no implicit BPMN type bypasses product access', () => {
       const xml = emptyDiagramXml('P', 'n');
 
-      expect(xml).toContain('<bpmn:startEvent id="StartEvent_1" />');
-      expect(xml).toContain('bpmnElement="StartEvent_1"');
-      expect(xml).toContain('<dc:Bounds x="173" y="102" width="36" height="36" />');
+      expect(xml).toBe(blankDiagramXml('P', 'n'));
+      expect(xml).not.toContain('<bpmn:startEvent');
+      expect(xml).not.toContain('StartEvent_1');
+      expect(xml).not.toContain('<bpmndi:BPMNShape');
+      expect(xml).not.toContain('<bpmn:task');
+      expect(xml).not.toContain('<bpmn:sequenceFlow');
     });
 
     it('creates an element-free document for Erase Redo', () => {

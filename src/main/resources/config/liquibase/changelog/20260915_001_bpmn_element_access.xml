@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+      BPMN element visibility / authorization model.
+
+      Product -> Element Group -> BPMN Element
+
+      Product and group membership are intentionally many-to-many.  The same reusable group may be
+      assigned to several products and an element may be present in several groups.  The Angular
+      editor uses bpmn_type to filter creation UI; the Java API validates saved/imported XML using
+      namespace_uri + local_name so XML prefix renaming cannot bypass the rule.
+    -->
+
+    <changeSet id="20260915-01-bpmn-element-group-seq" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><sequenceExists sequenceName="BPMN_ELEMENT_GROUPS_SEQ"/></not></preConditions>
+        <createSequence sequenceName="BPMN_ELEMENT_GROUPS_SEQ" startValue="1000" incrementBy="1"/>
+    </changeSet>
+
+    <changeSet id="20260915-02-bpmn-element-seq" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><sequenceExists sequenceName="BPMN_ELEMENTS_SEQ"/></not></preConditions>
+        <createSequence sequenceName="BPMN_ELEMENTS_SEQ" startValue="1000" incrementBy="1"/>
+    </changeSet>
+
+    <changeSet id="20260915-03-bpmn-element-group" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><tableExists tableName="TBL_BPMN_ELEMENT_GROUP"/></not></preConditions>
+        <createTable tableName="TBL_BPMN_ELEMENT_GROUP">
+            <column name="group_key" type="bigint"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="group_code" type="varchar(100)"><constraints nullable="false" unique="true" uniqueConstraintName="uk_bpmn_group_code"/></column>
+            <column name="group_name" type="varchar(200)"><constraints nullable="false"/></column>
+            <column name="enabled" type="integer" defaultValueNumeric="1"><constraints nullable="false"/></column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20260915-04-bpmn-element" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><tableExists tableName="TBL_BPMN_ELEMENT"/></not></preConditions>
+        <createTable tableName="TBL_BPMN_ELEMENT">
+            <column name="element_key" type="bigint"><constraints primaryKey="true" nullable="false"/></column>
+            <column name="element_code" type="varchar(100)"><constraints nullable="false" unique="true" uniqueConstraintName="uk_bpmn_element_code"/></column>
+            <column name="bpmn_type" type="varchar(150)"><constraints nullable="false" unique="true" uniqueConstraintName="uk_bpmn_element_type"/></column>
+            <column name="namespace_uri" type="varchar(300)"><constraints nullable="false"/></column>
+            <column name="local_name" type="varchar(150)"><constraints nullable="false"/></column>
+            <column name="palette_action" type="varchar(150)"/>
+            <column name="display_name" type="varchar(200)"><constraints nullable="false"/></column>
+            <column name="enabled" type="integer" defaultValueNumeric="1"><constraints nullable="false"/></column>
+            <column name="sort_order" type="integer" defaultValueNumeric="0"><constraints nullable="false"/></column>
+        </createTable>
+        <addUniqueConstraint tableName="TBL_BPMN_ELEMENT" columnNames="namespace_uri,local_name" constraintName="uk_bpmn_element_xml_name"/>
+    </changeSet>
+
+    <changeSet id="20260915-05-bpmn-group-element" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><tableExists tableName="TBL_BPMN_GROUP_ELEMENT"/></not></preConditions>
+        <createTable tableName="TBL_BPMN_GROUP_ELEMENT">
+            <column name="group_key" type="bigint"><constraints nullable="false"/></column>
+            <column name="element_key" type="bigint"><constraints nullable="false"/></column>
+        </createTable>
+        <addPrimaryKey tableName="TBL_BPMN_GROUP_ELEMENT" columnNames="group_key,element_key" constraintName="pk_bpmn_group_element"/>
+        <addForeignKeyConstraint baseTableName="TBL_BPMN_GROUP_ELEMENT" baseColumnNames="group_key"
+                                 referencedTableName="TBL_BPMN_ELEMENT_GROUP" referencedColumnNames="group_key"
+                                 constraintName="fk_bpmn_ge_group"/>
+        <addForeignKeyConstraint baseTableName="TBL_BPMN_GROUP_ELEMENT" baseColumnNames="element_key"
+                                 referencedTableName="TBL_BPMN_ELEMENT" referencedColumnNames="element_key"
+                                 constraintName="fk_bpmn_ge_element"/>
+        <createIndex tableName="TBL_BPMN_GROUP_ELEMENT" indexName="idx_bpmn_ge_element"><column name="element_key"/></createIndex>
+    </changeSet>
+
+    <changeSet id="20260915-06-product-bpmn-group" author="upgrade">
+        <preConditions onFail="MARK_RAN"><not><tableExists tableName="TBL_PRODUCT_BPMN_GROUP"/></not></preConditions>
+        <createTable tableName="TBL_PRODUCT_BPMN_GROUP">
+            <column name="product_key" type="bigint"><constraints nullable="false"/></column>
+            <column name="group_key" type="bigint"><constraints nullable="false"/></column>
+        </createTable>
+        <addPrimaryKey tableName="TBL_PRODUCT_BPMN_GROUP" columnNames="product_key,group_key" constraintName="pk_product_bpmn_group"/>
+        <addForeignKeyConstraint baseTableName="TBL_PRODUCT_BPMN_GROUP" baseColumnNames="product_key"
+                                 referencedTableName="TBL_PRODUCTS" referencedColumnNames="product_key"
+                                 constraintName="fk_product_bpmn_group_product"/>
+        <addForeignKeyConstraint baseTableName="TBL_PRODUCT_BPMN_GROUP" baseColumnNames="group_key"
+                                 referencedTableName="TBL_BPMN_ELEMENT_GROUP" referencedColumnNames="group_key"
+                                 constraintName="fk_product_bpmn_group_group"/>
+        <createIndex tableName="TBL_PRODUCT_BPMN_GROUP" indexName="idx_product_bpmn_group_group"><column name="group_key"/></createIndex>
+    </changeSet>
+
+    <!-- Element catalog.  New products and new assignments are DB-only changes.  A genuinely new
+         BPMN moddle type still needs its descriptor/renderer in the Angular application once. -->
+    <changeSet id="20260915-07-bpmn-element-catalog" author="upgrade">
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="BPMN_START_EVENT"/><column name="bpmn_type" value="bpmn:StartEvent"/><column name="namespace_uri" value="http://www.omg.org/spec/BPMN/20100524/MODEL"/><column name="local_name" value="startEvent"/><column name="palette_action" value="create.start-event"/><column name="display_name" value="Start Event"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="10"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="BPMN_END_EVENT"/><column name="bpmn_type" value="bpmn:EndEvent"/><column name="namespace_uri" value="http://www.omg.org/spec/BPMN/20100524/MODEL"/><column name="local_name" value="endEvent"/><column name="palette_action" value="create.end-event"/><column name="display_name" value="End Event"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="20"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="BPMN_TASK"/><column name="bpmn_type" value="bpmn:Task"/><column name="namespace_uri" value="http://www.omg.org/spec/BPMN/20100524/MODEL"/><column name="local_name" value="task"/><column name="display_name" value="Task"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="30"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="BPMN_SERVICE_TASK"/><column name="bpmn_type" value="bpmn:ServiceTask"/><column name="namespace_uri" value="http://www.omg.org/spec/BPMN/20100524/MODEL"/><column name="local_name" value="serviceTask"/><column name="display_name" value="Service Task"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="31"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="BPMN_SEND_TASK"/><column name="bpmn_type" value="bpmn:SendTask"/><column name="namespace_uri" value="http://www.omg.org/spec/BPMN/20100524/MODEL"/><column name="local_name" value="sendTask"/><column name="display_name" value="Send Task"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="32"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="BPMN_RECEIVE_TASK"/><column name="bpmn_type" value="bpmn:ReceiveTask"/><column name="namespace_uri" value="http://www.omg.org/spec/BPMN/20100524/MODEL"/><column name="local_name" value="receiveTask"/><column name="display_name" value="Receive Task"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="33"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="BPMN_USER_TASK"/><column name="bpmn_type" value="bpmn:UserTask"/><column name="namespace_uri" value="http://www.omg.org/spec/BPMN/20100524/MODEL"/><column name="local_name" value="userTask"/><column name="display_name" value="User Task"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="34"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="BPMN_MANUAL_TASK"/><column name="bpmn_type" value="bpmn:ManualTask"/><column name="namespace_uri" value="http://www.omg.org/spec/BPMN/20100524/MODEL"/><column name="local_name" value="manualTask"/><column name="display_name" value="Manual Task"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="35"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="BPMN_SCRIPT_TASK"/><column name="bpmn_type" value="bpmn:ScriptTask"/><column name="namespace_uri" value="http://www.omg.org/spec/BPMN/20100524/MODEL"/><column name="local_name" value="scriptTask"/><column name="display_name" value="Script Task"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="36"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="BPMN_BUSINESS_RULE_TASK"/><column name="bpmn_type" value="bpmn:BusinessRuleTask"/><column name="namespace_uri" value="http://www.omg.org/spec/BPMN/20100524/MODEL"/><column name="local_name" value="businessRuleTask"/><column name="display_name" value="Business Rule Task"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="37"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="BPMN_EXCLUSIVE_GATEWAY"/><column name="bpmn_type" value="bpmn:ExclusiveGateway"/><column name="namespace_uri" value="http://www.omg.org/spec/BPMN/20100524/MODEL"/><column name="local_name" value="exclusiveGateway"/><column name="display_name" value="Exclusive Gateway"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="40"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="BPMN_PARALLEL_GATEWAY"/><column name="bpmn_type" value="bpmn:ParallelGateway"/><column name="namespace_uri" value="http://www.omg.org/spec/BPMN/20100524/MODEL"/><column name="local_name" value="parallelGateway"/><column name="display_name" value="Parallel Gateway"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="41"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="BPMN_INCLUSIVE_GATEWAY"/><column name="bpmn_type" value="bpmn:InclusiveGateway"/><column name="namespace_uri" value="http://www.omg.org/spec/BPMN/20100524/MODEL"/><column name="local_name" value="inclusiveGateway"/><column name="display_name" value="Inclusive Gateway"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="42"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="BPMN_COMPLEX_GATEWAY"/><column name="bpmn_type" value="bpmn:ComplexGateway"/><column name="namespace_uri" value="http://www.omg.org/spec/BPMN/20100524/MODEL"/><column name="local_name" value="complexGateway"/><column name="display_name" value="Complex Gateway"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="43"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="BPMN_EVENT_BASED_GATEWAY"/><column name="bpmn_type" value="bpmn:EventBasedGateway"/><column name="namespace_uri" value="http://www.omg.org/spec/BPMN/20100524/MODEL"/><column name="local_name" value="eventBasedGateway"/><column name="display_name" value="Event Based Gateway"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="44"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="BPMN_SUB_PROCESS"/><column name="bpmn_type" value="bpmn:SubProcess"/><column name="namespace_uri" value="http://www.omg.org/spec/BPMN/20100524/MODEL"/><column name="local_name" value="subProcess"/><column name="display_name" value="Sub Process"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="50"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="BPMN_CALL_ACTIVITY"/><column name="bpmn_type" value="bpmn:CallActivity"/><column name="namespace_uri" value="http://www.omg.org/spec/BPMN/20100524/MODEL"/><column name="local_name" value="callActivity"/><column name="display_name" value="Call Activity"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="51"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="BPMN_BOUNDARY_EVENT"/><column name="bpmn_type" value="bpmn:BoundaryEvent"/><column name="namespace_uri" value="http://www.omg.org/spec/BPMN/20100524/MODEL"/><column name="local_name" value="boundaryEvent"/><column name="display_name" value="Boundary Event"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="60"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="BPMN_INTERMEDIATE_CATCH_EVENT"/><column name="bpmn_type" value="bpmn:IntermediateCatchEvent"/><column name="namespace_uri" value="http://www.omg.org/spec/BPMN/20100524/MODEL"/><column name="local_name" value="intermediateCatchEvent"/><column name="display_name" value="Intermediate Catch Event"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="61"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="BPMN_INTERMEDIATE_THROW_EVENT"/><column name="bpmn_type" value="bpmn:IntermediateThrowEvent"/><column name="namespace_uri" value="http://www.omg.org/spec/BPMN/20100524/MODEL"/><column name="local_name" value="intermediateThrowEvent"/><column name="display_name" value="Intermediate Throw Event"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="62"/></insert>
+
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="MERGER"/><column name="bpmn_type" value="Merger:Merger"/><column name="namespace_uri" value="Merger"/><column name="local_name" value="merger"/><column name="palette_action" value="create.merger-module"/><column name="display_name" value="Merger Module"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="100"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="FRAGMENTER"/><column name="bpmn_type" value="Fragmenter:Fragmenter"/><column name="namespace_uri" value="Fragmenter"/><column name="local_name" value="fragmenter"/><column name="palette_action" value="create.fragmenter-module"/><column name="display_name" value="Fragmenter Module"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="110"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="KAFKA_RECEIVER"/><column name="bpmn_type" value="KafkaReceiver:KafkaReceiver"/><column name="namespace_uri" value="KafkaReceiver"/><column name="local_name" value="kafkaReceiver"/><column name="palette_action" value="create.KafkaReceiver-module"/><column name="display_name" value="Kafka Receiver Module"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="120"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="KAFKA_TRANSMITTER"/><column name="bpmn_type" value="KafkaTransmitter:KafkaTransmitter"/><column name="namespace_uri" value="KafkaTransmitter"/><column name="local_name" value="kafkaTransmitter"/><column name="palette_action" value="create.KafkaTransmitter-module"/><column name="display_name" value="Kafka Transmitter Module"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="130"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="HTTP_RECEIVER"/><column name="bpmn_type" value="HttpReceiver:HttpReceiver"/><column name="namespace_uri" value="HttpReceiver"/><column name="local_name" value="httpReceiver"/><column name="palette_action" value="create.HttpReceiver-module"/><column name="display_name" value="HTTP Receiver Module"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="140"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="HTTP_TRANSMITTER"/><column name="bpmn_type" value="HttpTransmitter:HttpTransmitter"/><column name="namespace_uri" value="HttpTransmitter"/><column name="local_name" value="httpTransmitter"/><column name="palette_action" value="create.HttpTransmitter-module"/><column name="display_name" value="HTTP Transmitter Module"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="150"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="FILE_RECEIVER"/><column name="bpmn_type" value="FileReceiver:FileReceiver"/><column name="namespace_uri" value="FileReceiver"/><column name="local_name" value="fileReceiver"/><column name="palette_action" value="create.fileReceiver-module"/><column name="display_name" value="File Receiver Module"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="160"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="FILE_TRANSMITTER"/><column name="bpmn_type" value="FileTransmitter:FileTransmitter"/><column name="namespace_uri" value="FileTransmitter"/><column name="local_name" value="fileTransmitter"/><column name="palette_action" value="create.FileTransmitter-module"/><column name="display_name" value="File Transmitter Module"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="170"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="DB_RECEIVER"/><column name="bpmn_type" value="DbReceiver:DbReceiver"/><column name="namespace_uri" value="DbReceiver"/><column name="local_name" value="dbReceiver"/><column name="palette_action" value="create.dbReceiver-module"/><column name="display_name" value="DB Receiver Module"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="180"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="DB_TRANSMITTER"/><column name="bpmn_type" value="DbTransmitter:DbTransmitter"/><column name="namespace_uri" value="DbTransmitter"/><column name="local_name" value="dbTransmitter"/><column name="palette_action" value="create.dbTransmitter-module"/><column name="display_name" value="DB Transmitter Module"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="190"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="CDR_PARSER"/><column name="bpmn_type" value="CdrParser:CdrParser"/><column name="namespace_uri" value="CdrParser"/><column name="local_name" value="cdrParser"/><column name="palette_action" value="create.cdrParser-module"/><column name="display_name" value="CDR Parser Module"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="200"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="CSV_TRANSFORMER"/><column name="bpmn_type" value="CsvTransformer:CsvTransformer"/><column name="namespace_uri" value="CsvTransformer"/><column name="local_name" value="csvTransformer"/><column name="palette_action" value="create.csvTransformerCorner-module"/><column name="display_name" value="CSV Transformer Module"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="210"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT"><column name="element_key" valueSequenceNext="BPMN_ELEMENTS_SEQ"/><column name="element_code" value="CUSTOM_ICON_TASK"/><column name="bpmn_type" value="customIcon:CustomTask"/><column name="namespace_uri" value="http://medportal.behsa.com/schema/bpmn/custom-icons"/><column name="local_name" value="customTask"/><column name="display_name" value="Custom Icon Task"/><column name="enabled" valueNumeric="1"/><column name="sort_order" valueNumeric="220"/></insert>
+    </changeSet>
+
+    <changeSet id="20260915-08-bpmn-seed-groups" author="upgrade">
+        <insert tableName="TBL_BPMN_ELEMENT_GROUP"><column name="group_key" valueSequenceNext="BPMN_ELEMENT_GROUPS_SEQ"/><column name="group_code" value="CORE_BPMN"/><column name="group_name" value="Core BPMN Elements"/><column name="enabled" valueNumeric="1"/></insert>
+        <insert tableName="TBL_BPMN_ELEMENT_GROUP"><column name="group_key" valueSequenceNext="BPMN_ELEMENT_GROUPS_SEQ"/><column name="group_code" value="FILE_PROCESSING"/><column name="group_name" value="File Processing Elements"/><column name="enabled" valueNumeric="1"/></insert>
+
+        <sql>
+            INSERT INTO TBL_BPMN_GROUP_ELEMENT (group_key, element_key)
+            SELECT g.group_key, e.element_key
+              FROM TBL_BPMN_ELEMENT_GROUP g
+              CROSS JOIN TBL_BPMN_ELEMENT e
+             WHERE g.group_code = 'CORE_BPMN'
+               AND e.element_code IN ('BPMN_START_EVENT', 'BPMN_END_EVENT')
+        </sql>
+        <sql>
+            INSERT INTO TBL_BPMN_GROUP_ELEMENT (group_key, element_key)
+            SELECT g.group_key, e.element_key
+              FROM TBL_BPMN_ELEMENT_GROUP g
+              CROSS JOIN TBL_BPMN_ELEMENT e
+             WHERE g.group_code = 'FILE_PROCESSING'
+               AND e.element_code IN ('FILE_RECEIVER', 'FILE_TRANSMITTER', 'MERGER', 'FRAGMENTER', 'CDR_PARSER', 'CSV_TRANSFORMER')
+        </sql>
+
+        <!-- Initial MCI assignment requested for the current portal.  No default/fallback is
+             assigned to future products: administrators explicitly map their groups in DB. -->
+        <sql>
+            INSERT INTO TBL_PRODUCT_BPMN_GROUP (product_key, group_key)
+            SELECT p.product_key, g.group_key
+              FROM TBL_PRODUCTS p
+              CROSS JOIN TBL_BPMN_ELEMENT_GROUP g
+             WHERE UPPER(p.product_name) = 'MCI'
+               AND g.group_code = 'FILE_PROCESSING'
+        </sql>
+    </changeSet>
+</databaseChangeLog>

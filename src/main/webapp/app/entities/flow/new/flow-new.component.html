@@ -17,8 +17,8 @@
         <div class="row mb-3">
           <label class="form-label" jhiTranslate="medPortalApp.flow.flow" for="field_flow">Flow</label>
           <div class="d-flex" style="padding: 0">
-            <button class="btn btn-success" style="max-height: 50px; width: 200px; align-self: center" (click)="openBPMNPage()">
-              <img src="../../../../content/images/bpmn-icon.svg" style="height: 40px; width: auto" />
+            <button type="button" class="btn btn-success" style="max-height: 50px; width: 200px; align-self: center" (click)="openBPMNPage()" [disabled]="editForm.get('product')?.invalid">
+              <img src="/content/images/bpmn-icon.svg" alt="" aria-hidden="true" style="height: 40px; width: auto" />
               <span jhiTranslate="entity.action.edit" style="color: #fff">Edit</span>
             </button>
             <textarea
@@ -85,7 +85,7 @@
         </div>
 
         <div *ngIf="!productName">
-          <div class="row mb-3" *ngIf="bpmnXml !== ''">
+          <div class="row mb-3">
             <label class="form-label" jhiTranslate="medPortalApp.flow.product" for="field_product">Product</label>
             <select
               class="form-control"

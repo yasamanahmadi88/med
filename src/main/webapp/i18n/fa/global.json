@@ -162,6 +162,9 @@
     "idnull": "Invalid ID",
     "idinvalid": "Invalid Id",
     "idnotfound": "ID cannot be found",
+    "productrequired": "انتخاب محصول قبل از ذخیره نمودار BPMN الزامی است.",
+    "bpmnelementnotallowed": "نمودار BPMN شامل عنصری است که برای محصول انتخاب‌شده مجاز نیست.",
+    "invalidbpmnxml": "XML مربوط به BPMN نامعتبر یا ناامن است.",
     "file": {
       "could.not.extract": "Could not extract file",
       "not.image": "File was expected to be an image but was found to be \"{{ fileType }}\""

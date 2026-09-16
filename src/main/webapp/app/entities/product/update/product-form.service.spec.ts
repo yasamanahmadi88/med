@@ -38,7 +38,24 @@ describe('Product Form Service', () => {
         );
       });
     });
+    describe('productName validation', () => {
+      it('should allow up to 3 characters and reject longer values', () => {
+        const formGroup = service.createProductFormGroup();
+        const productNameControl = formGroup.controls.productName;
 
+        productNameControl.setValue('A');
+        expect(productNameControl.valid).toBe(true);
+
+        productNameControl.setValue('AA');
+        expect(productNameControl.valid).toBe(true);
+
+        productNameControl.setValue('AAA');
+        expect(productNameControl.valid).toBe(true);
+
+        productNameControl.setValue('AAAA');
+        expect(productNameControl.hasError('maxlength')).toBe(true);
+      });
+    });
     describe('getProduct', () => {
       it('should return NewProduct for default Product initial value', () => {
         const formGroup = service.createProductFormGroup(sampleWithNewData);

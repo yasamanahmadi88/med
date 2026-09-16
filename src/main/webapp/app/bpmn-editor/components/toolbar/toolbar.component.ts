@@ -21,8 +21,10 @@ import {
   faUpload,
 } from '@fortawesome/free-solid-svg-icons';
 import { Subject, takeUntil } from 'rxjs';
+import { ToastrService } from 'ngx-toastr';
 
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
+import { BpmnElementAccessService } from '../../services/bpmn-element-access.service';
 import { BPMN_EDITOR_HOST, BpmnEditorHost } from '../../services/bpmn-editor-host';
 import { blankDiagramXml, newDiagramIdentity } from '../../utils/empty-diagram';
 import { ModulePropertyProblem, describeProblem, moduleValidationProblems } from '../../module-properties';
@@ -90,6 +92,8 @@ export class ToolbarComponent implements OnInit, OnDestroy {
     private readonly bpmnEditorService: BpmnEditorService,
     private readonly modalService: NgbModal,
     private readonly changeDetector: ChangeDetectorRef,
+    private readonly elementAccessService: BpmnElementAccessService,
+    private readonly toastr: ToastrService,
     @Optional() @Inject(BPMN_EDITOR_HOST) private readonly host: BpmnEditorHost | null,
   ) {}
 
@@ -209,8 +213,25 @@ export class ToolbarComponent implements OnInit, OnDestroy {
         if (!modeler) {
           return;
         }
-        modeler.importXML(xml).catch((error: unknown) => console.error('Could not import BPMN 2.0 diagram', error));
-        this.bpmnEditorService.setProcessXml(xml);
+
+        try {
+          const disallowed = this.elementAccessService.findDisallowedXmlElements(xml);
+          if (disallowed.length > 0) {
+            this.toastr.error(`The imported BPMN contains ${disallowed.length} element type(s) not allowed for this product.`);
+            return;
+          }
+        } catch {
+          this.toastr.error('The selected file is not valid BPMN XML.');
+          return;
+        }
+
+        modeler
+          .importXML(xml)
+          .then(() => this.bpmnEditorService.setProcessXml(xml))
+          .catch((error: unknown) => {
+            console.error('Could not import BPMN 2.0 diagram', error);
+            this.toastr.error('The BPMN file could not be imported.');
+          });
       });
     };
     input.click();

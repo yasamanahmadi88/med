@@ -4,6 +4,7 @@ import BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
 
 import CustomIconLibrary from './CustomIconLibrary';
 import { CUSTOM_TASK_TYPE, CustomIcon } from './icon-library';
+import { BpmnElementAccessConfig, isBpmnTypeAllowed } from '../services/bpmn-element-access.types';
 
 /** The class the palette entry carries, so the stylesheet can size an arbitrary image into a 46px square. */
 export const PALETTE_ENTRY_CLASS = 'custom-icon-entry';
@@ -31,7 +32,7 @@ interface RegisterablePalette {
  * the browser runs no script in it and resolves no external reference from it.
  */
 class CustomIconPaletteProvider {
-  static $inject = ['palette', 'create', 'elementFactory', 'bpmnFactory', 'customIcons'];
+  static $inject = ['palette', 'create', 'elementFactory', 'bpmnFactory', 'customIcons', 'config.elementAccess'];
 
   constructor(
     palette: RegisterablePalette,
@@ -39,11 +40,16 @@ class CustomIconPaletteProvider {
     private readonly elementFactory: ElementFactory,
     private readonly bpmnFactory: BpmnFactory,
     private readonly customIcons: CustomIconLibrary,
+    private readonly elementAccess?: BpmnElementAccessConfig,
   ) {
     palette.registerProvider(this);
   }
 
   getPaletteEntries(): Record<string, unknown> {
+    if (!isBpmnTypeAllowed(this.elementAccess, CUSTOM_TASK_TYPE)) {
+      return {};
+    }
+
     const entries: Record<string, unknown> = {};
 
     for (const icon of this.customIcons.getIcons()) {

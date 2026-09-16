@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -20,6 +21,7 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
@@ -58,9 +60,37 @@ class FlowResourceBpmnParserIT {
     private static final String DEFAULT_FLOW_DESC = "AAAAAAAAAA";
     private static final String UPDATED_FLOW_DESC = "BBBBBBBBBB";
 
-    private static final String DEFAULT_FLOW = "AAAAAAAAAA";
-    private static final String UPDATED_FLOW = "BBBBBBBBBB";
+    private static final String DEFAULT_FLOW = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <bpmn:definitions
+            xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+            id="Definitions_Default"
+            targetNamespace="http://bpmn.io/schema/bpmn">
+          <bpmn:process id="Process_Default" isExecutable="true" />
+        </bpmn:definitions>
+        """;
+    private static final String UPDATED_FLOW = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <bpmn:definitions
+            xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+            id="Definitions_Updated"
+            targetNamespace="http://bpmn.io/schema/bpmn">
+          <bpmn:process id="Process_Updated" isExecutable="true" />
+        </bpmn:definitions>
+        """;
 
+    private static final String DISALLOWED_KAFKA_XML = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <bpmn:definitions
+            xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+            xmlns:KafkaReceiver="KafkaReceiver"
+            id="Definitions_Disallowed"
+            targetNamespace="http://bpmn.io/schema/bpmn">
+          <bpmn:process id="Process_Disallowed" isExecutable="true">
+            <KafkaReceiver:kafkaReceiver id="Activity_Kafka" />
+          </bpmn:process>
+        </bpmn:definitions>
+        """;
     private static final String ENTITY_API_URL = "/api/flows";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
 
@@ -79,6 +109,10 @@ class FlowResourceBpmnParserIT {
     @MockitoBean
     private RestTemplate restTemplate;
 
+
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
     private FlowEntity flowEntity;
 
     @BeforeEach
@@ -94,6 +128,52 @@ class FlowResourceBpmnParserIT {
     private void givenParserRejects() {
         ResponseEntity<Object> rejected = ResponseEntity.badRequest().body(Map.of("error", "invalid bpmn"));
         when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(Object.class))).thenReturn(rejected);
+    }
+    @Test
+    @Transactional
+    void disallowedBpmnElementIsRejectedBeforeExternalParserCall() throws Exception {
+        jdbcTemplate.execute(
+            """
+            CREATE TABLE IF NOT EXISTS TBL_BPMN_GROUP_ELEMENT (
+                group_key BIGINT NOT NULL,
+                element_key BIGINT NOT NULL,
+                PRIMARY KEY (group_key, element_key)
+            )
+            """
+        );
+
+        jdbcTemplate.execute(
+            """
+            CREATE TABLE IF NOT EXISTS TBL_PRODUCT_BPMN_GROUP (
+                product_key BIGINT NOT NULL,
+                group_key BIGINT NOT NULL,
+                PRIMARY KEY (product_key, group_key)
+            )
+            """
+        );
+
+        int databaseSizeBeforeCreate = flowRepository.findAll().size();
+
+        flowEntity.setFlow(DISALLOWED_KAFKA_XML);
+        FlowDTO flowDTO = flowMapper.toDto(flowEntity);
+
+        restFlowMockMvc
+            .perform(
+                post(ENTITY_API_URL)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(TestUtil.convertObjectToJsonBytes(flowDTO))
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(
+                jsonPath("$.message")
+                    .value("error.bpmnelementnotallowed")
+            )
+            .andExpect(jsonPath("$.params").value("flow"));
+
+        verifyNoInteractions(restTemplate);
+
+        assertThat(flowRepository.findAll())
+            .hasSize(databaseSizeBeforeCreate);
     }
 
     @Test

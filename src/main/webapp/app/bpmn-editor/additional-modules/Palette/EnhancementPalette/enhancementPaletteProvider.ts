@@ -7,6 +7,7 @@ import LassoTool from 'diagram-js/lib/features/lasso-tool/LassoTool';
 import HandTool from 'diagram-js/lib/features/hand-tool/HandTool';
 import GlobalConnect from 'diagram-js/lib/features/global-connect/GlobalConnect';
 import Palette from 'diagram-js/lib/features/palette/Palette';
+import { BpmnElementAccessConfig, isBpmnTypeAllowed } from '../../../services/bpmn-element-access.types';
 
 class EnhancementPaletteProvider extends PaletteProvider {
   private readonly _palette: Palette;
@@ -26,6 +27,7 @@ class EnhancementPaletteProvider extends PaletteProvider {
     handTool: any,
     globalConnect: any,
     translate: any,
+    private readonly elementAccess?: BpmnElementAccessConfig,
   ) {
     super(palette, create, elementFactory, spaceTool, lassoTool, handTool, globalConnect, translate);
     this._palette = palette;
@@ -284,6 +286,27 @@ class EnhancementPaletteProvider extends PaletteProvider {
       },
     });
 
+    const elementTypesByEntry: Record<string, string> = {
+      'create.merger-module': 'Merger:Merger',
+      'create.fragmenter-module': 'Fragmenter:Fragmenter',
+      'create.KafkaReceiver-module': 'KafkaReceiver:KafkaReceiver',
+      'create.KafkaTransmitter-module': 'KafkaTransmitter:KafkaTransmitter',
+      'create.HttpReceiver-module': 'HttpReceiver:HttpReceiver',
+      'create.HttpTransmitter-module': 'HttpTransmitter:HttpTransmitter',
+      'create.fileReceiver-module': 'FileReceiver:FileReceiver',
+      'create.FileTransmitter-module': 'FileTransmitter:FileTransmitter',
+      'create.dbReceiver-module': 'DbReceiver:DbReceiver',
+      'create.dbTransmitter-module': 'DbTransmitter:DbTransmitter',
+      'create.cdrParser-module': 'CdrParser:CdrParser',
+      'create.csvTransformerCorner-module': 'CsvTransformer:CsvTransformer',
+    };
+
+    for (const [entryId, type] of Object.entries(elementTypesByEntry)) {
+      if (!isBpmnTypeAllowed(this.elementAccess, type)) {
+        delete (actions as Record<string, unknown>)[entryId];
+      }
+    }
+
     return actions;
   }
 }
@@ -297,6 +320,7 @@ EnhancementPaletteProvider.$inject = [
   'handTool',
   'globalConnect',
   'translate',
+  'config.elementAccess',
 ];
 
 export default EnhancementPaletteProvider;

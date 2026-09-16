@@ -46,20 +46,23 @@ export class FlowNewComponent implements OnInit, OnDestroy {
     this.bpmnXml = this.flowService.xmlTemp;
     this.editForm.patchValue({ flow: this.bpmnXml });
 
-    if (this.flowService.xmlTemp == '') this.openBPMNPage();
-    else if (this.flowService.xmlTemp == ' ') window.history.back();
+    if (this.flowService.xmlTemp == ' ') window.history.back();
 
     if (this.route.snapshot.queryParams['productId']) {
       this.productName = ' ';
       this.productService.find(this.route.snapshot.queryParams['productId']).subscribe(value => {
         this.productName = value.body?.productName;
         this.editForm.patchValue({ product: value.body });
+        this.flowService.productTemp = value.body;
       });
     }
   }
 
   ngOnDestroy(): void {
-    if (!this.isGoingToBPMNPage) this.flowService.xmlTemp = '';
+    if (!this.isGoingToBPMNPage) {
+      this.flowService.xmlTemp = '';
+      this.flowService.productTemp = null;
+    }
   }
 
   save(): void {
@@ -76,9 +79,20 @@ export class FlowNewComponent implements OnInit, OnDestroy {
     });
   }
 
-  openBPMNPage() {
+  openBPMNPage(): void {
+    const product = this.editForm.get('product')?.value;
+    if (!product?.id) {
+      this.editForm.get('product')?.markAsTouched();
+      this.toastr.error('Please select a product before opening the BPMN editor.');
+      return;
+    }
+
+    this.flowService.productTemp = product;
     this.isGoingToBPMNPage = true;
-    this.router.navigate(['/bpmn-editor'], { relativeTo: this.activatedRoute });
+    this.router.navigate(['/bpmn-editor'], {
+      relativeTo: this.activatedRoute,
+      queryParams: { productId: product.id },
+    });
   }
 
   protected subscribeToSaveResponse(result: Observable<HttpResponse<IFlow>>): void {
@@ -89,6 +103,8 @@ export class FlowNewComponent implements OnInit, OnDestroy {
   }
 
   protected onSaveSuccess(): void {
+    this.flowService.xmlTemp = '';
+    this.flowService.productTemp = null;
     this.previousState();
   }
 

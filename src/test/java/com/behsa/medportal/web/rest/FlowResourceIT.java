@@ -38,8 +38,24 @@ class FlowResourceIT {
     private static final String DEFAULT_FLOW_DESC = "AAAAAAAAAA";
     private static final String UPDATED_FLOW_DESC = "BBBBBBBBBB";
 
-    private static final String DEFAULT_FLOW = "AAAAAAAAAA";
-    private static final String UPDATED_FLOW = "BBBBBBBBBB";
+    private static final String DEFAULT_FLOW = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <bpmn:definitions
+            xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+            id="Definitions_Default"
+            targetNamespace="http://bpmn.io/schema/bpmn">
+          <bpmn:process id="Process_Default" isExecutable="true" />
+        </bpmn:definitions>
+        """;
+    private static final String UPDATED_FLOW = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <bpmn:definitions
+            xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+            id="Definitions_Updated"
+            targetNamespace="http://bpmn.io/schema/bpmn">
+          <bpmn:process id="Process_Updated" isExecutable="true" />
+        </bpmn:definitions>
+        """;
 
     private static final String ENTITY_API_URL = "/api/flows";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
@@ -466,14 +482,14 @@ class FlowResourceIT {
         restFlowMockMvc
             .perform(get(ENTITY_API_URL + "?sort=id,desc&" + filter))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.errorKey").value("flownotcomparable"))
-            .andExpect(jsonPath("$.entityName").value("flow"));
+            .andExpect(jsonPath("$.message").value("error.flownotcomparable"))
+            .andExpect(jsonPath("$.params").value("flow"));
 
         restFlowMockMvc
             .perform(get(ENTITY_API_URL + "/count?sort=id,desc&" + filter))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.errorKey").value("flownotcomparable"))
-            .andExpect(jsonPath("$.entityName").value("flow"));
+            .andExpect(jsonPath("$.message").value("error.flownotcomparable"))
+            .andExpect(jsonPath("$.params").value("flow"));
     }
     /**
      * Executes the search, and checks that the default entity is returned.

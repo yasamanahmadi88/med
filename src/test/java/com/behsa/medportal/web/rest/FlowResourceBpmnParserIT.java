@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.behsa.medportal.IntegrationTest;
+import com.behsa.medportal.config.BpmnOwnerSchema;
 import com.behsa.medportal.domain.FlowEntity;
 import com.behsa.medportal.repository.FlowRepository;
 import com.behsa.medportal.service.dto.FlowDTO;
@@ -118,8 +119,13 @@ class FlowResourceBpmnParserIT {
 
     @BeforeEach
     public void initTest() {
+        ensureOwnerInfrastructure();
         configureActiveOwner();
         flowEntity = FlowResourceIT.createEntity(em);
+    }
+
+    private void ensureOwnerInfrastructure() {
+        BpmnOwnerSchema.ensure(jdbcTemplate);
     }
 
     private void configureActiveOwner() {

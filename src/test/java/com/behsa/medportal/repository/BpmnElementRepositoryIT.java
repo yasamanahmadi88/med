@@ -3,9 +3,11 @@ package com.behsa.medportal.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.behsa.medportal.IntegrationTest;
+import com.behsa.medportal.config.BpmnOwnerSchema;
 import com.behsa.medportal.domain.BpmnElementEntity;
 import com.behsa.medportal.domain.BpmnElementGroupEntity;
 import java.util.List;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,11 @@ class BpmnElementRepositoryIT {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @BeforeAll
+    void createMappingTables() {
+        BpmnOwnerSchema.ensure(jdbcTemplate);
+    }
 
     @Test
     void shouldReturnExactlySixFileProcessingElementsForMediationOwner() {

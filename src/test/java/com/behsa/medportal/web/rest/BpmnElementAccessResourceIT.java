@@ -6,11 +6,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.behsa.medportal.IntegrationTest;
+import com.behsa.medportal.config.BpmnOwnerSchema;
 import com.behsa.medportal.domain.BpmnElementEntity;
 import com.behsa.medportal.domain.BpmnElementGroupEntity;
 import com.behsa.medportal.repository.BpmnElementGroupRepository;
 import com.behsa.medportal.repository.BpmnElementRepository;
 import com.behsa.medportal.security.AuthoritiesConstants;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -43,6 +45,11 @@ class BpmnElementAccessResourceIT {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @BeforeAll
+    void createMappingTables() {
+        BpmnOwnerSchema.ensure(jdbcTemplate);
+    }
 
     @BeforeEach
     void configureActiveOwner() {

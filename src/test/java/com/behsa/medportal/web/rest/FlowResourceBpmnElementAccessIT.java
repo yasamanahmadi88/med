@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.behsa.medportal.IntegrationTest;
+import com.behsa.medportal.config.BpmnOwnerSchema;
 import com.behsa.medportal.domain.BpmnElementEntity;
 import com.behsa.medportal.domain.BpmnElementGroupEntity;
 import com.behsa.medportal.domain.FlowEntity;
@@ -18,6 +19,7 @@ import com.behsa.medportal.repository.FlowRepository;
 import com.behsa.medportal.repository.ProductRepository;
 import com.behsa.medportal.service.dto.FlowDTO;
 import com.behsa.medportal.service.mapper.FlowMapper;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -106,6 +108,11 @@ class FlowResourceBpmnElementAccessIT {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @BeforeAll
+    void createMappingTables() {
+        BpmnOwnerSchema.ensure(jdbcTemplate);
+    }
 
     @BeforeEach
     void configureActiveOwner() {

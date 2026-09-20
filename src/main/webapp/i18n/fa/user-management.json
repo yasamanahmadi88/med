@@ -10,7 +10,7 @@
     "updated": "یک کاربر با شناسه {{ param }} بروز رسانی شد",
     "deleted": "یک کاربر با شناسه {{ param }} حذف شد",
     "delete": {
-      "question": "آیا مایل به حذف کاربر {{ login  }} هستید؟"
+      "question": "آیا مایل به حذف کاربر {{ login }} هستید؟"
     },
     "detail": {
       "title": "کاربر"
@@ -21,7 +21,7 @@
     "email": "رایانامه",
     "activated": "فعال شده",
     "deactivated": "غیر فعال شده",
-    "profiles": "پروفایل ها",
+    "profiles": "پروفایل‌ها",
     "langKey": "زبان",
     "createdBy": "ایجاد شده با",
     "createdDate": "زمان ایجاد",

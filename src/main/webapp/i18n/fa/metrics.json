@@ -40,8 +40,8 @@
       },
       "http": {
         "title": "HTTP requests (events per second)",
-        "active": "درخواست های فعال:",
-        "total": "همه درخواست ها:",
+        "active": "درخواست‌های فعال:",
+        "total": "همه درخواست‌ها:",
         "table": {
           "code": "کد",
           "count": "تعداد",

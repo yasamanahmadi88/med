@@ -6,8 +6,8 @@
       "home": "خانه",
       "jhipster-needle-menu-add-element": "JHipster will add additional menu entries here (do not translate!)",
       "entities": {
-        "main": "ماهیت ها",
-        "medAuthority": "مجوز ها",
+        "main": "ماهیت‌ها",
+        "medAuthority": "مجوز‌ها",
         "resource": "منابع",
         "resourceAuthority": "مجوز منابع",
         "module": "Module",
@@ -16,7 +16,7 @@
         "version": "Version",
         "product": "Product",
         "flow": "Flow",
-        "logReports": "گزارش لاگ ها",
+        "logReports": "گزارش لاگ‌ها",
         "customAuditEvent": "لاگ ممیزی",
         "jhipster-needle-menu-add-entry": "JHipster will add additional entities here (do not translate!)"
       },
@@ -24,7 +24,7 @@
         "main": "حساب",
         "settings": "تنظیمات",
         "password": "رمزعبور",
-        "sessions": "نشست ها",
+        "sessions": "نشست‌ها",
         "login": "ورود",
         "logout": "خروج",
         "register": "ثبت نام"
@@ -76,13 +76,13 @@
           "minlength": "رمزعبور شما باید حداقل 8 کرکتر باشد",
           "maxlength": "رمز عبور شما نمی‌تواند بیش از 64 کرکتر باشد.",
           "strength": "قدرتمندی رمزعبور:",
-          "emptyPassword": "رمز عبور نمی تواند خالی باشد",
-          "passwordSmallerThanMinLength": "رمز عبور می بایست حداقل 8 کاراکتر باشد",
-          "passwordGreaterThanMaxLength": "رمز عبور حداکثر می تواند 64 کاراکتر باشد",
-          "passwordMustContainAtLeastOneUppercaseLetter" : "رمز عبور می بایست حداقل یک حرف بزرگ داشته باشد",
-          "passwordMustContainAtLeastOneLowercaseLetter" : "رمز عبور می بایست حداقل یک حرف کوچک داشته باشد",
-          "passwordMustContainAtLeastOneDigit" : "رمز عبور می بایست حداقل یک عدد داشته باشد",
-          "passwordMustContainAtLeastOneSpecialCharacter" : "رمز عبور می بایست حداقل یک کاراکتر ویژه داشته باشد مانند (!@#$%^&*)",
+          "emptyPassword": "رمز عبور نمی‌تواند خالی باشد",
+          "passwordSmallerThanMinLength": "رمز عبور می‌بایست حداقل 8 کاراکتر باشد",
+          "passwordGreaterThanMaxLength": "رمز عبور حداکثر می‌تواند 64 کاراکتر باشد",
+          "passwordMustContainAtLeastOneUppercaseLetter" : "رمز عبور می‌بایست حداقل یک حرف بزرگ داشته باشد",
+          "passwordMustContainAtLeastOneLowercaseLetter" : "رمز عبور می‌بایست حداقل یک حرف کوچک داشته باشد",
+          "passwordMustContainAtLeastOneDigit" : "رمز عبور می‌بایست حداقل یک عدد داشته باشد",
+          "passwordMustContainAtLeastOneSpecialCharacter" : "رمز عبور می‌بایست حداقل یک کاراکتر ویژه داشته باشد مانند (!@#$%^&*)",
           "passwordIsTooCommonAndInsecure" : "رمز عبور خیلی عمومی و غیر امن است"
         },
         "confirmpassword": {
@@ -119,7 +119,7 @@
       "save": "ذخیره",
       "create": "ایجاد",
       "view": "مشاهده",
-      "show": "نمایش {{otherEntity}} ها"
+      "show": "نمایش {{otherEntity}}"
     },
     "detail": {
       "field": "فیلد",
@@ -137,6 +137,7 @@
       "minbytes": "این فیلد باید بیش از {{ min }} بایت باشد.",
       "maxbytes": "این فیلد نمی‌تواند بیش از {{ max }} بایت باشد.",
       "pattern": "این فیلد باید بر طبق این الگو {{ pattern }} باشد.",
+      "patternLogin": "این فیلد می‌تواند فقط حاوی حروف، اعداد و آدرس‌های پست الکترونیکی باشد.",
       "number": "این فیلد باید عدد باشد.",
       "datetimelocal": "این فیلد باید زمان باشد.",
       "smallLettersAndDashOnly": "این فیلد باید فقط شامل حروف کوچک انگلیسی و کاراکتر ( - ) باشد.",

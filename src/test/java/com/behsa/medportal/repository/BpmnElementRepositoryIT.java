@@ -6,7 +6,6 @@ import com.behsa.medportal.IntegrationTest;
 import com.behsa.medportal.domain.BpmnElementEntity;
 import com.behsa.medportal.domain.BpmnElementGroupEntity;
 import java.util.List;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,30 +29,6 @@ class BpmnElementRepositoryIT {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
-
-    @BeforeAll
-    void createMappingTables() {
-        jdbcTemplate.execute(
-            """
-            CREATE TABLE IF NOT EXISTS TBL_BPMN_GROUP_ELEMENT (
-                group_key BIGINT NOT NULL,
-                element_key BIGINT NOT NULL,
-                PRIMARY KEY (group_key, element_key)
-            )
-            """
-        );
-
-        jdbcTemplate.execute(
-            """
-            CREATE TABLE IF NOT EXISTS TBL_OWNER_BPMN_GROUP (
-                owner_key BIGINT NOT NULL,
-                group_key BIGINT NOT NULL,
-                enabled INTEGER DEFAULT 1 NOT NULL,
-                PRIMARY KEY (owner_key, group_key)
-            )
-            """
-        );
-    }
 
     @Test
     void shouldReturnExactlySixFileProcessingElementsForMediationOwner() {

@@ -18,7 +18,6 @@ import com.behsa.medportal.repository.FlowRepository;
 import com.behsa.medportal.repository.ProductRepository;
 import com.behsa.medportal.service.dto.FlowDTO;
 import com.behsa.medportal.service.mapper.FlowMapper;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -107,52 +106,6 @@ class FlowResourceBpmnElementAccessIT {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
-
-    @BeforeAll
-    void createMappingTables() {
-        jdbcTemplate.execute(
-            """
-            CREATE TABLE IF NOT EXISTS TBL_BPMN_GROUP_ELEMENT (
-                group_key BIGINT NOT NULL,
-                element_key BIGINT NOT NULL,
-                PRIMARY KEY (group_key, element_key)
-            )
-            """
-        );
-
-        jdbcTemplate.execute(
-            """
-            CREATE TABLE IF NOT EXISTS TBL_OWNER_BPMN_GROUP (
-                owner_key BIGINT NOT NULL,
-                group_key BIGINT NOT NULL,
-                enabled INTEGER DEFAULT 1 NOT NULL,
-                PRIMARY KEY (owner_key, group_key)
-            )
-            """
-        );
-
-        jdbcTemplate.execute(
-            """
-            CREATE TABLE IF NOT EXISTS TBL_PORTAL_OWNER (
-                owner_key BIGINT NOT NULL PRIMARY KEY,
-                owner_code VARCHAR(50) NOT NULL,
-                owner_name VARCHAR(100) NOT NULL,
-                display_name VARCHAR(150) NOT NULL,
-                description VARCHAR(500),
-                enabled INTEGER DEFAULT 1 NOT NULL
-            )
-            """
-        );
-
-        jdbcTemplate.execute(
-            """
-            CREATE TABLE IF NOT EXISTS TBL_PORTAL_CONFIGURATION (
-                config_key BIGINT NOT NULL PRIMARY KEY,
-                active_owner_key BIGINT NOT NULL
-            )
-            """
-        );
-    }
 
     @BeforeEach
     void configureActiveOwner() {

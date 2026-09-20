@@ -112,10 +112,12 @@ export class BpmnElementAccessService {
           const identity = { namespaceUri: child.namespaceURI ?? '', localName: child.localName };
           const key = this.xmlKey(identity.namespaceUri, identity.localName);
           const id = child.getAttribute('id');
-          const legacy = this.access?.ownerCode === 'MEDIATION' &&
+          const legacy =
+            this.access?.ownerCode === 'MEDIATION' &&
             ((identity.namespaceUri === 'CdrParser' && identity.localName === 'cdrParser') ||
-             (identity.namespaceUri === 'CsvTransformer' && identity.localName === 'csvTransformer')) &&
-            !!id && this.persistedInstances.get(id) === key;
+              (identity.namespaceUri === 'CsvTransformer' && identity.localName === 'csvTransformer')) &&
+            !!id &&
+            this.persistedInstances.get(id) === key;
           if (!allowed.has(key) && !legacy) {
             disallowed.set(key, identity);
           }

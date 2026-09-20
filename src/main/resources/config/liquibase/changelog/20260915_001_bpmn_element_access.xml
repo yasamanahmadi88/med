@@ -133,7 +133,7 @@
               FROM TBL_BPMN_ELEMENT_GROUP g
               CROSS JOIN TBL_BPMN_ELEMENT e
              WHERE g.group_code = 'CORE_BPMN'
-               AND e.element_code IN ('BPMN_START_EVENT', 'BPMN_END_EVENT')
+               AND e.element_code IN ('BPMN_START_EVENT', 'BPMN_END_EVENT', 'CUSTOM_ICON_TASK')
         </sql>
         <sql>
             INSERT INTO TBL_BPMN_GROUP_ELEMENT (group_key, element_key)

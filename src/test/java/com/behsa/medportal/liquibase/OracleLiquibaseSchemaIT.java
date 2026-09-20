@@ -168,7 +168,6 @@ class OracleLiquibaseSchemaIT {
                AND o.enabled = 1
                AND og.enabled = 1
                AND g.enabled = 1
-               AND ge.enabled = 1
                AND e.enabled = 1
              ORDER BY e.sort_order, e.element_code
             """,
@@ -182,7 +181,8 @@ class OracleLiquibaseSchemaIT {
             "FILE_RECEIVER",
             "FILE_TRANSMITTER",
             "CDR_PARSER",
-            "CSV_TRANSFORMER"
+            "CSV_TRANSFORMER",
+            "CUSTOM_ICON_TASK"
         );
     }
 

@@ -1,10 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { ActivatedRoute } from '@angular/router';
-import { NEVER } from 'rxjs';
+import { NEVER, Subject, of, throwError } from 'rxjs';
+import { ToastrService } from 'ngx-toastr';
 
 import { FlowService } from 'app/entities/flow/service/flow.service';
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
+import { BpmnElementAccessService } from '../../services/bpmn-element-access.service';
 import { RoleModulesService } from '../../services/role-modules.service';
 import { BPMN_EDITOR_HOST, BpmnEditorHost } from '../../services/bpmn-editor-host';
 import { FlowBpmnEditorComponent } from './flow-bpmn-editor.component';
@@ -37,6 +39,13 @@ describe('FlowBpmnEditorComponent', () => {
   let httpMock: HttpTestingController;
   let flowService: FlowService;
   let editorService: BpmnEditorService;
+  let elementAccessService: {
+    clear: ReturnType<typeof vi.fn>;
+    loadCurrent: ReturnType<typeof vi.fn>;
+    findDisallowedXmlElements: ReturnType<typeof vi.fn>;
+    currentConfig: ReturnType<typeof vi.fn>;
+    isTypeAllowed: ReturnType<typeof vi.fn>;
+  };
   let back: ReturnType<typeof vi.spyOn>;
   let queryParams: Record<string, unknown>;
 
@@ -47,14 +56,29 @@ describe('FlowBpmnEditorComponent', () => {
   };
 
   beforeEach(() => {
-    queryParams = {};
+    // Product may still be present as Flow domain data, but BPMN permissions come only from the active Portal Owner.
+    queryParams = { productId: '7' };
     back = vi.spyOn(window.history, 'back').mockImplementation(() => undefined);
+
+    elementAccessService = {
+      clear: vi.fn(),
+      loadCurrent: vi.fn().mockReturnValue(of({})),
+      findDisallowedXmlElements: vi.fn().mockReturnValue([]),
+      currentConfig: vi.fn().mockReturnValue({
+        allowedTypes: [],
+        allowedPaletteActions: [],
+        allowedXmlElements: [],
+      }),
+      isTypeAllowed: vi.fn().mockReturnValue(false),
+    };
 
     TestBed.configureTestingModule({
       imports: [FlowBpmnEditorComponent, HttpClientTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { queryParams } } },
         { provide: RoleModulesService, useValue: { getAvailableModuleTypes: () => NEVER } },
+        { provide: BpmnElementAccessService, useValue: elementAccessService },
+        { provide: ToastrService, useValue: { error: vi.fn() } },
       ],
     });
 
@@ -72,7 +96,12 @@ describe('FlowBpmnEditorComponent', () => {
     beforeEach(() => {
       queryParams['flowId'] = '7';
       create();
-      httpMock.expectOne({ method: 'GET', url: 'api/flows/7' }).flush({ id: 7, flowName: 'f', flow: diagram });
+      httpMock.expectOne({ method: 'GET', url: 'api/flows/7' }).flush({
+        id: 7,
+        flowName: 'f',
+        flow: diagram,
+        product: { id: 11 },
+      });
       fixture.detectChanges();
     });
 
@@ -144,6 +173,100 @@ describe('FlowBpmnEditorComponent', () => {
     });
   });
 
+  describe('element access gate', () => {
+    it('waits for active Owner access before scanning and seeding a draft', () => {
+      const accessResult = new Subject<unknown>();
+
+      elementAccessService.loadCurrent.mockReturnValueOnce(accessResult);
+      flowService.xmlTemp = diagram;
+
+      create();
+
+      expect(elementAccessService.loadCurrent).toHaveBeenCalledOnce();
+      expect(elementAccessService.loadCurrent).toHaveBeenCalledOnce();
+
+      expect(elementAccessService.findDisallowedXmlElements).not.toHaveBeenCalled();
+      expect(editorService.getProcessXml()).toBeUndefined();
+      expect(component.seeded).toBe(false);
+
+      accessResult.next({});
+      accessResult.complete();
+
+      expect(elementAccessService.findDisallowedXmlElements).toHaveBeenCalledOnce();
+      expect(elementAccessService.findDisallowedXmlElements).toHaveBeenCalledWith(diagram);
+
+      expect(editorService.getProcessXml()).toBe(diagram);
+      expect(component.seeded).toBe(true);
+      expect(component.accessError).toBeNull();
+    });
+
+    it('does not seed a diagram containing BPMN elements that are not allowed for the active Owner', () => {
+      elementAccessService.findDisallowedXmlElements.mockReturnValueOnce([
+        {
+          namespaceUri: 'http://www.omg.org/spec/BPMN/20100524/MODEL',
+          localName: 'startEvent',
+        },
+      ]);
+
+      flowService.xmlTemp = diagram;
+
+      create();
+
+      expect(elementAccessService.loadCurrent).toHaveBeenCalledOnce();
+      expect(elementAccessService.findDisallowedXmlElements).toHaveBeenCalledWith(diagram);
+
+      expect(editorService.getProcessXml()).toBeUndefined();
+      expect(component.seeded).toBe(false);
+
+      expect(component.accessError).toBe('This diagram contains 1 BPMN element type(s) that are not allowed for the active portal Owner.');
+    });
+
+    it('does not seed malformed or unsafe BPMN XML', () => {
+      elementAccessService.findDisallowedXmlElements.mockImplementationOnce(() => {
+        throw new Error('Invalid or unsafe BPMN XML');
+      });
+
+      flowService.xmlTemp = diagram;
+
+      create();
+
+      expect(elementAccessService.loadCurrent).toHaveBeenCalledOnce();
+      expect(elementAccessService.findDisallowedXmlElements).toHaveBeenCalledWith(diagram);
+
+      expect(editorService.getProcessXml()).toBeUndefined();
+      expect(component.seeded).toBe(false);
+      expect(component.accessError).toBe('The BPMN XML is invalid.');
+    });
+
+    it('does not use productId to resolve BPMN permissions', () => {
+      queryParams['productId'] = 'not-a-product-id';
+      flowService.xmlTemp = diagram;
+
+      create();
+
+      expect(elementAccessService.loadCurrent).toHaveBeenCalledOnce();
+      expect(elementAccessService.findDisallowedXmlElements).toHaveBeenCalledWith(diagram);
+
+      expect(editorService.getProcessXml()).toBe(diagram);
+      expect(component.seeded).toBe(true);
+      expect(component.accessError).toBeNull();
+    });
+    it('does not scan or seed when active Owner element permissions cannot be loaded', () => {
+      elementAccessService.loadCurrent.mockReturnValueOnce(throwError(() => new Error('permission lookup failed')));
+
+      flowService.xmlTemp = diagram;
+
+      create();
+
+      expect(elementAccessService.loadCurrent).toHaveBeenCalledOnce();
+      expect(elementAccessService.findDisallowedXmlElements).not.toHaveBeenCalled();
+
+      expect(editorService.getProcessXml()).toBeUndefined();
+      expect(component.seeded).toBe(false);
+
+      expect(component.accessError).toBe('BPMN element permissions could not be loaded for the active portal Owner.');
+    });
+  });
   it('is the host the toolbar saves and cancels through', () => {
     create();
 

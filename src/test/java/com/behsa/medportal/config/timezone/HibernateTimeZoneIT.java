@@ -127,12 +127,7 @@ class HibernateTimeZoneIT {
 
         String dbValue = readStoredColumn("offset_time", dateTimeWrapper.getId());
         // Wall-clock local time of OffsetTime (H2 and Oracle TO_CHAR HH24:MI:SS both expose 14:30).
-        String expectedValue = dateTimeWrapper
-            .getOffsetTime()
-            .toLocalTime()
-            .atDate(LocalDate.of(1970, Month.JANUARY, 1))
-            .atZone(ZoneId.systemDefault())
-            .format(timeFormatter);
+        String expectedValue = dateTimeWrapper.getOffsetTime().toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
 
         assertStoredValueEquals(dbValue, expectedValue);
     }

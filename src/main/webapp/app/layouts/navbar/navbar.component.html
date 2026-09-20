@@ -1,7 +1,10 @@
-<nav data-cy="navbar" data-testid="navbar" class="navbar navbar-dark navbar-expand-md bg-dark">
+<nav data-cy="navbar" class="navbar navbar-dark navbar-expand-md bg-dark">
   <div class="container-fluid">
     <a class="navbar-brand logo" routerLink="/" (click)="collapseNavbar()">
-      <span jhiTranslate="global.title" class="navbar-title">MedPortal</span>
+      <span *ngIf="account && portalOwner; else defaultPortalTitle" class="navbar-title">{{ portalOwner.displayName }}</span>
+      <ng-template #defaultPortalTitle>
+        <span jhiTranslate="global.title" class="navbar-title">MedPortal</span>
+      </ng-template>
     </a>
     <a
       class="navbar-toggler d-lg-none"

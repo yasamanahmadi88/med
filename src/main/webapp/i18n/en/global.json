@@ -163,6 +163,9 @@
     "idnull": "Invalid ID",
     "idinvalid": "Invalid ID",
     "idnotfound": "ID cannot be found",
+    "productrequired": "A product is required before saving the BPMN diagram.",
+    "bpmnelementnotallowed": "The BPMN diagram contains an element that is not allowed for the selected product.",
+    "invalidbpmnxml": "The BPMN XML is invalid or unsafe.",
     "file": {
       "could.not.extract": "Could not extract file",
       "not.image": "File was expected to be an image but was found to be \"{{ fileType }}\""

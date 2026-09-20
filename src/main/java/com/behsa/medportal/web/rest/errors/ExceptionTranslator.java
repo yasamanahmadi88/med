@@ -60,7 +60,7 @@ public class ExceptionTranslator implements ProblemHandling, SecurityAdviceTrait
             return null;
         }
         Problem problem = entity.getBody();
-        if (!(problem instanceof ConstraintViolationProblem || problem instanceof DefaultProblem)) {
+        if (problem == null) {
             return entity;
         }
 

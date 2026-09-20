@@ -24,7 +24,10 @@
     <include file="config/liquibase/changelog/20260711_001_align_authority_numeric_pk.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20260711_002_domain_schema.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20260711_003_test_accounts.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20260915_001_bpmn_element_access.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20260918_001_portal_owner.xml" relativeToChangelogFile="false"/>
 <!-- jhipster-needle-liquibase-add-changelog - JHipster will add liquibase changelogs here -->
     <!-- jhipster-needle-liquibase-add-constraints-changelog - JHipster will add liquibase constraints changelogs here -->
     <!-- jhipster-needle-liquibase-add-incremental-changelog - JHipster will add incremental liquibase changelogs here -->
+    <include file="config/liquibase/changelog/20260916_001_flow_sequence_synonym.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

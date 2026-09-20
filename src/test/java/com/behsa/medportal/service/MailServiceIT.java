@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
-import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Properties;
@@ -211,7 +210,7 @@ class MailServiceIT {
 
             String propertyFilePath = "i18n/messages_" + getJavaLocale(langKey) + ".properties";
             URL resource = this.getClass().getClassLoader().getResource(propertyFilePath);
-            Path file = Path.of(new URI(resource.getFile()).getPath());
+            Path file = Path.of(resource.toURI());
             Properties properties = new Properties();
             properties.load(new InputStreamReader(Files.newInputStream(file), Charset.forName("UTF-8")));
 

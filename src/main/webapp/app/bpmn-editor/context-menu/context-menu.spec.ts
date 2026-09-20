@@ -84,6 +84,21 @@ describe('context menu', () => {
       expect(event.preventDefault).toHaveBeenCalled();
     });
 
+    it('opens the create menu from a native right-click on bare canvas', () => {
+      const { eventBus, container } = build();
+
+      const event = new MouseEvent('contextmenu', {
+        bubbles: true,
+        cancelable: true,
+        clientX: 140,
+        clientY: 220,
+      });
+
+      container.dispatchEvent(event);
+
+      expect(eventBus.fire).toHaveBeenCalledWith('contextMenu.append.open', { x: 140, y: 220 });
+      expect(event.defaultPrevented).toBe(true);
+    });
     it('registers above the default handling so it wins the event', () => {
       // diagram-js runs context-pad handlers on this event too; a lower priority loses the menu.
       const { eventBus } = build();
@@ -155,12 +170,23 @@ describe('context menu', () => {
       expect(types.has('bpmn:BoundaryEvent')).toBe(true);
     });
 
+    it('contains the six MCI mediation types so access filtering can expose them', () => {
+      const types = new Set(appendOptions().map(option => option.target.type));
+
+      expect(types.has('Merger:Merger')).toBe(true);
+      expect(types.has('Fragmenter:Fragmenter')).toBe(true);
+      expect(types.has('FileReceiver:FileReceiver')).toBe(true);
+      expect(types.has('FileTransmitter:FileTransmitter')).toBe(true);
+      expect(types.has('CdrParser:CdrParser')).toBe(true);
+      expect(types.has('CsvTransformer:CsvTransformer')).toBe(true);
+    });
     it('gives every entry the label and icon the menu renders', () => {
       // A missing className renders a blank square; a non-string label renders as source code.
       for (const option of appendOptions()) {
         expect(typeof option.label).toBe('string');
         expect(option.className).toBeTruthy();
-        expect(option.target.type).toMatch(/^bpmn:/);
+        expect(typeof option.target.type).toBe('string');
+        expect(option.target.type).toContain(':');
       }
     });
   });

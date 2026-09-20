@@ -1,5 +1,5 @@
 <section class="login-page py-5">
-  <!-- Event nodes پرتعداد و در سرتاسر پسزمینه صفحه لاگین -->
+  <!-- Event nodes پرتعداد و در سرتاسر پس‌زمینه صفحه لاگین -->
   <div class="event-stream" aria-hidden="true">
     <svg class="event-node l2r" style="--top: 5%; --size: 35px; --dur: 35s; --delay: -2s" viewBox="0 0 120 104">
       <polygon points="30,2 90,2 118,52 90,102 30,102 2,52" />
@@ -42,7 +42,6 @@
             class="form-control login-input"
             name="username"
             id="username"
-            data-testid="username"
             placeholder="{{ 'global.form.username.placeholder' | translate }}"
             formControlName="username"
             #username
@@ -57,7 +56,6 @@
             class="form-control login-input"
             name="password"
             id="password"
-            data-testid="password"
             placeholder="{{ 'login.form.password.placeholder' | translate }}"
             formControlName="password"
           />
@@ -102,7 +100,7 @@
         </div>
 
         <!-- Submit -->
-        <button type="submit" class="login-submit w-100" data-testid="submit" [disabled]="loginForm.invalid || isLoading">
+        <button type="submit" class="login-submit w-100" [disabled]="loginForm.invalid || isLoading">
           <span *ngIf="!isLoading" jhiTranslate="login.form.button">Sign in</span>
           <span *ngIf="isLoading" class="submit-loading">
             <span class="loading-icon">⟳</span>

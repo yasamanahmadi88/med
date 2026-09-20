@@ -12,7 +12,7 @@
     <div class="settings-content">
       <div class="setting-item">
         <label>Language:</label>
-        <select [value]="localSettings?.language" (change)="onSettingChange('language', $event)">
+        <select [value]="localSettings.language" (change)="onSettingChange('language', $event)">
           <!--          <option value="fa_IR">Farsi</option>-->
           <option value="en_US">English</option>
         </select>
@@ -20,7 +20,7 @@
 
       <div class="setting-item">
         <label>Background:</label>
-        <select [value]="localSettings?.bg" (change)="onSettingChange('bg', $event)">
+        <select [value]="localSettings.bg" (change)="onSettingChange('bg', $event)">
           <option value="white">White</option>
           <option value="grid">Grid</option>
           <option value="grid-image">Grid Image</option>
@@ -30,14 +30,14 @@
 
       <div class="setting-item">
         <label>
-          <input type="checkbox" [checked]="localSettings?.toolbar" (change)="onSettingChange('toolbar', $event)" />
+          <input type="checkbox" [checked]="localSettings.toolbar" (change)="onSettingChange('toolbar', $event)" />
           Show Toolbar
         </label>
       </div>
 
       <div class="setting-item">
         <label>
-          <input type="checkbox" [checked]="localSettings?.miniMap" (change)="onSettingChange('miniMap', $event)" />
+          <input type="checkbox" [checked]="localSettings.miniMap" (change)="onSettingChange('miniMap', $event)" />
           Show Mini Map
         </label>
       </div>

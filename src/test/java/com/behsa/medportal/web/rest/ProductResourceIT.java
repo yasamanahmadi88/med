@@ -142,6 +142,22 @@ class ProductResourceIT {
 
     @Test
     @Transactional
+    void checkProductNameIsTooLong() throws Exception {
+        int databaseSizeBeforeTest = productRepository.findAll().size();
+
+        productEntity.setProductName("AAAA");
+
+        ProductDTO productDTO = productMapper.toDto(productEntity);
+
+        restProductMockMvc
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(productDTO)))
+            .andExpect(status().isBadRequest());
+
+        List<ProductEntity> productList = productRepository.findAll();
+        assertThat(productList).hasSize(databaseSizeBeforeTest);
+    }
+    @Test
+    @Transactional
     void checkProductDescIsRequired() throws Exception {
         int databaseSizeBeforeTest = productRepository.findAll().size();
         // set the field null

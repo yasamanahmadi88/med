@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { ToastrService } from 'ngx-toastr';
 
 import { ToolbarComponent } from './toolbar.component';
 import { XmlPreviewDialogComponent } from './xml-preview-dialog.component';
@@ -7,6 +8,7 @@ import { ShortcutKeysDialogComponent } from './shortcut-keys-dialog.component';
 import { CustomIconsDialogComponent } from './custom-icons-dialog.component';
 import { BpmnEventsDialogComponent } from './bpmn-events-dialog.component';
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
+import { BpmnElementAccessService } from '../../services/bpmn-element-access.service';
 import { BPMN_EDITOR_HOST, BpmnEditorHost } from '../../services/bpmn-editor-host';
 
 /**
@@ -19,6 +21,12 @@ describe('ToolbarComponent', () => {
   let fixture: ComponentFixture<ToolbarComponent>;
   let component: ToolbarComponent;
   let service: BpmnEditorService;
+  let elementAccessService: {
+    findDisallowedXmlElements: ReturnType<typeof vi.fn>;
+  };
+  let toastr: {
+    error: ReturnType<typeof vi.fn>;
+  };
   let modal: NgbModal;
   let host: BpmnEditorHost;
 
@@ -88,9 +96,21 @@ describe('ToolbarComponent', () => {
 
     host = { save: vi.fn(), cancel: vi.fn() };
 
+    elementAccessService = {
+      findDisallowedXmlElements: vi.fn(),
+    };
+
+    toastr = {
+      error: vi.fn(),
+    };
+
     await TestBed.configureTestingModule({
       imports: [ToolbarComponent],
-      providers: [{ provide: BPMN_EDITOR_HOST, useValue: host }],
+      providers: [
+        { provide: BPMN_EDITOR_HOST, useValue: host },
+        { provide: BpmnElementAccessService, useValue: elementAccessService },
+        { provide: ToastrService, useValue: toastr },
+      ],
     }).compileComponents();
 
     service = TestBed.inject(BpmnEditorService);
@@ -465,6 +485,145 @@ describe('ToolbarComponent', () => {
       component.onCancel();
 
       expect(host.cancel).toHaveBeenCalled();
+    });
+  });
+
+  describe('file import access guard', () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    function selectImportFile(xml: string): void {
+      const createElement = vi.spyOn(document, 'createElement');
+
+      component.onImport();
+
+      const inputCallIndex = createElement.mock.calls.findIndex(args => args[0] === 'input');
+
+      if (inputCallIndex < 0) {
+        createElement.mockRestore();
+        throw new Error('Toolbar did not create the expected file input.');
+      }
+
+      const input = createElement.mock.results[inputCallIndex]?.value as HTMLInputElement | undefined;
+
+      createElement.mockRestore();
+
+      if (!input) {
+        throw new Error('Toolbar file input could not be captured.');
+      }
+
+      const file = {
+        text: vi.fn().mockResolvedValue(xml),
+      } as unknown as File;
+
+      Object.defineProperty(input, 'files', {
+        configurable: true,
+        value: [file],
+      });
+
+      input.onchange?.(new Event('change'));
+    }
+
+    it('guards allowed XML, imports it, and updates service XML only after import succeeds', async () => {
+      attachModeler();
+
+      const xml = '<definitions />';
+      service.setProcessXml('<old-diagram />');
+
+      const guard = vi.spyOn(elementAccessService, 'findDisallowedXmlElements').mockReturnValue([]);
+
+      let resolveImport: (() => void) | undefined;
+
+      modeler.importXML.mockReturnValueOnce(
+        new Promise(resolve => {
+          resolveImport = () => resolve({});
+        }),
+      );
+
+      selectImportFile(xml);
+
+      await vi.waitFor(() => {
+        expect(guard).toHaveBeenCalledOnce();
+        expect(guard).toHaveBeenCalledWith(xml);
+        expect(modeler.importXML).toHaveBeenCalledOnce();
+        expect(modeler.importXML).toHaveBeenCalledWith(xml);
+      });
+
+      expect(service.getProcessXml()).toBe('<old-diagram />');
+
+      resolveImport?.();
+
+      await vi.waitFor(() => {
+        expect(service.getProcessXml()).toBe(xml);
+      });
+    });
+
+    it('rejects imported XML containing disallowed BPMN elements before modeler import', async () => {
+      attachModeler();
+
+      const xml = '<definitions><startEvent /></definitions>';
+      service.setProcessXml('<old-diagram />');
+
+      const guard = vi.spyOn(elementAccessService, 'findDisallowedXmlElements').mockReturnValue([
+        {
+          namespaceUri: 'http://www.omg.org/spec/BPMN/20100524/MODEL',
+          localName: 'startEvent',
+        },
+      ]);
+
+      const toastrError = vi.spyOn(toastr, 'error').mockImplementation(() => undefined);
+
+      selectImportFile(xml);
+
+      await vi.waitFor(() => {
+        expect(guard).toHaveBeenCalledWith(xml);
+      });
+
+      expect(modeler.importXML).not.toHaveBeenCalled();
+      expect(service.getProcessXml()).toBe('<old-diagram />');
+
+      expect(toastrError).toHaveBeenCalledWith('The imported BPMN contains 1 element type(s) not allowed for the active portal owner.');
+    });
+
+    it('rejects malformed or unsafe imported XML before modeler import', async () => {
+      attachModeler();
+
+      const xml = '<!DOCTYPE definitions><definitions />';
+      service.setProcessXml('<old-diagram />');
+
+      const guard = vi.spyOn(elementAccessService, 'findDisallowedXmlElements').mockImplementation(() => {
+        throw new Error('Invalid or unsafe BPMN XML');
+      });
+
+      const toastrError = vi.spyOn(toastr, 'error').mockImplementation(() => undefined);
+
+      selectImportFile(xml);
+
+      await vi.waitFor(() => {
+        expect(guard).toHaveBeenCalledWith(xml);
+      });
+
+      expect(modeler.importXML).not.toHaveBeenCalled();
+      expect(service.getProcessXml()).toBe('<old-diagram />');
+
+      expect(toastrError).toHaveBeenCalledWith('The selected file is not valid BPMN XML.');
+    });
+
+    it('does not scan or import a selected file when no modeler exists', async () => {
+      const xml = '<definitions />';
+
+      const guard = vi.spyOn(elementAccessService, 'findDisallowedXmlElements');
+
+      selectImportFile(xml);
+
+      await new Promise<void>(resolve => {
+        setTimeout(resolve, 0);
+      });
+
+      expect(service.getBpmnModeler()).toBeNull();
+      expect(guard).not.toHaveBeenCalled();
+      expect(modeler.importXML).not.toHaveBeenCalled();
     });
   });
 });

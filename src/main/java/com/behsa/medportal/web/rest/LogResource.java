@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -163,18 +162,10 @@ public class LogResource {
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
-    /**
-     * Search logs by correlation ID.
-     * Search text must be non-blank to prevent inefficient wildcard queries and information disclosure.
-     *
-     * @param searchText non-blank search query (correlation ID)
-     * @param pageable pagination parameters
-     * @return paginated list of matching logs
-     */
     @GetMapping("/logs/search")
     @Secured(ENTITY_NAME)
     public ResponseEntity<List<LogDTO>> searchLogsByCorrelationId(
-        @RequestParam @NotBlank String searchText,
+        @RequestParam String searchText,
         @org.springdoc.core.annotations.ParameterObject Pageable pageable
     ) {
         log.debug("REST request to search Logs by correlationId: {}", searchText);

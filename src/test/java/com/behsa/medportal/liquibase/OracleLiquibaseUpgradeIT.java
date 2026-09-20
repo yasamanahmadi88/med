@@ -155,6 +155,32 @@ class OracleLiquibaseUpgradeIT {
                 rs.next();
                 assertThat(rs.getInt(1)).isZero();
             }
+            try (
+                ResultSet rs = statement.executeQuery(
+                    """
+                    SELECT g.group_code
+                      FROM TBL_PORTAL_CONFIGURATION c
+                      JOIN TBL_PORTAL_OWNER o
+                        ON o.owner_key = c.active_owner_key
+                      JOIN TBL_OWNER_BPMN_GROUP og
+                        ON og.owner_key = o.owner_key
+                      JOIN TBL_BPMN_ELEMENT_GROUP g
+                        ON g.group_key = og.group_key
+                     WHERE c.config_key = 1
+                       AND UPPER(o.owner_code) = 'MEDIATION'
+                       AND o.enabled = 1
+                       AND og.enabled = 1
+                       AND g.enabled = 1
+                     ORDER BY g.group_code
+                    """
+                )
+            ) {
+                List<String> ownerGroups = new ArrayList<>();
+                while (rs.next()) {
+                    ownerGroups.add(rs.getString(1));
+                }
+                assertThat(ownerGroups).containsExactly("CORE_BPMN", "FILE_PROCESSING");
+            }
         }
     }
 

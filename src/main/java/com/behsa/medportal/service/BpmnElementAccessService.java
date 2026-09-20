@@ -66,9 +66,12 @@ public class BpmnElementAccessService {
                 .toList()
         );
 
+        Set<String> restrictedElementCodes = Set.of("CDR_PARSER", "CSV_TRANSFORMER");
+
         dto.setElements(
             elements
                 .stream()
+                .filter(element -> !restrictedElementCodes.contains(element.getElementCode()))
                 .map(element ->
                     new BpmnElementAccessDTO.ElementDTO(
                         element.getId(),

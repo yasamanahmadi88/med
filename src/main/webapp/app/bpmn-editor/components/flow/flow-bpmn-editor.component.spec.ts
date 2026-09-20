@@ -42,6 +42,7 @@ describe('FlowBpmnEditorComponent', () => {
   let elementAccessService: {
     clear: ReturnType<typeof vi.fn>;
     loadCurrent: ReturnType<typeof vi.fn>;
+    setPersistedDiagram: ReturnType<typeof vi.fn>;
     findDisallowedXmlElements: ReturnType<typeof vi.fn>;
     currentConfig: ReturnType<typeof vi.fn>;
     isTypeAllowed: ReturnType<typeof vi.fn>;
@@ -63,6 +64,7 @@ describe('FlowBpmnEditorComponent', () => {
     elementAccessService = {
       clear: vi.fn(),
       loadCurrent: vi.fn().mockReturnValue(of({})),
+      setPersistedDiagram: vi.fn(),
       findDisallowedXmlElements: vi.fn().mockReturnValue([]),
       currentConfig: vi.fn().mockReturnValue({
         allowedTypes: [],

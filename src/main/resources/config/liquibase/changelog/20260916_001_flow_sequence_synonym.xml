@@ -15,11 +15,18 @@
       - MEDIATION.FLOWS_SEQ must exist;
       - MEDPORTAL must have SELECT on that sequence;
       - the MEDIATION sequence must already be ahead of the largest FLOW_KEY.
+
+      Scoped to the prod context because those preconditions describe the
+      deployed two-schema Oracle install only. Dev and the Testcontainers
+      suites connect as MEDIATION against a single throwaway schema, where the
+      USER = 'MEDPORTAL' check can only ever fail and HALT the whole master
+      changelog.
     -->
     <changeSet
         id="20260916-01-flow-sequence-synonym"
         author="upgrade"
-        dbms="oracle">
+        dbms="oracle"
+        contextFilter="prod">
 
         <preConditions onFail="HALT" onError="HALT">
             <sqlCheck expectedResult="1">

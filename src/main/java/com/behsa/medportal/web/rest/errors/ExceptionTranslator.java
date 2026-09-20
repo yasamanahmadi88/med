@@ -94,6 +94,11 @@ public class ExceptionTranslator implements ProblemHandling, SecurityAdviceTrait
             payload.put(MESSAGE_KEY, ErrorConstants.ERR_VALIDATION);
         } else {
             payload.putAll(problem.getParameters());
+            if (problem instanceof BadRequestAlertException badRequestAlertException) {
+                // Carried as a bean property rather than a Problem parameter, so rebuilding the
+                // payload would otherwise drop it.
+                payload.put("errorKey", badRequestAlertException.getErrorKey());
+            }
             if (!payload.containsKey(MESSAGE_KEY) && problem.getStatus() != null) {
                 payload.put(MESSAGE_KEY, "error.http." + problem.getStatus().getStatusCode());
             }

@@ -8,7 +8,7 @@ import { additionalModulesFor, moddleExtensionsFor } from '../../additional-modu
 import { translationModuleFor } from '../../i18n/translate';
 import { DEFAULT_ELEMENT_SIZES } from '../../additional-modules/ElementFactory';
 import ModulePropertiesModule from '../../module-properties';
-import { createNewDiagram } from '../../utils/empty-diagram';
+import { blankDiagramXml, createNewDiagram, newDiagramIdentity } from '../../utils/empty-diagram';
 import ContextMenuModule from '../../context-menu';
 import { RoleModulesService } from '../../services/role-modules.service';
 import { BpmnElementAccessService } from '../../services/bpmn-element-access.service';
@@ -137,7 +137,16 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
         //
         // Not `modeler.createDiagram()`: that always names the process `Process_1`, discarding
         // the configured processId and processName the flow is keyed on.
-        createNewDiagram(this.bpmnModeler, settings).catch((error: unknown) => {
+        const identity = newDiagramIdentity(settings);
+        createNewDiagram(
+          this.bpmnModeler,
+          settings,
+          // Fall back to an element-free document for an Owner that cannot place a start event,
+          // rather than opening every new diagram on a shape they are not entitled to.
+          this.elementAccessService.isTypeAllowed('bpmn:StartEvent')
+            ? undefined
+            : blankDiagramXml(identity.processId, identity.processName),
+        ).catch((error: unknown) => {
           console.error('Could not create BPMN 2.0 diagram', error);
         });
       }

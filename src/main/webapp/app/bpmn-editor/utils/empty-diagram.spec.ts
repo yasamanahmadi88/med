@@ -21,13 +21,13 @@ describe('empty diagram', () => {
       expect(emptyDiagramXml('P', 'n')).toContain('isExecutable="true"');
     });
 
-    it('starts element-free like Vue so no implicit BPMN type bypasses owner access', () => {
+    it('opens on a start event, so the process is executable and the canvas is not blank', () => {
+      // An Owner that is not entitled to bpmn:StartEvent gets blankDiagramXml instead; that
+      // choice lives in DesignerComponent, which is the only place the Owner policy is known.
       const xml = emptyDiagramXml('P', 'n');
 
-      expect(xml).toBe(blankDiagramXml('P', 'n'));
-      expect(xml).not.toContain('<bpmn:startEvent');
-      expect(xml).not.toContain('StartEvent_1');
-      expect(xml).not.toContain('<bpmndi:BPMNShape');
+      expect(xml).toContain('<bpmn:startEvent id="StartEvent_1" />');
+      expect(xml).toContain('bpmnElement="StartEvent_1"');
       expect(xml).not.toContain('<bpmn:task');
       expect(xml).not.toContain('<bpmn:sequenceFlow');
     });

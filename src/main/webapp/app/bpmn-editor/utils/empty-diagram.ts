@@ -23,7 +23,20 @@ function escapeXml(value: string): string {
 }
 
 /**
- * The empty BPMN 2.0 document, carrying the given process id and name.
+ * The start event every new diagram opens with, matching what `modeler.createDiagram()` draws —
+ * same id and same bounds, so a diagram made here is indistinguishable from one made before.
+ *
+ * The Vue `EmptyXML` had no elements at all, which left the canvas blank. That is worse in two
+ * ways: a process without a start event is not executable, and the user has nothing to drag
+ * from. This is one of the two places the port deliberately keeps the Angular behaviour.
+ */
+const START_EVENT_ID = 'StartEvent_1';
+
+/**
+ * The BPMN 2.0 document a new diagram opens with, carrying the given process id and name.
+ *
+ * Callers whose active portal Owner does not allow `bpmn:StartEvent` seed `blankDiagramXml`
+ * instead, so this never places a type the Owner is not entitled to.
  *
  * The engine namespace is deliberately absent: the Vue `EmptyXML` took an engine argument and
  * never referenced it, so no diagram it created ever carried one. Adding it here would make new
@@ -31,18 +44,33 @@ function escapeXml(value: string): string {
  * a property under that namespace is set.
  */
 export function emptyDiagramXml(processId: string, processName: string): string {
-  return blankDiagramXml(processId, processName);
+  const id = escapeXml(processId);
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+  targetNamespace="http://bpmn.io/schema/bpmn"
+  id="Definitions_${id}">
+  <bpmn:process id="${id}" name="${escapeXml(processName)}" isExecutable="true">
+    <bpmn:startEvent id="${START_EVENT_ID}" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="${id}">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="${START_EVENT_ID}">
+        <dc:Bounds x="173" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>`;
 }
+
 /**
- * The id and name a new diagram gets, from the settings where they are usable and a timestamp
- * where they are not. A configured id that is not a valid NCName is dropped rather than
- * written, because moddle rejects the document outright and the editor would open empty.
- */
-/**
- * Returns an element-free BPMN document for the Vue "Erase Redo" action.
- *
- * New diagrams and Erase Redo intentionally use the same element-free document.
- * This matches the Vue editor and avoids injecting a BPMN type that the active portal owner may not allow.
+ * Returns an element-free BPMN document, for the Vue "Erase Redo" action and for a new diagram
+ * whose Owner is not entitled to place a start event.
  */
 export function blankDiagramXml(processId: string, processName: string): string {
   const id = escapeXml(processId);

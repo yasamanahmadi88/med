@@ -1,7 +1,9 @@
 package com.behsa.medportal.service;
 
 import java.io.Reader;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -47,6 +49,26 @@ public class BpmnXmlElementScanner {
         }
     }
 
+    /**
+     * Scans BPMN XML and returns a map of element IDs to their XmlElementKey.
+     * Used to track which elements existed in the persisted/original XML.
+     */
+    public Map<String, XmlElementKey> scanInstances(String xml) {
+        if (xml == null || xml.isBlank()) {
+            return Map.of();
+        }
+
+        try {
+            DocumentBuilderFactory factory = secureDocumentBuilderFactory();
+            Document document = factory.newDocumentBuilder().parse(new InputSource(Reader.of(xml)));
+            Map<String, XmlElementKey> result = new HashMap<>();
+            collectInstances(document.getDocumentElement(), result);
+            return result;
+        } catch (Exception exception) {
+            throw new IllegalArgumentException("Invalid or unsafe BPMN XML", exception);
+        }
+    }
+
     private void collect(Element element, Set<XmlElementKey> result) {
         NodeList children = element.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
@@ -60,6 +82,25 @@ public class BpmnXmlElementScanner {
             }
 
             collect(child, result);
+        }
+    }
+
+    private void collectInstances(Element element, Map<String, XmlElementKey> result) {
+        NodeList children = element.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node node = children.item(i);
+            if (!(node instanceof Element child)) {
+                continue;
+            }
+
+            if (isAccessControlledChild(element, child)) {
+                String id = child.getAttribute("id");
+                if (id != null && !id.isBlank()) {
+                    result.put(id, new XmlElementKey(normalize(child.getNamespaceURI()), localName(child)));
+                }
+            }
+
+            collectInstances(child, result);
         }
     }
 

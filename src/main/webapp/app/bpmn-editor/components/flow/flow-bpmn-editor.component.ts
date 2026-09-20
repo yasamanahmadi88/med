@@ -95,6 +95,7 @@ export class FlowBpmnEditorComponent implements OnInit, OnDestroy, BpmnEditorHos
   private loadAccessAndSeed(xml: string | null | undefined): void {
     this.elementAccessService.loadCurrent().subscribe({
       next: () => {
+        this.elementAccessService.setPersistedDiagram(xml);
         if (xml?.trim()) {
           try {
             const disallowed = this.elementAccessService.findDisallowedXmlElements(xml);

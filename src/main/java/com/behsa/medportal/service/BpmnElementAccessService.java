@@ -122,4 +122,30 @@ public class BpmnElementAccessService {
             .filter(element -> !allowed.contains(element))
             .collect(Collectors.toCollection(LinkedHashSet::new));
     }
+
+    /**
+     * Returns disallowed elements, but allows legacy CDR and CSV elements if they
+     * existed in the previously persisted XML (for backward compatibility in MEDIATION owner).
+     *
+     * This enables editing existing legacy elements while preventing new instances.
+     */
+    public Set<XmlElementKey> findDisallowedElements(String xml, String persistedXml) {
+        Set<XmlElementKey> denied = findDisallowedElements(xml);
+        if (denied.isEmpty() || !"MEDIATION".equals(portalOwnerService.getCurrentOwner().getOwnerCode())) {
+            return denied;
+        }
+
+        var previous = xmlElementScanner.scanInstances(persistedXml);
+        var current = xmlElementScanner.scanInstances(xml);
+        Set<XmlElementKey> legacyTypes = Set.of(
+            new XmlElementKey("CdrParser", "cdrParser"),
+            new XmlElementKey("CsvTransformer", "csvTransformer")
+        );
+
+        return current.entrySet().stream()
+            .filter(entry -> denied.contains(entry.getValue()))
+            .filter(entry -> !legacyTypes.contains(entry.getValue()) || !entry.getValue().equals(previous.get(entry.getKey())))
+            .map(java.util.Map.Entry::getValue)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
 }

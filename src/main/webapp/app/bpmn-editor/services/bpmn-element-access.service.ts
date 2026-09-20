@@ -25,6 +25,7 @@ const STRUCTURAL_FLOW_CHILDREN = new Set(['sequenceFlow', 'laneSet', 'documentat
 @Injectable({ providedIn: 'root' })
 export class BpmnElementAccessService {
   private readonly resourceUrl = this.applicationConfigService.getEndpointFor('api/bpmn-element-access/current');
+  private persistedInstances = new Map<string, string>();
   private access: BpmnOwnerElementAccess | null = null;
   private config: BpmnElementAccessConfig = EMPTY_BPMN_ELEMENT_ACCESS_CONFIG;
 
@@ -51,8 +52,21 @@ export class BpmnElementAccessService {
   }
 
   clear(): void {
+    this.persistedInstances.clear();
     this.access = null;
     this.config = EMPTY_BPMN_ELEMENT_ACCESS_CONFIG;
+  }
+
+  setPersistedDiagram(xml: string | null | undefined): void {
+    this.persistedInstances.clear();
+    if (xml?.trim()) {
+      const document = new DOMParser().parseFromString(xml, 'application/xml');
+      if (document.querySelector('parsererror') || document.doctype) throw new Error('Invalid BPMN XML');
+      for (const element of Array.from(document.getElementsByTagName('*'))) {
+        const id = element.getAttribute('id');
+        if (id) this.persistedInstances.set(id, this.xmlKey(element.namespaceURI ?? '', element.localName));
+      }
+    }
   }
 
   currentAccess(): BpmnOwnerElementAccess | null {
@@ -72,6 +86,8 @@ export class BpmnElementAccessService {
    *
    * Namespace URI + local name are used instead of XML prefixes because a caller can rename a
    * prefix without changing the XML element's meaning.
+   *
+   * For MEDIATION owner, allows legacy CDR and CSV elements if they existed in the persisted XML.
    */
   findDisallowedXmlElements(xml: string): BpmnXmlElementIdentity[] {
     const parser = new DOMParser();
@@ -82,6 +98,12 @@ export class BpmnElementAccessService {
     }
 
     const allowed = new Set(this.config.allowedXmlElements.map(element => this.xmlKey(element.namespaceUri, element.localName)));
+    const ids = new Set<string>();
+    for (const element of Array.from(document.getElementsByTagName('*'))) {
+      const id = element.getAttribute('id');
+      if (id && ids.has(id)) throw new Error('Duplicate BPMN id');
+      if (id) ids.add(id);
+    }
     const disallowed = new Map<string, BpmnXmlElementIdentity>();
 
     const visit = (parent: Element): void => {
@@ -89,7 +111,12 @@ export class BpmnElementAccessService {
         if (this.isAccessControlledChild(parent, child)) {
           const identity = { namespaceUri: child.namespaceURI ?? '', localName: child.localName };
           const key = this.xmlKey(identity.namespaceUri, identity.localName);
-          if (!allowed.has(key)) {
+          const id = child.getAttribute('id');
+          const legacy = this.access?.ownerCode === 'MEDIATION' &&
+            ((identity.namespaceUri === 'CdrParser' && identity.localName === 'cdrParser') ||
+             (identity.namespaceUri === 'CsvTransformer' && identity.localName === 'csvTransformer')) &&
+            !!id && this.persistedInstances.get(id) === key;
+          if (!allowed.has(key) && !legacy) {
             disallowed.set(key, identity);
           }
         }

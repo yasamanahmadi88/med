@@ -29,7 +29,12 @@
     <div class="card login-card my-auto">
       <h2 class="text-center mb-4 text-white" jhiTranslate="login.title">Sign in</h2>
 
-      <div class="alert alert-danger login-alert" *ngIf="authenticationError" jhiTranslate="login.messages.error.authentication">
+      <div
+        class="alert alert-danger login-alert"
+        *ngIf="authenticationError"
+        data-cy="loginError"
+        jhiTranslate="login.messages.error.authentication"
+      >
         <strong>Failed to sign in!</strong> Please check your credentials and try again.
       </div>
 
@@ -42,6 +47,7 @@
             class="form-control login-input"
             name="username"
             id="username"
+            data-cy="username"
             placeholder="{{ 'global.form.username.placeholder' | translate }}"
             formControlName="username"
             #username
@@ -56,6 +62,7 @@
             class="form-control login-input"
             name="password"
             id="password"
+            data-cy="password"
             placeholder="{{ 'login.form.password.placeholder' | translate }}"
             formControlName="password"
           />
@@ -100,7 +107,7 @@
         </div>
 
         <!-- Submit -->
-        <button type="submit" class="login-submit w-100" [disabled]="loginForm.invalid || isLoading">
+        <button type="submit" class="login-submit w-100" data-cy="submit" [disabled]="loginForm.invalid || isLoading">
           <span *ngIf="!isLoading" jhiTranslate="login.form.button">Sign in</span>
           <span *ngIf="isLoading" class="submit-loading">
             <span class="loading-icon">⟳</span>

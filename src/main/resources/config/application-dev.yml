@@ -30,6 +30,14 @@ spring:
   jackson:
     serialization:
       indent-output: true
+
+
+
+
+
+
+
+
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     url: ${SPRING_DATASOURCE_URL:jdbc:oracle:thin:@//172.18.50.50:1521/IXPDB}

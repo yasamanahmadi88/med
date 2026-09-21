@@ -247,10 +247,10 @@ class RewritePaletteProvider extends PaletteProvider {
     };
 
     // Tools are not BPMN model elements and remain available.  Every model element is fail-closed
-    // unless its type arrived from Product -> Group -> Element access loaded from the server.
+    // unless its type arrived from Owner -> Group -> Element access loaded from the server.
     for (const [entryId, type] of Object.entries(elementTypesByEntry)) {
       if (!isBpmnTypeAllowed(this.elementAccess, type)) {
-        delete entries[entryId];
+        Reflect.deleteProperty(entries, entryId);
       }
     }
 

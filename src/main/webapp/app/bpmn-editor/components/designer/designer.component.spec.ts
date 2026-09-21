@@ -71,7 +71,7 @@ describe('DesignerComponent XML access guard', () => {
     expect(modeler.importXML).not.toHaveBeenCalled();
 
     expect(consoleError).toHaveBeenCalledWith(
-      'Could not import BPMN 2.0 diagram: 1 element type(s) are not allowed for the selected product.',
+      'Could not import BPMN 2.0 diagram: 1 element type(s) are not allowed for the active portal owner.',
     );
 
     consoleError.mockRestore();
@@ -93,10 +93,7 @@ describe('DesignerComponent XML access guard', () => {
     expect(access.findDisallowedXmlElements).toHaveBeenCalledOnce();
     expect(modeler.importXML).not.toHaveBeenCalled();
 
-    expect(consoleError).toHaveBeenCalledWith(
-      'Could not import BPMN 2.0 diagram: invalid or unsafe XML',
-      error,
-    );
+    expect(consoleError).toHaveBeenCalledWith('Could not import BPMN 2.0 diagram: invalid or unsafe XML', error);
 
     consoleError.mockRestore();
   });

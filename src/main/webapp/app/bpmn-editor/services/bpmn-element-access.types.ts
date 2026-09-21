@@ -15,14 +15,22 @@ export interface BpmnElementAccess {
   sortOrder: number;
 }
 
-export interface BpmnProductElementAccess {
-  productId: number;
-  productName: string;
+/**
+ * BPMN capability snapshot for the active server-resolved Portal Owner.
+ *
+ * There is deliberately no productId, userId or role in this contract.
+ */
+export interface BpmnOwnerElementAccess {
+  ownerCode: string;
+  ownerDisplayName: string;
   groups: BpmnElementGroupAccess[];
   elements: BpmnElementAccess[];
 }
 
-/** Plain configuration handed to bpmn-js/didi.  It deliberately contains no Angular service. */
+/**
+ * Plain configuration handed to bpmn-js/didi.
+ * It deliberately contains no Angular service or business-domain Product.
+ */
 export interface BpmnElementAccessConfig {
   readonly allowedTypes: readonly string[];
   readonly allowedPaletteActions: readonly string[];
@@ -40,7 +48,7 @@ export const EMPTY_BPMN_ELEMENT_ACCESS_CONFIG: BpmnElementAccessConfig = {
   allowedXmlElements: [],
 };
 
-export function toBpmnElementAccessConfig(access: BpmnProductElementAccess | null | undefined): BpmnElementAccessConfig {
+export function toBpmnElementAccessConfig(access: BpmnOwnerElementAccess | null | undefined): BpmnElementAccessConfig {
   if (!access) {
     return EMPTY_BPMN_ELEMENT_ACCESS_CONFIG;
   }
@@ -48,7 +56,10 @@ export function toBpmnElementAccessConfig(access: BpmnProductElementAccess | nul
   return {
     allowedTypes: access.elements.map(element => element.bpmnType),
     allowedPaletteActions: access.elements.flatMap(element => (element.paletteAction ? [element.paletteAction] : [])),
-    allowedXmlElements: access.elements.map(element => ({ namespaceUri: element.namespaceUri, localName: element.localName })),
+    allowedXmlElements: access.elements.map(element => ({
+      namespaceUri: element.namespaceUri,
+      localName: element.localName,
+    })),
   };
 }
 

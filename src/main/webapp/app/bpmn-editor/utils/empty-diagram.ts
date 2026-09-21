@@ -13,7 +13,6 @@ import { EditorSettings } from '../types/editor/settings';
 /** A moddle id must be an NCName: no leading digit, and no spaces or punctuation beyond `_-.`. */
 const ID_PATTERN = /^[A-Za-z_][\w.-]*$/;
 
-
 /**
  * Escapes text for an XML attribute. The Vue original interpolated `processName` raw, so a
  * name holding `&` or `"` — both accepted by the settings form — produced a document that
@@ -43,7 +42,7 @@ export function emptyDiagramXml(processId: string, processName: string): string 
  * Returns an element-free BPMN document for the Vue "Erase Redo" action.
  *
  * New diagrams and Erase Redo intentionally use the same element-free document.
- * This matches the Vue editor and avoids injecting a BPMN type that the selected product may not allow.
+ * This matches the Vue editor and avoids injecting a BPMN type that the active portal owner may not allow.
  */
 export function blankDiagramXml(processId: string, processName: string): string {
   const id = escapeXml(processId);

@@ -217,7 +217,7 @@ export class ToolbarComponent implements OnInit, OnDestroy {
         try {
           const disallowed = this.elementAccessService.findDisallowedXmlElements(xml);
           if (disallowed.length > 0) {
-            this.toastr.error(`The imported BPMN contains ${disallowed.length} element type(s) not allowed for this product.`);
+            this.toastr.error(`The imported BPMN contains ${disallowed.length} element type(s) not allowed for the active portal owner.`);
             return;
           }
         } catch {

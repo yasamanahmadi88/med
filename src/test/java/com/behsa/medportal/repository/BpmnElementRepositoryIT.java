@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.behsa.medportal.IntegrationTest;
 import com.behsa.medportal.domain.BpmnElementEntity;
 import com.behsa.medportal.domain.BpmnElementGroupEntity;
-import com.behsa.medportal.domain.ProductEntity;
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -19,14 +18,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class BpmnElementRepositoryIT {
 
+    private static final long MEDIATION_OWNER_ID = 1000L;
+    private static final long DISABLED_TEST_OWNER_ID = 2000L;
+    private static final long UNASSIGNED_OWNER_ID = 3000L;
+
     @Autowired
     private BpmnElementRepository bpmnElementRepository;
 
     @Autowired
     private BpmnElementGroupRepository bpmnElementGroupRepository;
-
-    @Autowired
-    private ProductRepository productRepository;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -45,19 +45,18 @@ class BpmnElementRepositoryIT {
 
         jdbcTemplate.execute(
             """
-            CREATE TABLE IF NOT EXISTS TBL_PRODUCT_BPMN_GROUP (
-                product_key BIGINT NOT NULL,
+            CREATE TABLE IF NOT EXISTS TBL_OWNER_BPMN_GROUP (
+                owner_key BIGINT NOT NULL,
                 group_key BIGINT NOT NULL,
-                PRIMARY KEY (product_key, group_key)
+                enabled INTEGER DEFAULT 1 NOT NULL,
+                PRIMARY KEY (owner_key, group_key)
             )
             """
         );
     }
 
     @Test
-    void shouldReturnExactlySixFileProcessingElementsForMci() {
-        ProductEntity product = saveProduct("MCI");
-
+    void shouldReturnExactlySixFileProcessingElementsForMediationOwner() {
         BpmnElementGroupEntity fileProcessingGroup = saveGroup(
             "FILE_PROCESSING",
             "File Processing",
@@ -130,7 +129,10 @@ class BpmnElementRepositoryIT {
             60
         );
 
-        // Exists in the catalog, but is intentionally NOT assigned to MCI.
+        /*
+         * Exists in the global element catalog but is intentionally
+         * NOT assigned to the MEDIATION Owner's FILE_PROCESSING group.
+         */
         saveElement(
             "KAFKA_RECEIVER",
             "KafkaReceiver:KafkaReceiver",
@@ -142,7 +144,11 @@ class BpmnElementRepositoryIT {
             70
         );
 
-        assignGroupToProduct(product, fileProcessingGroup);
+        assignGroupToOwner(
+            MEDIATION_OWNER_ID,
+            fileProcessingGroup,
+            1
+        );
 
         assignElementToGroup(fileProcessingGroup, fileReceiver);
         assignElementToGroup(fileProcessingGroup, fileTransmitter);
@@ -152,10 +158,14 @@ class BpmnElementRepositoryIT {
         assignElementToGroup(fileProcessingGroup, csvTransformer);
 
         List<BpmnElementGroupEntity> groups =
-            bpmnElementGroupRepository.findEnabledByProductId(product.getId());
+            bpmnElementGroupRepository.findEnabledByOwnerId(
+                MEDIATION_OWNER_ID
+            );
 
         List<BpmnElementEntity> elements =
-            bpmnElementRepository.findEnabledByProductId(product.getId());
+            bpmnElementRepository.findEnabledByOwnerId(
+                MEDIATION_OWNER_ID
+            );
 
         assertThat(groups)
             .extracting(BpmnElementGroupEntity::getGroupCode)
@@ -178,9 +188,7 @@ class BpmnElementRepositoryIT {
     }
 
     @Test
-    void shouldIgnoreDisabledGroupsAndDisabledElements() {
-        ProductEntity product = saveProduct("DIS");
-
+    void shouldIgnoreDisabledMappingsGroupsAndElements() {
         BpmnElementGroupEntity enabledGroup = saveGroup(
             "ENABLED_GROUP",
             "Enabled Group",
@@ -191,6 +199,12 @@ class BpmnElementRepositoryIT {
             "DISABLED_GROUP",
             "Disabled Group",
             0
+        );
+
+        BpmnElementGroupEntity disabledMappingGroup = saveGroup(
+            "DISABLED_MAPPING_GROUP",
+            "Disabled Mapping Group",
+            1
         );
 
         BpmnElementEntity enabledElement = saveElement(
@@ -226,18 +240,59 @@ class BpmnElementRepositoryIT {
             30
         );
 
-        assignGroupToProduct(product, enabledGroup);
-        assignGroupToProduct(product, disabledGroup);
+        BpmnElementEntity elementInDisabledMapping = saveElement(
+            "DISABLED_MAPPING_ELEMENT",
+            "Test:DisabledMappingElement",
+            "urn:test:bpmn",
+            "disabledMappingElement",
+            "create.disabled-mapping-element",
+            "Disabled Mapping Element",
+            1,
+            40
+        );
+
+        assignGroupToOwner(
+            DISABLED_TEST_OWNER_ID,
+            enabledGroup,
+            1
+        );
+
+        assignGroupToOwner(
+            DISABLED_TEST_OWNER_ID,
+            disabledGroup,
+            1
+        );
+
+        /*
+         * The group itself is enabled, but this Owner-to-Group
+         * assignment is disabled.
+         */
+        assignGroupToOwner(
+            DISABLED_TEST_OWNER_ID,
+            disabledMappingGroup,
+            0
+        );
 
         assignElementToGroup(enabledGroup, enabledElement);
         assignElementToGroup(enabledGroup, disabledElement);
-        assignElementToGroup(disabledGroup, elementInDisabledGroup);
+        assignElementToGroup(
+            disabledGroup,
+            elementInDisabledGroup
+        );
+        assignElementToGroup(
+            disabledMappingGroup,
+            elementInDisabledMapping
+        );
 
         List<BpmnElementGroupEntity> groups =
-            bpmnElementGroupRepository.findEnabledByProductId(product.getId());
+            bpmnElementGroupRepository.findEnabledByOwnerId(
+                DISABLED_TEST_OWNER_ID
+            );
 
         List<BpmnElementEntity> elements =
-            bpmnElementRepository.findEnabledByProductId(product.getId());
+            bpmnElementRepository.findEnabledByOwnerId(
+                DISABLED_TEST_OWNER_ID
+            );
 
         assertThat(groups)
             .extracting(BpmnElementGroupEntity::getGroupCode)
@@ -249,9 +304,7 @@ class BpmnElementRepositoryIT {
     }
 
     @Test
-    void shouldReturnEmptyAccessWhenProductHasNoGroupMapping() {
-        ProductEntity product = saveProduct("NMP");
-
+    void shouldReturnEmptyAccessWhenOwnerHasNoGroupMapping() {
         BpmnElementGroupEntity group = saveGroup(
             "UNASSIGNED_GROUP",
             "Unassigned Group",
@@ -269,25 +322,24 @@ class BpmnElementRepositoryIT {
             10
         );
 
-        // Group and element exist, but product is deliberately not assigned to the group.
+        /*
+         * Catalog data exists but this Owner has no assignment.
+         * Access must therefore fail closed to an empty result.
+         */
         assignElementToGroup(group, element);
 
         List<BpmnElementGroupEntity> groups =
-            bpmnElementGroupRepository.findEnabledByProductId(product.getId());
+            bpmnElementGroupRepository.findEnabledByOwnerId(
+                UNASSIGNED_OWNER_ID
+            );
 
         List<BpmnElementEntity> elements =
-            bpmnElementRepository.findEnabledByProductId(product.getId());
+            bpmnElementRepository.findEnabledByOwnerId(
+                UNASSIGNED_OWNER_ID
+            );
 
         assertThat(groups).isEmpty();
         assertThat(elements).isEmpty();
-    }
-
-    private ProductEntity saveProduct(String productName) {
-        ProductEntity product = new ProductEntity();
-        product.setProductName(productName);
-        product.setProductDesc("Repository integration test product " + productName);
-
-        return productRepository.saveAndFlush(product);
     }
 
     private BpmnElementGroupEntity saveGroup(
@@ -295,7 +347,9 @@ class BpmnElementRepositoryIT {
         String groupName,
         int enabled
     ) {
-        BpmnElementGroupEntity group = new BpmnElementGroupEntity();
+        BpmnElementGroupEntity group =
+            new BpmnElementGroupEntity();
+
         group.setGroupCode(groupCode);
         group.setGroupName(groupName);
         group.setEnabled(enabled);
@@ -313,7 +367,9 @@ class BpmnElementRepositoryIT {
         int enabled,
         int sortOrder
     ) {
-        BpmnElementEntity element = new BpmnElementEntity();
+        BpmnElementEntity element =
+            new BpmnElementEntity();
+
         element.setElementCode(elementCode);
         element.setBpmnType(bpmnType);
         element.setNamespaceUri(namespaceUri);
@@ -326,17 +382,23 @@ class BpmnElementRepositoryIT {
         return bpmnElementRepository.saveAndFlush(element);
     }
 
-    private void assignGroupToProduct(
-        ProductEntity product,
-        BpmnElementGroupEntity group
+    private void assignGroupToOwner(
+        long ownerId,
+        BpmnElementGroupEntity group,
+        int enabled
     ) {
         jdbcTemplate.update(
             """
-            INSERT INTO TBL_PRODUCT_BPMN_GROUP (product_key, group_key)
-            VALUES (?, ?)
+            INSERT INTO TBL_OWNER_BPMN_GROUP (
+                owner_key,
+                group_key,
+                enabled
+            )
+            VALUES (?, ?, ?)
             """,
-            product.getId(),
-            group.getId()
+            ownerId,
+            group.getId(),
+            enabled
         );
     }
 
@@ -346,7 +408,10 @@ class BpmnElementRepositoryIT {
     ) {
         jdbcTemplate.update(
             """
-            INSERT INTO TBL_BPMN_GROUP_ELEMENT (group_key, element_key)
+            INSERT INTO TBL_BPMN_GROUP_ELEMENT (
+                group_key,
+                element_key
+            )
             VALUES (?, ?)
             """,
             group.getId(),

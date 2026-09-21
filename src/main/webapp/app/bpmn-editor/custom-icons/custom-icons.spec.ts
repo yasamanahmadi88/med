@@ -235,6 +235,11 @@ describe('CustomIconPaletteProvider', () => {
       elementFactory as any,
       bpmnFactory as any,
       { getIcons: () => icons } as unknown as CustomIconLibrary,
+      {
+        allowedTypes: [CUSTOM_TASK_TYPE],
+        allowedPaletteActions: [],
+        allowedXmlElements: [],
+      },
     );
 
     return { provider, palette, create, elementFactory };

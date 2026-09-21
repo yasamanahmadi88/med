@@ -30,16 +30,14 @@ describe('ElementAccessRules', () => {
   beforeEach(() => {
     registrations = new Map<string, RegisteredRule>();
 
-    addRuleSpy = vi
-      .spyOn(RuleProvider.prototype as any, 'addRule')
-      .mockImplementation((...args: unknown[]) => {
-        const [actions, priority, guard] = args as [string | string[], number, RuleGuard];
-        const actionList = Array.isArray(actions) ? actions : [actions];
+    addRuleSpy = vi.spyOn(RuleProvider.prototype as any, 'addRule').mockImplementation((...args: unknown[]) => {
+      const [actions, priority, guard] = args as [string | string[], number, RuleGuard];
+      const actionList = Array.isArray(actions) ? actions : [actions];
 
-        for (const action of actionList) {
-          registrations.set(action, { priority, guard });
-        }
-      });
+      for (const action of actionList) {
+        registrations.set(action, { priority, guard });
+      }
+    });
   });
 
   afterEach(() => {
@@ -60,15 +58,12 @@ describe('ElementAccessRules', () => {
     return registered;
   }
 
-  it('registers create, append and replace guards at priority 3000', () => {
+  it('registers bulk create, create, append and replace guards at priority 3000', () => {
     createRules();
 
-    expect([...registrations.keys()]).toEqual([
-      'shape.create',
-      'shape.append',
-      'shape.replace',
-    ]);
+    expect([...registrations.keys()]).toEqual(['elements.create', 'shape.create', 'shape.append', 'shape.replace']);
 
+    expect(rule('elements.create').priority).toBe(3000);
     expect(rule('shape.create').priority).toBe(3000);
     expect(rule('shape.append').priority).toBe(3000);
     expect(rule('shape.replace').priority).toBe(3000);
@@ -102,7 +97,7 @@ describe('ElementAccessRules', () => {
     expect(result).toBe(false);
   });
 
-  it('passes allowed MCI types through to lower-priority bpmn-js rules', () => {
+  it('passes supported allowed types through to lower-priority bpmn-js rules', () => {
     createRules();
 
     expect(
@@ -116,13 +111,33 @@ describe('ElementAccessRules', () => {
         shape: { type: 'FileReceiver:FileReceiver' },
       }),
     ).toBeUndefined();
+  });
+
+  it.each(['CdrParser:CdrParser', 'CsvTransformer:CsvTransformer'])(
+    'rejects retired type %s even when stale access data allows it',
+    type => {
+      createRules();
+
+      expect(rule('shape.create').guard({ shape: { type } })).toBe(false);
+      expect(rule('shape.append').guard({ shape: { type } })).toBe(false);
+      expect(rule('shape.replace').guard({ newData: { type } })).toBe(false);
+      expect(rule('elements.create').guard({ elements: [{ type: 'Merger:Merger' }, { type }] })).toBe(false);
+    },
+  );
+
+  it('allows bulk creation only when every candidate type is supported and allowed', () => {
+    createRules();
 
     expect(
-      rule('shape.replace').guard({
-        oldShape: { type: 'KafkaReceiver:KafkaReceiver' },
-        newData: { type: 'CsvTransformer:CsvTransformer' },
+      rule('elements.create').guard({
+        elements: [{ type: 'Merger:Merger' }, { type: 'Fragmenter:Fragmenter' }],
       }),
     ).toBeUndefined();
+    expect(
+      rule('elements.create').guard({
+        elements: [{ type: 'Merger:Merger' }, { type: 'KafkaReceiver:KafkaReceiver' }],
+      }),
+    ).toBe(false);
   });
 
   it('fails closed for modeling candidates when access configuration is empty', () => {

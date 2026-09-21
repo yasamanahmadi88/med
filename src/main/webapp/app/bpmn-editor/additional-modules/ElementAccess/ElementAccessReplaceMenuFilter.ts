@@ -1,5 +1,6 @@
 import * as replaceOptions from 'bpmn-js/lib/features/replace/ReplaceOptions';
 import { BpmnElementAccessConfig, isBpmnTypeAllowed } from '../../services/bpmn-element-access.types';
+import { isLegacyReadOnlyBpmnType } from '../../services/bpmn-legacy-read-only';
 
 interface ReplaceOption {
   actionName?: string;
@@ -13,7 +14,7 @@ interface PopupMenuLike {
 
 /**
  * Lowest-priority middleware for bpmn-replace.  The stock provider contributes the menu first;
- * this provider then removes destinations whose target type is not in the product's DB policy.
+ * this provider then removes destinations whose target type is not in the active owner's DB policy.
  */
 export default class ElementAccessReplaceMenuFilter {
   static $inject = ['popupMenu', 'config.elementAccess'];
@@ -42,7 +43,7 @@ export default class ElementAccessReplaceMenuFilter {
         const targetType = this.actionTypes.get(entryId);
 
         if (targetType) {
-          if (isBpmnTypeAllowed(this.elementAccess, targetType)) {
+          if (!isLegacyReadOnlyBpmnType(targetType) && isBpmnTypeAllowed(this.elementAccess, targetType)) {
             filtered[entryId] = entry;
           }
           continue;

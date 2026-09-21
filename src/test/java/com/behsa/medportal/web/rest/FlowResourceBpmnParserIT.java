@@ -92,6 +92,7 @@ class FlowResourceBpmnParserIT {
         </bpmn:definitions>
         """;
     private static final String ENTITY_API_URL = "/api/flows";
+    private static final long OWNER_ID = 93001L;
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
 
     @Autowired
@@ -117,21 +118,12 @@ class FlowResourceBpmnParserIT {
 
     @BeforeEach
     public void initTest() {
+        ensureOwnerInfrastructure();
+        configureActiveOwner();
         flowEntity = FlowResourceIT.createEntity(em);
     }
 
-    private void givenParserAccepts() {
-        ResponseEntity<Object> accepted = ResponseEntity.ok(Map.of("status", "parsed"));
-        when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(Object.class))).thenReturn(accepted);
-    }
-
-    private void givenParserRejects() {
-        ResponseEntity<Object> rejected = ResponseEntity.badRequest().body(Map.of("error", "invalid bpmn"));
-        when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(Object.class))).thenReturn(rejected);
-    }
-    @Test
-    @Transactional
-    void disallowedBpmnElementIsRejectedBeforeExternalParserCall() throws Exception {
+    private void ensureOwnerInfrastructure() {
         jdbcTemplate.execute(
             """
             CREATE TABLE IF NOT EXISTS TBL_BPMN_GROUP_ELEMENT (
@@ -144,13 +136,94 @@ class FlowResourceBpmnParserIT {
 
         jdbcTemplate.execute(
             """
-            CREATE TABLE IF NOT EXISTS TBL_PRODUCT_BPMN_GROUP (
-                product_key BIGINT NOT NULL,
+            CREATE TABLE IF NOT EXISTS TBL_OWNER_BPMN_GROUP (
+                owner_key BIGINT NOT NULL,
                 group_key BIGINT NOT NULL,
-                PRIMARY KEY (product_key, group_key)
+                enabled INTEGER DEFAULT 1 NOT NULL,
+                PRIMARY KEY (owner_key, group_key)
             )
             """
         );
+
+        jdbcTemplate.execute(
+            """
+            CREATE TABLE IF NOT EXISTS TBL_PORTAL_OWNER (
+                owner_key BIGINT NOT NULL PRIMARY KEY,
+                owner_code VARCHAR(50) NOT NULL,
+                owner_name VARCHAR(100) NOT NULL,
+                display_name VARCHAR(150) NOT NULL,
+                description VARCHAR(500),
+                enabled INTEGER DEFAULT 1 NOT NULL
+            )
+            """
+        );
+
+        jdbcTemplate.execute(
+            """
+            CREATE TABLE IF NOT EXISTS TBL_PORTAL_CONFIGURATION (
+                config_key BIGINT NOT NULL PRIMARY KEY,
+                active_owner_key BIGINT NOT NULL
+            )
+            """
+        );
+    }
+
+    private void configureActiveOwner() {
+        jdbcTemplate.update(
+            "DELETE FROM TBL_PORTAL_CONFIGURATION WHERE config_key = ?",
+            1L
+        );
+
+        jdbcTemplate.update(
+            "DELETE FROM TBL_PORTAL_OWNER WHERE owner_key = ?",
+            OWNER_ID
+        );
+
+        jdbcTemplate.update(
+            """
+            INSERT INTO TBL_PORTAL_OWNER (
+                owner_key,
+                owner_code,
+                owner_name,
+                display_name,
+                description,
+                enabled
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            OWNER_ID,
+            "PARSER_TEST",
+            "Parser Test",
+            "Parser Test Portal",
+            "BPMN parser integration-test Owner",
+            1
+        );
+
+        jdbcTemplate.update(
+            """
+            INSERT INTO TBL_PORTAL_CONFIGURATION (
+                config_key,
+                active_owner_key
+            )
+            VALUES (?, ?)
+            """,
+            1L,
+            OWNER_ID
+        );
+    }
+    private void givenParserAccepts() {
+        ResponseEntity<Object> accepted = ResponseEntity.ok(Map.of("status", "parsed"));
+        when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(Object.class))).thenReturn(accepted);
+    }
+
+    private void givenParserRejects() {
+        ResponseEntity<Object> rejected = ResponseEntity.badRequest().body(Map.of("error", "invalid bpmn"));
+        when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(Object.class))).thenReturn(rejected);
+    }
+    @Test
+    @Transactional
+    void disallowedBpmnElementIsRejectedBeforeExternalParserCall() throws Exception {
+
 
         int databaseSizeBeforeCreate = flowRepository.findAll().size();
 

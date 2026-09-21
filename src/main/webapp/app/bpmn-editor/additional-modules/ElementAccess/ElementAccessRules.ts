@@ -1,5 +1,6 @@
 import RuleProvider from 'diagram-js/lib/features/rules/RuleProvider';
 import { BpmnElementAccessConfig, isBpmnTypeAllowed } from '../../services/bpmn-element-access.types';
+import { isLegacyReadOnlyBpmnType } from '../../services/bpmn-legacy-read-only';
 
 const PRIORITY = 3000;
 
@@ -15,7 +16,10 @@ type Candidate = { type?: string } | null | undefined;
 export default class ElementAccessRules extends RuleProvider {
   static $inject = ['eventBus', 'config.elementAccess'];
 
-  constructor(eventBus: any, private readonly elementAccess?: BpmnElementAccessConfig) {
+  constructor(
+    eventBus: any,
+    private readonly elementAccess?: BpmnElementAccessConfig,
+  ) {
     super(eventBus);
   }
 
@@ -26,9 +30,16 @@ export default class ElementAccessRules extends RuleProvider {
       if (!type) {
         return undefined;
       }
-      return isBpmnTypeAllowed(this.elementAccess, type) ? undefined : false;
+      return !isLegacyReadOnlyBpmnType(type) && isBpmnTypeAllowed(this.elementAccess, type) ? undefined : false;
     };
 
+    // Copy/paste and duplicate may create several shapes in one command and bypass shape.create.
+    this.addRule('elements.create', PRIORITY, (context: { elements?: Candidate[] }) => {
+      const denied = context.elements?.some(
+        element => element?.type && (isLegacyReadOnlyBpmnType(element.type) || !isBpmnTypeAllowed(this.elementAccess, element.type)),
+      );
+      return denied ? false : undefined;
+    });
     this.addRule('shape.create', PRIORITY, guard);
     this.addRule('shape.append', PRIORITY, guard);
     this.addRule('shape.replace', PRIORITY, guard);

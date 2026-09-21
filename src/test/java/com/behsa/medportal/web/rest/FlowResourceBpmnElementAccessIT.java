@@ -1,9 +1,9 @@
 package com.behsa.medportal.web.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -19,6 +19,7 @@ import com.behsa.medportal.repository.ProductRepository;
 import com.behsa.medportal.service.dto.FlowDTO;
 import com.behsa.medportal.service.mapper.FlowMapper;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,8 @@ import org.springframework.transaction.annotation.Transactional;
 class FlowResourceBpmnElementAccessIT {
 
     private static final String ENTITY_API_URL = "/api/flows";
+
+    private static final long OWNER_ID = 92001L;
 
     private static final String ALLOWED_MERGER_XML = """
         <?xml version="1.0" encoding="UTF-8"?>
@@ -119,21 +122,92 @@ class FlowResourceBpmnElementAccessIT {
 
         jdbcTemplate.execute(
             """
-            CREATE TABLE IF NOT EXISTS TBL_PRODUCT_BPMN_GROUP (
-                product_key BIGINT NOT NULL,
+            CREATE TABLE IF NOT EXISTS TBL_OWNER_BPMN_GROUP (
+                owner_key BIGINT NOT NULL,
                 group_key BIGINT NOT NULL,
-                PRIMARY KEY (product_key, group_key)
+                enabled INTEGER DEFAULT 1 NOT NULL,
+                PRIMARY KEY (owner_key, group_key)
+            )
+            """
+        );
+
+        jdbcTemplate.execute(
+            """
+            CREATE TABLE IF NOT EXISTS TBL_PORTAL_OWNER (
+                owner_key BIGINT NOT NULL PRIMARY KEY,
+                owner_code VARCHAR(50) NOT NULL,
+                owner_name VARCHAR(100) NOT NULL,
+                display_name VARCHAR(150) NOT NULL,
+                description VARCHAR(500),
+                enabled INTEGER DEFAULT 1 NOT NULL
+            )
+            """
+        );
+
+        jdbcTemplate.execute(
+            """
+            CREATE TABLE IF NOT EXISTS TBL_PORTAL_CONFIGURATION (
+                config_key BIGINT NOT NULL PRIMARY KEY,
+                active_owner_key BIGINT NOT NULL
             )
             """
         );
     }
 
-    @Test
-    void shouldCreateFlowWhenProductIsAllowedToUseBpmnElement() throws Exception {
-        ProductEntity product = saveProduct("MCI");
-        configureAllowedMerger(product);
+    @BeforeEach
+    void configureActiveOwner() {
+        jdbcTemplate.update(
+            "DELETE FROM TBL_PORTAL_CONFIGURATION WHERE config_key = ?",
+            1L
+        );
 
-        int databaseSizeBeforeCreate = flowRepository.findAll().size();
+        jdbcTemplate.update(
+            "DELETE FROM TBL_PORTAL_OWNER WHERE owner_key = ?",
+            OWNER_ID
+        );
+
+        jdbcTemplate.update(
+            """
+            INSERT INTO TBL_PORTAL_OWNER (
+                owner_key,
+                owner_code,
+                owner_name,
+                display_name,
+                description,
+                enabled
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            OWNER_ID,
+            "MEDIATION",
+            "Mediation",
+            "Mediation Portal",
+            "Flow BPMN Owner access integration test",
+            1
+        );
+
+        jdbcTemplate.update(
+            """
+            INSERT INTO TBL_PORTAL_CONFIGURATION (
+                config_key,
+                active_owner_key
+            )
+            VALUES (?, ?)
+            """,
+            1L,
+            OWNER_ID
+        );
+    }
+
+    @Test
+    void shouldCreateFlowWhenOwnerAllowsBpmnElement()
+        throws Exception {
+
+        ProductEntity product = saveProduct("MCI");
+        configureAllowedMerger();
+
+        int databaseSizeBeforeCreate =
+            flowRepository.findAll().size();
 
         FlowDTO flowDTO = newFlowDto(
             product,
@@ -145,7 +219,9 @@ class FlowResourceBpmnElementAccessIT {
             .perform(
                 post(ENTITY_API_URL)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(flowDTO))
+                    .content(
+                        TestUtil.convertObjectToJsonBytes(flowDTO)
+                    )
             )
             .andExpect(status().isCreated());
 
@@ -154,11 +230,14 @@ class FlowResourceBpmnElementAccessIT {
     }
 
     @Test
-    void shouldRejectFlowWhenProductCannotUseBpmnElement() throws Exception {
-        ProductEntity product = saveProduct("MCI");
-        configureAllowedMerger(product);
+    void shouldRejectFlowWhenOwnerCannotUseBpmnElement()
+        throws Exception {
 
-        int databaseSizeBeforeCreate = flowRepository.findAll().size();
+        ProductEntity product = saveProduct("MCI");
+        configureAllowedMerger();
+
+        int databaseSizeBeforeCreate =
+            flowRepository.findAll().size();
 
         FlowDTO flowDTO = newFlowDto(
             product,
@@ -170,7 +249,9 @@ class FlowResourceBpmnElementAccessIT {
             .perform(
                 post(ENTITY_API_URL)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(flowDTO))
+                    .content(
+                        TestUtil.convertObjectToJsonBytes(flowDTO)
+                    )
             )
             .andExpect(status().isBadRequest())
             .andExpect(
@@ -184,12 +265,17 @@ class FlowResourceBpmnElementAccessIT {
     }
 
     @Test
-    void shouldRejectFlowWhenProductIsMissing() throws Exception {
-        int databaseSizeBeforeCreate = flowRepository.findAll().size();
+    void shouldRejectFlowWhenRequiredProductIsMissing()
+        throws Exception {
+
+        int databaseSizeBeforeCreate =
+            flowRepository.findAll().size();
 
         FlowEntity flow = new FlowEntity();
         flow.setFlowName("NOP001");
-        flow.setFlowDesc("Product is intentionally missing");
+        flow.setFlowDesc(
+            "Product is intentionally missing domain data"
+        );
         flow.setFlow(ALLOWED_MERGER_XML);
 
         FlowDTO flowDTO = flowMapper.toDto(flow);
@@ -198,7 +284,9 @@ class FlowResourceBpmnElementAccessIT {
             .perform(
                 post(ENTITY_API_URL)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(flowDTO))
+                    .content(
+                        TestUtil.convertObjectToJsonBytes(flowDTO)
+                    )
             )
             .andExpect(status().isBadRequest())
             .andExpect(
@@ -215,7 +303,8 @@ class FlowResourceBpmnElementAccessIT {
     void shouldRejectMalformedBpmnXml() throws Exception {
         ProductEntity product = saveProduct("MCI");
 
-        int databaseSizeBeforeCreate = flowRepository.findAll().size();
+        int databaseSizeBeforeCreate =
+            flowRepository.findAll().size();
 
         FlowDTO flowDTO = newFlowDto(
             product,
@@ -227,7 +316,9 @@ class FlowResourceBpmnElementAccessIT {
             .perform(
                 post(ENTITY_API_URL)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(flowDTO))
+                    .content(
+                        TestUtil.convertObjectToJsonBytes(flowDTO)
+                    )
             )
             .andExpect(status().isBadRequest())
             .andExpect(
@@ -241,10 +332,13 @@ class FlowResourceBpmnElementAccessIT {
     }
 
     @Test
-    void shouldRejectBpmnXmlContainingDoctype() throws Exception {
+    void shouldRejectBpmnXmlContainingDoctype()
+        throws Exception {
+
         ProductEntity product = saveProduct("MCI");
 
-        int databaseSizeBeforeCreate = flowRepository.findAll().size();
+        int databaseSizeBeforeCreate =
+            flowRepository.findAll().size();
 
         FlowDTO flowDTO = newFlowDto(
             product,
@@ -256,7 +350,9 @@ class FlowResourceBpmnElementAccessIT {
             .perform(
                 post(ENTITY_API_URL)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(flowDTO))
+                    .content(
+                        TestUtil.convertObjectToJsonBytes(flowDTO)
+                    )
             )
             .andExpect(status().isBadRequest())
             .andExpect(
@@ -270,9 +366,11 @@ class FlowResourceBpmnElementAccessIT {
     }
 
     @Test
-    void shouldUpdateFlowWhenProductIsAllowedToUseBpmnElement() throws Exception {
+    void shouldUpdateFlowWhenOwnerAllowsBpmnElement()
+        throws Exception {
+
         ProductEntity product = saveProduct("MCI");
-        configureAllowedMerger(product);
+        configureAllowedMerger();
 
         FlowEntity existing = saveExistingFlow(
             product,
@@ -285,13 +383,19 @@ class FlowResourceBpmnElementAccessIT {
             "UPD001",
             ALLOWED_MERGER_XML
         );
+
         flowDTO.setId(existing.getId());
 
         mockMvc
             .perform(
-                put(ENTITY_API_URL + "/{id}", existing.getId())
+                put(
+                    ENTITY_API_URL + "/{id}",
+                    existing.getId()
+                )
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(flowDTO))
+                    .content(
+                        TestUtil.convertObjectToJsonBytes(flowDTO)
+                    )
             )
             .andExpect(status().isOk());
 
@@ -299,15 +403,22 @@ class FlowResourceBpmnElementAccessIT {
             .findById(existing.getId())
             .orElseThrow();
 
-        assertThat(updated.getFlowName()).isEqualTo("UPD001");
-        assertThat(updated.getFlow()).isEqualTo(ALLOWED_MERGER_XML);
-        assertThat(updated.getProduct().getId()).isEqualTo(product.getId());
+        assertThat(updated.getFlowName())
+            .isEqualTo("UPD001");
+
+        assertThat(updated.getFlow())
+            .isEqualTo(ALLOWED_MERGER_XML);
+
+        assertThat(updated.getProduct().getId())
+            .isEqualTo(product.getId());
     }
 
     @Test
-    void shouldRejectUpdateWhenProductCannotUseBpmnElement() throws Exception {
+    void shouldRejectUpdateWhenOwnerCannotUseBpmnElement()
+        throws Exception {
+
         ProductEntity product = saveProduct("MCI");
-        configureAllowedMerger(product);
+        configureAllowedMerger();
 
         FlowEntity existing = saveExistingFlow(
             product,
@@ -320,13 +431,19 @@ class FlowResourceBpmnElementAccessIT {
             "DEN002",
             DISALLOWED_KAFKA_XML
         );
+
         flowDTO.setId(existing.getId());
 
         mockMvc
             .perform(
-                put(ENTITY_API_URL + "/{id}", existing.getId())
+                put(
+                    ENTITY_API_URL + "/{id}",
+                    existing.getId()
+                )
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(flowDTO))
+                    .content(
+                        TestUtil.convertObjectToJsonBytes(flowDTO)
+                    )
             )
             .andExpect(status().isBadRequest())
             .andExpect(
@@ -339,14 +456,19 @@ class FlowResourceBpmnElementAccessIT {
             .findById(existing.getId())
             .orElseThrow();
 
-        assertThat(unchanged.getFlowName()).isEqualTo("OLD002");
-        assertThat(unchanged.getFlow()).isEqualTo(ALLOWED_MERGER_XML);
+        assertThat(unchanged.getFlowName())
+            .isEqualTo("OLD002");
+
+        assertThat(unchanged.getFlow())
+            .isEqualTo(ALLOWED_MERGER_XML);
     }
 
     @Test
-    void shouldRejectUpdateWhenProductIsMissing() throws Exception {
+    void shouldRejectUpdateWhenRequiredProductIsMissing()
+        throws Exception {
+
         ProductEntity product = saveProduct("MCI");
-        configureAllowedMerger(product);
+        configureAllowedMerger();
 
         FlowEntity existing = saveExistingFlow(
             product,
@@ -359,14 +481,20 @@ class FlowResourceBpmnElementAccessIT {
             "NOP002",
             ALLOWED_MERGER_XML
         );
+
         flowDTO.setId(existing.getId());
         flowDTO.setProduct(null);
 
         mockMvc
             .perform(
-                put(ENTITY_API_URL + "/{id}", existing.getId())
+                put(
+                    ENTITY_API_URL + "/{id}",
+                    existing.getId()
+                )
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(flowDTO))
+                    .content(
+                        TestUtil.convertObjectToJsonBytes(flowDTO)
+                    )
             )
             .andExpect(status().isBadRequest())
             .andExpect(
@@ -379,14 +507,19 @@ class FlowResourceBpmnElementAccessIT {
             .findById(existing.getId())
             .orElseThrow();
 
-        assertThat(unchanged.getFlowName()).isEqualTo("OLD003");
-        assertThat(unchanged.getFlow()).isEqualTo(ALLOWED_MERGER_XML);
+        assertThat(unchanged.getFlowName())
+            .isEqualTo("OLD003");
+
+        assertThat(unchanged.getFlow())
+            .isEqualTo(ALLOWED_MERGER_XML);
     }
 
     @Test
-    void shouldRejectPatchWhenOnlyXmlBecomesDisallowed() throws Exception {
+    void shouldRejectPatchWhenOnlyXmlBecomesDisallowed()
+        throws Exception {
+
         ProductEntity product = saveProduct("MCI");
-        configureAllowedMerger(product);
+        configureAllowedMerger();
 
         FlowEntity existing = saveExistingFlow(
             product,
@@ -400,9 +533,16 @@ class FlowResourceBpmnElementAccessIT {
 
         mockMvc
             .perform(
-                patch(ENTITY_API_URL + "/{id}", existing.getId())
-                    .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(patchDTO))
+                patch(
+                    ENTITY_API_URL + "/{id}",
+                    existing.getId()
+                )
+                    .contentType(
+                        "application/merge-patch+json"
+                    )
+                    .content(
+                        TestUtil.convertObjectToJsonBytes(patchDTO)
+                    )
             )
             .andExpect(status().isBadRequest())
             .andExpect(
@@ -415,26 +555,36 @@ class FlowResourceBpmnElementAccessIT {
             .findById(existing.getId())
             .orElseThrow();
 
-        assertThat(unchanged.getFlowName()).isEqualTo("PAT001");
-        assertThat(unchanged.getFlow()).isEqualTo(ALLOWED_MERGER_XML);
-        assertThat(unchanged.getProduct().getId()).isEqualTo(product.getId());
+        assertThat(unchanged.getFlowName())
+            .isEqualTo("PAT001");
+
+        assertThat(unchanged.getFlow())
+            .isEqualTo(ALLOWED_MERGER_XML);
+
+        assertThat(unchanged.getProduct().getId())
+            .isEqualTo(product.getId());
     }
 
     @Test
-    void shouldRejectPatchWhenOnlyProductCannotUseExistingXml() throws Exception {
-        ProductEntity allowedProduct = saveProduct("MCI");
-        configureAllowedMerger(allowedProduct);
+    void shouldAllowProductChangeWhenOwnerAllowsExistingXml()
+        throws Exception {
 
-        ProductEntity disallowedProduct = saveProduct("ALT");
+        ProductEntity originalProduct =
+            saveProduct("MCI");
+
+        ProductEntity alternateProduct =
+            saveProduct("ALT");
+
+        configureAllowedMerger();
 
         FlowEntity existing = saveExistingFlow(
-            allowedProduct,
+            originalProduct,
             "PAT002",
             ALLOWED_MERGER_XML
         );
 
         FlowDTO patchDTO = newFlowDto(
-            disallowedProduct,
+            alternateProduct,
             "TMP001",
             null
         );
@@ -445,32 +595,40 @@ class FlowResourceBpmnElementAccessIT {
 
         mockMvc
             .perform(
-                patch(ENTITY_API_URL + "/{id}", existing.getId())
-                    .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(patchDTO))
+                patch(
+                    ENTITY_API_URL + "/{id}",
+                    existing.getId()
+                )
+                    .contentType(
+                        "application/merge-patch+json"
+                    )
+                    .content(
+                        TestUtil.convertObjectToJsonBytes(patchDTO)
+                    )
             )
-            .andExpect(status().isBadRequest())
-            .andExpect(
-                jsonPath("$.message")
-                    .value("error.bpmnelementnotallowed")
-            )
-            .andExpect(jsonPath("$.params").value("flow"));
+            .andExpect(status().isOk());
 
-        FlowEntity unchanged = flowRepository
+        FlowEntity updated = flowRepository
             .findById(existing.getId())
             .orElseThrow();
 
-        assertThat(unchanged.getProduct().getId())
-            .isEqualTo(allowedProduct.getId());
+        /*
+         * Product changes as normal Flow domain data.
+         * The same Owner capability continues to authorize the XML.
+         */
+        assertThat(updated.getProduct().getId())
+            .isEqualTo(alternateProduct.getId());
 
-        assertThat(unchanged.getFlow())
+        assertThat(updated.getFlow())
             .isEqualTo(ALLOWED_MERGER_XML);
     }
 
     @Test
-    void shouldPatchUnrelatedFieldUsingExistingProductAndXml() throws Exception {
+    void shouldPatchUnrelatedFieldUsingCurrentOwnerAccess()
+        throws Exception {
+
         ProductEntity product = saveProduct("MCI");
-        configureAllowedMerger(product);
+        configureAllowedMerger();
 
         FlowEntity existing = saveExistingFlow(
             product,
@@ -480,13 +638,22 @@ class FlowResourceBpmnElementAccessIT {
 
         FlowDTO patchDTO = new FlowDTO();
         patchDTO.setId(existing.getId());
-        patchDTO.setFlowDesc("Updated description only");
+        patchDTO.setFlowDesc(
+            "Updated description only"
+        );
 
         mockMvc
             .perform(
-                patch(ENTITY_API_URL + "/{id}", existing.getId())
-                    .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(patchDTO))
+                patch(
+                    ENTITY_API_URL + "/{id}",
+                    existing.getId()
+                )
+                    .contentType(
+                        "application/merge-patch+json"
+                    )
+                    .content(
+                        TestUtil.convertObjectToJsonBytes(patchDTO)
+                    )
             )
             .andExpect(status().isOk());
 
@@ -506,6 +673,7 @@ class FlowResourceBpmnElementAccessIT {
         assertThat(updated.getProduct().getId())
             .isEqualTo(product.getId());
     }
+
     private FlowEntity saveExistingFlow(
         ProductEntity product,
         String flowName,
@@ -513,12 +681,15 @@ class FlowResourceBpmnElementAccessIT {
     ) {
         FlowEntity flow = new FlowEntity();
         flow.setFlowName(flowName);
-        flow.setFlowDesc("Existing BPMN access test flow");
+        flow.setFlowDesc(
+            "Existing BPMN Owner access test flow"
+        );
         flow.setFlow(xml);
         flow.setProduct(product);
 
         return flowRepository.saveAndFlush(flow);
     }
+
     private FlowDTO newFlowDto(
         ProductEntity product,
         String flowName,
@@ -526,31 +697,43 @@ class FlowResourceBpmnElementAccessIT {
     ) {
         FlowEntity flow = new FlowEntity();
         flow.setFlowName(flowName);
-        flow.setFlowDesc("BPMN element access integration test");
+        flow.setFlowDesc(
+            "BPMN Owner access integration test"
+        );
         flow.setFlow(xml);
         flow.setProduct(product);
 
         return flowMapper.toDto(flow);
     }
 
-    private ProductEntity saveProduct(String productName) {
-        ProductEntity product = new ProductEntity();
+    private ProductEntity saveProduct(
+        String productName
+    ) {
+        ProductEntity product =
+            new ProductEntity();
+
         product.setProductName(productName);
         product.setProductDesc(
-            "BPMN element access test product " + productName
+            "Flow domain product " + productName
         );
 
         return productRepository.saveAndFlush(product);
     }
 
-    private void configureAllowedMerger(ProductEntity product) {
-        BpmnElementGroupEntity group = new BpmnElementGroupEntity();
+    private void configureAllowedMerger() {
+        BpmnElementGroupEntity group =
+            new BpmnElementGroupEntity();
+
         group.setGroupCode("FILE_PROCESSING");
         group.setGroupName("File Processing");
         group.setEnabled(1);
-        group = bpmnElementGroupRepository.saveAndFlush(group);
 
-        BpmnElementEntity merger = new BpmnElementEntity();
+        group =
+            bpmnElementGroupRepository.saveAndFlush(group);
+
+        BpmnElementEntity merger =
+            new BpmnElementEntity();
+
         merger.setElementCode("MERGER");
         merger.setBpmnType("Merger:Merger");
         merger.setNamespaceUri("Merger");
@@ -559,18 +742,22 @@ class FlowResourceBpmnElementAccessIT {
         merger.setDisplayName("Merger");
         merger.setEnabled(1);
         merger.setSortOrder(10);
-        merger = bpmnElementRepository.saveAndFlush(merger);
+
+        merger =
+            bpmnElementRepository.saveAndFlush(merger);
 
         jdbcTemplate.update(
             """
-            INSERT INTO TBL_PRODUCT_BPMN_GROUP (
-                product_key,
-                group_key
+            INSERT INTO TBL_OWNER_BPMN_GROUP (
+                owner_key,
+                group_key,
+                enabled
             )
-            VALUES (?, ?)
+            VALUES (?, ?, ?)
             """,
-            product.getId(),
-            group.getId()
+            OWNER_ID,
+            group.getId(),
+            1
         );
 
         jdbcTemplate.update(

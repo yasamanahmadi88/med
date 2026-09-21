@@ -12,7 +12,7 @@ import { BpmnElementAccessService } from '../../services/bpmn-element-access.ser
 /**
  * Flow-aware host for the BPMN editor.
  *
- * A product is resolved before the modeler exists.  Its Product -> Group -> Element policy is
+ * The active Portal Owner is resolved before the modeler exists.  Its Owner -> Group -> Element policy is
  * loaded first and DesignerComponent consumes that already-loaded snapshot while constructing
  * bpmn-js.  There is deliberately no unscoped editor fallback.
  */
@@ -47,15 +47,7 @@ export class FlowBpmnEditorComponent implements OnInit, OnDestroy, BpmnEditorHos
       return;
     }
 
-    const rawProductId = this.route.snapshot.queryParams['productId'];
-    const productId = Number(rawProductId);
-
-    if (rawProductId == null || rawProductId === '' || !Number.isFinite(productId) || productId <= 0) {
-      this.accessError = 'Select a product before opening the BPMN editor.';
-      return;
-    }
-
-    this.loadAccessAndSeed(productId, this.flowService.xmlTemp);
+    this.loadAccessAndSeed(this.flowService.xmlTemp);
   }
 
   ngOnDestroy(): void {
@@ -65,12 +57,22 @@ export class FlowBpmnEditorComponent implements OnInit, OnDestroy, BpmnEditorHos
 
   save(xml: string): void {
     this.saveError = null;
+    try {
+      if (this.elementAccessService.findDisallowedXmlElements(xml).length > 0) {
+        this.saveError = 'Adding elements not permitted for this portal Owner is not allowed.';
+        return;
+      }
+    } catch {
+      this.saveError = 'The BPMN XML is invalid.';
+      return;
+    }
+
     if (this.flow) {
       const updated: IFlow = { ...this.flow, flow: xml };
       this.flowService.update(updated).subscribe({
         next: () => window.history.back(),
         error: () => {
-          this.saveError = 'The BPMN diagram could not be saved. Check product element permissions and try again.';
+          this.saveError = 'The BPMN diagram could not be saved. Check BPMN element permissions and try again.';
         },
       });
       return;
@@ -92,12 +94,7 @@ export class FlowBpmnEditorComponent implements OnInit, OnDestroy, BpmnEditorHos
     this.flowService.find(flowId).subscribe({
       next: res => {
         this.flow = res.body;
-        const productId = this.flow?.product?.id;
-        if (productId == null) {
-          this.accessError = 'This flow has no product; BPMN element permissions cannot be resolved.';
-          return;
-        }
-        this.loadAccessAndSeed(productId, this.flow?.flow);
+        this.loadAccessAndSeed(this.flow?.flow);
       },
       error: () => {
         this.accessError = 'The flow could not be loaded.';
@@ -105,14 +102,17 @@ export class FlowBpmnEditorComponent implements OnInit, OnDestroy, BpmnEditorHos
     });
   }
 
-  private loadAccessAndSeed(productId: number, xml: string | null | undefined): void {
-    this.elementAccessService.loadForProduct(productId).subscribe({
+  private loadAccessAndSeed(xml: string | null | undefined): void {
+    this.elementAccessService.loadCurrent().subscribe({
       next: () => {
         if (xml?.trim()) {
           try {
+            // Only the server-loaded flow is a legacy baseline. A draft has no persisted legacy
+            // instances, so imported or pasted CDR/CSV elements remain creation attempts.
+            this.elementAccessService.setPersistedDiagram(this.flow?.flow);
             const disallowed = this.elementAccessService.findDisallowedXmlElements(xml);
             if (disallowed.length > 0) {
-              this.accessError = `This diagram contains ${disallowed.length} BPMN element type(s) that are not allowed for the selected product.`;
+              this.accessError = `This diagram contains ${disallowed.length} BPMN element type(s) that are not allowed for the active portal Owner.`;
               return;
             }
           } catch {
@@ -123,7 +123,7 @@ export class FlowBpmnEditorComponent implements OnInit, OnDestroy, BpmnEditorHos
         this.seed(xml);
       },
       error: () => {
-        this.accessError = 'BPMN element permissions could not be loaded for the selected product.';
+        this.accessError = 'BPMN element permissions could not be loaded for the active portal Owner.';
       },
     });
   }

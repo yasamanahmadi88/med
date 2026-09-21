@@ -303,7 +303,7 @@ class EnhancementPaletteProvider extends PaletteProvider {
 
     for (const [entryId, type] of Object.entries(elementTypesByEntry)) {
       if (!isBpmnTypeAllowed(this.elementAccess, type)) {
-        delete (actions as Record<string, unknown>)[entryId];
+        Reflect.deleteProperty(actions, entryId);
       }
     }
 

@@ -37,9 +37,7 @@ describe('ElementAccessReplaceMenuFilter', () => {
     allowedXmlElements: [],
   };
 
-  function createFilter(
-    config: BpmnElementAccessConfig,
-  ): {
+  function createFilter(config: BpmnElementAccessConfig): {
     filter: ElementAccessReplaceMenuFilter;
     popupMenu: PopupMenuStub;
   } {
@@ -87,11 +85,7 @@ describe('ElementAccessReplaceMenuFilter', () => {
       'replace-with-exclusive-gateway': {},
     });
 
-    expect(Object.keys(result)).toEqual([
-      'replace-with-none-start',
-      'replace-with-message-start',
-      'replace-with-timer-start',
-    ]);
+    expect(Object.keys(result)).toEqual(['replace-with-none-start', 'replace-with-message-start', 'replace-with-timer-start']);
   });
 
   it('preserves the three stock sequence-flow mutations without allowing BPMN destinations', () => {
@@ -108,11 +102,7 @@ describe('ElementAccessReplaceMenuFilter', () => {
       'replace-with-task': {},
     });
 
-    expect(Object.keys(result)).toEqual([
-      'replace-with-sequence-flow',
-      'replace-with-default-flow',
-      'replace-with-conditional-flow',
-    ]);
+    expect(Object.keys(result)).toEqual(['replace-with-sequence-flow', 'replace-with-default-flow', 'replace-with-conditional-flow']);
   });
 
   it('fails closed for an unknown body entry', () => {
@@ -140,8 +130,6 @@ describe('ElementAccessReplaceMenuFilter', () => {
       'unknown-third-party-replace-action': {},
     };
 
-    expect(filter.getEntries()(entries)).toEqual(
-      filter.getPopupMenuEntries()(entries),
-    );
+    expect(filter.getEntries()(entries)).toEqual(filter.getPopupMenuEntries()(entries));
   });
 });

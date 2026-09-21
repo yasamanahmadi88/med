@@ -85,11 +85,20 @@ class OracleLiquibaseSchemaIT {
         assertThat(tableExists("TBL_VERSIONS")).isTrue();
         assertThat(tableExists("TBL_INSTANCES")).isTrue();
         assertThat(tableExists("TBL_LOGS")).isTrue();
+        assertThat(tableExists("TBL_BPMN_ELEMENT_GROUP")).isTrue();
+        assertThat(tableExists("TBL_BPMN_ELEMENT")).isTrue();
+        assertThat(tableExists("TBL_BPMN_GROUP_ELEMENT")).isTrue();
+        assertThat(tableExists("TBL_PORTAL_OWNER")).isTrue();
+        assertThat(tableExists("TBL_PORTAL_CONFIGURATION")).isTrue();
+        assertThat(tableExists("TBL_OWNER_BPMN_GROUP")).isTrue();
 
         assertThat(sequenceExists("USER_SEQ")).isTrue();
         assertThat(sequenceExists("AUTH_SEQ")).isTrue();
         assertThat(sequenceExists("RESRC_SEQ")).isTrue();
         assertThat(sequenceExists("RES_AUTH_SEQ")).isTrue();
+        assertThat(sequenceExists("BPMN_ELEMENT_GROUPS_SEQ")).isTrue();
+        assertThat(sequenceExists("BPMN_ELEMENTS_SEQ")).isTrue();
+        assertThat(sequenceExists("PORTAL_OWNER_SEQ")).isTrue();
 
         assertThat(authorityRepository.findByName("ROLE_USER")).isPresent();
         assertThat(authorityRepository.findByName("ROLE_ADMIN")).isPresent();
@@ -103,6 +112,78 @@ class OracleLiquibaseSchemaIT {
         );
         assertThat(liquibaseItUsers).isEqualTo(1);
         assertThat(userRepository.findOneByLogin("liquibaseit")).isPresent();
+    }
+
+    @Test
+    void activeMediationOwnerHasVueParityBpmnCapabilities() {
+        Integer activeMediationOwners = jdbcTemplate.queryForObject(
+            """
+            SELECT COUNT(*)
+              FROM TBL_PORTAL_CONFIGURATION c
+              JOIN TBL_PORTAL_OWNER o
+                ON o.owner_key = c.active_owner_key
+             WHERE c.config_key = 1
+               AND UPPER(o.owner_code) = 'MEDIATION'
+               AND o.enabled = 1
+            """,
+            Integer.class
+        );
+        assertThat(activeMediationOwners).isEqualTo(1);
+
+        List<String> ownerGroups = jdbcTemplate.queryForList(
+            """
+            SELECT g.group_code
+              FROM TBL_PORTAL_CONFIGURATION c
+              JOIN TBL_PORTAL_OWNER o
+                ON o.owner_key = c.active_owner_key
+              JOIN TBL_OWNER_BPMN_GROUP og
+                ON og.owner_key = o.owner_key
+              JOIN TBL_BPMN_ELEMENT_GROUP g
+                ON g.group_key = og.group_key
+             WHERE c.config_key = 1
+               AND o.enabled = 1
+               AND og.enabled = 1
+               AND g.enabled = 1
+             ORDER BY g.group_code
+            """,
+            String.class
+        );
+        assertThat(ownerGroups).containsExactly("CORE_BPMN", "FILE_PROCESSING");
+
+        List<String> elementCodes = jdbcTemplate.query(
+            """
+            SELECT DISTINCT e.element_code, e.sort_order
+              FROM TBL_PORTAL_CONFIGURATION c
+              JOIN TBL_PORTAL_OWNER o
+                ON o.owner_key = c.active_owner_key
+              JOIN TBL_OWNER_BPMN_GROUP og
+                ON og.owner_key = o.owner_key
+              JOIN TBL_BPMN_ELEMENT_GROUP g
+                ON g.group_key = og.group_key
+              JOIN TBL_BPMN_GROUP_ELEMENT ge
+                ON ge.group_key = g.group_key
+              JOIN TBL_BPMN_ELEMENT e
+                ON e.element_key = ge.element_key
+             WHERE c.config_key = 1
+               AND o.enabled = 1
+               AND og.enabled = 1
+               AND g.enabled = 1
+               AND ge.enabled = 1
+               AND e.enabled = 1
+             ORDER BY e.sort_order, e.element_code
+            """,
+            (rs, rowNum) -> rs.getString("element_code")
+        );
+        assertThat(elementCodes).containsExactly(
+            "BPMN_START_EVENT",
+            "BPMN_END_EVENT",
+            "MERGER",
+            "FRAGMENTER",
+            "FILE_RECEIVER",
+            "FILE_TRANSMITTER",
+            "CDR_PARSER",
+            "CSV_TRANSFORMER"
+        );
     }
 
     @Test

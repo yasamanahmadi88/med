@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+      Portal Owner model.
+
+      Security invariant:
+      - Owner belongs to the portal installation, not to a user, role or Product.
+      - Browser input must never select the active Owner.
+      - Missing or disabled Owner configuration must fail closed.
+      - BPMN capability is resolved only from the active Owner.
+    -->
+
+    <changeSet id="20260918-01-portal-owner-seq" author="upgrade">
+        <preConditions onFail="HALT" onError="HALT">
+            <not>
+                <sequenceExists sequenceName="PORTAL_OWNER_SEQ"/>
+            </not>
+        </preConditions>
+
+        <createSequence
+            sequenceName="PORTAL_OWNER_SEQ"
+            startValue="1000"
+            incrementBy="1"/>
+    </changeSet>
+
+    <changeSet id="20260918-02-portal-owner" author="upgrade">
+        <preConditions onFail="HALT" onError="HALT">
+            <not>
+                <tableExists tableName="TBL_PORTAL_OWNER"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="TBL_PORTAL_OWNER">
+            <column name="owner_key" type="bigint">
+                <constraints
+                    primaryKey="true"
+                    primaryKeyName="pk_portal_owner"
+                    nullable="false"/>
+            </column>
+
+            <column name="owner_code" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="owner_name" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="display_name" type="varchar(150)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="description" type="varchar(500)"/>
+
+            <column
+                name="enabled"
+                type="integer"
+                defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint
+            tableName="TBL_PORTAL_OWNER"
+            columnNames="owner_code"
+            constraintName="uk_portal_owner_code"/>
+    </changeSet>
+
+    <changeSet id="20260918-03-portal-configuration" author="upgrade">
+        <preConditions onFail="HALT" onError="HALT">
+            <not>
+                <tableExists tableName="TBL_PORTAL_CONFIGURATION"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="TBL_PORTAL_CONFIGURATION">
+            <column name="config_key" type="bigint">
+                <constraints
+                    primaryKey="true"
+                    primaryKeyName="pk_portal_configuration"
+                    nullable="false"/>
+            </column>
+
+            <column name="active_owner_key" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+            baseTableName="TBL_PORTAL_CONFIGURATION"
+            baseColumnNames="active_owner_key"
+            referencedTableName="TBL_PORTAL_OWNER"
+            referencedColumnNames="owner_key"
+            constraintName="fk_portal_config_owner"/>
+
+        <createIndex
+            tableName="TBL_PORTAL_CONFIGURATION"
+            indexName="idx_portal_config_owner">
+            <column name="active_owner_key"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260918-04-owner-bpmn-group" author="upgrade">
+        <preConditions onFail="HALT" onError="HALT">
+            <not>
+                <tableExists tableName="TBL_OWNER_BPMN_GROUP"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="TBL_OWNER_BPMN_GROUP">
+            <column name="owner_key" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="group_key" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+
+            <column
+                name="enabled"
+                type="integer"
+                defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey
+            tableName="TBL_OWNER_BPMN_GROUP"
+            columnNames="owner_key,group_key"
+            constraintName="pk_owner_bpmn_group"/>
+
+        <addForeignKeyConstraint
+            baseTableName="TBL_OWNER_BPMN_GROUP"
+            baseColumnNames="owner_key"
+            referencedTableName="TBL_PORTAL_OWNER"
+            referencedColumnNames="owner_key"
+            constraintName="fk_owner_bpmn_group_owner"/>
+
+        <addForeignKeyConstraint
+            baseTableName="TBL_OWNER_BPMN_GROUP"
+            baseColumnNames="group_key"
+            referencedTableName="TBL_BPMN_ELEMENT_GROUP"
+            referencedColumnNames="group_key"
+            constraintName="fk_owner_bpmn_group_group"/>
+
+        <createIndex
+            tableName="TBL_OWNER_BPMN_GROUP"
+            indexName="idx_owner_bpmn_group_group">
+            <column name="group_key"/>
+        </createIndex>
+    </changeSet>
+
+    <!--
+      Seed MEDIATION only when it does not already exist.
+      If an installation already contains MEDIATION, that row is preserved.
+    -->
+    <changeSet id="20260918-05-seed-mediation-owner" author="upgrade">
+        <preConditions onFail="MARK_RAN" onError="HALT">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                  FROM TBL_PORTAL_OWNER
+                 WHERE UPPER(owner_code) = 'MEDIATION'
+            </sqlCheck>
+        </preConditions>
+
+        <insert tableName="TBL_PORTAL_OWNER">
+            <column
+                name="owner_key"
+                valueSequenceNext="PORTAL_OWNER_SEQ"/>
+            <column
+                name="owner_code"
+                value="MEDIATION"/>
+            <column
+                name="owner_name"
+                value="Mediation"/>
+            <column
+                name="display_name"
+                value="Mediation Portal"/>
+            <column
+                name="description"
+                value="Portal owner for the Mediation deployment"/>
+            <column
+                name="enabled"
+                valueNumeric="1"/>
+        </insert>
+    </changeSet>
+
+    <!--
+      Before activating MEDIATION, require exactly one enabled matching Owner.
+      HALT is intentional: ambiguous or disabled Owner configuration is unsafe.
+    -->
+    <changeSet id="20260918-06-active-owner" author="upgrade">
+        <preConditions onFail="HALT" onError="HALT">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*)
+                  FROM TBL_PORTAL_OWNER
+                 WHERE UPPER(owner_code) = 'MEDIATION'
+                   AND enabled = 1
+            </sqlCheck>
+        </preConditions>
+
+        <sql>
+            MERGE INTO TBL_PORTAL_CONFIGURATION c
+            USING (
+                SELECT owner_key
+                  FROM TBL_PORTAL_OWNER
+                 WHERE UPPER(owner_code) = 'MEDIATION'
+                   AND enabled = 1
+            ) o
+               ON (c.config_key = 1)
+            WHEN MATCHED THEN
+                UPDATE SET c.active_owner_key = o.owner_key
+            WHEN NOT MATCHED THEN
+                INSERT (config_key, active_owner_key)
+                VALUES (1, o.owner_key)
+        </sql>
+    </changeSet>
+
+    <!--
+      FILE_PROCESSING must already exist from the preceding BPMN access migration.
+      Absence or duplication is a deployment/configuration error.
+    -->
+    <changeSet id="20260918-07-mediation-file-processing" author="upgrade">
+        <preConditions onFail="HALT" onError="HALT">
+            <and>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*)
+                      FROM TBL_PORTAL_OWNER
+                     WHERE UPPER(owner_code) = 'MEDIATION'
+                       AND enabled = 1
+                </sqlCheck>
+
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*)
+                      FROM TBL_BPMN_ELEMENT_GROUP
+                     WHERE group_code = 'FILE_PROCESSING'
+                       AND enabled = 1
+                </sqlCheck>
+            </and>
+        </preConditions>
+
+        <sql>
+            MERGE INTO TBL_OWNER_BPMN_GROUP og
+            USING (
+                SELECT
+                    o.owner_key,
+                    g.group_key
+                FROM TBL_PORTAL_OWNER o
+                CROSS JOIN TBL_BPMN_ELEMENT_GROUP g
+                WHERE UPPER(o.owner_code) = 'MEDIATION'
+                  AND o.enabled = 1
+                  AND g.group_code = 'FILE_PROCESSING'
+                  AND g.enabled = 1
+            ) src
+               ON (
+                    og.owner_key = src.owner_key
+                AND og.group_key = src.group_key
+               )
+            WHEN MATCHED THEN
+                UPDATE SET og.enabled = 1
+            WHEN NOT MATCHED THEN
+                INSERT (owner_key, group_key, enabled)
+                VALUES (src.owner_key, src.group_key, 1)
+        </sql>
+    </changeSet>
+
+    <!--
+      CORE_BPMN contains the Start and End events exposed by the Vue-parity palette.
+      Keep this in a separate changeSet so installations that already executed
+      20260918-07 receive the missing capability without changing its checksum.
+    -->
+    <changeSet id="20260918-08-mediation-core-bpmn" author="upgrade">
+        <preConditions onFail="HALT" onError="HALT">
+            <and>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*)
+                      FROM TBL_PORTAL_OWNER
+                     WHERE UPPER(owner_code) = 'MEDIATION'
+                       AND enabled = 1
+                </sqlCheck>
+
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*)
+                      FROM TBL_BPMN_ELEMENT_GROUP
+                     WHERE group_code = 'CORE_BPMN'
+                       AND enabled = 1
+                </sqlCheck>
+            </and>
+        </preConditions>
+
+        <sql>
+            MERGE INTO TBL_OWNER_BPMN_GROUP og
+            USING (
+                SELECT
+                    o.owner_key,
+                    g.group_key
+                FROM TBL_PORTAL_OWNER o
+                CROSS JOIN TBL_BPMN_ELEMENT_GROUP g
+                WHERE UPPER(o.owner_code) = 'MEDIATION'
+                  AND o.enabled = 1
+                  AND g.group_code = 'CORE_BPMN'
+                  AND g.enabled = 1
+            ) src
+               ON (
+                    og.owner_key = src.owner_key
+                AND og.group_key = src.group_key
+               )
+            WHEN MATCHED THEN
+                UPDATE SET og.enabled = 1
+            WHEN NOT MATCHED THEN
+                INSERT (owner_key, group_key, enabled)
+                VALUES (src.owner_key, src.group_key, 1)
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

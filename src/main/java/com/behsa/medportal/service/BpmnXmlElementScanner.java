@@ -1,7 +1,10 @@
 package com.behsa.medportal.service;
 
-import java.io.StringReader;
+import java.io.Reader;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -38,9 +41,43 @@ public class BpmnXmlElementScanner {
 
         try {
             DocumentBuilderFactory factory = secureDocumentBuilderFactory();
-            Document document = factory.newDocumentBuilder().parse(new InputSource(new StringReader(xml)));
+            Document document = factory.newDocumentBuilder().parse(new InputSource(Reader.of(xml)));
             Set<XmlElementKey> result = new LinkedHashSet<>();
             collect(document.getDocumentElement(), result);
+            return result;
+        } catch (Exception exception) {
+            throw new IllegalArgumentException("Invalid or unsafe BPMN XML", exception);
+        }
+    }
+
+    /**
+     * Returns access-controlled element instances keyed by BPMN id. Identity is namespace URI +
+     * local name, never the caller-controlled XML prefix.
+     */
+    public Map<String, XmlElementKey> scanInstances(String xml) {
+        if (xml == null || xml.isBlank()) {
+            return Map.of();
+        }
+
+        try {
+            Document document = secureDocumentBuilderFactory().newDocumentBuilder().parse(new InputSource(Reader.of(xml)));
+            Map<String, XmlElementKey> result = new LinkedHashMap<>();
+            Set<String> ids = new HashSet<>();
+            NodeList nodes = document.getElementsByTagNameNS("*", "*");
+
+            for (int i = 0; i < nodes.getLength(); i++) {
+                Element element = (Element) nodes.item(i);
+                String id = element.getAttribute("id");
+                if (!id.isBlank() && !ids.add(id)) {
+                    throw new IllegalArgumentException("Duplicate BPMN id");
+                }
+                if (element.getParentNode() instanceof Element parent && isAccessControlledChild(parent, element)) {
+                    if (id.isBlank()) {
+                        throw new IllegalArgumentException("Missing BPMN element id");
+                    }
+                    result.put(id, new XmlElementKey(normalize(element.getNamespaceURI()), localName(element)));
+                }
+            }
             return result;
         } catch (Exception exception) {
             throw new IllegalArgumentException("Invalid or unsafe BPMN XML", exception);

@@ -43,7 +43,7 @@ describe('ElementAccessPaletteFilter', () => {
     return filter;
   }
 
-  it('keeps the four generic tools and exactly the six MCI business creation entries', () => {
+  it('hides CDR and CSV even when stale access data still allows their creation actions', () => {
     const filter = createFilter(mciConfig);
 
     const entries: Record<string, unknown> = {
@@ -83,8 +83,6 @@ describe('ElementAccessPaletteFilter', () => {
       'create.fragmenter-module',
       'create.fileReceiver-module',
       'create.FileTransmitter-module',
-      'create.cdrParser-module',
-      'create.csvTransformerCorner-module',
     ]);
   });
 
@@ -107,13 +105,7 @@ describe('ElementAccessPaletteFilter', () => {
       'create.KafkaReceiver-module': {},
     });
 
-    expect(Object.keys(result)).toEqual([
-      'hand-tool',
-      'lasso-tool',
-      'space-tool',
-      'global-connect-tool',
-      'tool-separator',
-    ]);
+    expect(Object.keys(result)).toEqual(['hand-tool', 'lasso-tool', 'space-tool', 'global-connect-tool', 'tool-separator']);
   });
 
   it('matches palette action ids exactly including case', () => {
@@ -140,10 +132,7 @@ describe('ElementAccessPaletteFilter', () => {
       'create.merger-module': {},
     });
 
-    expect(Object.keys(allowedResult)).toEqual([
-      'hand-tool',
-      'create.custom-icon-101',
-    ]);
+    expect(Object.keys(allowedResult)).toEqual(['hand-tool', 'create.custom-icon-101']);
 
     const deniedFilter = createFilter({
       allowedTypes: [],

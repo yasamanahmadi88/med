@@ -498,9 +498,7 @@ describe('ToolbarComponent', () => {
 
       component.onImport();
 
-      const inputCallIndex = createElement.mock.calls.findIndex(
-        args => args[0] === 'input',
-      );
+      const inputCallIndex = createElement.mock.calls.findIndex(args => args[0] === 'input');
 
       if (inputCallIndex < 0) {
         createElement.mockRestore();
@@ -533,9 +531,7 @@ describe('ToolbarComponent', () => {
       const xml = '<definitions />';
       service.setProcessXml('<old-diagram />');
 
-      const guard = vi
-        .spyOn(elementAccessService, 'findDisallowedXmlElements')
-        .mockReturnValue([]);
+      const guard = vi.spyOn(elementAccessService, 'findDisallowedXmlElements').mockReturnValue([]);
 
       let resolveImport: (() => void) | undefined;
 
@@ -569,18 +565,14 @@ describe('ToolbarComponent', () => {
       const xml = '<definitions><startEvent /></definitions>';
       service.setProcessXml('<old-diagram />');
 
-      const guard = vi
-        .spyOn(elementAccessService, 'findDisallowedXmlElements')
-        .mockReturnValue([
-          {
-            namespaceUri: 'http://www.omg.org/spec/BPMN/20100524/MODEL',
-            localName: 'startEvent',
-          },
-        ]);
+      const guard = vi.spyOn(elementAccessService, 'findDisallowedXmlElements').mockReturnValue([
+        {
+          namespaceUri: 'http://www.omg.org/spec/BPMN/20100524/MODEL',
+          localName: 'startEvent',
+        },
+      ]);
 
-      const toastrError = vi
-        .spyOn(toastr, 'error')
-        .mockImplementation(() => undefined as any);
+      const toastrError = vi.spyOn(toastr, 'error').mockImplementation(() => undefined);
 
       selectImportFile(xml);
 
@@ -591,9 +583,7 @@ describe('ToolbarComponent', () => {
       expect(modeler.importXML).not.toHaveBeenCalled();
       expect(service.getProcessXml()).toBe('<old-diagram />');
 
-      expect(toastrError).toHaveBeenCalledWith(
-        'The imported BPMN contains 1 element type(s) not allowed for this product.',
-      );
+      expect(toastrError).toHaveBeenCalledWith('The imported BPMN contains 1 element type(s) not allowed for the active portal owner.');
     });
 
     it('rejects malformed or unsafe imported XML before modeler import', async () => {
@@ -602,15 +592,11 @@ describe('ToolbarComponent', () => {
       const xml = '<!DOCTYPE definitions><definitions />';
       service.setProcessXml('<old-diagram />');
 
-      const guard = vi
-        .spyOn(elementAccessService, 'findDisallowedXmlElements')
-        .mockImplementation(() => {
-          throw new Error('Invalid or unsafe BPMN XML');
-        });
+      const guard = vi.spyOn(elementAccessService, 'findDisallowedXmlElements').mockImplementation(() => {
+        throw new Error('Invalid or unsafe BPMN XML');
+      });
 
-      const toastrError = vi
-        .spyOn(toastr, 'error')
-        .mockImplementation(() => undefined as any);
+      const toastrError = vi.spyOn(toastr, 'error').mockImplementation(() => undefined);
 
       selectImportFile(xml);
 
@@ -621,18 +607,13 @@ describe('ToolbarComponent', () => {
       expect(modeler.importXML).not.toHaveBeenCalled();
       expect(service.getProcessXml()).toBe('<old-diagram />');
 
-      expect(toastrError).toHaveBeenCalledWith(
-        'The selected file is not valid BPMN XML.',
-      );
+      expect(toastrError).toHaveBeenCalledWith('The selected file is not valid BPMN XML.');
     });
 
     it('does not scan or import a selected file when no modeler exists', async () => {
       const xml = '<definitions />';
 
-      const guard = vi.spyOn(
-        elementAccessService,
-        'findDisallowedXmlElements',
-      );
+      const guard = vi.spyOn(elementAccessService, 'findDisallowedXmlElements');
 
       selectImportFile(xml);
 

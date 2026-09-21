@@ -2,15 +2,17 @@ package com.behsa.medportal.web.rest;
 
 import com.behsa.medportal.service.BpmnElementAccessService;
 import com.behsa.medportal.service.dto.BpmnElementAccessDTO;
-import com.behsa.medportal.web.rest.errors.BadRequestAlertException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Read-only API used by the BPMN editor to resolve element visibility for a product. */
+/**
+ * Read-only BPMN capability API for the server-resolved active portal Owner.
+ *
+ * No Product or Owner selector is accepted from the browser.
+ */
 @RestController
 @RequestMapping("/api/bpmn-element-access")
 public class BpmnElementAccessResource {
@@ -19,17 +21,17 @@ public class BpmnElementAccessResource {
 
     private final BpmnElementAccessService bpmnElementAccessService;
 
-    public BpmnElementAccessResource(BpmnElementAccessService bpmnElementAccessService) {
+    public BpmnElementAccessResource(
+        BpmnElementAccessService bpmnElementAccessService
+    ) {
         this.bpmnElementAccessService = bpmnElementAccessService;
     }
 
-    @GetMapping("/products/{productId}")
+    @GetMapping("/current")
     @Secured(ENTITY_NAME)
-    public ResponseEntity<BpmnElementAccessDTO> getProductAccess(@PathVariable Long productId) {
-        try {
-            return ResponseEntity.ok(bpmnElementAccessService.getAccess(productId));
-        } catch (IllegalArgumentException exception) {
-            throw new BadRequestAlertException(exception.getMessage(), ENTITY_NAME, "productnotfound");
-        }
+    public ResponseEntity<BpmnElementAccessDTO> getCurrentAccess() {
+        return ResponseEntity.ok(
+            bpmnElementAccessService.getCurrentAccess()
+        );
     }
 }

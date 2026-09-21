@@ -14,12 +14,14 @@ public interface BpmnElementGroupRepository extends JpaRepository<BpmnElementGro
         value = """
             SELECT DISTINCT g.*
               FROM TBL_BPMN_ELEMENT_GROUP g
-              JOIN TBL_PRODUCT_BPMN_GROUP pg ON pg.group_key = g.group_key
-             WHERE pg.product_key = :productId
+              JOIN TBL_OWNER_BPMN_GROUP og
+                ON og.group_key = g.group_key
+             WHERE og.owner_key = :ownerId
+               AND og.enabled = 1
                AND g.enabled = 1
-             ORDER BY g.group_code
+             ORDER BY g.group_key
             """,
         nativeQuery = true
     )
-    List<BpmnElementGroupEntity> findEnabledByProductId(@Param("productId") Long productId);
+    List<BpmnElementGroupEntity> findEnabledByOwnerId(@Param("ownerId") Long ownerId);
 }

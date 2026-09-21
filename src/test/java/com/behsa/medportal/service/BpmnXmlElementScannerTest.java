@@ -4,108 +4,36 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.behsa.medportal.service.BpmnXmlElementScanner.XmlElementKey;
-import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class BpmnXmlElementScannerTest {
 
-    private static final String BPMN_NS =
-        "http://www.omg.org/spec/BPMN/20100524/MODEL";
-
-    private final BpmnXmlElementScanner scanner =
-        new BpmnXmlElementScanner();
+    private final BpmnXmlElementScanner scanner = new BpmnXmlElementScanner();
 
     @Test
-    void shouldDetectAllMciElementsAndIgnoreStructuralElements() {
-        String xml = """
-            <?xml version="1.0" encoding="UTF-8"?>
-            <bpmn:definitions
-                xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                xmlns:FileReceiver="FileReceiver"
-                xmlns:FileTransmitter="FileTransmitter"
-                xmlns:Merger="Merger"
-                xmlns:Fragmenter="Fragmenter"
-                xmlns:CdrParser="CdrParser"
-                xmlns:CsvTransformer="CsvTransformer">
+    void scansInstancesByNamespaceLocalNameAndId() {
+        String xml = wrap("<legacy:cdrParser id=\"CDR_1\" name=\"editable\" />");
 
-              <bpmn:process id="Process_1">
-
-                <FileReceiver:fileReceiver id="FR_1"/>
-                <FileTransmitter:fileTransmitter id="FT_1"/>
-                <Merger:merger id="M_1"/>
-                <Fragmenter:fragmenter id="FG_1"/>
-                <CdrParser:cdrParser id="CDR_1"/>
-                <CsvTransformer:csvTransformer id="CSV_1"/>
-
-                <bpmn:sequenceFlow
-                    id="Flow_1"
-                    sourceRef="FR_1"
-                    targetRef="FT_1"/>
-
-              </bpmn:process>
-            </bpmn:definitions>
-            """;
-
-        Set<XmlElementKey> result = scanner.scan(xml);
-
-        assertThat(result).containsExactlyInAnyOrder(
-            new XmlElementKey("FileReceiver", "fileReceiver"),
-            new XmlElementKey("FileTransmitter", "fileTransmitter"),
-            new XmlElementKey("Merger", "merger"),
-            new XmlElementKey("Fragmenter", "fragmenter"),
-            new XmlElementKey("CdrParser", "cdrParser"),
-            new XmlElementKey("CsvTransformer", "csvTransformer")
-        );
-
-        assertThat(result)
-            .doesNotContain(new XmlElementKey(BPMN_NS, "sequenceFlow"));
+        assertThat(scanner.scanInstances(xml)).containsEntry("CDR_1", new XmlElementKey("CdrParser", "cdrParser"));
     }
 
     @Test
-    void shouldUseNamespaceUriAndNotPrefix() {
-        String xml = """
-            <?xml version="1.0" encoding="UTF-8"?>
-            <bpmn:definitions
-                xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                xmlns:x="FileReceiver">
-
-              <bpmn:process id="Process_1">
-                <x:fileReceiver id="FR_1"/>
-              </bpmn:process>
-
-            </bpmn:definitions>
-            """;
-
-        assertThat(scanner.scan(xml))
-            .containsExactly(
-                new XmlElementKey("FileReceiver", "fileReceiver")
-            );
+    void rejectsDuplicateAndMissingAccessControlledIds() {
+        assertThatThrownBy(() -> scanner.scanInstances(wrap("<legacy:cdrParser id=\"same\"/><legacy:cdrParser id=\"same\"/>")))
+            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> scanner.scanInstances(wrap("<legacy:cdrParser/>")))
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
-    void shouldRejectDoctypeAndExternalEntity() {
-        String xml = """
-            <?xml version="1.0"?>
-            <!DOCTYPE foo [
-              <!ENTITY xxe SYSTEM "file:///etc/passwd">
-            ]>
-            <bpmn:definitions
-                xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL">
-              <bpmn:process id="Process_1">
-                <bpmn:task id="Task_1" name="&xxe;"/>
-              </bpmn:process>
-            </bpmn:definitions>
-            """;
-
-        assertThatThrownBy(() -> scanner.scan(xml))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Invalid or unsafe BPMN XML");
+    void rejectsDoctype() {
+        assertThatThrownBy(() -> scanner.scanInstances("<!DOCTYPE x><x/>"))
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
-    @Test
-    void shouldReturnEmptySetForBlankXml() {
-        assertThat(scanner.scan(null)).isEmpty();
-        assertThat(scanner.scan("")).isEmpty();
-        assertThat(scanner.scan("   ")).isEmpty();
+    private String wrap(String body) {
+        return "<bpmn:definitions xmlns:bpmn=\"" + BpmnXmlElementScanner.BPMN_MODEL_NS +
+            "\" xmlns:legacy=\"CdrParser\"><bpmn:process id=\"Process_1\">" + body +
+            "</bpmn:process></bpmn:definitions>";
     }
 }

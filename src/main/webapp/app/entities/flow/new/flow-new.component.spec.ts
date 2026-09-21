@@ -83,9 +83,7 @@ describe('FlowNewComponent product-first lifecycle', () => {
     component.openBPMNPage();
 
     expect(productControl?.touched).toBe(true);
-    expect(toastr.error).toHaveBeenCalledWith(
-      'Please select a product before opening the BPMN editor.',
-    );
+    expect(toastr.error).toHaveBeenCalledWith('Please select a product before opening the BPMN editor.');
     expect(router.navigate).not.toHaveBeenCalled();
     expect(flowService.productTemp).toBeNull();
     expect(component.isGoingToBPMNPage).toBe(false);
@@ -99,19 +97,15 @@ describe('FlowNewComponent product-first lifecycle', () => {
     router.navigate.mockImplementationOnce(() => {
       expect(flowService.productTemp).toBe(product);
       expect(component.isGoingToBPMNPage).toBe(true);
-      return Promise.resolve(true);
     });
 
     component.openBPMNPage();
 
     expect(router.navigate).toHaveBeenCalledOnce();
-    expect(router.navigate).toHaveBeenCalledWith(
-      ['/bpmn-editor'],
-      {
-        relativeTo: activatedRoute,
-        queryParams: { productId: 7 },
-      },
-    );
+    expect(router.navigate).toHaveBeenCalledWith(['/bpmn-editor'], {
+      relativeTo: activatedRoute,
+      queryParams: { productId: 7 },
+    });
   });
 
   it('clears draft XML and product state when leaving the create flow normally', () => {

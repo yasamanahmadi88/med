@@ -158,7 +158,7 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
       const disallowed = this.elementAccessService.findDisallowedXmlElements(xml);
       if (disallowed.length > 0) {
         console.error(
-          `Could not import BPMN 2.0 diagram: ${disallowed.length} element type(s) are not allowed for the selected product.`,
+          `Could not import BPMN 2.0 diagram: ${disallowed.length} element type(s) are not allowed for the active portal owner.`,
         );
         return;
       }

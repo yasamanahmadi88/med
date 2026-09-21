@@ -1,24 +1,19 @@
 import { BpmnElementAccessConfig, isBpmnTypeAllowed } from '../../services/bpmn-element-access.types';
+import { isLegacyReadOnlyPaletteAction } from '../../services/bpmn-legacy-read-only';
 import { CUSTOM_TASK_TYPE } from '../../custom-icons/icon-library';
 
 interface PaletteLike {
   registerProvider(priority: number, provider: unknown): void;
 }
 
-const GENERIC_TOOL_IDS = new Set([
-  'hand-tool',
-  'lasso-tool',
-  'space-tool',
-  'global-connect-tool',
-  'tool-separator',
-]);
+const GENERIC_TOOL_IDS = new Set(['hand-tool', 'lasso-tool', 'space-tool', 'global-connect-tool', 'tool-separator']);
 
 /**
  * Final palette middleware.
  *
  * The visible palette is fail-closed:
  * - exactly the Vue generic tools survive unconditionally;
- * - BPMN creation entries survive only when the product policy allows them;
+ * - BPMN creation entries survive only when the active-owner policy allows them;
  * - unknown stock helpers do not leak into the UI after a bpmn-js upgrade.
  */
 export default class ElementAccessPaletteFilter {
@@ -33,9 +28,7 @@ export default class ElementAccessPaletteFilter {
 
   getPaletteEntries(): (entries: Record<string, unknown>) => Record<string, unknown> {
     return entries => {
-      const allowedActions = new Set(
-        this.elementAccess?.allowedPaletteActions ?? [],
-      );
+      const allowedActions = new Set(this.elementAccess?.allowedPaletteActions ?? []);
 
       const filtered: Record<string, unknown> = {};
 
@@ -45,18 +38,18 @@ export default class ElementAccessPaletteFilter {
           continue;
         }
 
-        if (
-          entryId.startsWith('create.custom-icon-') &&
-          isBpmnTypeAllowed(this.elementAccess, CUSTOM_TASK_TYPE)
-        ) {
+        // Recognition is intentionally separate from creation: keeping descriptors/renderers
+        // allows old flows to load, while these two actions never reappear through stale DB data.
+        if (isLegacyReadOnlyPaletteAction(entryId)) {
+          continue;
+        }
+
+        if (entryId.startsWith('create.custom-icon-') && isBpmnTypeAllowed(this.elementAccess, CUSTOM_TASK_TYPE)) {
           filtered[entryId] = entry;
           continue;
         }
 
-        if (
-          entryId.startsWith('create.') &&
-          allowedActions.has(entryId)
-        ) {
+        if (entryId.startsWith('create.') && allowedActions.has(entryId)) {
           filtered[entryId] = entry;
         }
       }

@@ -9,7 +9,7 @@ import jakarta.persistence.Table;
 import java.io.Serializable;
 
 /**
- * Catalog entry for a BPMN element that may be exposed to products through element groups.
+ * Catalog entry for a BPMN element that may be exposed to portal owners through element groups.
  *
  * <p>The UI uses {@code bpmnType} (for example {@code FileReceiver:FileReceiver}) while the
  * server validates XML by namespace URI + local name. XML prefixes are intentionally not used

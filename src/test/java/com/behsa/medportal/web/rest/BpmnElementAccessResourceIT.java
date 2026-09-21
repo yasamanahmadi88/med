@@ -8,12 +8,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.behsa.medportal.IntegrationTest;
 import com.behsa.medportal.domain.BpmnElementEntity;
 import com.behsa.medportal.domain.BpmnElementGroupEntity;
-import com.behsa.medportal.domain.ProductEntity;
 import com.behsa.medportal.repository.BpmnElementGroupRepository;
 import com.behsa.medportal.repository.BpmnElementRepository;
-import com.behsa.medportal.repository.ProductRepository;
 import com.behsa.medportal.security.AuthoritiesConstants;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,13 +28,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class BpmnElementAccessResourceIT {
 
-    private static final String API_URL = "/api/bpmn-element-access/products/{productId}";
+    private static final String API_URL =
+        "/api/bpmn-element-access/current";
+
+    private static final long OWNER_ID = 91001L;
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private ProductRepository productRepository;
 
     @Autowired
     private BpmnElementRepository bpmnElementRepository;
@@ -60,19 +59,87 @@ class BpmnElementAccessResourceIT {
 
         jdbcTemplate.execute(
             """
-            CREATE TABLE IF NOT EXISTS TBL_PRODUCT_BPMN_GROUP (
-                product_key BIGINT NOT NULL,
+            CREATE TABLE IF NOT EXISTS TBL_OWNER_BPMN_GROUP (
+                owner_key BIGINT NOT NULL,
                 group_key BIGINT NOT NULL,
-                PRIMARY KEY (product_key, group_key)
+                enabled INTEGER DEFAULT 1 NOT NULL,
+                PRIMARY KEY (owner_key, group_key)
+            )
+            """
+        );
+
+        jdbcTemplate.execute(
+            """
+            CREATE TABLE IF NOT EXISTS TBL_PORTAL_OWNER (
+                owner_key BIGINT NOT NULL PRIMARY KEY,
+                owner_code VARCHAR(50) NOT NULL,
+                owner_name VARCHAR(100) NOT NULL,
+                display_name VARCHAR(150) NOT NULL,
+                description VARCHAR(500),
+                enabled INTEGER DEFAULT 1 NOT NULL
+            )
+            """
+        );
+
+        jdbcTemplate.execute(
+            """
+            CREATE TABLE IF NOT EXISTS TBL_PORTAL_CONFIGURATION (
+                config_key BIGINT NOT NULL PRIMARY KEY,
+                active_owner_key BIGINT NOT NULL
             )
             """
         );
     }
 
+    @BeforeEach
+    void configureActiveOwner() {
+        jdbcTemplate.update(
+            "DELETE FROM TBL_PORTAL_CONFIGURATION WHERE config_key = ?",
+            1L
+        );
+
+        jdbcTemplate.update(
+            "DELETE FROM TBL_PORTAL_OWNER WHERE owner_key = ?",
+            OWNER_ID
+        );
+
+        jdbcTemplate.update(
+            """
+            INSERT INTO TBL_PORTAL_OWNER (
+                owner_key,
+                owner_code,
+                owner_name,
+                display_name,
+                description,
+                enabled
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            OWNER_ID,
+            "MEDIATION",
+            "Mediation",
+            "Mediation Portal",
+            "Owner access integration test",
+            1
+        );
+
+        jdbcTemplate.update(
+            """
+            INSERT INTO TBL_PORTAL_CONFIGURATION (
+                config_key,
+                active_owner_key
+            )
+            VALUES (?, ?)
+            """,
+            1L,
+            OWNER_ID
+        );
+    }
+
     @Test
     @WithMockUser(authorities = AuthoritiesConstants.USER)
-    void shouldReturnMappedProductAccessForAuthorizedUser() throws Exception {
-        ProductEntity product = saveProduct("MCI");
+    void shouldReturnMappedOwnerAccessForAuthorizedUser()
+        throws Exception {
 
         BpmnElementGroupEntity group = saveGroup(
             "FILE_PROCESSING",
@@ -102,34 +169,72 @@ class BpmnElementAccessResourceIT {
             20
         );
 
-        assignGroupToProduct(product, group);
+        assignGroupToOwner(group, 1);
         assignElementToGroup(group, merger);
         assignElementToGroup(group, fileReceiver);
 
         mockMvc
-            .perform(get(API_URL, product.getId()))
+            .perform(get(API_URL))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.productId").value(product.getId()))
-            .andExpect(jsonPath("$.productName").value("MCI"))
+            .andExpect(jsonPath("$.ownerCode").value("MEDIATION"))
+            .andExpect(
+                jsonPath("$.ownerDisplayName")
+                    .value("Mediation Portal")
+            )
+            .andExpect(jsonPath("$.productId").doesNotExist())
+            .andExpect(jsonPath("$.productName").doesNotExist())
             .andExpect(jsonPath("$.groups.length()").value(1))
-            .andExpect(jsonPath("$.groups[0].code").value("FILE_PROCESSING"))
-            .andExpect(jsonPath("$.groups[0].name").value("File Processing"))
+            .andExpect(
+                jsonPath("$.groups[0].code")
+                    .value("FILE_PROCESSING")
+            )
+            .andExpect(
+                jsonPath("$.groups[0].name")
+                    .value("File Processing")
+            )
             .andExpect(jsonPath("$.elements.length()").value(2))
-            .andExpect(jsonPath("$.elements[0].code").value("MERGER"))
-            .andExpect(jsonPath("$.elements[0].bpmnType").value("Merger:Merger"))
-            .andExpect(jsonPath("$.elements[0].namespaceUri").value("Merger"))
-            .andExpect(jsonPath("$.elements[0].localName").value("merger"))
-            .andExpect(jsonPath("$.elements[0].paletteAction").value("create.merger"))
-            .andExpect(jsonPath("$.elements[0].displayName").value("Merger"))
-            .andExpect(jsonPath("$.elements[0].sortOrder").value(10))
-            .andExpect(jsonPath("$.elements[1].code").value("FILE_RECEIVER"))
-            .andExpect(jsonPath("$.elements[1].sortOrder").value(20));
+            .andExpect(
+                jsonPath("$.elements[0].code")
+                    .value("MERGER")
+            )
+            .andExpect(
+                jsonPath("$.elements[0].bpmnType")
+                    .value("Merger:Merger")
+            )
+            .andExpect(
+                jsonPath("$.elements[0].namespaceUri")
+                    .value("Merger")
+            )
+            .andExpect(
+                jsonPath("$.elements[0].localName")
+                    .value("merger")
+            )
+            .andExpect(
+                jsonPath("$.elements[0].paletteAction")
+                    .value("create.merger")
+            )
+            .andExpect(
+                jsonPath("$.elements[0].displayName")
+                    .value("Merger")
+            )
+            .andExpect(
+                jsonPath("$.elements[0].sortOrder")
+                    .value(10)
+            )
+            .andExpect(
+                jsonPath("$.elements[1].code")
+                    .value("FILE_RECEIVER")
+            )
+            .andExpect(
+                jsonPath("$.elements[1].sortOrder")
+                    .value(20)
+            );
     }
 
     @Test
     @WithMockUser(authorities = AuthoritiesConstants.USER)
-    void shouldReturnEmptyAccessForProductWithoutMapping() throws Exception {
-        ProductEntity product = saveProduct("NMP");
+    void shouldReturnEmptyAccessWhenOwnerHasNoGroupMapping()
+        throws Exception {
 
         BpmnElementGroupEntity group = saveGroup(
             "UNASSIGNED_GROUP",
@@ -148,62 +253,40 @@ class BpmnElementAccessResourceIT {
             10
         );
 
-        // Catalog configuration exists, but this product deliberately has no group mapping.
+        /*
+         * Catalog configuration exists, but the active Owner has
+         * deliberately not been assigned this group.
+         */
         assignElementToGroup(group, element);
 
         mockMvc
-            .perform(get(API_URL, product.getId()))
+            .perform(get(API_URL))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.productId").value(product.getId()))
-            .andExpect(jsonPath("$.productName").value("NMP"))
+            .andExpect(jsonPath("$.ownerCode").value("MEDIATION"))
             .andExpect(jsonPath("$.groups").isEmpty())
             .andExpect(jsonPath("$.elements").isEmpty());
     }
 
     @Test
-    @WithMockUser(authorities = AuthoritiesConstants.USER)
-    void shouldReturnBadRequestWhenProductDoesNotExist() throws Exception {
-        long missingProductId = Long.MAX_VALUE;
-
-        mockMvc
-            .perform(get(API_URL, missingProductId))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.status").value(400))
-            .andExpect(jsonPath("$.message").value("error.productnotfound"))
-            .andExpect(jsonPath("$.params").value("flow"))
-            .andExpect(jsonPath("$.stackTrace").doesNotExist())
-            .andExpect(jsonPath("$.cause").doesNotExist())
-            .andExpect(jsonPath("$.suppressed").doesNotExist())
-            .andExpect(jsonPath("$.className").doesNotExist())
-            .andExpect(jsonPath("$.methodName").doesNotExist())
-            .andExpect(
-                jsonPath("$.path").value(
-                    "/api/bpmn-element-access/products/" + missingProductId
-                )
-            );
-    }
-
-    @Test
     @WithMockUser(authorities = "ROLE_DENIED")
-    void shouldReturnForbiddenWhenUserHasNoFlowViewPermission() throws Exception {
+    void shouldReturnForbiddenWhenUserHasNoFlowViewPermission()
+        throws Exception {
+
         mockMvc
-            .perform(get(API_URL, 1L))
+            .perform(get(API_URL))
             .andExpect(status().isForbidden());
     }
 
     @Test
-    void shouldReturnUnauthorizedForUnauthenticatedUser() throws Exception {
+    void shouldReturnUnauthorizedForUnauthenticatedUser()
+        throws Exception {
+
         mockMvc
-            .perform(get(API_URL, 1L).with(anonymous()))
+            .perform(
+                get(API_URL)
+                    .with(anonymous())
+            )
             .andExpect(status().isUnauthorized());
-    }
-
-    private ProductEntity saveProduct(String productName) {
-        ProductEntity product = new ProductEntity();
-        product.setProductName(productName);
-        product.setProductDesc("BPMN access resource integration test");
-
-        return productRepository.saveAndFlush(product);
     }
 
     private BpmnElementGroupEntity saveGroup(
@@ -211,7 +294,9 @@ class BpmnElementAccessResourceIT {
         String groupName,
         int enabled
     ) {
-        BpmnElementGroupEntity group = new BpmnElementGroupEntity();
+        BpmnElementGroupEntity group =
+            new BpmnElementGroupEntity();
+
         group.setGroupCode(groupCode);
         group.setGroupName(groupName);
         group.setEnabled(enabled);
@@ -229,7 +314,9 @@ class BpmnElementAccessResourceIT {
         int enabled,
         int sortOrder
     ) {
-        BpmnElementEntity element = new BpmnElementEntity();
+        BpmnElementEntity element =
+            new BpmnElementEntity();
+
         element.setElementCode(elementCode);
         element.setBpmnType(bpmnType);
         element.setNamespaceUri(namespaceUri);
@@ -242,17 +329,22 @@ class BpmnElementAccessResourceIT {
         return bpmnElementRepository.saveAndFlush(element);
     }
 
-    private void assignGroupToProduct(
-        ProductEntity product,
-        BpmnElementGroupEntity group
+    private void assignGroupToOwner(
+        BpmnElementGroupEntity group,
+        int enabled
     ) {
         jdbcTemplate.update(
             """
-            INSERT INTO TBL_PRODUCT_BPMN_GROUP (product_key, group_key)
-            VALUES (?, ?)
+            INSERT INTO TBL_OWNER_BPMN_GROUP (
+                owner_key,
+                group_key,
+                enabled
+            )
+            VALUES (?, ?, ?)
             """,
-            product.getId(),
-            group.getId()
+            OWNER_ID,
+            group.getId(),
+            enabled
         );
     }
 
@@ -262,7 +354,10 @@ class BpmnElementAccessResourceIT {
     ) {
         jdbcTemplate.update(
             """
-            INSERT INTO TBL_BPMN_GROUP_ELEMENT (group_key, element_key)
+            INSERT INTO TBL_BPMN_GROUP_ELEMENT (
+                group_key,
+                element_key
+            )
             VALUES (?, ?)
             """,
             group.getId(),

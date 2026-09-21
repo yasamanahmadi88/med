@@ -126,11 +126,9 @@ export class ContextMenuComponent implements OnInit, OnDestroy {
   }
 
   private show(x: number, y: number): void {
-    // Re-evaluate access on every open so a product/access-policy change can never
+    // Re-evaluate access on every open so an active-owner/access-policy change can never
     // leave stale append options visible.
-    this.options = appendOptions().filter(option =>
-      this.elementAccessService.isTypeAllowed(option.target.type),
-    );
+    this.options = appendOptions().filter(option => this.elementAccessService.isTypeAllowed(option.target.type));
 
     if (this.options.length === 0) {
       this.open = false;

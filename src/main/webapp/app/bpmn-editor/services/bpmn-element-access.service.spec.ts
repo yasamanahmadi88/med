@@ -5,15 +5,15 @@ import { TestBed } from '@angular/core/testing';
 import { ApplicationConfigService } from 'app/core/config/application-config.service';
 
 import { BpmnElementAccessService } from './bpmn-element-access.service';
-import { BpmnProductElementAccess } from './bpmn-element-access.types';
+import { BpmnOwnerElementAccess } from './bpmn-element-access.types';
 
 describe('BpmnElementAccessService', () => {
-  const resourceUrl = 'api/bpmn-element-access/products';
+  const resourceUrl = 'api/bpmn-element-access/current';
   const bpmnModelNs = 'http://www.omg.org/spec/BPMN/20100524/MODEL';
 
-  const mciAccess: BpmnProductElementAccess = {
-    productId: 7,
-    productName: 'MCI',
+  const mediationAccess: BpmnOwnerElementAccess = {
+    ownerCode: 'MEDIATION',
+    ownerDisplayName: 'Mediation Portal',
     groups: [
       {
         id: 1000,
@@ -61,13 +61,15 @@ describe('BpmnElementAccessService', () => {
     httpTestingController.verify();
   });
 
-  function loadMciAccess(): void {
-    service.loadForProduct(7).subscribe();
+  function loadMediationAccess(): void {
+    service.loadCurrent().subscribe();
 
-    const request = httpTestingController.expectOne(`${resourceUrl}/7`);
+    const request = httpTestingController.expectOne(resourceUrl);
+
     expect(request.request.method).toBe('GET');
+    expect(request.request.params.keys()).toEqual([]);
 
-    request.flush(mciAccess);
+    request.flush(mediationAccess);
   }
 
   it('starts fail closed', () => {
@@ -82,21 +84,22 @@ describe('BpmnElementAccessService', () => {
     expect(service.isTypeAllowed('Merger:Merger')).toBe(false);
   });
 
-  it('loads product access and derives bpmn-js access configuration', () => {
-    let emittedAccess: BpmnProductElementAccess | undefined;
+  it('loads active Owner access and derives bpmn-js access configuration', () => {
+    let emittedAccess: BpmnOwnerElementAccess | undefined;
 
-    service.loadForProduct(7).subscribe(access => {
+    service.loadCurrent().subscribe(access => {
       emittedAccess = access;
     });
 
-    const request = httpTestingController.expectOne(`${resourceUrl}/7`);
+    const request = httpTestingController.expectOne(resourceUrl);
 
     expect(request.request.method).toBe('GET');
+    expect(request.request.params.keys()).toEqual([]);
 
-    request.flush(mciAccess);
+    request.flush(mediationAccess);
 
-    expect(emittedAccess).toEqual(mciAccess);
-    expect(service.currentAccess()).toEqual(mciAccess);
+    expect(emittedAccess).toEqual(mediationAccess);
+    expect(service.currentAccess()).toEqual(mediationAccess);
 
     expect(service.currentConfig()).toEqual({
       allowedTypes: ['Merger:Merger'],
@@ -113,22 +116,23 @@ describe('BpmnElementAccessService', () => {
     expect(service.isTypeAllowed('KafkaReceiver:KafkaReceiver')).toBe(false);
   });
 
-  it('clears stale permissions before another product lookup and stays fail closed when it fails', () => {
-    service.loadForProduct(7).subscribe();
-
-    const firstRequest = httpTestingController.expectOne(`${resourceUrl}/7`);
-    firstRequest.flush(mciAccess);
+  it('clears stale Owner permissions before another lookup and stays fail closed when it fails', () => {
+    loadMediationAccess();
 
     expect(service.isTypeAllowed('Merger:Merger')).toBe(true);
 
     let receivedError = false;
 
-    service.loadForProduct(8).subscribe({
-      error: () => {
+    service.loadCurrent().subscribe({
+      error() {
         receivedError = true;
       },
     });
 
+    /*
+     * loadCurrent() clears the previous snapshot before starting
+     * the request. A failed refresh must never retain stale access.
+     */
     expect(service.currentAccess()).toBeNull();
 
     expect(service.currentConfig()).toEqual({
@@ -139,9 +143,9 @@ describe('BpmnElementAccessService', () => {
 
     expect(service.isTypeAllowed('Merger:Merger')).toBe(false);
 
-    const secondRequest = httpTestingController.expectOne(`${resourceUrl}/8`);
+    const request = httpTestingController.expectOne(resourceUrl);
 
-    secondRequest.flush(
+    request.flush(
       { message: 'permission lookup failed' },
       {
         status: 500,
@@ -157,26 +161,24 @@ describe('BpmnElementAccessService', () => {
       allowedPaletteActions: [],
       allowedXmlElements: [],
     });
-
-    expect(service.isTypeAllowed('Merger:Merger')).toBe(false);
   });
 
   it('normalizes missing groups and elements to empty arrays', () => {
     const response = {
-      productId: 7,
-      productName: 'MCI',
+      ownerCode: 'MEDIATION',
+      ownerDisplayName: 'Mediation Portal',
       groups: null,
       elements: null,
-    } as unknown as BpmnProductElementAccess;
+    } as unknown as BpmnOwnerElementAccess;
 
-    service.loadForProduct(7).subscribe();
+    service.loadCurrent().subscribe();
 
-    const request = httpTestingController.expectOne(`${resourceUrl}/7`);
+    const request = httpTestingController.expectOne(resourceUrl);
     request.flush(response);
 
     expect(service.currentAccess()).toEqual({
-      productId: 7,
-      productName: 'MCI',
+      ownerCode: 'MEDIATION',
+      ownerDisplayName: 'Mediation Portal',
       groups: [],
       elements: [],
     });
@@ -189,10 +191,7 @@ describe('BpmnElementAccessService', () => {
   });
 
   it('clear removes the current access snapshot', () => {
-    service.loadForProduct(7).subscribe();
-
-    const request = httpTestingController.expectOne(`${resourceUrl}/7`);
-    request.flush(mciAccess);
+    loadMediationAccess();
 
     expect(service.currentAccess()).not.toBeNull();
 
@@ -210,7 +209,7 @@ describe('BpmnElementAccessService', () => {
   });
 
   it('accepts an allowed XML element regardless of its namespace prefix', () => {
-    loadMciAccess();
+    loadMediationAccess();
 
     const xml = `
       <bpmn:definitions
@@ -226,7 +225,7 @@ describe('BpmnElementAccessService', () => {
   });
 
   it('ignores structural BPMN children and descendants inside extensionElements', () => {
-    loadMciAccess();
+    loadMediationAccess();
 
     const xml = `
       <bpmn:definitions
@@ -250,7 +249,7 @@ describe('BpmnElementAccessService', () => {
   });
 
   it('treats a collaboration participant as an access-controlled BPMN element', () => {
-    loadMciAccess();
+    loadMediationAccess();
 
     const xml = `
       <bpmn:definitions xmlns:bpmn="${bpmnModelNs}">
@@ -275,9 +274,7 @@ describe('BpmnElementAccessService', () => {
       </bpmn:definitions>
     `;
 
-    expect(() => service.findDisallowedXmlElements(xml)).toThrow(
-      'Invalid or unsafe BPMN XML',
-    );
+    expect(() => service.findDisallowedXmlElements(xml)).toThrow('Invalid or unsafe BPMN XML');
   });
 
   it('rejects XML containing a DOCTYPE declaration', () => {
@@ -286,13 +283,11 @@ describe('BpmnElementAccessService', () => {
       <definitions xmlns="${bpmnModelNs}" />
     `;
 
-    expect(() => service.findDisallowedXmlElements(xml)).toThrow(
-      'Invalid or unsafe BPMN XML',
-    );
+    expect(() => service.findDisallowedXmlElements(xml)).toThrow('Invalid or unsafe BPMN XML');
   });
 
-  it('fails closed for a BPMN element that is not allowed for the product', () => {
-    loadMciAccess();
+  it('fails closed for a BPMN element that is not allowed for the active Owner', () => {
+    loadMediationAccess();
 
     const xml = `
       <bpmn:definitions xmlns:bpmn="${bpmnModelNs}">
@@ -308,5 +303,74 @@ describe('BpmnElementAccessService', () => {
         localName: 'startEvent',
       },
     ]);
+  });
+
+  it('allows an existing CDR to be edited or deleted but rejects a new id or type change', () => {
+    loadMediationAccess();
+    const wrap = (body: string): string => `
+      <bpmn:definitions xmlns:bpmn="${bpmnModelNs}" xmlns:c="CdrParser" xmlns:v="CsvTransformer">
+        <bpmn:process id="Process_1">${body}</bpmn:process>
+      </bpmn:definitions>`;
+
+    service.setPersistedDiagram(wrap('<c:cdrParser id="CDR_1" name="before" />'));
+
+    expect(service.findDisallowedXmlElements(wrap('<c:cdrParser id="CDR_1" name="after" />'))).toEqual([]);
+    expect(service.findDisallowedXmlElements(wrap(''))).toEqual([]);
+    expect(service.findDisallowedXmlElements(wrap('<c:cdrParser id="CDR_2" />'))).toEqual([
+      { namespaceUri: 'CdrParser', localName: 'cdrParser' },
+    ]);
+    expect(service.findDisallowedXmlElements(wrap('<v:csvTransformer id="CDR_1" />'))).toEqual([
+      { namespaceUri: 'CsvTransformer', localName: 'csvTransformer' },
+    ]);
+  });
+
+  it('rejects new CDR and CSV even when stale access data marks them as allowed', () => {
+    service.loadCurrent().subscribe();
+    const request = httpTestingController.expectOne(resourceUrl);
+    request.flush({
+      ...mediationAccess,
+      elements: [
+        ...mediationAccess.elements,
+        {
+          id: 1001,
+          code: 'CDR_PARSER',
+          bpmnType: 'CdrParser:CdrParser',
+          namespaceUri: 'CdrParser',
+          localName: 'cdrParser',
+          paletteAction: 'create.cdrParser-module',
+          displayName: 'CDR Parser',
+          sortOrder: 110,
+        },
+        {
+          id: 1002,
+          code: 'CSV_TRANSFORMER',
+          bpmnType: 'CsvTransformer:CsvTransformer',
+          namespaceUri: 'CsvTransformer',
+          localName: 'csvTransformer',
+          paletteAction: 'create.csvTransformerCorner-module',
+          displayName: 'CSV Transformer',
+          sortOrder: 120,
+        },
+      ],
+    });
+
+    const xml = `<bpmn:definitions xmlns:bpmn="${bpmnModelNs}" xmlns:c="CdrParser" xmlns:v="CsvTransformer"><bpmn:process id="p"><c:cdrParser id="new-cdr"/><v:csvTransformer id="new-csv"/></bpmn:process></bpmn:definitions>`;
+    expect(service.findDisallowedXmlElements(xml)).toEqual([
+      { namespaceUri: 'CdrParser', localName: 'cdrParser' },
+      { namespaceUri: 'CsvTransformer', localName: 'csvTransformer' },
+    ]);
+  });
+
+  it('rejects duplicate BPMN ids and clear removes the persisted legacy baseline', () => {
+    loadMediationAccess();
+    const xml = `<bpmn:definitions xmlns:bpmn="${bpmnModelNs}" xmlns:c="CdrParser"><bpmn:process id="p"><c:cdrParser id="CDR_1"/></bpmn:process></bpmn:definitions>`;
+    service.setPersistedDiagram(xml);
+    expect(service.findDisallowedXmlElements(xml)).toEqual([]);
+
+    const duplicate = `<bpmn:definitions xmlns:bpmn="${bpmnModelNs}" xmlns:c="CdrParser"><bpmn:process id="p"><c:cdrParser id="same"/><c:cdrParser id="same"/></bpmn:process></bpmn:definitions>`;
+    expect(() => service.findDisallowedXmlElements(duplicate)).toThrow('Duplicate BPMN id');
+
+    service.clear();
+    expect(service.findDisallowedXmlElements(xml)).toEqual([{ namespaceUri: 'CdrParser', localName: 'cdrParser' }]);
   });
 });

@@ -77,11 +77,7 @@ export default class ContextMenuProvider {
 
       const target = originalEvent.target instanceof Element ? originalEvent.target : null;
 
-      if (
-        target?.closest(
-          '.djs-element, .djs-palette, .djs-context-pad, .djs-popup, .djs-minimap',
-        )
-      ) {
+      if (target?.closest('.djs-element, .djs-palette, .djs-context-pad, .djs-popup, .djs-minimap')) {
         return;
       }
 

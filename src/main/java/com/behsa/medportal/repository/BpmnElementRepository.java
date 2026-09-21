@@ -14,15 +14,19 @@ public interface BpmnElementRepository extends JpaRepository<BpmnElementEntity, 
         value = """
             SELECT DISTINCT e.*
               FROM TBL_BPMN_ELEMENT e
-              JOIN TBL_BPMN_GROUP_ELEMENT ge ON ge.element_key = e.element_key
-              JOIN TBL_BPMN_ELEMENT_GROUP g ON g.group_key = ge.group_key
-              JOIN TBL_PRODUCT_BPMN_GROUP pg ON pg.group_key = g.group_key
-             WHERE pg.product_key = :productId
-               AND e.enabled = 1
+              JOIN TBL_BPMN_GROUP_ELEMENT ge
+                ON ge.element_key = e.element_key
+              JOIN TBL_BPMN_ELEMENT_GROUP g
+                ON g.group_key = ge.group_key
+              JOIN TBL_OWNER_BPMN_GROUP og
+                ON og.group_key = g.group_key
+             WHERE og.owner_key = :ownerId
+               AND og.enabled = 1
                AND g.enabled = 1
+               AND e.enabled = 1
              ORDER BY e.sort_order, e.element_key
             """,
         nativeQuery = true
     )
-    List<BpmnElementEntity> findEnabledByProductId(@Param("productId") Long productId);
+    List<BpmnElementEntity> findEnabledByOwnerId(@Param("ownerId") Long ownerId);
 }

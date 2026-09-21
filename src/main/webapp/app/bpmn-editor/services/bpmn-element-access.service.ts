@@ -5,27 +5,29 @@ import { Observable, tap } from 'rxjs';
 import { ApplicationConfigService } from 'app/core/config/application-config.service';
 import {
   BpmnElementAccessConfig,
-  BpmnProductElementAccess,
+  BpmnOwnerElementAccess,
   BpmnXmlElementIdentity,
   EMPTY_BPMN_ELEMENT_ACCESS_CONFIG,
   isBpmnTypeAllowed,
   toBpmnElementAccessConfig,
 } from './bpmn-element-access.types';
+import { isLegacyReadOnlyXmlElement, xmlKey } from './bpmn-legacy-read-only';
 
 const BPMN_MODEL_NS = 'http://www.omg.org/spec/BPMN/20100524/MODEL';
 const STRUCTURAL_FLOW_CHILDREN = new Set(['sequenceFlow', 'laneSet', 'documentation', 'extensionElements']);
 
 /**
- * Product-scoped BPMN element policy.
+ * Portal-Owner-scoped BPMN element policy.
  *
  * Access is loaded once before the editor is constructed.  The snapshot then feeds both Angular
  * components and bpmn-js modules.  There is intentionally no "show all on error" fallback: a
- * failed/missing permission lookup must not expose elements the product was never assigned.
+ * failed/missing permission lookup must never expose elements that are not assigned to the active portal Owner.
  */
 @Injectable({ providedIn: 'root' })
 export class BpmnElementAccessService {
-  private readonly resourceUrl = this.applicationConfigService.getEndpointFor('api/bpmn-element-access/products');
-  private access: BpmnProductElementAccess | null = null;
+  private readonly resourceUrl = this.applicationConfigService.getEndpointFor('api/bpmn-element-access/current');
+  private persistedInstances = new Map<string, string>();
+  private access: BpmnOwnerElementAccess | null = null;
   private config: BpmnElementAccessConfig = EMPTY_BPMN_ELEMENT_ACCESS_CONFIG;
 
   constructor(
@@ -33,12 +35,12 @@ export class BpmnElementAccessService {
     private readonly applicationConfigService: ApplicationConfigService,
   ) {}
 
-  loadForProduct(productId: number): Observable<BpmnProductElementAccess> {
-    // Fail closed while permissions for another product are being resolved.
-    // A failed lookup must never leave the previous product's permissions active.
+  loadCurrent(): Observable<BpmnOwnerElementAccess> {
+    // Fail closed while the active Owner policy is being resolved.
+    // A failed lookup must never leave a stale Owner policy active.
     this.clear();
 
-    return this.http.get<BpmnProductElementAccess>(`${this.resourceUrl}/${productId}`).pipe(
+    return this.http.get<BpmnOwnerElementAccess>(this.resourceUrl).pipe(
       tap(access => {
         this.access = {
           ...access,
@@ -51,11 +53,38 @@ export class BpmnElementAccessService {
   }
 
   clear(): void {
+    this.persistedInstances.clear();
     this.access = null;
     this.config = EMPTY_BPMN_ELEMENT_ACCESS_CONFIG;
   }
 
-  currentAccess(): BpmnProductElementAccess | null {
+  /** Captures the immutable identity of elements that already exist in the stored flow. */
+  setPersistedDiagram(xml: string | null | undefined): void {
+    this.persistedInstances.clear();
+    if (!xml?.trim()) {
+      return;
+    }
+
+    const document = new DOMParser().parseFromString(xml, 'application/xml');
+    if (document.querySelector('parsererror') || document.doctype) {
+      throw new Error('Invalid or unsafe BPMN XML');
+    }
+
+    const ids = new Set<string>();
+    for (const element of Array.from(document.getElementsByTagName('*'))) {
+      const id = element.getAttribute('id');
+      if (!id) {
+        continue;
+      }
+      if (ids.has(id)) {
+        throw new Error('Duplicate BPMN id');
+      }
+      ids.add(id);
+      this.persistedInstances.set(id, xmlKey(element.namespaceURI ?? '', element.localName));
+    }
+  }
+
+  currentAccess(): BpmnOwnerElementAccess | null {
     return this.access;
   }
 
@@ -82,6 +111,16 @@ export class BpmnElementAccessService {
     }
 
     const allowed = new Set(this.config.allowedXmlElements.map(element => this.xmlKey(element.namespaceUri, element.localName)));
+    const ids = new Set<string>();
+    for (const element of Array.from(document.getElementsByTagName('*'))) {
+      const id = element.getAttribute('id');
+      if (id && ids.has(id)) {
+        throw new Error('Duplicate BPMN id');
+      }
+      if (id) {
+        ids.add(id);
+      }
+    }
     const disallowed = new Map<string, BpmnXmlElementIdentity>();
 
     const visit = (parent: Element): void => {
@@ -89,7 +128,14 @@ export class BpmnElementAccessService {
         if (this.isAccessControlledChild(parent, child)) {
           const identity = { namespaceUri: child.namespaceURI ?? '', localName: child.localName };
           const key = this.xmlKey(identity.namespaceUri, identity.localName);
-          if (!allowed.has(key)) {
+          const id = child.getAttribute('id');
+          const legacyType = isLegacyReadOnlyXmlElement(identity);
+          const persistedLegacy = legacyType && !!id && this.persistedInstances.get(id) === key;
+
+          // An existing CDR/CSV keeps its identity and may be moved or have its properties edited.
+          // A new instance (including copy/paste, duplicate, replace or id change) is rejected even
+          // if a stale database mapping still lists the retired type as creatable.
+          if ((legacyType && !persistedLegacy) || (!legacyType && !allowed.has(key))) {
             disallowed.set(key, identity);
           }
         }
@@ -104,10 +150,7 @@ export class BpmnElementAccessService {
   }
 
   private isAccessControlledChild(parent: Element, child: Element): boolean {
-    if (
-      parent.namespaceURI === BPMN_MODEL_NS &&
-      (parent.localName === 'process' || parent.localName === 'subProcess')
-    ) {
+    if (parent.namespaceURI === BPMN_MODEL_NS && (parent.localName === 'process' || parent.localName === 'subProcess')) {
       return !(child.namespaceURI === BPMN_MODEL_NS && STRUCTURAL_FLOW_CHILDREN.has(child.localName));
     }
 
@@ -120,6 +163,6 @@ export class BpmnElementAccessService {
   }
 
   private xmlKey(namespaceUri: string, localName: string): string {
-    return `${namespaceUri}\u0000${localName}`;
+    return xmlKey(namespaceUri, localName);
   }
 }

@@ -40,8 +40,9 @@ describe('FlowBpmnEditorComponent', () => {
   let flowService: FlowService;
   let editorService: BpmnEditorService;
   let elementAccessService: {
+    setPersistedDiagram: ReturnType<typeof vi.fn>;
     clear: ReturnType<typeof vi.fn>;
-    loadForProduct: ReturnType<typeof vi.fn>;
+    loadCurrent: ReturnType<typeof vi.fn>;
     findDisallowedXmlElements: ReturnType<typeof vi.fn>;
     currentConfig: ReturnType<typeof vi.fn>;
     isTypeAllowed: ReturnType<typeof vi.fn>;
@@ -56,13 +57,14 @@ describe('FlowBpmnEditorComponent', () => {
   };
 
   beforeEach(() => {
-    // A new BPMN editor is opened in the context of a selected product.
+    // Product may still be present as Flow domain data, but BPMN permissions come only from the active Portal Owner.
     queryParams = { productId: '7' };
     back = vi.spyOn(window.history, 'back').mockImplementation(() => undefined);
 
     elementAccessService = {
+      setPersistedDiagram: vi.fn(),
       clear: vi.fn(),
-      loadForProduct: vi.fn().mockReturnValue(of({})),
+      loadCurrent: vi.fn().mockReturnValue(of({})),
       findDisallowedXmlElements: vi.fn().mockReturnValue([]),
       currentConfig: vi.fn().mockReturnValue({
         allowedTypes: [],
@@ -107,6 +109,7 @@ describe('FlowBpmnEditorComponent', () => {
 
     it('seeds the editor from the flow it fetched', () => {
       expect(editorService.getProcessXml()).toBe(diagram);
+      expect(elementAccessService.setPersistedDiagram).toHaveBeenCalledWith(diagram);
     });
 
     it('writes the diagram back onto that flow on save', () => {
@@ -132,6 +135,7 @@ describe('FlowBpmnEditorComponent', () => {
       create();
 
       expect(editorService.getProcessXml()).toBe(diagram);
+      expect(elementAccessService.setPersistedDiagram).toHaveBeenCalledWith(undefined);
     });
 
     it('starts an empty diagram when there is no draft yet', () => {
@@ -174,16 +178,16 @@ describe('FlowBpmnEditorComponent', () => {
   });
 
   describe('element access gate', () => {
-    it('waits for product access before scanning and seeding a draft', () => {
+    it('waits for active Owner access before scanning and seeding a draft', () => {
       const accessResult = new Subject<unknown>();
 
-      elementAccessService.loadForProduct.mockReturnValueOnce(accessResult);
+      elementAccessService.loadCurrent.mockReturnValueOnce(accessResult);
       flowService.xmlTemp = diagram;
 
       create();
 
-      expect(elementAccessService.loadForProduct).toHaveBeenCalledOnce();
-      expect(elementAccessService.loadForProduct).toHaveBeenCalledWith(7);
+      expect(elementAccessService.loadCurrent).toHaveBeenCalledOnce();
+      expect(elementAccessService.loadCurrent).toHaveBeenCalledOnce();
 
       expect(elementAccessService.findDisallowedXmlElements).not.toHaveBeenCalled();
       expect(editorService.getProcessXml()).toBeUndefined();
@@ -200,7 +204,7 @@ describe('FlowBpmnEditorComponent', () => {
       expect(component.accessError).toBeNull();
     });
 
-    it('does not seed a diagram containing BPMN elements that are not allowed for the product', () => {
+    it('does not seed a diagram containing BPMN elements that are not allowed for the active Owner', () => {
       elementAccessService.findDisallowedXmlElements.mockReturnValueOnce([
         {
           namespaceUri: 'http://www.omg.org/spec/BPMN/20100524/MODEL',
@@ -212,15 +216,13 @@ describe('FlowBpmnEditorComponent', () => {
 
       create();
 
-      expect(elementAccessService.loadForProduct).toHaveBeenCalledWith(7);
+      expect(elementAccessService.loadCurrent).toHaveBeenCalledOnce();
       expect(elementAccessService.findDisallowedXmlElements).toHaveBeenCalledWith(diagram);
 
       expect(editorService.getProcessXml()).toBeUndefined();
       expect(component.seeded).toBe(false);
 
-      expect(component.accessError).toBe(
-        'This diagram contains 1 BPMN element type(s) that are not allowed for the selected product.',
-      );
+      expect(component.accessError).toBe('This diagram contains 1 BPMN element type(s) that are not allowed for the active portal Owner.');
     });
 
     it('does not seed malformed or unsafe BPMN XML', () => {
@@ -232,7 +234,7 @@ describe('FlowBpmnEditorComponent', () => {
 
       create();
 
-      expect(elementAccessService.loadForProduct).toHaveBeenCalledWith(7);
+      expect(elementAccessService.loadCurrent).toHaveBeenCalledOnce();
       expect(elementAccessService.findDisallowedXmlElements).toHaveBeenCalledWith(diagram);
 
       expect(editorService.getProcessXml()).toBeUndefined();
@@ -240,43 +242,45 @@ describe('FlowBpmnEditorComponent', () => {
       expect(component.accessError).toBe('The BPMN XML is invalid.');
     });
 
-    it('rejects an explicitly invalid productId instead of falling back to stale product state', () => {
+    it('does not use productId to resolve BPMN permissions', () => {
       queryParams['productId'] = 'not-a-product-id';
-
-      flowService.productTemp = { id: 99 } as any;
       flowService.xmlTemp = diagram;
 
       create();
 
-      expect(elementAccessService.loadForProduct).not.toHaveBeenCalled();
-      expect(elementAccessService.findDisallowedXmlElements).not.toHaveBeenCalled();
+      expect(elementAccessService.loadCurrent).toHaveBeenCalledOnce();
+      expect(elementAccessService.findDisallowedXmlElements).toHaveBeenCalledWith(diagram);
 
-      expect(editorService.getProcessXml()).toBeUndefined();
-      expect(component.seeded).toBe(false);
-
-      expect(component.accessError).toBe(
-        'Select a product before opening the BPMN editor.',
-      );
+      expect(editorService.getProcessXml()).toBe(diagram);
+      expect(component.seeded).toBe(true);
+      expect(component.accessError).toBeNull();
     });
-    it('does not scan or seed when product element permissions cannot be loaded', () => {
-      elementAccessService.loadForProduct.mockReturnValueOnce(
-        throwError(() => new Error('permission lookup failed')),
-      );
+    it('does not scan or seed when active Owner element permissions cannot be loaded', () => {
+      elementAccessService.loadCurrent.mockReturnValueOnce(throwError(() => new Error('permission lookup failed')));
 
       flowService.xmlTemp = diagram;
 
       create();
 
-      expect(elementAccessService.loadForProduct).toHaveBeenCalledWith(7);
+      expect(elementAccessService.loadCurrent).toHaveBeenCalledOnce();
       expect(elementAccessService.findDisallowedXmlElements).not.toHaveBeenCalled();
 
       expect(editorService.getProcessXml()).toBeUndefined();
       expect(component.seeded).toBe(false);
 
-      expect(component.accessError).toBe(
-        'BPMN element permissions could not be loaded for the selected product.',
-      );
+      expect(component.accessError).toBe('BPMN element permissions could not be loaded for the active portal Owner.');
     });
+  });
+
+  it('does not save XML that introduces a disallowed element', () => {
+    flowService.xmlTemp = diagram;
+    create();
+    elementAccessService.findDisallowedXmlElements.mockReturnValueOnce([{ namespaceUri: 'CdrParser', localName: 'cdrParser' }]);
+
+    component.save('<definitions id="new-cdr" />');
+
+    expect(component.saveError).toBe('Adding elements not permitted for this portal Owner is not allowed.');
+    expect(back).not.toHaveBeenCalled();
   });
   it('is the host the toolbar saves and cancels through', () => {
     create();

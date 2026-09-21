@@ -14,9 +14,9 @@ export interface AppendOption {
 /*
  * Mediation module catalog.
  *
- * This is NOT a product whitelist.  BpmnElementAccessService filters this
- * catalog every time the right-click menu opens, so each product sees only
- * the BPMN types assigned to it by Product -> Group -> Element.
+ * This catalog is NOT an authorization whitelist. BpmnElementAccessService filters this
+ * catalog every time the right-click menu opens, so the active portal owner sees only
+ * the BPMN types assigned through Owner -> Group -> Element.
  */
 const MEDIATION_OPTIONS: readonly AppendOption[] = [
   {
@@ -96,18 +96,9 @@ const MEDIATION_OPTIONS: readonly AppendOption[] = [
 export function appendOptions(): AppendOption[] {
   const { START_EVENT, TASK, GATEWAY, BOUNDARY_EVENT } = replaceOptions;
 
-  const standardOptions = [
-    ...START_EVENT,
-    ...TASK,
-    ...GATEWAY,
-    ...BOUNDARY_EVENT,
-  ].filter(
-    (entry): entry is AppendOption =>
-      typeof entry.label === 'string',
+  const standardOptions = [...START_EVENT, ...TASK, ...GATEWAY, ...BOUNDARY_EVENT].filter(
+    (entry): entry is AppendOption => typeof entry.label === 'string',
   );
 
-  return [
-    ...standardOptions,
-    ...MEDIATION_OPTIONS,
-  ];
+  return [...standardOptions, ...MEDIATION_OPTIONS];
 }

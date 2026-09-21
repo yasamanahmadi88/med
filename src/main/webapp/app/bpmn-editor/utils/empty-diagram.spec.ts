@@ -21,7 +21,7 @@ describe('empty diagram', () => {
       expect(emptyDiagramXml('P', 'n')).toContain('isExecutable="true"');
     });
 
-    it('starts element-free like Vue so no implicit BPMN type bypasses product access', () => {
+    it('starts element-free like Vue so no implicit BPMN type bypasses owner access', () => {
       const xml = emptyDiagramXml('P', 'n');
 
       expect(xml).toBe(blankDiagramXml('P', 'n'));

@@ -106,7 +106,8 @@ public class FlowResource {
         if (flowDTO.getId() != null) {
             throw new BadRequestAlertException("A new flow cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        validateBpmnElementAccess(flowDTO.getProduct() != null ? flowDTO.getProduct().getId() : null, flowDTO.getFlow());
+        validateRequiredProduct(flowDTO.getProduct() != null ? flowDTO.getProduct().getId() : null);
+        validateBpmnElementAccess(flowDTO.getFlow());
         if (bpmnParserActive) {
             return sendToBpmnParser(flowDTO, "create", bpmnParserUrl);
         }
@@ -182,7 +183,11 @@ public class FlowResource {
         if (!flowRepository.existsById(id)) {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
-        validateBpmnElementAccess(flowDTO.getProduct() != null ? flowDTO.getProduct().getId() : null, flowDTO.getFlow());
+        validateRequiredProduct(flowDTO.getProduct() != null ? flowDTO.getProduct().getId() : null);
+        FlowDTO existing = flowService
+            .findOne(id)
+            .orElseThrow(() -> new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
+        validateBpmnElementAccess(flowDTO.getFlow(), existing.getFlow());
         if (bpmnParserActive) {
             return sendToBpmnParser(flowDTO, "update", bpmnParserUrl);
         }
@@ -229,8 +234,9 @@ public class FlowResource {
             .findOne(id)
             .orElseThrow(() -> new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
         Long effectiveProductId = flowDTO.getProduct() != null ? flowDTO.getProduct().getId() : existing.getProduct().getId();
+        validateRequiredProduct(effectiveProductId);
         String effectiveXml = flowDTO.getFlow() != null ? flowDTO.getFlow() : existing.getFlow();
-        validateBpmnElementAccess(effectiveProductId, effectiveXml);
+        validateBpmnElementAccess(effectiveXml, existing.getFlow());
 
         Optional<FlowDTO> result = flowService.partialUpdate(flowDTO);
         loggerService.log( ENTITY_NAME+"_UPDATE",new HashMap<>());
@@ -307,24 +313,49 @@ public class FlowResource {
 
 
     /**
-     * Enforces the same Product -> Group -> Element rule on the server that the Angular palette
+     * Enforces the same Owner -> Group -> Element rule on the server that the Angular palette
      * uses for visibility. Hiding an entry in the browser is not authorization: imported XML or
-     * a handcrafted REST request must not be able to persist a module that the product cannot use.
+     * a handcrafted REST request must not persist a module that the active portal Owner cannot use.
      */
-    private void validateBpmnElementAccess(Long productId, String xml) {
+    private void validateRequiredProduct(Long productId) {
         if (productId == null) {
-            throw new BadRequestAlertException("A product is required before editing BPMN", ENTITY_NAME, "productrequired");
+            throw new BadRequestAlertException(
+                "A product is required before editing BPMN",
+                ENTITY_NAME,
+                "productrequired"
+            );
         }
+    }
 
+    private void validateBpmnElementAccess(String xml) {
         try {
-            Set<XmlElementKey> disallowed = bpmnElementAccessService.findDisallowedElements(productId, xml);
+            Set<XmlElementKey> disallowed = bpmnElementAccessService.findDisallowedElements(xml);
             if (!disallowed.isEmpty()) {
                 String elementList = disallowed
                     .stream()
                     .map(element -> element.namespaceUri() + ":" + element.localName())
                     .collect(Collectors.joining(", "));
                 throw new BadRequestAlertException(
-                    "Product " + productId + " is not allowed to use BPMN elements: " + elementList,
+                    "Current portal Owner is not allowed to use BPMN elements: " + elementList,
+                    ENTITY_NAME,
+                    "bpmnelementnotallowed"
+                );
+            }
+        } catch (IllegalArgumentException exception) {
+            throw new BadRequestAlertException(exception.getMessage(), ENTITY_NAME, "invalidbpmnxml");
+        }
+    }
+
+    private void validateBpmnElementAccess(String xml, String persistedXml) {
+        try {
+            Set<XmlElementKey> disallowed = bpmnElementAccessService.findDisallowedElements(xml, persistedXml);
+            if (!disallowed.isEmpty()) {
+                String elementList = disallowed
+                    .stream()
+                    .map(element -> element.namespaceUri() + ":" + element.localName())
+                    .collect(Collectors.joining(", "));
+                throw new BadRequestAlertException(
+                    "Current portal Owner is not allowed to create BPMN elements: " + elementList,
                     ENTITY_NAME,
                     "bpmnelementnotallowed"
                 );

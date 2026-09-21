@@ -4,28 +4,34 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Product-specific BPMN element configuration consumed by the Angular editor. */
+/**
+ * BPMN capability configuration for the active portal Owner.
+ *
+ * Product and user role are deliberately absent from this authorization model.
+ */
 public class BpmnElementAccessDTO implements Serializable {
 
-    private Long productId;
-    private String productName;
+    private static final long serialVersionUID = 1L;
+
+    private String ownerCode;
+    private String ownerDisplayName;
     private List<GroupDTO> groups = new ArrayList<>();
     private List<ElementDTO> elements = new ArrayList<>();
 
-    public Long getProductId() {
-        return productId;
+    public String getOwnerCode() {
+        return ownerCode;
     }
 
-    public void setProductId(Long productId) {
-        this.productId = productId;
+    public void setOwnerCode(String ownerCode) {
+        this.ownerCode = ownerCode;
     }
 
-    public String getProductName() {
-        return productName;
+    public String getOwnerDisplayName() {
+        return ownerDisplayName;
     }
 
-    public void setProductName(String productName) {
-        this.productName = productName;
+    public void setOwnerDisplayName(String ownerDisplayName) {
+        this.ownerDisplayName = ownerDisplayName;
     }
 
     public List<GroupDTO> getGroups() {

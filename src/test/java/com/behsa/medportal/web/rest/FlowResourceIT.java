@@ -9,6 +9,7 @@ import com.behsa.medportal.IntegrationTest;
 import com.behsa.medportal.domain.FlowEntity;
 import com.behsa.medportal.domain.ProductEntity;
 import com.behsa.medportal.repository.FlowRepository;
+import com.behsa.medportal.service.BpmnElementAccessService;
 import com.behsa.medportal.service.dto.FlowDTO;
 import com.behsa.medportal.service.mapper.FlowMapper;
 import java.util.List;
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,6 +77,14 @@ class FlowResourceIT {
     @Autowired
     private MockMvc restFlowMockMvc;
 
+    /**
+     * FlowResourceIT verifies generic Flow CRUD behaviour.
+     * Owner/BPMN authorization itself is integration-tested separately
+     * by FlowResourceBpmnElementAccessIT.
+     */
+    @MockitoBean
+    private BpmnElementAccessService bpmnElementAccessService;
+
     private FlowEntity flowEntity;
 
     /**
@@ -121,6 +131,20 @@ class FlowResourceIT {
 
     @BeforeEach
     public void initTest() {
+        /*
+         * This class is intentionally not an authorization test.
+         * The dedicated Owner/BPMN integration suite exercises the real
+         * PortalOwnerService, Owner mappings, XML scanner and fail-closed
+         * behaviour. Generic CRUD tests only need an allowed policy result.
+         */
+        org.mockito.Mockito
+            .when(
+                bpmnElementAccessService.findDisallowedElements(
+                    org.mockito.ArgumentMatchers.anyString()
+                )
+            )
+            .thenReturn(java.util.Set.of());
+
         flowEntity = createEntity(em);
     }
 

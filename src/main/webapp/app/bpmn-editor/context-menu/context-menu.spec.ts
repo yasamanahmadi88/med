@@ -96,10 +96,7 @@ describe('context menu', () => {
 
       container.dispatchEvent(event);
 
-      expect(eventBus.fire).toHaveBeenCalledWith(
-        'contextMenu.append.open',
-        { x: 140, y: 220 },
-      );
+      expect(eventBus.fire).toHaveBeenCalledWith('contextMenu.append.open', { x: 140, y: 220 });
       expect(event.defaultPrevented).toBe(true);
     });
     it('registers above the default handling so it wins the event', () => {
@@ -174,9 +171,7 @@ describe('context menu', () => {
     });
 
     it('contains the six MCI mediation types so access filtering can expose them', () => {
-      const types = new Set(
-        appendOptions().map(option => option.target.type),
-      );
+      const types = new Set(appendOptions().map(option => option.target.type));
 
       expect(types.has('Merger:Merger')).toBe(true);
       expect(types.has('Fragmenter:Fragmenter')).toBe(true);

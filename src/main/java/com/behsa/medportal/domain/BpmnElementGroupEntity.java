@@ -8,7 +8,7 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.io.Serializable;
 
-/** A reusable group of BPMN elements that can be assigned to any product. */
+/** A reusable group of BPMN elements that can be assigned to a portal owner. */
 @Entity
 @Table(name = "TBL_BPMN_ELEMENT_GROUP")
 public class BpmnElementGroupEntity implements Serializable {

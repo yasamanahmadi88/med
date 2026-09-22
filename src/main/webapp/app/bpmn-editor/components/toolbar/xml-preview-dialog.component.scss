@@ -1,18 +1,62 @@
-.xml-preview {
-  max-height: 64vh;
-  overflow: auto;
+:host {
+  .xml-preview {
+    max-height: 64vh;
+    overflow: auto;
 
-  pre {
-    margin: 0;
-    // The document is machine-formatted, so its own line breaks are the readable ones; wrapping
-    // would hide the nesting the indentation shows.
-    white-space: pre;
+    pre {
+      margin: 0;
+      // The document is machine-formatted, so its own line breaks are the readable ones; wrapping
+      // would hide the nesting the indentation shows.
+      white-space: pre;
+      font-size: 0.8125rem;
+    }
+
+    .xml-preview-code {
+      code {
+        direction: ltr;
+        text-align: left;
+        white-space: pre;
+        font-family: 'Courier New', Courier, monospace;
+        user-select: text;
+        overflow: auto;
+        display: block;
+      }
+    }
+  }
+
+  .copy-state {
+    margin-right: auto;
     font-size: 0.8125rem;
+    color: #6c757d;
+  }
+
+  // highlight.js token styling with CSS variables for theming.
+  .hljs-tag {
+    color: var(--mp-hljs-tag, #22863a);
+  }
+
+  .hljs-name {
+    color: var(--mp-hljs-name, #22863a);
+  }
+
+  .hljs-attr {
+    color: var(--mp-hljs-attr, #6f42c1);
+  }
+
+  .hljs-string {
+    color: var(--mp-hljs-string, #032f62);
+  }
+
+  .hljs-comment {
+    color: var(--mp-hljs-comment, #6a737d);
+  }
+
+  .hljs-meta {
+    color: var(--mp-hljs-meta, #005cc5);
+  }
+
+  .hljs-symbol {
+    color: var(--mp-hljs-symbol, #e36209);
   }
 }
 
-.copy-state {
-  margin-right: auto;
-  font-size: 0.8125rem;
-  color: #6c757d;
-}

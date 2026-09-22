@@ -4,7 +4,7 @@
 </div>
 
 <div class="modal-body xml-preview">
-  <pre data-cy="bpmnXmlPreview"><code>{{ xml }}</code></pre>
+  <pre data-cy="bpmnXmlPreview" class="xml-preview-code"><code [innerHTML]="highlightedXml"></code></pre>
 </div>
 
 <div class="modal-footer">

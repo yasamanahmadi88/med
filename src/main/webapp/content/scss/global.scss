@@ -21,6 +21,13 @@ Theme tokens (light / dark via data-theme)
   --mp-focus-ring: #0d6efd;
   --mp-input-bg: #ffffff;
   --mp-input-color: #212529;
+  --mp-hljs-tag: #22863a;
+  --mp-hljs-name: #22863a;
+  --mp-hljs-attr: #6f42c1;
+  --mp-hljs-string: #032f62;
+  --mp-hljs-comment: #6a737d;
+  --mp-hljs-meta: #005cc5;
+  --mp-hljs-symbol: #e36209;
 }
 
 [data-theme='dark'] {
@@ -37,6 +44,13 @@ Theme tokens (light / dark via data-theme)
   --mp-focus-ring: #6ea8fe;
   --mp-input-bg: #161b22;
   --mp-input-color: #e8eaed;
+  --mp-hljs-tag: #7ee787;
+  --mp-hljs-name: #7ee787;
+  --mp-hljs-attr: #d2a8ff;
+  --mp-hljs-string: #a5d6ff;
+  --mp-hljs-comment: #8b949e;
+  --mp-hljs-meta: #79c0ff;
+  --mp-hljs-symbol: #ffa657;
 }
 
 body {

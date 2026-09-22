@@ -1,6 +1,8 @@
-import { Component, HostListener, Input } from '@angular/core';
+import { Component, HostListener, Input, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { highlightXml } from './xml-highlight';
 
 /** How the last copy attempt went, so the button can say so instead of failing silently. */
 type CopyState = 'idle' | 'copied' | 'failed';
@@ -11,20 +13,39 @@ type CopyState = 'idle' | 'copied' | 'failed';
  * This is the only way to see what the editor will actually save without downloading the file,
  * which is what makes it worth a dialog: the properties panel shows one element at a time and
  * says nothing about the extension attributes the integration modules write.
+ *
+ * Syntax highlighting is applied via highlight.js with CSS variables for theming.
+ * ViewEncapsulation.None allows the highlight.js-generated spans to inherit colors
+ * without Angular's emulation attributes interfering.
  */
 @Component({
   selector: 'jhi-bpmn-xml-preview-dialog',
   templateUrl: './xml-preview-dialog.component.html',
   styleUrls: ['./xml-preview-dialog.component.scss'],
+  encapsulation: ViewEncapsulation.None,
   standalone: true,
   imports: [CommonModule],
 })
 export class XmlPreviewDialogComponent {
-  @Input() xml = '';
+  private _xml = '';
+  highlightedXml: SafeHtml | null = null;
 
   copyState: CopyState = 'idle';
 
-  constructor(public activeModal: NgbActiveModal) {}
+  constructor(
+    public activeModal: NgbActiveModal,
+    private sanitizer: DomSanitizer,
+  ) {}
+
+  @Input()
+  set xml(value: string) {
+    this._xml = value;
+    this.highlightedXml = this.sanitizer.bypassSecurityTrustHtml(highlightXml(value));
+  }
+
+  get xml(): string {
+    return this._xml;
+  }
 
   /**
    * Ctrl/⌘ + C copies the whole document — but only when the user has not selected part of it,

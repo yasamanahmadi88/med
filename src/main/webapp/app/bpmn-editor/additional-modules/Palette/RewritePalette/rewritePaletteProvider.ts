@@ -2,6 +2,7 @@ import PaletteProvider from 'bpmn-js/lib/features/palette/PaletteProvider';
 import ElementFactory from 'bpmn-js/lib/features/modeling/ElementFactory';
 
 import { createAction } from '../utils';
+import { BpmnElementAccessConfig, isBpmnTypeAllowed } from '../../../services/bpmn-element-access.types';
 
 /**
  * Palette used by the Mediation BPMN editor.
@@ -31,6 +32,7 @@ class RewritePaletteProvider extends PaletteProvider {
     lassoTool: any,
     handTool: any,
     globalConnect: any,
+    private readonly elementAccess?: BpmnElementAccessConfig,
   ) {
     // Keep the same provider-registration behaviour already used by this
     // rewrite provider. getPaletteEntries() below owns the visible whitelist.
@@ -52,7 +54,7 @@ class RewritePaletteProvider extends PaletteProvider {
     const handTool = this._handTool;
     const globalConnect = this._globalConnect;
 
-    return {
+    const entries: Record<string, any> = {
       // ------------------------------------------------------------
       // Tools - same four tools and same order as Vue
       // ------------------------------------------------------------
@@ -226,9 +228,45 @@ class RewritePaletteProvider extends PaletteProvider {
         'CSV Transformer Module',
       ),
     };
+
+    const elementTypesByEntry: Record<string, string> = {
+      'create.start-event': 'bpmn:StartEvent',
+      'create.end-event': 'bpmn:EndEvent',
+      'create.merger-module': 'Merger:Merger',
+      'create.fragmenter-module': 'Fragmenter:Fragmenter',
+      'create.KafkaReceiver-module': 'KafkaReceiver:KafkaReceiver',
+      'create.KafkaTransmitter-module': 'KafkaTransmitter:KafkaTransmitter',
+      'create.HttpReceiver-module': 'HttpReceiver:HttpReceiver',
+      'create.HttpTransmitter-module': 'HttpTransmitter:HttpTransmitter',
+      'create.fileReceiver-module': 'FileReceiver:FileReceiver',
+      'create.FileTransmitter-module': 'FileTransmitter:FileTransmitter',
+      'create.dbReceiver-module': 'DbReceiver:DbReceiver',
+      'create.dbTransmitter-module': 'DbTransmitter:DbTransmitter',
+      'create.cdrParser-module': 'CdrParser:CdrParser',
+      'create.csvTransformerCorner-module': 'CsvTransformer:CsvTransformer',
+    };
+
+    // Tools are not BPMN model elements and remain available.  Every model element is fail-closed
+    // unless its type arrived from Owner -> Group -> Element access loaded from the server.
+    for (const [entryId, type] of Object.entries(elementTypesByEntry)) {
+      if (!isBpmnTypeAllowed(this.elementAccess, type)) {
+        Reflect.deleteProperty(entries, entryId);
+      }
+    }
+
+    return entries;
   }
 }
 
-RewritePaletteProvider.$inject = ['palette', 'create', 'elementFactory', 'spaceTool', 'lassoTool', 'handTool', 'globalConnect'];
+RewritePaletteProvider.$inject = [
+  'palette',
+  'create',
+  'elementFactory',
+  'spaceTool',
+  'lassoTool',
+  'handTool',
+  'globalConnect',
+  'config.elementAccess',
+];
 
 export default RewritePaletteProvider;

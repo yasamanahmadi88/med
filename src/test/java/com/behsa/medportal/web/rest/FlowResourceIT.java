@@ -9,6 +9,7 @@ import com.behsa.medportal.IntegrationTest;
 import com.behsa.medportal.domain.FlowEntity;
 import com.behsa.medportal.domain.ProductEntity;
 import com.behsa.medportal.repository.FlowRepository;
+import com.behsa.medportal.service.BpmnElementAccessService;
 import com.behsa.medportal.service.dto.FlowDTO;
 import com.behsa.medportal.service.mapper.FlowMapper;
 import java.util.List;
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,8 +40,24 @@ class FlowResourceIT {
     private static final String DEFAULT_FLOW_DESC = "AAAAAAAAAA";
     private static final String UPDATED_FLOW_DESC = "BBBBBBBBBB";
 
-    private static final String DEFAULT_FLOW = "AAAAAAAAAA";
-    private static final String UPDATED_FLOW = "BBBBBBBBBB";
+    private static final String DEFAULT_FLOW = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <bpmn:definitions
+            xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+            id="Definitions_Default"
+            targetNamespace="http://bpmn.io/schema/bpmn">
+          <bpmn:process id="Process_Default" isExecutable="true" />
+        </bpmn:definitions>
+        """;
+    private static final String UPDATED_FLOW = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <bpmn:definitions
+            xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+            id="Definitions_Updated"
+            targetNamespace="http://bpmn.io/schema/bpmn">
+          <bpmn:process id="Process_Updated" isExecutable="true" />
+        </bpmn:definitions>
+        """;
 
     private static final String ENTITY_API_URL = "/api/flows";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
@@ -58,6 +76,14 @@ class FlowResourceIT {
 
     @Autowired
     private MockMvc restFlowMockMvc;
+
+    /**
+     * FlowResourceIT verifies generic Flow CRUD behaviour.
+     * Owner/BPMN authorization itself is integration-tested separately
+     * by FlowResourceBpmnElementAccessIT.
+     */
+    @MockitoBean
+    private BpmnElementAccessService bpmnElementAccessService;
 
     private FlowEntity flowEntity;
 
@@ -105,6 +131,21 @@ class FlowResourceIT {
 
     @BeforeEach
     public void initTest() {
+        /*
+         * This class is intentionally not an authorization test.
+         * The dedicated Owner/BPMN integration suite exercises the real
+         * PortalOwnerService, Owner mappings, XML scanner and fail-closed
+         * behaviour. Generic CRUD tests only need an allowed policy result.
+         */
+        org.mockito.Mockito
+            .when(
+                bpmnElementAccessService.findDisallowedElements(
+                    org.mockito.ArgumentMatchers.anyString(),
+                    org.mockito.ArgumentMatchers.nullable(String.class)
+                )
+            )
+            .thenReturn(java.util.Set.of());
+
         flowEntity = createEntity(em);
     }
 
@@ -466,14 +507,14 @@ class FlowResourceIT {
         restFlowMockMvc
             .perform(get(ENTITY_API_URL + "?sort=id,desc&" + filter))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.errorKey").value("flownotcomparable"))
-            .andExpect(jsonPath("$.entityName").value("flow"));
+            .andExpect(jsonPath("$.message").value("error.flownotcomparable"))
+            .andExpect(jsonPath("$.params").value("flow"));
 
         restFlowMockMvc
             .perform(get(ENTITY_API_URL + "/count?sort=id,desc&" + filter))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.errorKey").value("flownotcomparable"))
-            .andExpect(jsonPath("$.entityName").value("flow"));
+            .andExpect(jsonPath("$.message").value("error.flownotcomparable"))
+            .andExpect(jsonPath("$.params").value("flow"));
     }
     /**
      * Executes the search, and checks that the default entity is returned.

@@ -1,5 +1,6 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { NEVER } from 'rxjs';
+import { ToastrService } from 'ngx-toastr';
 import { BpmnPropertiesPanelModule, BpmnPropertiesProviderModule, CamundaPlatformPropertiesProviderModule } from 'bpmn-js-properties-panel';
 
 import { BpmnEditorComponent } from './bpmn-editor.component';
@@ -25,7 +26,7 @@ vi.mock('bpmn-js/lib/Modeler', () => ({
     importXML = vi.fn().mockResolvedValue({});
     saveXML = vi.fn().mockResolvedValue({ xml: '<definitions />' });
     on = vi.fn();
-    private readonly eventBus = { on: vi.fn() };
+    private readonly eventBus = { on: vi.fn(), off: vi.fn() };
     get = vi.fn((service: string) => (service === 'eventBus' ? this.eventBus : undefined));
     destroy = vi.fn();
 
@@ -52,6 +53,15 @@ describe('BpmnEditorComponent', () => {
         {
           provide: RoleModulesService,
           useValue: { getAvailableModuleTypes: () => NEVER },
+        },
+        {
+          provide: ToastrService,
+          useValue: {
+            error: vi.fn(),
+            success: vi.fn(),
+            warning: vi.fn(),
+            info: vi.fn(),
+          },
         },
       ],
     }).compileComponents();

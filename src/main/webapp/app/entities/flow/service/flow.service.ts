@@ -6,6 +6,7 @@ import { isPresent } from 'app/core/util/operators';
 import { ApplicationConfigService } from 'app/core/config/application-config.service';
 import { createRequestOption } from 'app/core/request/request-util';
 import { IFlow, NewFlow } from '../flow.model';
+import { IProduct } from '../../product/product.model';
 
 export type PartialUpdateFlow = Partial<IFlow> & Pick<IFlow, 'id'>;
 
@@ -17,6 +18,7 @@ export class FlowService {
   protected resourceUrl = this.applicationConfigService.getEndpointFor('api/flows');
 
   public xmlTemp = '';
+  public productTemp: IProduct | null = null;
 
   constructor(
     protected http: HttpClient,

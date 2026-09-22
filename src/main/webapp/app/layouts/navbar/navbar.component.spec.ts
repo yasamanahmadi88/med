@@ -11,6 +11,8 @@ import { TranslateModule } from '@ngx-translate/core';
 import { ProfileInfo } from 'app/layouts/profiles/profile-info.model';
 import { Account } from 'app/core/auth/account.model';
 import { AccountService } from 'app/core/auth/account.service';
+import { PortalOwner } from 'app/core/config/portal-owner.model';
+import { PortalOwnerService } from 'app/core/config/portal-owner.service';
 import { ProfileService } from 'app/layouts/profiles/profile.service';
 import { LoginService } from 'app/login/login.service';
 
@@ -21,6 +23,12 @@ describe('Navbar Component', () => {
   let fixture: ComponentFixture<NavbarComponent>;
   let accountService: AccountService;
   let profileService: ProfileService;
+  let portalOwnerService: PortalOwnerService;
+  const portalOwner: PortalOwner = {
+    code: 'MEDIATION',
+    displayName: 'Mediation Portal',
+  };
+
   const account: Account = {
     activated: true,
     authorities: [],
@@ -50,6 +58,8 @@ describe('Navbar Component', () => {
     comp = fixture.componentInstance;
     accountService = TestBed.inject(AccountService);
     profileService = TestBed.inject(ProfileService);
+    portalOwnerService = TestBed.inject(PortalOwnerService);
+    vi.spyOn(portalOwnerService, 'getCurrent').mockReturnValue(of(portalOwner));
   });
 
   it('Should call profileService.getProfileInfo on init', () => {
@@ -98,5 +108,17 @@ describe('Navbar Component', () => {
 
     // THEN
     expect(comp.account).toBeNull();
+  });
+  it('Should resolve portal owner for authenticated user', () => {
+    comp.ngOnInit();
+
+    accountService.authenticate(account);
+
+    expect(portalOwnerService.getCurrent).toHaveBeenCalled();
+    expect(comp.portalOwner).toEqual(portalOwner);
+
+    accountService.authenticate(null);
+
+    expect(comp.portalOwner).toBeNull();
   });
 });

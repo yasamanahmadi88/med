@@ -1,22 +1,20 @@
-import { Component, forwardRef, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnDestroy, OnInit, forwardRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
-import { FlowService } from 'app/entities/flow/service/flow.service';
 import { IFlow } from 'app/entities/flow/flow.model';
+import { FlowService } from 'app/entities/flow/service/flow.service';
 import { BpmnEditorComponent } from '../bpmn-editor.component';
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
 import { BPMN_EDITOR_HOST, BpmnEditorHost } from '../../services/bpmn-editor-host';
+import { BpmnElementAccessService } from '../../services/bpmn-element-access.service';
 
 /**
- * The Flow form's entry into the editor. It is the only piece of the feature that knows about
- * flows: it seeds the diagram from wherever the caller keeps it and is the toolbar's host, so
- * the editor components themselves stay free of FlowService.
+ * Flow-aware host for the BPMN editor.
  *
- * Two callers, matching the two states a flow can be in:
- *  - `?flowId=n` from the flow list — the diagram lives on the persisted flow.
- *  - no query param from the new-flow form — the flow does not exist yet, so its draft diagram
- *    is parked on FlowService.xmlTemp until the form is submitted.
+ * The active Portal Owner is resolved before the modeler exists.  Its Owner -> Group -> Element policy is
+ * loaded first and DesignerComponent consumes that already-loaded snapshot while constructing
+ * bpmn-js.  There is deliberately no unscoped editor fallback.
  */
 @Component({
   selector: 'jhi-flow-bpmn-editor',
@@ -28,6 +26,8 @@ import { BPMN_EDITOR_HOST, BpmnEditorHost } from '../../services/bpmn-editor-hos
 })
 export class FlowBpmnEditorComponent implements OnInit, OnDestroy, BpmnEditorHost {
   seeded = false;
+  accessError: string | null = null;
+  saveError: string | null = null;
 
   private flow: IFlow | null = null;
 
@@ -35,56 +35,88 @@ export class FlowBpmnEditorComponent implements OnInit, OnDestroy, BpmnEditorHos
     private route: ActivatedRoute,
     private flowService: FlowService,
     private bpmnEditorService: BpmnEditorService,
+    private elementAccessService: BpmnElementAccessService,
   ) {}
 
   ngOnInit(): void {
+    this.elementAccessService.clear();
     const flowId = this.route.snapshot.queryParams['flowId'];
 
-    if (flowId === undefined) {
-      this.seed(this.flowService.xmlTemp);
+    if (flowId !== undefined) {
+      this.loadPersistedFlow(Number(flowId));
       return;
     }
 
-    this.flowService.find(Number(flowId)).subscribe({
-      next: res => {
-        this.flow = res.body;
-        this.seed(this.flow?.flow);
-      },
-      // A flow that cannot be read still opens the editor, on an empty diagram; because `flow`
-      // stays null, saving then falls back to the draft rather than writing over the record.
-      error: () => this.seed(undefined),
-    });
+    this.loadAccessAndSeed(this.flowService.xmlTemp);
   }
 
   ngOnDestroy(): void {
-    // BpmnEditorService is application-scoped, so the diagram would otherwise still be there the
-    // next time someone opens the editor on a different flow.
     this.bpmnEditorService.setProcessXml(undefined);
+    this.elementAccessService.clear();
   }
 
   save(xml: string): void {
+    this.saveError = null;
     if (this.flow) {
-      this.flow.flow = xml;
-      this.flowService.update(this.flow).subscribe();
-    } else {
-      this.flowService.xmlTemp = xml;
+      const updated: IFlow = { ...this.flow, flow: xml };
+      this.flowService.update(updated).subscribe({
+        next: () => window.history.back(),
+        error: () => {
+          this.saveError = 'The BPMN diagram could not be saved. Check BPMN element permissions and try again.';
+        },
+      });
+      return;
     }
+
+    this.flowService.xmlTemp = xml;
     window.history.back();
   }
 
   cancel(): void {
     window.history.back();
-    // FlowNewComponent sends anyone arriving with an empty xmlTemp straight back here, so a
-    // cancelled empty draft has to read as something other than empty or the form traps the user
-    // in the editor. The single space is that marker, and the form checks for it by value.
+    // Preserve the existing cancelled-draft marker used by FlowNewComponent.
     if (this.flowService.xmlTemp === '') {
       this.flowService.xmlTemp = ' ';
     }
   }
 
+  private loadPersistedFlow(flowId: number): void {
+    this.flowService.find(flowId).subscribe({
+      next: res => {
+        this.flow = res.body;
+        this.loadAccessAndSeed(this.flow?.flow);
+      },
+      error: () => {
+        this.accessError = 'The flow could not be loaded.';
+      },
+    });
+  }
+
+  private loadAccessAndSeed(xml: string | null | undefined): void {
+    this.elementAccessService.loadCurrent().subscribe({
+      next: () => {
+        this.elementAccessService.setPersistedDiagram(xml);
+        if (xml?.trim()) {
+          try {
+            const disallowed = this.elementAccessService.findDisallowedXmlElements(xml);
+            if (disallowed.length > 0) {
+              this.accessError = `This diagram contains ${disallowed.length} BPMN element type(s) that are not allowed for the active portal Owner.`;
+              return;
+            }
+          } catch {
+            this.accessError = 'The BPMN XML is invalid.';
+            return;
+          }
+        }
+        this.seed(xml);
+      },
+      error: () => {
+        this.accessError = 'BPMN element permissions could not be loaded for the active portal Owner.';
+      },
+    });
+  }
+
   private seed(xml: string | null | undefined): void {
-    // Blank covers both "nothing drafted yet" and the cancelled-draft marker; neither is a
-    // diagram bpmn-js could import, so the editor starts a new one instead.
     this.bpmnEditorService.setProcessXml(xml?.trim() ? xml : undefined);
     this.seeded = true;
   }

@@ -14,6 +14,15 @@ import { EditorSettings } from '../types/editor/settings';
 const ID_PATTERN = /^[A-Za-z_][\w.-]*$/;
 
 /**
+ * Escapes text for an XML attribute. The Vue original interpolated `processName` raw, so a
+ * name holding `&` or `"` — both accepted by the settings form — produced a document that
+ * failed to import, leaving the canvas blank with only a console warning.
+ */
+function escapeXml(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/**
  * The start event every new diagram opens with, matching what `modeler.createDiagram()` draws —
  * same id and same bounds, so a diagram made here is indistinguishable from one made before.
  *
@@ -24,16 +33,10 @@ const ID_PATTERN = /^[A-Za-z_][\w.-]*$/;
 const START_EVENT_ID = 'StartEvent_1';
 
 /**
- * Escapes text for an XML attribute. The Vue original interpolated `processName` raw, so a
- * name holding `&` or `"` — both accepted by the settings form — produced a document that
- * failed to import, leaving the canvas blank with only a console warning.
- */
-function escapeXml(value: string): string {
-  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-/**
- * The empty BPMN 2.0 document, carrying the given process id and name.
+ * The BPMN 2.0 document a new diagram opens with, carrying the given process id and name.
+ *
+ * Callers whose active portal Owner does not allow `bpmn:StartEvent` seed `blankDiagramXml`
+ * instead, so this never places a type the Owner is not entitled to.
  *
  * The engine namespace is deliberately absent: the Vue `EmptyXML` took an engine argument and
  * never referenced it, so no diagram it created ever carried one. Adding it here would make new
@@ -42,6 +45,7 @@ function escapeXml(value: string): string {
  */
 export function emptyDiagramXml(processId: string, processName: string): string {
   const id = escapeXml(processId);
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -65,16 +69,8 @@ export function emptyDiagramXml(processId: string, processName: string): string 
 }
 
 /**
- * The id and name a new diagram gets, from the settings where they are usable and a timestamp
- * where they are not. A configured id that is not a valid NCName is dropped rather than
- * written, because moddle rejects the document outright and the editor would open empty.
- */
-/**
- * Returns an element-free BPMN document for the Vue "Erase Redo" action.
- *
- * This is intentionally separate from emptyDiagramXml(): the latter defines
- * the initial-editor behaviour and currently creates StartEvent_1. Erase Redo
- * must preserve the process identity while importing no flow elements.
+ * Returns an element-free BPMN document, for the Vue "Erase Redo" action and for a new diagram
+ * whose Owner is not entitled to place a start event.
  */
 export function blankDiagramXml(processId: string, processName: string): string {
   const id = escapeXml(processId);

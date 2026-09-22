@@ -30,8 +30,15 @@
       background-color: rgb(241, 242, 244);
     }
     .context-menu_item_icon {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      flex: 0 0 24px;
       font-size: 20px;
       margin-right: 8px;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
     }
   }
 }

@@ -15,9 +15,9 @@
 
 logging:
   level:
-    ROOT: INFO
+    ROOT: DEBUG
     tech.jhipster: DEBUG
-    org.hibernate.SQL: INFO
+    org.hibernate.SQL: DEBUG
     com.behsa.medportal: DEBUG
 
 spring:
@@ -30,11 +30,19 @@ spring:
   jackson:
     serialization:
       indent-output: true
+
+
+
+
+
+
+
+
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     url: ${SPRING_DATASOURCE_URL:jdbc:oracle:thin:@//172.18.50.50:1521/IXPDB}
     username: ${SPRING_DATASOURCE_USERNAME:medportal}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    password: ${SPRING_DATASOURCE_PASSWORD:pass#1401}
     hikari:
       poolName: Hikari
       auto-commit: false
@@ -76,7 +84,7 @@ jhipster:
   # CORS is only enabled by default with the "dev" profile
   cors:
     # Allow Ionic for JHipster by default (* no longer allowed in Spring Boot 2.4+)
-    allowed-origins: 'http://localhost:8100,https://localhost:8100,http://localhost:9000,https://localhost:9000,http://localhost:4200,https://localhost:4200,http://localhost:9060'
+    allowed-origins: 'http://localhost:8100,https://localhost:8100,http://localhost:9000,https://localhost:9000,http://localhost:4200,https://localhost:4200'
     # Enable CORS when running in GitHub Codespaces
     allowed-origin-patterns: 'https://*.githubpreview.dev'
     allowed-methods: '*'
@@ -87,10 +95,9 @@ jhipster:
   security:
     authentication:
       jwt:
-        # SECURITY_AUTHENTICATION_JWT_BASE64_SECRET must be set via environment variable.
+        # Prefer SECURITY_AUTHENTICATION_JWT_BASE64_SECRET. Local default is for isolated dev only — never reuse in shared/prod.
         # Generate with: openssl rand -base64 64
-        # Never hardcode secrets in configuration files.
-        base64-secret: ${SECURITY_AUTHENTICATION_JWT_BASE64_SECRET}
+        base64-secret: ${SECURITY_AUTHENTICATION_JWT_BASE64_SECRET:MTgwNmJkMzY5YjY5NWU4YzQ4NGFkMzFhYmMyNTRkYzk3MWUzYzZiZThmYzdmYTFkYzZjNGJmNTU3ZGVlODEyMTYxNmI4NzNhNzA2N2Q2YWEwNDExYmJiMGJkMDMzM2VhZWE5MGMxNjUxZDc1ZjE4MjY1NWViYWY1MjFhNWI0NjI=}
         # Token is valid 24 hours
         token-validity-in-seconds: 86400
         token-validity-in-seconds-for-remember-me: 2592000

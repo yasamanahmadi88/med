@@ -8,9 +8,11 @@ import { additionalModulesFor, moddleExtensionsFor } from '../../additional-modu
 import { translationModuleFor } from '../../i18n/translate';
 import { DEFAULT_ELEMENT_SIZES } from '../../additional-modules/ElementFactory';
 import ModulePropertiesModule from '../../module-properties';
-import { createNewDiagram } from '../../utils/empty-diagram';
+import { blankDiagramXml, createNewDiagram, newDiagramIdentity } from '../../utils/empty-diagram';
 import ContextMenuModule from '../../context-menu';
 import { RoleModulesService } from '../../services/role-modules.service';
+import { BpmnElementAccessService } from '../../services/bpmn-element-access.service';
+import ElementAccessModule from '../../additional-modules/ElementAccess';
 
 @Component({
   selector: 'jhi-designer',
@@ -30,6 +32,7 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
   constructor(
     private bpmnEditorService: BpmnEditorService,
     private roleModulesService: RoleModulesService,
+    private elementAccessService: BpmnElementAccessService,
   ) {}
   ngAfterViewInit(): void {
     // PanelComponent is a sibling, so its ngAfterViewInit runs after this one in the same
@@ -79,7 +82,7 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
     // Right-click: the stock replace menu for an element, our create menu for the canvas.
     // Registered unconditionally — the module reads `config.contextMenu` and steps aside when
     // the setting is off, so the browser's own menu is what appears.
-    modules.push(ContextMenuModule);
+    modules.push(ContextMenuModule, ElementAccessModule);
 
     try {
       this.bpmnModeler = new BpmnModeler({
@@ -119,6 +122,8 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
         // The panel modules read `propertiesPanel.parent`, so it is only set when a parent
         // exists — the editor can be configured without the custom panel.
         roleModulesService: this.roleModulesService,
+        // Plain data only: bpmn-js/didi is framework-agnostic and should not receive Angular services.
+        elementAccess: this.elementAccessService.currentConfig(),
         ...(panelParent ? { propertiesPanel: { parent: panelParent } } : {}),
       });
 
@@ -132,7 +137,16 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
         //
         // Not `modeler.createDiagram()`: that always names the process `Process_1`, discarding
         // the configured processId and processName the flow is keyed on.
-        createNewDiagram(this.bpmnModeler, settings).catch((error: unknown) => {
+        const identity = newDiagramIdentity(settings);
+        createNewDiagram(
+          this.bpmnModeler,
+          settings,
+          // Fall back to an element-free document for an Owner that cannot place a start event,
+          // rather than opening every new diagram on a shape they are not entitled to.
+          this.elementAccessService.isTypeAllowed('bpmn:StartEvent')
+            ? undefined
+            : blankDiagramXml(identity.processId, identity.processName),
+        ).catch((error: unknown) => {
           console.error('Could not create BPMN 2.0 diagram', error);
         });
       }
@@ -149,7 +163,20 @@ export class DesignerComponent implements AfterViewInit, OnDestroy {
   private loadXml(xml: string): void {
     if (!this.bpmnModeler) return;
 
-    this.bpmnModeler.importXML(xml).catch((error: any) => {
+    try {
+      const disallowed = this.elementAccessService.findDisallowedXmlElements(xml);
+      if (disallowed.length > 0) {
+        console.error(
+          `Could not import BPMN 2.0 diagram: ${disallowed.length} element type(s) are not allowed for the active portal owner.`,
+        );
+        return;
+      }
+    } catch (error: unknown) {
+      console.error('Could not import BPMN 2.0 diagram: invalid or unsafe XML', error);
+      return;
+    }
+
+    this.bpmnModeler.importXML(xml).catch((error: unknown) => {
       console.error('Could not import BPMN 2.0 diagram', error);
     });
   }

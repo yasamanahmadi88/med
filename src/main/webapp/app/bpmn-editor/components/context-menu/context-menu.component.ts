@@ -4,6 +4,7 @@ import { Subject, takeUntil } from 'rxjs';
 
 import { BpmnEditorService } from '../../services/bpmn-editor.service';
 import { AppendOption, appendOptions } from '../../context-menu/append-options';
+import { BpmnElementAccessService } from '../../services/bpmn-element-access.service';
 
 /**
  * The "create element" menu, shown when the canvas, a pool or a subprocess is right-clicked.
@@ -24,31 +25,42 @@ export class ContextMenuComponent implements OnInit, OnDestroy {
   open = false;
   x = 0;
   y = 0;
-  readonly options: readonly AppendOption[] = appendOptions();
+  options: readonly AppendOption[] = [];
 
   private modeler: any = null;
+  private eventBus: any = null;
   private openedAt = 0;
   private readonly destroy$ = new Subject<void>();
+
+  private readonly appendOpenHandler = (event: { x: number; y: number }): void => {
+    this.show(event.x, event.y);
+  };
 
   constructor(
     private readonly bpmnEditorService: BpmnEditorService,
     private readonly changeDetector: ChangeDetectorRef,
+    private readonly elementAccessService: BpmnElementAccessService,
   ) {}
 
   ngOnInit(): void {
     this.bpmnEditorService.bpmnModeler$.pipe(takeUntil(this.destroy$)).subscribe(modeler => {
+      this.detachModeler();
+
       this.modeler = modeler;
+      this.open = false;
+
       if (!modeler) {
-        this.open = false;
         return;
       }
-      modeler.get('eventBus').on('contextMenu.append.open', (event: { x: number; y: number }) => {
-        this.show(event.x, event.y);
-      });
+
+      this.eventBus = modeler.get('eventBus');
+      this.eventBus.on('contextMenu.append.open', this.appendOpenHandler);
     });
   }
 
   ngOnDestroy(): void {
+    this.detachModeler();
+    this.modeler = null;
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -104,11 +116,33 @@ export class ContextMenuComponent implements OnInit, OnDestroy {
     return translate ? translate(option.label) : option.label;
   }
 
+  private detachModeler(): void {
+    if (!this.eventBus) {
+      return;
+    }
+
+    this.eventBus.off('contextMenu.append.open', this.appendOpenHandler);
+    this.eventBus = null;
+  }
+
   private show(x: number, y: number): void {
+    // Re-evaluate access on every open so an active-owner/access-policy change can never
+    // leave stale append options visible.
+    this.options = appendOptions().filter(option => this.elementAccessService.isTypeAllowed(option.target.type));
+
+    if (this.options.length === 0) {
+      this.open = false;
+
+      // The event comes from bpmn-js, outside Angular change detection.
+      this.changeDetector.detectChanges();
+      return;
+    }
+
     this.x = x;
     this.y = y;
     this.open = true;
     this.openedAt = Date.now();
+
     // The event arrives from bpmn-js, outside Angular's awareness of what changed.
     this.changeDetector.detectChanges();
   }

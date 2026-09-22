@@ -15,7 +15,6 @@ import com.behsa.medportal.service.dto.ResourceAuthorityDTO;
 import com.behsa.medportal.service.dto.UserDTO;
 import com.behsa.medportal.vaidators.PasswordValidator;
 import com.behsa.medportal.vaidators.dto.PasswordValidationDto;
-import com.behsa.medportal.web.rest.errors.BadRequestAlertException;
 import com.behsa.medportal.web.rest.errors.InvalidPasswordException;
 import com.behsa.medportal.web.rest.vm.AdminPasswordResetVM;
 import com.behsa.medportal.web.rest.vm.KeyAndPasswordVM;
@@ -230,19 +229,12 @@ public class AccountResource {
      *
      * This endpoint intentionally returns the same public response whether the
      * email exists or not, to prevent user enumeration.
-     * Request body is limited to 512 bytes to prevent DoS via unbounded memory allocation (CWE-400).
      *
-     * @param request HTTP request containing email address in body (max 512 bytes)
-     * @throws BadRequestAlertException if request body exceeds 512 bytes
+     * @param mail the mail of the user.
      */
     @PostMapping(path = "/account/reset-password/init")
     public void requestPasswordReset(HttpServletRequest request) throws java.io.IOException {
-        // Limit input size to prevent DoS (email max ~254 chars, adding buffer for JSON)
-        byte[] data = request.getInputStream().readNBytes(513);
-        if (data.length > 512) {
-            throw new BadRequestAlertException("Request too large", "account", "input-too-large");
-        }
-        String mail = new String(data, java.nio.charset.StandardCharsets.UTF_8).trim();
+        String mail = new String(request.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8).trim();
         // Strip optional JSON quotes when clients send a JSON string body.
         if (mail.length() >= 2 && mail.startsWith("\"") && mail.endsWith("\"")) {
             mail = mail.substring(1, mail.length() - 1);
@@ -311,13 +303,6 @@ public class AccountResource {
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * Validate password against policy rules and throw exception if invalid.
-     * Enforces password strength requirements (length, complexity, character classes).
-     *
-     * @param password the password to validate
-     * @throws InvalidPasswordException if password does not meet policy requirements
-     */
     private void validatePasswordOrThrow(String password) {
         PasswordValidationDto validation = passwordValidator.isValid(password);
 
@@ -326,13 +311,6 @@ public class AccountResource {
         }
     }
 
-    /**
-     * Load resource authorities for the given user authority set.
-     * Maps user's string authority names to corresponding resource authority DTOs.
-     *
-     * @param authorities set of user authority strings (e.g., ROLE_ADMIN, ROLE_USER)
-     * @return list of matching resource authority DTOs, or empty list if none found
-     */
     private List<ResourceAuthorityDTO> loadResourceAuthorities(Set<String> authorities) {
         if (authorities == null || authorities.isEmpty()) {
             return List.of();

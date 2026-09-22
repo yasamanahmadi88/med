@@ -158,6 +158,7 @@ export class FlowComponent implements OnInit {
 
   routeToNewFlow() {
     this.flowService.xmlTemp = '';
+    this.flowService.productTemp = null;
     this.router.navigate(['/flow/new'], {
       relativeTo: this.activatedRoute,
       queryParams: { productId: this.route.snapshot.queryParams['filter[productId.in]'] },

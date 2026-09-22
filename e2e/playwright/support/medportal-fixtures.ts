@@ -217,6 +217,11 @@ async function handleApiRoute(route: Route, state: MockState): Promise<void> {
     return;
   }
 
+  if (path === '/api/bpmn-element-access/current') {
+    await fulfillJson(route, bpmnElementAccess());
+    return;
+  }
+
   if (path === '/api/admin/users') {
     await fulfillJson(route, [], paginationHeaders());
     return;
@@ -234,6 +239,77 @@ async function handleApiRoute(route: Route, state: MockState): Promise<void> {
   }
 
   await route.fulfill({ status: 204, body: '' });
+}
+
+/**
+ * Stands in for GET /api/bpmn-element-access/current.
+ *
+ * The editor refuses to seed a diagram until this resolves, so an unhandled route left
+ * #designer-container unrendered and every editor spec failing. Mirrors the seeded catalog
+ * minus the two codes BpmnElementAccessService withholds (CDR_PARSER, CSV_TRANSFORMER):
+ * a diagram that already contains them still opens, but neither is offered for placing.
+ */
+function bpmnElementAccess(): unknown {
+  const bpmnNs = 'http://www.omg.org/spec/BPMN/20100524/MODEL';
+  const catalog: [string, string, string, string, string | null, number][] = [
+    ['BPMN_START_EVENT', 'bpmn:StartEvent', bpmnNs, 'startEvent', 'create.start-event', 10],
+    ['BPMN_END_EVENT', 'bpmn:EndEvent', bpmnNs, 'endEvent', 'create.end-event', 20],
+    ['BPMN_TASK', 'bpmn:Task', bpmnNs, 'task', null, 30],
+    ['BPMN_SERVICE_TASK', 'bpmn:ServiceTask', bpmnNs, 'serviceTask', null, 31],
+    ['BPMN_SEND_TASK', 'bpmn:SendTask', bpmnNs, 'sendTask', null, 32],
+    ['BPMN_RECEIVE_TASK', 'bpmn:ReceiveTask', bpmnNs, 'receiveTask', null, 33],
+    ['BPMN_USER_TASK', 'bpmn:UserTask', bpmnNs, 'userTask', null, 34],
+    ['BPMN_MANUAL_TASK', 'bpmn:ManualTask', bpmnNs, 'manualTask', null, 35],
+    ['BPMN_SCRIPT_TASK', 'bpmn:ScriptTask', bpmnNs, 'scriptTask', null, 36],
+    ['BPMN_BUSINESS_RULE_TASK', 'bpmn:BusinessRuleTask', bpmnNs, 'businessRuleTask', null, 37],
+    ['BPMN_EXCLUSIVE_GATEWAY', 'bpmn:ExclusiveGateway', bpmnNs, 'exclusiveGateway', null, 40],
+    ['BPMN_PARALLEL_GATEWAY', 'bpmn:ParallelGateway', bpmnNs, 'parallelGateway', null, 41],
+    ['BPMN_INCLUSIVE_GATEWAY', 'bpmn:InclusiveGateway', bpmnNs, 'inclusiveGateway', null, 42],
+    ['BPMN_COMPLEX_GATEWAY', 'bpmn:ComplexGateway', bpmnNs, 'complexGateway', null, 43],
+    ['BPMN_EVENT_BASED_GATEWAY', 'bpmn:EventBasedGateway', bpmnNs, 'eventBasedGateway', null, 44],
+    ['BPMN_SUB_PROCESS', 'bpmn:SubProcess', bpmnNs, 'subProcess', null, 50],
+    ['BPMN_CALL_ACTIVITY', 'bpmn:CallActivity', bpmnNs, 'callActivity', null, 51],
+    ['BPMN_BOUNDARY_EVENT', 'bpmn:BoundaryEvent', bpmnNs, 'boundaryEvent', null, 60],
+    ['BPMN_INTERMEDIATE_CATCH_EVENT', 'bpmn:IntermediateCatchEvent', bpmnNs, 'intermediateCatchEvent', null, 61],
+    ['BPMN_INTERMEDIATE_THROW_EVENT', 'bpmn:IntermediateThrowEvent', bpmnNs, 'intermediateThrowEvent', null, 62],
+    ['MERGER', 'Merger:Merger', 'Merger', 'merger', 'create.merger-module', 100],
+    ['FRAGMENTER', 'Fragmenter:Fragmenter', 'Fragmenter', 'fragmenter', 'create.fragmenter-module', 110],
+    ['KAFKA_RECEIVER', 'KafkaReceiver:KafkaReceiver', 'KafkaReceiver', 'kafkaReceiver', 'create.KafkaReceiver-module', 120],
+    [
+      'KAFKA_TRANSMITTER',
+      'KafkaTransmitter:KafkaTransmitter',
+      'KafkaTransmitter',
+      'kafkaTransmitter',
+      'create.KafkaTransmitter-module',
+      130,
+    ],
+    ['HTTP_RECEIVER', 'HttpReceiver:HttpReceiver', 'HttpReceiver', 'httpReceiver', 'create.HttpReceiver-module', 140],
+    ['HTTP_TRANSMITTER', 'HttpTransmitter:HttpTransmitter', 'HttpTransmitter', 'httpTransmitter', 'create.HttpTransmitter-module', 150],
+    ['FILE_RECEIVER', 'FileReceiver:FileReceiver', 'FileReceiver', 'fileReceiver', 'create.fileReceiver-module', 160],
+    ['FILE_TRANSMITTER', 'FileTransmitter:FileTransmitter', 'FileTransmitter', 'fileTransmitter', 'create.FileTransmitter-module', 170],
+    ['DB_RECEIVER', 'DbReceiver:DbReceiver', 'DbReceiver', 'dbReceiver', 'create.dbReceiver-module', 180],
+    ['DB_TRANSMITTER', 'DbTransmitter:DbTransmitter', 'DbTransmitter', 'dbTransmitter', 'create.dbTransmitter-module', 190],
+    ['CUSTOM_ICON_TASK', 'customIcon:CustomTask', 'http://medportal.behsa.com/schema/bpmn/custom-icons', 'customTask', null, 220],
+  ];
+
+  return {
+    ownerCode: 'MEDIATION',
+    ownerDisplayName: 'Mediation Portal',
+    groups: [
+      { id: 1, code: 'CORE_BPMN', name: 'Core BPMN Elements' },
+      { id: 2, code: 'FILE_PROCESSING', name: 'File Processing Elements' },
+    ],
+    elements: catalog.map(([code, bpmnType, namespaceUri, localName, paletteAction, sortOrder], index) => ({
+      id: index + 1,
+      code,
+      bpmnType,
+      namespaceUri,
+      localName,
+      paletteAction,
+      displayName: code,
+      sortOrder,
+    })),
+  };
 }
 
 async function handleManagementRoute(route: Route): Promise<void> {

@@ -303,8 +303,6 @@ test.describe('BPMN editor', () => {
       'create.FileTransmitter-module',
       'create.dbReceiver-module',
       'create.dbTransmitter-module',
-      'create.cdrParser-module',
-      'create.csvTransformerCorner-module',
     ];
 
     const actualActions = await palette

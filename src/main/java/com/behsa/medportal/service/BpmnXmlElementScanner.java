@@ -69,6 +69,30 @@ public class BpmnXmlElementScanner {
         }
     }
 
+    /**
+     * Counts every access-controlled element per type, including any that carry no id.
+     *
+     * <p>{@link #scanInstances} is keyed by id, so an element without one — or a second element
+     * reusing an id already taken — leaves no entry there. Deciding whether every instance of a
+     * type was carried over from an earlier document needs the real total to compare against,
+     * otherwise an id-less instance passes for free.
+     */
+    public Map<XmlElementKey, Long> countInstances(String xml) {
+        if (xml == null || xml.isBlank()) {
+            return Map.of();
+        }
+
+        try {
+            DocumentBuilderFactory factory = secureDocumentBuilderFactory();
+            Document document = factory.newDocumentBuilder().parse(new InputSource(Reader.of(xml)));
+            Map<XmlElementKey, Long> result = new HashMap<>();
+            collectCounts(document.getDocumentElement(), result);
+            return result;
+        } catch (Exception exception) {
+            throw new IllegalArgumentException("Invalid or unsafe BPMN XML", exception);
+        }
+    }
+
     private void collect(Element element, Set<XmlElementKey> result) {
         NodeList children = element.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
@@ -101,6 +125,22 @@ public class BpmnXmlElementScanner {
             }
 
             collectInstances(child, result);
+        }
+    }
+
+    private void collectCounts(Element element, Map<XmlElementKey, Long> result) {
+        NodeList children = element.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node node = children.item(i);
+            if (!(node instanceof Element child)) {
+                continue;
+            }
+
+            if (isAccessControlledChild(element, child)) {
+                result.merge(new XmlElementKey(normalize(child.getNamespaceURI()), localName(child)), 1L, Long::sum);
+            }
+
+            collectCounts(child, result);
         }
     }
 

@@ -140,7 +140,8 @@ class FlowResourceIT {
         org.mockito.Mockito
             .when(
                 bpmnElementAccessService.findDisallowedElements(
-                    org.mockito.ArgumentMatchers.anyString()
+                    org.mockito.ArgumentMatchers.anyString(),
+                    org.mockito.ArgumentMatchers.nullable(String.class)
                 )
             )
             .thenReturn(java.util.Set.of());

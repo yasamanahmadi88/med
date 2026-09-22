@@ -180,11 +180,13 @@ public class FlowResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        if (!flowRepository.existsById(id)) {
-            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
-        }
+        // Loaded rather than probed with existsById: the stored diagram is what decides whether a
+        // restricted element in the submitted one is an edit of an existing shape or a new placement.
+        FlowDTO existing = flowService
+            .findOne(id)
+            .orElseThrow(() -> new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
         validateRequiredProduct(flowDTO.getProduct() != null ? flowDTO.getProduct().getId() : null);
-        validateBpmnElementAccess(flowDTO.getFlow());
+        validateBpmnElementAccess(flowDTO.getFlow(), existing.getFlow());
         if (bpmnParserActive) {
             return sendToBpmnParser(flowDTO, "update", bpmnParserUrl);
         }
@@ -233,7 +235,7 @@ public class FlowResource {
         Long effectiveProductId = flowDTO.getProduct() != null ? flowDTO.getProduct().getId() : existing.getProduct().getId();
         validateRequiredProduct(effectiveProductId);
         String effectiveXml = flowDTO.getFlow() != null ? flowDTO.getFlow() : existing.getFlow();
-        validateBpmnElementAccess(effectiveXml);
+        validateBpmnElementAccess(effectiveXml, existing.getFlow());
 
         Optional<FlowDTO> result = flowService.partialUpdate(flowDTO);
         loggerService.log( ENTITY_NAME+"_UPDATE",new HashMap<>());
@@ -324,9 +326,14 @@ public class FlowResource {
         }
     }
 
+    /** A create has no stored diagram, so nothing in it can be an edit of an existing element. */
     private void validateBpmnElementAccess(String xml) {
+        validateBpmnElementAccess(xml, null);
+    }
+
+    private void validateBpmnElementAccess(String xml, String persistedXml) {
         try {
-            Set<XmlElementKey> disallowed = bpmnElementAccessService.findDisallowedElements(xml);
+            Set<XmlElementKey> disallowed = bpmnElementAccessService.findDisallowedElements(xml, persistedXml);
             if (!disallowed.isEmpty()) {
                 String elementList = disallowed
                     .stream()

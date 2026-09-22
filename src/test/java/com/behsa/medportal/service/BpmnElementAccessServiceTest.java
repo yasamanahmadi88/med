@@ -14,6 +14,7 @@ import com.behsa.medportal.repository.BpmnElementRepository;
 import com.behsa.medportal.service.BpmnXmlElementScanner.XmlElementKey;
 import com.behsa.medportal.service.dto.BpmnElementAccessDTO;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,12 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 class BpmnElementAccessServiceTest {
+
+    /** The scanner is mocked, so these only have to be distinguishable from one another. */
+    private static final String SUBMITTED = "<definitions submitted=\"true\" />";
+    private static final String PERSISTED = "<definitions persisted=\"true\" />";
+
+    private static final XmlElementKey CDR_PARSER = new XmlElementKey("CdrParser", "cdrParser");
 
     @Mock
     private PortalOwnerService portalOwnerService;
@@ -142,6 +149,79 @@ class BpmnElementAccessServiceTest {
         );
     }
 
+    @Test
+    void restrictedElementIsRefusedWhenThereIsNoStoredDiagram() {
+        catalogHoldingMergerAndCdrParser();
+        when(xmlElementScanner.scan(SUBMITTED)).thenReturn(Set.of(CDR_PARSER));
+
+        // A create carries nothing over, so the catalog entry alone never admits it.
+        assertThat(service.findDisallowedElements(SUBMITTED)).containsExactly(CDR_PARSER);
+    }
+
+    @Test
+    void restrictedElementSurvivesAnUpdateThatKeepsItWhereItWas() {
+        catalogHoldingMergerAndCdrParser();
+        when(xmlElementScanner.scan(SUBMITTED)).thenReturn(Set.of(CDR_PARSER));
+        when(xmlElementScanner.scanInstances(SUBMITTED)).thenReturn(Map.of("Cdr_1", CDR_PARSER));
+        when(xmlElementScanner.scanInstances(PERSISTED)).thenReturn(Map.of("Cdr_1", CDR_PARSER));
+        when(xmlElementScanner.countInstances(SUBMITTED)).thenReturn(Map.of(CDR_PARSER, 1L));
+
+        assertThat(service.findDisallowedElements(SUBMITTED, PERSISTED)).isEmpty();
+    }
+
+    @Test
+    void keepingOneRestrictedElementDoesNotLicenceASecond() {
+        catalogHoldingMergerAndCdrParser();
+        when(xmlElementScanner.scan(SUBMITTED)).thenReturn(Set.of(CDR_PARSER));
+        when(xmlElementScanner.scanInstances(SUBMITTED)).thenReturn(Map.of("Cdr_1", CDR_PARSER, "Cdr_2", CDR_PARSER));
+        when(xmlElementScanner.scanInstances(PERSISTED)).thenReturn(Map.of("Cdr_1", CDR_PARSER));
+        when(xmlElementScanner.countInstances(SUBMITTED)).thenReturn(Map.of(CDR_PARSER, 2L));
+
+        assertThat(service.findDisallowedElements(SUBMITTED, PERSISTED)).containsExactly(CDR_PARSER);
+    }
+
+    @Test
+    void restrictedElementAtAnIdTheStoredDiagramNeverHeldIsRefused() {
+        catalogHoldingMergerAndCdrParser();
+        when(xmlElementScanner.scan(SUBMITTED)).thenReturn(Set.of(CDR_PARSER));
+        when(xmlElementScanner.scanInstances(SUBMITTED)).thenReturn(Map.of("Cdr_9", CDR_PARSER));
+        when(xmlElementScanner.scanInstances(PERSISTED)).thenReturn(Map.of("Cdr_1", CDR_PARSER));
+        when(xmlElementScanner.countInstances(SUBMITTED)).thenReturn(Map.of(CDR_PARSER, 1L));
+
+        assertThat(service.findDisallowedElements(SUBMITTED, PERSISTED)).containsExactly(CDR_PARSER);
+    }
+
+    @Test
+    void restrictedElementCarryingNoIdIsRefusedEvenBesideOneThatWasCarriedOver() {
+        catalogHoldingMergerAndCdrParser();
+        when(xmlElementScanner.scan(SUBMITTED)).thenReturn(Set.of(CDR_PARSER));
+        // An id-keyed scan cannot see the second instance; the count is what gives it away.
+        when(xmlElementScanner.scanInstances(SUBMITTED)).thenReturn(Map.of("Cdr_1", CDR_PARSER));
+        when(xmlElementScanner.scanInstances(PERSISTED)).thenReturn(Map.of("Cdr_1", CDR_PARSER));
+        when(xmlElementScanner.countInstances(SUBMITTED)).thenReturn(Map.of(CDR_PARSER, 2L));
+
+        assertThat(service.findDisallowedElements(SUBMITTED, PERSISTED)).containsExactly(CDR_PARSER);
+    }
+
+    @Test
+    void anElementMissingFromTheCatalogIsStillRefusedOnAnUpdate() {
+        XmlElementKey kafka = new XmlElementKey("KafkaReceiver", "kafkaReceiver");
+
+        catalogHoldingMergerAndCdrParser();
+        when(xmlElementScanner.scan(SUBMITTED)).thenReturn(Set.of(kafka));
+        when(xmlElementScanner.scanInstances(SUBMITTED)).thenReturn(Map.of("Kafka_1", kafka));
+        when(xmlElementScanner.scanInstances(PERSISTED)).thenReturn(Map.of("Kafka_1", kafka));
+        when(xmlElementScanner.countInstances(SUBMITTED)).thenReturn(Map.of(kafka, 1L));
+
+        // Carry-over is a concession to the restricted codes only, not to anything unmapped.
+        assertThat(service.findDisallowedElements(SUBMITTED, PERSISTED)).containsExactly(kafka);
+    }
+
+    private void catalogHoldingMergerAndCdrParser() {
+        when(portalOwnerService.getCurrentOwner()).thenReturn(owner());
+        when(elementRepository.findEnabledByOwnerId(1000L)).thenReturn(List.of(merger(), cdrParser()));
+    }
+
     private PortalOwnerEntity owner() {
         PortalOwnerEntity owner = new PortalOwnerEntity();
         owner.setId(1000L);
@@ -163,6 +243,21 @@ class BpmnElementAccessServiceTest {
         element.setDisplayName("Merger");
         element.setEnabled(1);
         element.setSortOrder(10);
+        return element;
+    }
+
+    /** Mapped to the Owner like any other element, and withheld anyway by its element code. */
+    private BpmnElementEntity cdrParser() {
+        BpmnElementEntity element = new BpmnElementEntity();
+        element.setId(3001L);
+        element.setElementCode("CDR_PARSER");
+        element.setBpmnType("CdrParser:CdrParser");
+        element.setNamespaceUri(CDR_PARSER.namespaceUri());
+        element.setLocalName(CDR_PARSER.localName());
+        element.setPaletteAction("create.cdrParser-module");
+        element.setDisplayName("CDR Parser Module");
+        element.setEnabled(1);
+        element.setSortOrder(200);
         return element;
     }
 }

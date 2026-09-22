@@ -204,6 +204,60 @@ class BpmnXmlElementScannerTest {
     }
 
     @Test
+    void shouldCountEveryInstanceIncludingOnesWithoutAnId() {
+        String xml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <bpmn:definitions
+                xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                xmlns:CdrParser="CdrParser">
+
+              <bpmn:process id="Process_1">
+
+                <CdrParser:cdrParser id="CDR_1"/>
+                <CdrParser:cdrParser/>
+                <CdrParser:cdrParser id="CDR_1"/>
+
+                <bpmn:sequenceFlow id="Flow_1"/>
+
+              </bpmn:process>
+            </bpmn:definitions>
+            """;
+
+        // scanInstances collapses all three onto one entry: two share an id and one has none.
+        assertThat(scanner.scanInstances(xml)).hasSize(1);
+
+        assertThat(scanner.countInstances(xml))
+            .containsExactly(Map.entry(new XmlElementKey("CdrParser", "cdrParser"), 3L));
+    }
+
+    @Test
+    void shouldReturnEmptyMapForBlankXmlInCountInstances() {
+        assertThat(scanner.countInstances(null)).isEmpty();
+        assertThat(scanner.countInstances("")).isEmpty();
+        assertThat(scanner.countInstances("   ")).isEmpty();
+    }
+
+    @Test
+    void shouldRejectUnsafeXmlInCountInstances() {
+        String xml = """
+            <?xml version="1.0"?>
+            <!DOCTYPE foo [
+              <!ENTITY xxe SYSTEM "file:///etc/passwd">
+            ]>
+            <bpmn:definitions
+                xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL">
+              <bpmn:process id="Process_1">
+                <bpmn:task id="Task_1" name="&xxe;"/>
+              </bpmn:process>
+            </bpmn:definitions>
+            """;
+
+        assertThatThrownBy(() -> scanner.countInstances(xml))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Invalid or unsafe BPMN XML");
+    }
+
+    @Test
     void shouldUseNamespaceUriAndNotPrefixInScanInstances() {
         String xml = """
             <?xml version="1.0" encoding="UTF-8"?>

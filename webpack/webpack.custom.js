@@ -39,7 +39,10 @@ module.exports = async (config, options, targetOptions) => {
     config.plugins.push(
       new BrowserSyncPlugin(
         {
-          host: 'localhost',
+          // Not `host: 'localhost'`: Browsersync probes this address to find a free port, and probing "localhost" makes
+          // Node >= 20 try ::1 and 127.0.0.1 (autoSelectFamily). On Windows that can end in an AggregateError, which
+          // Browsersync treats as fatal and reports as a bare "AggregateError". Browsersync rejects `host` + `listen`.
+          listen: '127.0.0.1',
           port: 9000,
           https: tls,
           proxy: {

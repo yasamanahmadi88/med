@@ -68,7 +68,7 @@ const INTEGRATION_MODULES: readonly IntegrationModuleEntry[] = [
 /**
  * The integration modules a user may put on the canvas.
  *
- * Everything left out — Kafka, HTTP, DB, CDR and CSV — stays fully supported everywhere else:
+ * Everything left out — Merger, Fragmenter, Kafka, HTTP, DB, CDR and CSV — stays fully supported everywhere else:
  * its moddle extension (`additional-modules/index.ts`), its renderer and its property schema
  * (`module-properties/schemas`) are all still registered, so a flow that already carries one
  * still imports, draws, selects and edits exactly as before. Only the palette entry, which is
@@ -77,8 +77,6 @@ const INTEGRATION_MODULES: readonly IntegrationModuleEntry[] = [
  * This is the whole rule; add a type here to offer it again.
  */
 export const CREATABLE_MODULE_TYPES: readonly string[] = [
-  'Merger:Merger',
-  'Fragmenter:Fragmenter',
   'FileReceiver:FileReceiver',
   'FileTransmitter:FileTransmitter',
 ];

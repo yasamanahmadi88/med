@@ -19,6 +19,8 @@ import { defaultSettings } from '../../config';
 
 /** Everything that used to have a palette entry and deliberately no longer does. */
 const NON_CREATABLE_TYPES = [
+  'Merger:Merger',
+  'Fragmenter:Fragmenter',
   'KafkaReceiver:KafkaReceiver',
   'KafkaTransmitter:KafkaTransmitter',
   'HttpReceiver:HttpReceiver',
@@ -63,9 +65,9 @@ const enhancementEntries = (): Record<string, any> => {
 };
 
 describe('the creatable integration modules', () => {
-  it('is the file flow set: File in and out, plus Merger and Fragmenter', () => {
+  it('is only the file flow modules: File Receiver and File Transmitter', () => {
     expect([...CREATABLE_MODULE_TYPES].sort()).toEqual(
-      ['FileReceiver:FileReceiver', 'FileTransmitter:FileTransmitter', 'Fragmenter:Fragmenter', 'Merger:Merger'].sort(),
+      ['FileReceiver:FileReceiver', 'FileTransmitter:FileTransmitter'].sort(),
     );
   });
 
@@ -96,7 +98,7 @@ describe('the palette providers', () => {
       expect(
         activity.map(([id]) => id),
         name,
-      ).toEqual(['create.merger-module', 'create.fragmenter-module', 'create.fileReceiver-module', 'create.FileTransmitter-module']);
+      ).toEqual(['create.fileReceiver-module', 'create.FileTransmitter-module']);
     }
   });
 

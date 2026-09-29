@@ -293,8 +293,6 @@ test.describe('BPMN editor', () => {
       'global-connect-tool',
       'create.start-event',
       'create.end-event',
-      'create.merger-module',
-      'create.fragmenter-module',
       'create.fileReceiver-module',
       'create.FileTransmitter-module',
       // bpmn-js's own "Create element" entry (`features/create-append-anything`), which opens the

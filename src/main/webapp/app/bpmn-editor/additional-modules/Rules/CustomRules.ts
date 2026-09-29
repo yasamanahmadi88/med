@@ -27,6 +27,10 @@ const UNDELETABLE = ['bpmn:StartEvent', 'bpmn:EndEvent'];
 export default class CustomRules extends RuleProvider {
   static $inject = ['eventBus'];
 
+  constructor(private eventBus: any) {
+    super(eventBus);
+  }
+
   // No constructor: RuleProvider's own calls `init()`, which is where the rule is registered.
   init(): void {
     // `elements.delete` is asked to approve a whole selection at once. Returning the elements
@@ -37,11 +41,11 @@ export default class CustomRules extends RuleProvider {
       context.elements.filter(element => !UNDELETABLE.includes(element.type)),
     );
 
-    // Prevent pasting non-creatable module types. Elements that cannot be created via the palette
-    // also cannot be created or restored via copy/paste. This enforces the creatable modules
-    // allowlist across all creation paths, not just the palette.
-    this.addRule('elements.paste', PRIORITY, (context: { elements: Base[] }) =>
-      context.elements.filter(element => {
+    // Prevent pasting non-creatable module types by listening to the copyPaste.pasteElements event.
+    // Elements that cannot be created via the palette also cannot be created or restored via copy/paste.
+    // This enforces the creatable modules allowlist across all creation paths, not just the palette.
+    this.eventBus.on('copyPaste.pasteElements', (event: { elements: Base[] }) => {
+      const filteredElements = event.elements.filter(element => {
         // Creatable module types pass through.
         if (isCreatableModuleType(element.type)) {
           return true;
@@ -52,7 +56,10 @@ export default class CustomRules extends RuleProvider {
         }
         // Everything else (non-creatable custom module types) is blocked.
         return false;
-      }),
-    );
+      });
+
+      // Replace the elements to be pasted with the filtered list.
+      event.elements = filteredElements;
+    });
   }
 }

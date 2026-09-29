@@ -69,38 +69,54 @@ describe('CustomRules', () => {
     });
   });
 
-  describe('paste rule', () => {
-    it('registers on elements.paste above the default rules', () => {
-      const { rules } = build();
+  describe('paste event handler', () => {
+    it('listens to copyPaste.pasteElements event', () => {
+      const eventBus = { on: vi.fn() };
+      const provider = new CustomRules(eventBus as any);
+      provider.init();
 
-      expect(rules['elements.paste']).toBeDefined();
-      expect(rules['elements.paste'].priority).toBe(2000);
+      expect(eventBus.on).toHaveBeenCalledWith('copyPaste.pasteElements', expect.any(Function));
     });
 
     it('allows pasting stock BPMN elements (tasks, gateways, events)', () => {
-      const { rules } = build();
-      const allow = rules['elements.paste'].fn;
+      const eventBus = { on: vi.fn() };
+      const provider = new CustomRules(eventBus as any);
+      provider.init();
+
+      const handler = (eventBus.on as any).mock.calls.find(call => call[0] === 'copyPaste.pasteElements')[1];
       const bpmnElements = [
         element('bpmn:Task'),
         element('bpmn:ExclusiveGateway'),
         element('bpmn:ParallelGateway'),
         element('bpmn:ServiceTask'),
       ];
+      const event = { elements: [...bpmnElements] };
 
-      expect(allow({ elements: bpmnElements })).toEqual(bpmnElements);
+      handler(event);
+
+      expect(event.elements).toEqual(bpmnElements);
     });
 
     it('allows pasting creatable modules (FileReceiver, FileTransmitter)', () => {
-      const { rules } = build();
-      const allow = rules['elements.paste'].fn;
-      const creatableModules = [element('FileReceiver:FileReceiver'), element('FileTransmitter:FileTransmitter')];
+      const eventBus = { on: vi.fn() };
+      const provider = new CustomRules(eventBus as any);
+      provider.init();
 
-      expect(allow({ elements: creatableModules })).toEqual(creatableModules);
+      const handler = (eventBus.on as any).mock.calls.find(call => call[0] === 'copyPaste.pasteElements')[1];
+      const creatableModules = [element('FileReceiver:FileReceiver'), element('FileTransmitter:FileTransmitter')];
+      const event = { elements: [...creatableModules] };
+
+      handler(event);
+
+      expect(event.elements).toEqual(creatableModules);
     });
 
     it('blocks pasting non-creatable modules (Merger, Fragmenter, Kafka, HTTP, DB, CDR, CSV)', () => {
-      const { rules } = build();
-      const allow = rules['elements.paste'].fn;
+      const eventBus = { on: vi.fn() };
+      const provider = new CustomRules(eventBus as any);
+      provider.init();
+
+      const handler = (eventBus.on as any).mock.calls.find(call => call[0] === 'copyPaste.pasteElements')[1];
       const nonCreatableModules = [
         element('Merger:Merger'),
         element('Fragmenter:Fragmenter'),
@@ -110,29 +126,41 @@ describe('CustomRules', () => {
         element('CdrParser:CdrParser'),
         element('CsvTransformer:CsvTransformer'),
       ];
+      const event = { elements: [...nonCreatableModules] };
 
-      expect(allow({ elements: nonCreatableModules })).toEqual([]);
+      handler(event);
+
+      expect(event.elements).toEqual([]);
     });
 
-    it('allows pasting a mix of creatable modules and BPMN elements, filtering out non-creatable modules', () => {
-      const { rules } = build();
-      const allow = rules['elements.paste'].fn;
+    it('filters out non-creatable modules from a mix of creatable modules and BPMN elements', () => {
+      const eventBus = { on: vi.fn() };
+      const provider = new CustomRules(eventBus as any);
+      provider.init();
+
+      const handler = (eventBus.on as any).mock.calls.find(call => call[0] === 'copyPaste.pasteElements')[1];
       const task = element('bpmn:Task');
       const fileReceiver = element('FileReceiver:FileReceiver');
       const merger = element('Merger:Merger');
       const gateway = element('bpmn:ExclusiveGateway');
+      const event = { elements: [task, fileReceiver, merger, gateway] };
 
-      const allowed = allow({
-        elements: [task, fileReceiver, merger, gateway],
-      });
+      handler(event);
 
-      expect(allowed).toEqual([task, fileReceiver, gateway]);
+      expect(event.elements).toEqual([task, fileReceiver, gateway]);
     });
 
     it('handles an empty selection', () => {
-      const { rules } = build();
+      const eventBus = { on: vi.fn() };
+      const provider = new CustomRules(eventBus as any);
+      provider.init();
 
-      expect(rules['elements.paste'].fn({ elements: [] })).toEqual([]);
+      const handler = (eventBus.on as any).mock.calls.find(call => call[0] === 'copyPaste.pasteElements')[1];
+      const event = { elements: [] };
+
+      handler(event);
+
+      expect(event.elements).toEqual([]);
     });
   });
 });

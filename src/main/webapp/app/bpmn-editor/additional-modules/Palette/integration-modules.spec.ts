@@ -66,9 +66,7 @@ const enhancementEntries = (): Record<string, any> => {
 
 describe('the creatable integration modules', () => {
   it('is only the file flow modules: File Receiver and File Transmitter', () => {
-    expect([...CREATABLE_MODULE_TYPES].sort()).toEqual(
-      ['FileReceiver:FileReceiver', 'FileTransmitter:FileTransmitter'].sort(),
-    );
+    expect([...CREATABLE_MODULE_TYPES].sort()).toEqual(['FileReceiver:FileReceiver', 'FileTransmitter:FileTransmitter'].sort());
   });
 
   it('leaves the Kafka, HTTP, DB, CDR and CSV modules off the list', () => {

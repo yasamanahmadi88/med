@@ -76,10 +76,7 @@ const INTEGRATION_MODULES: readonly IntegrationModuleEntry[] = [
  *
  * This is the whole rule; add a type here to offer it again.
  */
-export const CREATABLE_MODULE_TYPES: readonly string[] = [
-  'FileReceiver:FileReceiver',
-  'FileTransmitter:FileTransmitter',
-];
+export const CREATABLE_MODULE_TYPES: readonly string[] = ['FileReceiver:FileReceiver', 'FileTransmitter:FileTransmitter'];
 
 /** The subset of {@link INTEGRATION_MODULES} the palette offers, in declaration order. */
 export function creatableIntegrationModules(): readonly IntegrationModuleEntry[] {

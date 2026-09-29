@@ -9,6 +9,7 @@ import RewriteRenderer from './Renderer/RewriteRenderer';
 import CustomElementFactory from './ElementFactory';
 import BpmnColorPicker from './ColorPicker';
 import CustomIcons from '../custom-icons';
+import CustomRulesModule from './Rules';
 
 import activiti from '../moddle-extensions/activiti.json';
 import flowable from '../moddle-extensions/flowable.json';
@@ -151,6 +152,10 @@ export function additionalModulesFor(settings: EditorSettings | undefined): unkn
   // outranks whichever of the two custom renderers `rendererMode` selected, and the palette
   // entries are merged into whichever palette provider is in force.
   modules.push(CustomIcons);
+
+  // Custom rules enforce diagram integrity (deletion) and the palette's creatable allowlist
+  // (paste). Both rules are essential and apply regardless of palette/renderer mode.
+  modules.push(CustomRulesModule);
 
   return modules;
 }

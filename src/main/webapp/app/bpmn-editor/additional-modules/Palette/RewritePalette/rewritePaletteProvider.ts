@@ -2,6 +2,7 @@ import PaletteProvider from 'bpmn-js/lib/features/palette/PaletteProvider';
 import ElementFactory from 'bpmn-js/lib/features/modeling/ElementFactory';
 
 import { createAction } from '../utils';
+import { integrationModulePaletteEntries } from '../integration-modules';
 
 /**
  * Palette used by the Mediation BPMN editor.
@@ -122,109 +123,14 @@ class RewritePaletteProvider extends PaletteProvider {
       'create.end-event': createAction(elementFactory, create, 'bpmn:EndEvent', 'events', 'bpmn-icon-end-event-none', 'Create End Event'),
 
       // ------------------------------------------------------------
-      // Mediation / Eventa modules visible in Vue
+      // Mediation / Eventa modules the palette may create
+      //
+      // The list is `integration-modules.ts`, not this file: only the modules on its allowlist
+      // get an entry. The rest still import, render and edit — they are simply not offered as
+      // creation tools.
       // ------------------------------------------------------------
 
-      'create.merger-module': createAction(elementFactory, create, 'Merger:Merger', 'activity', 'merger-module', 'Merger Module'),
-
-      'create.fragmenter-module': createAction(
-        elementFactory,
-        create,
-        'Fragmenter:Fragmenter',
-        'activity',
-        'fragmenter-module',
-        'Fragmenter Module',
-      ),
-
-      'create.KafkaReceiver-module': createAction(
-        elementFactory,
-        create,
-        'KafkaReceiver:KafkaReceiver',
-        'activity',
-        'KafkaReceiver-module',
-        'Kafka Receiver Module',
-      ),
-
-      'create.KafkaTransmitter-module': createAction(
-        elementFactory,
-        create,
-        'KafkaTransmitter:KafkaTransmitter',
-        'activity',
-        'KafkaTransmitter-module',
-        'Kafka Transmitter Module',
-      ),
-
-      'create.HttpReceiver-module': createAction(
-        elementFactory,
-        create,
-        'HttpReceiver:HttpReceiver',
-        'activity',
-        'HttpReceiver-module',
-        'Http Receiver Module',
-      ),
-
-      'create.HttpTransmitter-module': createAction(
-        elementFactory,
-        create,
-        'HttpTransmitter:HttpTransmitter',
-        'activity',
-        'HttpTransmitter-module',
-        'Http Transmitter Module',
-      ),
-
-      'create.fileReceiver-module': createAction(
-        elementFactory,
-        create,
-        'FileReceiver:FileReceiver',
-        'activity',
-        'fileReceiver-module',
-        'File Receiver Module',
-      ),
-
-      'create.FileTransmitter-module': createAction(
-        elementFactory,
-        create,
-        'FileTransmitter:FileTransmitter',
-        'activity',
-        'fileTransmitter-module',
-        'File Transmitter Module',
-      ),
-
-      'create.dbReceiver-module': createAction(
-        elementFactory,
-        create,
-        'DbReceiver:DbReceiver',
-        'activity',
-        'dbReceiver-module',
-        'DB Receiver Module',
-      ),
-
-      'create.dbTransmitter-module': createAction(
-        elementFactory,
-        create,
-        'DbTransmitter:DbTransmitter',
-        'activity',
-        'dbTransmitter-module',
-        'DB Transmitter Module',
-      ),
-
-      'create.cdrParser-module': createAction(
-        elementFactory,
-        create,
-        'CdrParser:CdrParser',
-        'activity',
-        'bpmn-icon-cdrParserModule',
-        'CDR Parser Module',
-      ),
-
-      'create.csvTransformerCorner-module': createAction(
-        elementFactory,
-        create,
-        'CsvTransformer:CsvTransformer',
-        'activity',
-        'csvTransformer-module',
-        'CSV Transformer Module',
-      ),
+      ...integrationModulePaletteEntries(elementFactory, create),
     };
   }
 }

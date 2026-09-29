@@ -1,15 +1,21 @@
 import RuleProvider from 'diagram-js/lib/features/rules/RuleProvider';
 import { Base } from 'diagram-js/lib/model';
+import { isCreatableModuleType } from '../Palette/integration-modules';
 
 /**
- * Keeps a diagram's start and end events from being deleted.
+ * Keeps a diagram's start and end events from being deleted, and prevents pasting
+ * non-creatable integration modules (Merger, Fragmenter, Kafka, HTTP, DB, CDR, CSV).
  *
- * Ported from the Vue editor's `CustomRules`, which is the only rule it defined. Without it a
- * user can select the start event and press Delete, leaving a process that no engine will run
- * and that the editor gives no obvious way to repair — the palette can place a new start event,
- * but nothing says one is missing.
+ * Ported from the Vue editor's `CustomRules`, which originally defined only the delete rule.
+ * Without it a user can select the start event and press Delete, leaving a process that no
+ * engine will run and that the editor gives no obvious way to repair — the palette can place
+ * a new start event, but nothing says one is missing.
  *
- * The rule is additive: everything diagram-js otherwise allows still applies.
+ * The paste rule prevents users from circumventing the palette allowlist by copy/pasting
+ * non-creatable modules from legacy diagrams. While these modules remain fully supported in
+ * existing flows, they cannot be created or restored via paste.
+ *
+ * The rules are additive: everything diagram-js otherwise allows still applies.
  */
 
 /** Above the default rules so this answer is the one that stands. Matches the Vue priority. */
@@ -29,6 +35,24 @@ export default class CustomRules extends RuleProvider {
     // boolean, so one protected element in the selection silently blocked the entire delete.
     this.addRule('elements.delete', PRIORITY, (context: { elements: Base[] }) =>
       context.elements.filter(element => !UNDELETABLE.includes(element.type)),
+    );
+
+    // Prevent pasting non-creatable module types. Elements that cannot be created via the palette
+    // also cannot be created or restored via copy/paste. This enforces the creatable modules
+    // allowlist across all creation paths, not just the palette.
+    this.addRule('elements.paste', PRIORITY, (context: { elements: Base[] }) =>
+      context.elements.filter(element => {
+        // Creatable module types pass through.
+        if (isCreatableModuleType(element.type)) {
+          return true;
+        }
+        // Standard BPMN types (start with 'bpmn:') are always allowed.
+        if (element.type?.startsWith('bpmn:')) {
+          return true;
+        }
+        // Everything else (non-creatable custom module types) is blocked.
+        return false;
+      }),
     );
   }
 }

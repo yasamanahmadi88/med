@@ -51,7 +51,7 @@ test.describe('BPMN editor', () => {
     // to the text until Escape closes it. Worth pinning, because the sequence looks like the key
     // being unbound — it is not — and the shortcut dialog tells users about the Escape.
     const canvas = page.locator('.bpmn-canvas .djs-container');
-    await page.locator('.djs-palette .KafkaReceiver-module').click();
+    await page.locator('.djs-palette .fileReceiver-module').click();
     const box = await canvas.boundingBox();
     await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
 
@@ -171,7 +171,7 @@ test.describe('BPMN editor', () => {
 
     // Stock bpmn-js deletion must keep ordinary and custom shapes removable too.
     const canvas = page.locator('.bpmn-canvas .djs-container');
-    await page.locator('.djs-palette .KafkaReceiver-module').click();
+    await page.locator('.djs-palette .fileReceiver-module').click();
     const box = await canvas.boundingBox();
     await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
 
@@ -278,7 +278,7 @@ test.describe('BPMN editor', () => {
     expect(lineBoxes).toBe(1);
   });
 
-  test('shows exactly the Vue palette tools in the Vue order', async ({ page, mockApi }) => {
+  test('shows the tools, the events and only the creatable integration modules', async ({ page, mockApi }) => {
     await mockApi({ account: 'admin' });
 
     await page.goto('/bpmn-editor');
@@ -295,16 +295,12 @@ test.describe('BPMN editor', () => {
       'create.end-event',
       'create.merger-module',
       'create.fragmenter-module',
-      'create.KafkaReceiver-module',
-      'create.KafkaTransmitter-module',
-      'create.HttpReceiver-module',
-      'create.HttpTransmitter-module',
       'create.fileReceiver-module',
       'create.FileTransmitter-module',
-      'create.dbReceiver-module',
-      'create.dbTransmitter-module',
-      'create.cdrParser-module',
-      'create.csvTransformerCorner-module',
+      // bpmn-js's own "Create element" entry (`features/create-append-anything`), which opens the
+      // popup menu of stock BPMN types. It is registered by the library, not by this palette, and
+      // it offers no integration module — so it is not a way around the list above.
+      'create',
     ];
 
     const actualActions = await palette
@@ -328,6 +324,22 @@ test.describe('BPMN editor', () => {
       await expect(palette.locator(`.${className}`), `unexpected palette entry .${className}`).toHaveCount(0);
     }
 
+    // These integration modules are deliberately not creatable: flows are built out of the file
+    // modules, and a flow that already carries one of these still imports, draws and edits —
+    // it just cannot gain a new one. See `additional-modules/Palette/integration-modules.ts`.
+    for (const action of [
+      'create.KafkaReceiver-module',
+      'create.KafkaTransmitter-module',
+      'create.HttpReceiver-module',
+      'create.HttpTransmitter-module',
+      'create.dbReceiver-module',
+      'create.dbTransmitter-module',
+      'create.cdrParser-module',
+      'create.csvTransformerCorner-module',
+    ]) {
+      await expect(palette.locator(`[data-action="${action}"]`), `unexpected palette entry ${action}`).toHaveCount(0);
+    }
+
     // Custom icon infrastructure stays installed for existing diagrams but
     // contributes no palette entry until an icon actually exists in the library.
     await expect(palette.locator('.custom-icon-entry')).toHaveCount(0);
@@ -341,10 +353,10 @@ test.describe('BPMN editor', () => {
     await expect(canvas).toBeVisible();
     const before = await page.locator('.bpmn-canvas .djs-element').count();
 
-    // This is the end-to-end proof that the palette, the KafkaReceiver moddle extension, the
+    // This is the end-to-end proof that the palette, the FileReceiver moddle extension, the
     // custom element factory and the renderer all agree: without any one of them this click
     // either throws on an unknown namespace or draws nothing.
-    await page.locator('.djs-palette .KafkaReceiver-module').click();
+    await page.locator('.djs-palette .fileReceiver-module').click();
     const box = await canvas.boundingBox();
     await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
 
@@ -358,7 +370,7 @@ test.describe('BPMN editor', () => {
 
     const canvas = page.locator('.bpmn-canvas .djs-container');
     await expect(canvas).toBeVisible();
-    await page.locator('.djs-palette .KafkaReceiver-module').click();
+    await page.locator('.djs-palette .fileReceiver-module').click();
     const box = await canvas.boundingBox();
     await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
     await page.keyboard.press('Escape');
@@ -369,7 +381,7 @@ test.describe('BPMN editor', () => {
     // squashed, since the renderer stretches it to the shape's box.
     //
     // Read off the SVG so the assertion does not depend on the canvas zoom. moddle names the
-    // shape after the nearest BPMN supertype it knows, so a placed KafkaReceiver is
+    // shape after the nearest BPMN supertype it knows, so a placed FileReceiver is
     // `Activity_<id>` — the only Activity on a diagram that otherwise holds one start event.
     const shape = page.locator('.bpmn-canvas .djs-element[data-element-id^="Activity_"] .djs-visual > rect').first();
     await expect(shape).toHaveAttribute('width', '120');
@@ -487,7 +499,7 @@ test.describe('BPMN editor', () => {
     const startEventIcon = await icon.innerHTML();
 
     const canvas = page.locator('.bpmn-canvas .djs-container');
-    await page.locator('.djs-palette .KafkaReceiver-module').click();
+    await page.locator('.djs-palette .fileReceiver-module').click();
     const box = await canvas.boundingBox();
     await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
     await page.keyboard.press('Escape');
@@ -660,7 +672,7 @@ test.describe('BPMN editor', () => {
     await page.goto('/bpmn-editor');
 
     const canvas = page.locator('.bpmn-canvas .djs-container');
-    await page.locator('.djs-palette .KafkaReceiver-module').click();
+    await page.locator('.djs-palette .fileReceiver-module').click();
     const box = await canvas.boundingBox();
     await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
     await page.keyboard.press('Escape');
@@ -711,7 +723,7 @@ test.describe('BPMN editor', () => {
     await page.goto('/bpmn-editor');
 
     const canvas = page.locator('.bpmn-canvas .djs-container');
-    await page.locator('.djs-palette .KafkaReceiver-module').click();
+    await page.locator('.djs-palette .fileReceiver-module').click();
     const box = await canvas.boundingBox();
     await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 3);
     await page.keyboard.press('Escape');

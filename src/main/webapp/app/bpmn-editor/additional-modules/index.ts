@@ -36,9 +36,13 @@ import { EditorSettings } from '../types/editor/settings';
 /**
  * Moddle extensions for the editor's own integration modules, plus the custom-icon library.
  *
- * Each key is the namespace prefix the palette builds shapes with — creating, say, a
+ * Each key is the namespace prefix a module's elements carry — reading or creating, say, a
  * `KafkaReceiver:KafkaReceiver` shape only resolves once `KafkaReceiver` is registered, so these
  * travel with the custom palette rather than being optional.
+ *
+ * The list stays complete even though the palette no longer offers every one of them
+ * (`Palette/integration-modules.ts`): dropping an extension here would stop a flow that already
+ * carries that module from importing at all, which is exactly what the palette rule must not do.
  */
 const integrationModuleExtensions: Record<string, unknown> = {
   CdrParser,

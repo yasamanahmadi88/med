@@ -117,9 +117,11 @@ describe('bpmn-editor additional modules', () => {
       }
     });
 
-    it('resolves every type the custom palettes place', () => {
-      // These are the exact strings the two palette providers hand to elementFactory.createShape.
-      // An unresolved one throws "unknown type" the moment the entry is clicked.
+    it('resolves every integration-module type a diagram can carry', () => {
+      // These are the types the editor has to understand, not the shorter list the palette still
+      // offers (`Palette/integration-modules.ts`). An unresolved one throws "unknown type" — the
+      // moment the palette entry is clicked for a creatable module, and on importXML for a flow
+      // that was built with one of the rest.
       const moddle = build(moddleExtensionsFor(defaultSettings));
 
       for (const type of [

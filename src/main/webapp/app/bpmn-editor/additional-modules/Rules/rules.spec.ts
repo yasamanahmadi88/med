@@ -78,7 +78,7 @@ describe('CustomRules', () => {
       expect(eventBus.on).toHaveBeenCalledWith('copyPaste.pasteElements', expect.any(Function));
     });
 
-    it('allows pasting stock BPMN elements (tasks, gateways, events)', () => {
+    it('allows pasting stock BPMN elements without calling preventDefault', () => {
       const eventBus = { on: vi.fn() };
       const provider = new CustomRules(eventBus as any);
       provider.init();
@@ -90,28 +90,28 @@ describe('CustomRules', () => {
         element('bpmn:ParallelGateway'),
         element('bpmn:ServiceTask'),
       ];
-      const event = { elements: [...bpmnElements] };
+      const event = { elements: bpmnElements, preventDefault: vi.fn() };
 
       handler(event);
 
-      expect(event.elements).toEqual(bpmnElements);
+      expect(event.preventDefault).not.toHaveBeenCalled();
     });
 
-    it('allows pasting creatable modules (FileReceiver, FileTransmitter)', () => {
+    it('allows pasting creatable modules without calling preventDefault', () => {
       const eventBus = { on: vi.fn() };
       const provider = new CustomRules(eventBus as any);
       provider.init();
 
       const handler = (eventBus.on as any).mock.calls.find(call => call[0] === 'copyPaste.pasteElements')[1];
       const creatableModules = [element('FileReceiver:FileReceiver'), element('FileTransmitter:FileTransmitter')];
-      const event = { elements: [...creatableModules] };
+      const event = { elements: creatableModules, preventDefault: vi.fn() };
 
       handler(event);
 
-      expect(event.elements).toEqual(creatableModules);
+      expect(event.preventDefault).not.toHaveBeenCalled();
     });
 
-    it('blocks pasting non-creatable modules (Merger, Fragmenter, Kafka, HTTP, DB, CDR, CSV)', () => {
+    it('prevents pasting non-creatable modules by calling preventDefault', () => {
       const eventBus = { on: vi.fn() };
       const provider = new CustomRules(eventBus as any);
       provider.init();
@@ -126,14 +126,14 @@ describe('CustomRules', () => {
         element('CdrParser:CdrParser'),
         element('CsvTransformer:CsvTransformer'),
       ];
-      const event = { elements: [...nonCreatableModules] };
+      const event = { elements: nonCreatableModules, preventDefault: vi.fn() };
 
       handler(event);
 
-      expect(event.elements).toEqual([]);
+      expect(event.preventDefault).toHaveBeenCalled();
     });
 
-    it('filters out non-creatable modules from a mix of creatable modules and BPMN elements', () => {
+    it('prevents pasting when a mix includes non-creatable modules', () => {
       const eventBus = { on: vi.fn() };
       const provider = new CustomRules(eventBus as any);
       provider.init();
@@ -143,24 +143,24 @@ describe('CustomRules', () => {
       const fileReceiver = element('FileReceiver:FileReceiver');
       const merger = element('Merger:Merger');
       const gateway = element('bpmn:ExclusiveGateway');
-      const event = { elements: [task, fileReceiver, merger, gateway] };
+      const event = { elements: [task, fileReceiver, merger, gateway], preventDefault: vi.fn() };
 
       handler(event);
 
-      expect(event.elements).toEqual([task, fileReceiver, gateway]);
+      expect(event.preventDefault).toHaveBeenCalled();
     });
 
-    it('handles an empty selection', () => {
+    it('handles an empty selection without calling preventDefault', () => {
       const eventBus = { on: vi.fn() };
       const provider = new CustomRules(eventBus as any);
       provider.init();
 
       const handler = (eventBus.on as any).mock.calls.find(call => call[0] === 'copyPaste.pasteElements')[1];
-      const event = { elements: [] };
+      const event = { elements: [], preventDefault: vi.fn() };
 
       handler(event);
 
-      expect(event.elements).toEqual([]);
+      expect(event.preventDefault).not.toHaveBeenCalled();
     });
   });
 });

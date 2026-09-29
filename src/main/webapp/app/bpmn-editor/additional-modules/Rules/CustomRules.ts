@@ -44,22 +44,24 @@ export default class CustomRules extends RuleProvider {
     // Prevent pasting non-creatable module types by listening to the copyPaste.pasteElements event.
     // Elements that cannot be created via the palette also cannot be created or restored via copy/paste.
     // This enforces the creatable modules allowlist across all creation paths, not just the palette.
-    this.eventBus.on('copyPaste.pasteElements', (event: { elements: Base[] }) => {
-      const filteredElements = event.elements.filter(element => {
-        // Creatable module types pass through.
+    this.eventBus.on('copyPaste.pasteElements', (event: any) => {
+      const hasNonCreatable = event.elements.some((element: Base) => {
+        // Creatable module types are allowed.
         if (isCreatableModuleType(element.type)) {
-          return true;
+          return false;
         }
-        // Standard BPMN types (start with 'bpmn:') are always allowed.
+        // Standard BPMN types (start with 'bpmn:') are allowed.
         if (element.type?.startsWith('bpmn:')) {
-          return true;
+          return false;
         }
-        // Everything else (non-creatable custom module types) is blocked.
-        return false;
+        // Non-creatable custom module types are not allowed.
+        return true;
       });
 
-      // Replace the elements to be pasted with the filtered list.
-      event.elements = filteredElements;
+      // If any non-creatable modules are present, prevent the paste operation entirely.
+      if (hasNonCreatable) {
+        event.preventDefault();
+      }
     });
   }
 }

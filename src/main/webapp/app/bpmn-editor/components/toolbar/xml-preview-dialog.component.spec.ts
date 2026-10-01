@@ -12,6 +12,10 @@ describe('XmlPreviewDialogComponent', () => {
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
   };
 
+  const execCommand = (impl: ReturnType<typeof vi.fn>): void => {
+    Object.defineProperty(document, 'execCommand', { value: impl, configurable: true, writable: true });
+  };
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [XmlPreviewDialogComponent],
@@ -26,6 +30,7 @@ describe('XmlPreviewDialogComponent', () => {
   afterEach(() => {
     fixture.destroy();
     Reflect.deleteProperty(navigator, 'clipboard');
+    Reflect.deleteProperty(document, 'execCommand');
   });
 
   it('shows the xml it was given', () => {
@@ -73,7 +78,52 @@ describe('XmlPreviewDialogComponent', () => {
     error.mockRestore();
   });
 
-  it('says so when there is no clipboard api at all', () => {
+  it('falls back to execCommand when there is no clipboard api', () => {
+    // navigator.clipboard only exists in a secure context, so the app served over plain http
+    // from another machine (http://<host>:8080) has none, while localhost does.
+    Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true });
+    let copied: string | undefined;
+    execCommand(
+      vi.fn(() => {
+        copied = (document.activeElement as HTMLTextAreaElement).value;
+        return true;
+      }),
+    );
+    component.xml = '<definitions />';
+
+    component.copy();
+
+    expect(document.execCommand).toHaveBeenCalledWith('copy');
+    expect(copied).toBe('<definitions />');
+    expect(component.copyState).toBe('copied');
+    expect(document.querySelector('textarea')).toBeNull();
+  });
+
+  it('falls back to execCommand when the clipboard api refuses', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    clipboard(vi.fn().mockRejectedValue(new Error('denied')));
+    execCommand(vi.fn().mockReturnValue(true));
+
+    component.copy();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(document.execCommand).toHaveBeenCalledWith('copy');
+    expect(component.copyState).toBe('copied');
+    error.mockRestore();
+  });
+
+  it('says so when there is no clipboard api and the fallback fails too', () => {
+    Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true });
+    execCommand(vi.fn().mockReturnValue(false));
+
+    component.copy();
+
+    expect(component.copyState).toBe('failed');
+    expect(document.querySelector('textarea')).toBeNull();
+  });
+
+  it('says so when there is no clipboard api and no execCommand either', () => {
     Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true });
 
     component.copy();

@@ -46,21 +46,49 @@ export class XmlPreviewDialogComponent {
   }
 
   copy(): void {
-    // Absent on an insecure origin, so this is a real branch rather than defensive noise.
+    // Absent on an insecure origin (the app served over plain http from another machine), so this
+    // is a real branch rather than defensive noise.
     if (!navigator.clipboard) {
-      this.copyState = 'failed';
+      this.copyState = this.copyWithExecCommand() ? 'copied' : 'failed';
       return;
     }
     navigator.clipboard.writeText(this.xml).then(
       () => (this.copyState = 'copied'),
       (error: unknown) => {
         console.error('Could not copy the diagram XML', error);
-        this.copyState = 'failed';
+        this.copyState = this.copyWithExecCommand() ? 'copied' : 'failed';
       },
     );
   }
 
   close(): void {
     this.activeModal.dismiss('cancel');
+  }
+
+  /**
+   * The pre-Clipboard-API way to copy: select the text in a throwaway textarea and ask the browser
+   * to copy the selection. Deprecated, but still the only option outside a secure context.
+   */
+  private copyWithExecCommand(): boolean {
+    if (typeof document.execCommand !== 'function') {
+      return false;
+    }
+    const textarea = document.createElement('textarea');
+    textarea.value = this.xml;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    // Inside the modal, because ngbModal traps focus and would pull it back out of a textarea on <body>.
+    const host = document.querySelector('.modal.show') ?? document.body;
+    host.appendChild(textarea);
+    try {
+      textarea.focus();
+      textarea.select();
+      return document.execCommand('copy');
+    } catch {
+      return false;
+    } finally {
+      textarea.remove();
+    }
   }
 }
